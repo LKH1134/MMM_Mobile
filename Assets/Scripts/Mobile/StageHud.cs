@@ -6,6 +6,7 @@ namespace MoreMush.Mobile
 {
     // InGame 씬 상단 HUD. 제한 시간을 스스로 세고(일시정지 중엔 멈춤), 번 골드·콤보는 게임 쪽에서 SetGold/SetCombo로 넣는다.
     // startOnAwake를 끄면 게임 쪽에서 StartTimer를 부를 때(첫 투척)부터 센다.
+    // 배속(1·2·4배)도 여기서 Time.timeScale로 건다 — 게임 전체(제한 시간 포함)가 같이 빨라진다.
     // 일시정지는 팝업 없이 Time.timeScale만 0으로 내린다. 옵션 팝업이 열려 있는 동안에도 멈춘다
     // (둘은 따로 센다 — 일시정지한 채로 옵션을 열었다 닫아도 계속 멈춰 있다).
     public class StageHud : MonoBehaviour
@@ -23,14 +24,33 @@ namespace MoreMush.Mobile
         [SerializeField] PopupSlot optionPopup;   // 프리팹. 처음 열 때 이 캔버스 아래에 만든다
         [SerializeField] Button pauseButton;
 
+        [SerializeField] Button speedButton;          // 누를 때마다 다음 배속으로 (끝에서 처음으로 돌아간다)
+        [SerializeField] Image speedIcon;
+        [SerializeField] TMP_Text speedText;
+        [SerializeField] SpeedStep[] speeds =
+        {
+            new SpeedStep { scale = 1f }, new SpeedStep { scale = 2f }, new SpeedStep { scale = 4f },
+        };
+
+        [System.Serializable]
+        public struct SpeedStep
+        {
+            public float scale;                       // Time.timeScale. 제한 시간도 같이 빨라진다
+            public Sprite icon;
+        }
+
+        const string SpeedKey = "InGame.SpeedIndex";  // 다음 판에도 고른 배속을 이어 간다
+
         public float Remaining { get; private set; }
         public bool Paused { get; private set; }
         public bool TimerStarted { get; private set; }
+        public float Speed => speeds.Length > 0 ? speeds[speedIndex].scale : 1f;
         public event System.Action TimeUp;
 
         long gold;
         int combo;
         int shownSecond = -1;
+        int speedIndex;
 
         void Awake()
         {
@@ -41,6 +61,10 @@ namespace MoreMush.Mobile
             };
             optionButton.onClick.AddListener(() => optionPopup.Get(transform).Toggle());
             pauseButton.onClick.AddListener(TogglePause);
+            if (speedButton != null) speedButton.onClick.AddListener(NextSpeed);
+            speedIndex = Mathf.Clamp(PlayerPrefs.GetInt(SpeedKey, 0), 0, Mathf.Max(0, speeds.Length - 1));
+            ShowSpeed();
+            ApplyTimeScale();
             Remaining = duration;
             TimerStarted = startOnAwake;
             SetGold(0);
@@ -85,7 +109,25 @@ namespace MoreMush.Mobile
             ApplyTimeScale();
         }
 
-        void ApplyTimeScale() => Time.timeScale = Paused || optionPopup.IsOpen ? 0f : 1f;
+        // 1 → 2 → 4 → 1 ... 순서로 돈다
+        public void NextSpeed()
+        {
+            if (speeds.Length == 0) return;
+            speedIndex = (speedIndex + 1) % speeds.Length;
+            PlayerPrefs.SetInt(SpeedKey, speedIndex);
+            ShowSpeed();
+            ApplyTimeScale();
+        }
+
+        void ShowSpeed()
+        {
+            if (speeds.Length == 0) return;
+            var step = speeds[speedIndex];
+            if (speedText != null) speedText.text = step.scale.ToString("0.##") + "배속";
+            if (speedIcon != null && step.icon != null) speedIcon.sprite = step.icon;
+        }
+
+        void ApplyTimeScale() => Time.timeScale = Paused || optionPopup.IsOpen ? 0f : Speed;
 
         void ShowTime()
         {

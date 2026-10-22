@@ -1194,7 +1194,23 @@ MonoBehaviour:
   optionButton: {fileID: 301162931}
   optionPopup:
     prefab: {fileID: 5568184748944377759, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+  menus:
+  - button: {fileID: 1679042791}
+    popup:
+      prefab: {fileID: 2188284286884072998, guid: e976e54d91f47954a82ee043f662dfde, type: 3}
+  - button: {fileID: 323268330}
+    popup:
+      prefab: {fileID: 2188284286884072998, guid: 1579bb22a80bda04db54e1af9b3855cf, type: 3}
+  - button: {fileID: 131098342}
+    popup:
+      prefab: {fileID: 2188284286884072998, guid: e1cd8b5900129a64ca2e34d9ac283436, type: 3}
+  - button: {fileID: 1739563268}
+    popup:
+      prefab: {fileID: 2188284286884072998, guid: d3956fe6b6393154ba8cf6f6505e3866, type: 3}
   backScene: SkillTree
+  basketButton: {fileID: 627711773}
+  toastPrefab: {fileID: 56380357808796695, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
+  toastDuration: 3
 --- !u!1 &451759877
 GameObject:
   m_ObjectHideFlags: 0
