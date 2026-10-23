@@ -27,8 +27,9 @@ namespace MoreMush.Mobile
     // Skill.xlsx — 3001~3999
     public class SkillData : TableRow
     {
-        public string ability;     // 능력 종류 키. 효과 코드가 이 키로 찾는다
-        public float abilityValue; // 능력 수치 (배율·증가량 등, 해석은 ability마다)
+        public string ability;     // 능력 종류 키 (SkillAbility). 효과 코드가 이 키로 찾는다
+        public float abilityValue; // 레벨당 능력 수치 (배율·증가량 등, 해석은 ability마다)
+        public int maxLevel;       // 최대 레벨. 비우면 1
         public long unlockPrice;   // 해금 가격
         public Currency currency;
         public int[] requires;     // 먼저 해금해야 하는 스킬 index들 (스킬 트리 선행 조건)

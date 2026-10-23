@@ -9,14 +9,15 @@ namespace MoreMush.Mobile
     public class Harvester : MonoBehaviour, IPoolable
     {
         [SerializeField] float radius = 45f;          // 충돌 반지름
-        [SerializeField] int damage = 1;              // 한 번 부딪힐 때 버섯 체력을 깎는 양
+        [SerializeField] int damage = 1;              // 기본 공격력. 한 번 부딪힐 때 버섯 체력을 깎는 양
         [SerializeField] float spinSpeed = 900f;      // 날아가는 동안 도는 속도(도/초)
         [SerializeField] RectTransform visual;        // 돌릴 그림. 비우면 회전 없음
 
         RectTransform rect;
 
         public float Radius => radius;
-        public int Damage => damage;
+        public int BonusDamage { get; set; }          // 스킬 등으로 더해지는 공격력. 꺼낼 때 HarvestField가 넣는다
+        public int Damage => damage + BonusDamage;
         public Vector2 Position { get; set; }
         public Vector2 Velocity { get; set; }
         public bool IsMoving => Velocity.sqrMagnitude > 0f;

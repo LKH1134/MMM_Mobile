@@ -217,6 +217,19 @@ Canvas  (StageHud, HarvestGame)
 
 `.bytes` 복사본도 커밋해야 빌드에 들어갑니다.
 
+### SkillTree 스킬 노드 (2026-10-23 추가)
+
+- `Skill.xlsx`에 `maxLevel` 열을 추가했습니다(비우면 1). 테스트용 임시 스킬(3001)은 지웠고, 지금은 표와 씬 모두 비어 있습니다.
+- 노드 프리팹 `Prefabs/Mobile/SkillTree/SkillNode`는 `skillIndex`로 표의 행을 찾습니다 (0 = 비어 있는 노드). 노드는 `SkillTree/Content/Nodes` 아래에 둡니다.
+- **노드 규격 (사용자 확정, 앞으로 이 규격으로 만든다)** — 새 노드는 이 프리팹을 인스턴스로 배치하고 `skillIndex`만 바꾼다
+  - 루트 `SkillNode`: 150×150, `btn_cream` (Sliced), Button + SkillNode
+  - `Icon`: 80×80, 가운데에서 위로 16, preserveAspect, 레이캐스트 끔
+  - `Level`: 아래쪽 가로 전체, 높이 44, 아래에서 16, Jua 24pt, 갈색 (0.36, 0.24, 0.14), 가운데 정렬, "0/1"
+- 노드를 누르면 `SkillInfo`가 열리고, 같은 노드나 빈 곳(`SkillTree/Blank`)을 누르면 닫힙니다. `SkillInfoPanel`의 배우기 버튼으로 레벨을 올립니다.
+- 스킬 레벨은 `SkillProgress`가 PlayerPrefs `Skill.Level.<index>`에 저장합니다. **가격은 아직 차감하지 않습니다.**
+- 능력 적용: `SkillProgress.Total(ability)` = 같은 능력을 가진 스킬들의 `abilityValue × 레벨` 합. `HarvestField.SpawnHarvester`가 `harvester_damage` 합을 `Harvester.BonusDamage`로 넣습니다.
+- 새 능력은 `SkillAbility`에 키 상수를 추가하고, 그 능력을 쓰는 쪽에서 `Total()`을 읽으면 됩니다.
+
 ---
 
 ## 9. 다음 작업 후보

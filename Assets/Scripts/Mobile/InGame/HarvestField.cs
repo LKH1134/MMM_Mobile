@@ -129,6 +129,7 @@ namespace MoreMush.Mobile
                 harvesterPools.Add(prefab, pool = new PrefabPool<Harvester>(prefab, harvesterLayer));
             var h = pool.Get();
             h.Pool = pool;
+            h.BonusDamage = Mathf.RoundToInt(SkillProgress.Total(SkillAbility.HarvesterDamage));
             h.Place(position);
             harvesters.Add(h);
             return h;
