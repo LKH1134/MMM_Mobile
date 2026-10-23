@@ -184,7 +184,42 @@ Canvas  (StageHud, HarvestGame)
 
 ---
 
-## 8. 다음 작업 후보
+## 8. 데이터 표 (2026-10-23 추가)
+
+엑셀(xlsx)로 관리하고 런타임에 파싱합니다. 지금은 **스키마만 있고 값은 비어 있습니다.**
+
+| 표 | 파일 | index | 고유 열 |
+|---|---|---|---|
+| 버섯 | `Assets/Data/Tables/Mushroom.xlsx` | 1001~1999 | `dexNo` 도감 번호, `hp`, `reward`, `prefab` |
+| 수확기 | `Harvester.xlsx` | 2001~2999 | `unlockPrice` 해금 가격, `currency`, `damage`, `speed`, `prefab` |
+| 스킬 | `Skill.xlsx` | 3001~3999 | `ability` 능력 키, `abilityValue`, `unlockPrice`, `currency`, `requires` 선행 스킬 |
+| 보스 | `Boss.xlsx` | 4001~4999 | `hpRate` 체력 배율, `ability`, `abilityValue`, `reward`, `prefab` |
+
+공통 열: `index`, `key` (영문 식별자), `name` (인게임 이름), `icon`, `desc`, `#memo` (`#`으로 시작하는 열은 읽지 않음)
+
+**시트 형식:** 1행 열 이름(= C# 필드 이름) · 2행 자료형 · 3행 설명 · 4행부터 데이터. `index`가 빈 행은 건너뜁니다.
+
+**흐름:** 엑셀 저장 → `TableImporter`(에디터)가 `Assets/Resources/Tables/<이름>.bytes`로 복사하고 검사 결과를 콘솔에 출력 → 런타임 `GameData`가 씬 로드 전에 `.bytes`를 파싱  
+**사용:** `GameData.Mushrooms.Get(1001)`, `GameData.Skills.GetByKey("speed_up")`, `GameData.Bosses.All`  
+**수동 갱신:** 메뉴 `MoreMush/Data/Reimport Tables`
+
+| 파일 | 역할 |
+|---|---|
+| `Scripts/Mobile/Data/XlsxReader.cs` | xlsx(zip+XML) 읽기, 외부 라이브러리 없음 |
+| `Scripts/Mobile/Data/DataTable.cs` | 시트 → 행 객체, 자료형 변환, index 범위·중복·key 중복 검사 |
+| `Scripts/Mobile/Data/TableRows.cs` | 행 클래스 4종 + `Currency` (Gold / Mycelite) |
+| `Scripts/Mobile/Data/GameData.cs` | 표 등록, Resources에서 읽기 |
+| `Scripts/Mobile/Data/Editor/TableImporter.cs` | xlsx → .bytes 복사, 검사 |
+| `Scripts/Mobile/Data/link.xml` | IL2CPP 코드 제거로부터 행 클래스 보호 |
+
+**열 추가:** 행 클래스에 public 필드를 추가하고, 엑셀에 같은 이름의 열을 추가합니다. 둘이 어긋나면 임포터가 경고합니다.  
+**표 추가:** 행 클래스 작성 → `GameData`에 등록 → `TableImporter.Validate`에 한 줄 → `link.xml`에 클래스 추가
+
+`.bytes` 복사본도 커밋해야 빌드에 들어갑니다.
+
+---
+
+## 9. 다음 작업 후보
 
 1. 결과의 번 돈을 플레이어 지갑에 저장 (`HarvestGame.GameOver`에 연결) → WorldTree 골드 표시와 연동
 2. 바구니 기능 (쌓임 → `SetBasket`, 지급 → `CollectBasket`)

@@ -1,0 +1,10 @@
+<!-- 데이터 표 행 클래스는 필드를 리플렉션으로 채운다. IL2CPP 코드 제거가 필드를 지우지 않게 통째로 남긴다 -->
+<linker>
+  <assembly fullname="Assembly-CSharp">
+    <type fullname="MoreMush.Mobile.TableRow" preserve="all" />
+    <type fullname="MoreMush.Mobile.MushroomData" preserve="all" />
+    <type fullname="MoreMush.Mobile.HarvesterData" preserve="all" />
+    <type fullname="MoreMush.Mobile.SkillData" preserve="all" />
+    <type fullname="MoreMush.Mobile.BossData" preserve="all" />
+  </assembly>
+</linker>
