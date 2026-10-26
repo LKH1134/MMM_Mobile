@@ -171,10 +171,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6913ffbfd3b0385419f9e9ff068434fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.DataResetButton
-  label: {fileID: 3891961586686096361}
-  normalText: "\uB370\uC774\uD130 \uCD08\uAE30\uD654"
-  confirmText: "\uD55C \uBC88 \uB354 \uB204\uB974\uBA74 \uCD08\uAE30\uD654"
-  confirmTime: 3
+  confirmPopup:
+    prefab: {fileID: 5568184748944377759, guid: 92f3b1ecd36e0dc4f84d81e4e442e0cb, type: 3}
+  title: "\uB370\uC774\uD130 \uCD08\uAE30\uD654"
+  message: "\uCD08\uAE30\uD654 \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uCD08\uAE30\uD654
+    \uD6C4 \uBA54\uC778 \uD654\uBA74\uC73C\uB85C \uC774\uB3D9\uB429\uB2C8\uB2E4."
   startScene: Start
 --- !u!1 &1661609235979384890
 GameObject:
