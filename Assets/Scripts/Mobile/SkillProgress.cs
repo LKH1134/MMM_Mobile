@@ -9,7 +9,7 @@ namespace MoreMush.Mobile
     }
 
     // 배운 스킬 레벨. 지금은 PlayerPrefs("Skill.Level.<index>")에 저장한다 (세이브 구조가 생기면 옮긴다).
-    // 능력 합계는 Total(ability)로 구한다 — 같은 능력을 가진 스킬들의 abilityValue × 레벨을 모두 더한 값
+    // 능력 합계는 Total(ability)로 구한다 — 같은 능력을 가진 스킬들의 (배웠으면 abilityBase) + abilityValue × 레벨을 모두 더한 값
     public static class SkillProgress
     {
         const string KeyPrefix = "Skill.Level.";
@@ -46,7 +46,11 @@ namespace MoreMush.Mobile
         {
             float sum = 0f;
             foreach (var skill in GameData.Skills.All)
-                if (skill.ability == ability) sum += skill.abilityValue * Mathf.Min(GetLevel(skill.index), MaxLevel(skill));
+            {
+                if (skill.ability != ability) continue;
+                int level = Mathf.Min(GetLevel(skill.index), MaxLevel(skill));
+                if (level > 0) sum += skill.abilityBase + skill.abilityValue * level;
+            }
             return sum;
         }
 

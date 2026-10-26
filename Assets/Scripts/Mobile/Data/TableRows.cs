@@ -24,11 +24,21 @@ namespace MoreMush.Mobile
         public string prefab;
     }
 
-    // Skill.xlsx — 3001~3999
+    public enum SkillBranch { Start, Edible, Medicinal, Toxic }               // 시작 / 식용 / 약용 / 독성 가지
+    public enum SkillTag { SlideBar, Gain, Stage, Skill, Harvester }          // 【슬라이드 바】【획득률】【스테이지】【스킬】【수확기】
+
+    // Skill.xlsx — 3001~3999. 한 행 = 스킬 트리 노드 하나 (같은 스킬의 Lv.4, Lv.5가 따로 놓이면 행도 따로)
     public class SkillData : TableRow
     {
+        public SkillBranch branch; // 가지
+        public int rarity;         // 레어도 (0 = 시작, 1~19). 유저에게는 안 보이는 관리용, 클수록 트리 바깥쪽
+        public SkillTag tag;
+        public string group;       // 같은 스킬 계열 키 (효율적 사냥 Lv.1~3 / Lv.4 / Lv.5 노드가 같은 값)
+        public int startLevel;     // 이 노드의 첫 레벨이 계열에서 몇 레벨인지 (Lv.4 노드면 4). 비우면 1
         public string ability;     // 능력 종류 키 (SkillAbility). 효과 코드가 이 키로 찾는다
-        public float abilityValue; // 레벨당 능력 수치 (배율·증가량 등, 해석은 ability마다)
+        public float abilityBase;  // 1레벨 이상일 때 한 번 더하는 값 (레벨마다 오르는 폭이 첫 레벨과 다를 때)
+        public float abilityValue; // 레벨당 능력 수치 (배율·증가량 등, 해석은 ability마다). 비율은 0.1 = 10%
+        public float param;        // 레벨과 무관한 고정 수치 (번개 공격력 30%, 버프 지속 3초 등, 해석은 ability마다)
         public int maxLevel;       // 최대 레벨. 비우면 1
         public long unlockPrice;   // 해금 가격
         public Currency currency;
