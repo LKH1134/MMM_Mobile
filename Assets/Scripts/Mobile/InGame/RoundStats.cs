@@ -39,14 +39,12 @@ namespace MoreMush.Mobile
         public float sporeSlow = 0.75f;       // 느림: 속도 배율
         public float sporeWeak = 0.5f;        // 약화: 공격력 배율
 
-        [Header("3단계: 보스 판")]
-        public int bossEvery = 10;            // 이 판마다 보스 판 (군락지 대신 보스 하나, 처치하면 판이 끝난다)
-        public int bossHp = 300;              // 보스 체력 (군락 버섯 기본 체력에 곱하지 않는 값)
+        [Header("보스 판 (보스별 값은 Boss.xlsx, 스테이지 계수는 Stage.xlsx)")]
+        public float bossBaseHp = 100f;       // 기본 보스 체력. × 보스 hpRate × 스테이지 hpRate
         public float bossSize = 1.8f;         // 군락 버섯 대비 크기
-        public Color bossTint = new Color(1f, 0.45f, 0.45f);
-        public float bossHitScore = 5f;       // 보스에 준 피해 1당 점수
-        public long bossKillScore = 3000;     // 처치 점수
-        public int bossDrop = 30;             // 처치 때 얻는 레전더리 버섯 수
+        public Color bossTint = new Color(1f, 0.45f, 0.45f);   // 보스 color가 비었을 때
+        public float bossHitScore = 5f;       // 보스에 준 피해 1당 점수 (스테이지 hpRate로 나눠 체력이 커져도 점수가 튀지 않게)
+        public float splitCloneSize = 0.75f;  // 환상 버섯 분신 크기 (본체 대비)
     }
 
     // 판 시작 때 배운 스킬로 정해지는 수치 모음 (판 중에는 바뀌지 않는다)
@@ -82,7 +80,12 @@ namespace MoreMush.Mobile
         public int Restoration;
         // 3단계
         public float CleanseChance, BossDamageMul, LegendaryYieldMul;
-        public bool BossRound;                // HarvestGame이 판 수를 보고 정한다
+        // 스테이지 (HarvestGame이 StageProgress로 넣는다)
+        public StageData Stage;
+        public BossData Boss;                 // 보스 스테이지가 아니면 null
+        public bool BossRound => Boss != null;
+        public float HpRate => Stage != null && Stage.hpRate > 0f ? Stage.hpRate : 1f;
+        public float RewardRate => Stage != null && Stage.rewardRate > 0f ? Stage.rewardRate : 1f;
 
         public bool AnyBarBuff => PowerAttack > 0 || HasteDuration > 0f || PierceDuration > 0f || HomingDuration > 0f
                                   || FeverDuration > 0f || WisdomRate > 0f || HealDuration > 0f;

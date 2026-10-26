@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -30,6 +31,8 @@ namespace MoreMush.Mobile
         [SerializeField] PopupSlot indexPopup;
         [SerializeField] PopupSlot workshopPopup;
 
+        [SerializeField] TMP_Text stageName;          // 스테이지 입장 버튼 위 지금 스테이지 이름 (보스 스테이지면 표시)
+
         [SerializeField] string worldTreeScene = "WorldTree";
         [SerializeField] string stageScene = "InGame";
 
@@ -43,6 +46,7 @@ namespace MoreMush.Mobile
             if (optionButton != null && optionPopup != null) optionButton.onClick.AddListener(() => Show(optionPopup));
 
             if (treeView != null) treeView.Build();
+            ShowStage();
             if (nodeRoot != null)
                 foreach (var node in nodeRoot.GetComponentsInChildren<SkillNode>(true)) node.Clicked += Select;
             if (blankArea != null) blankArea.onClick.AddListener(Deselect);
@@ -58,6 +62,14 @@ namespace MoreMush.Mobile
                 CloseAll();
                 Deselect();
             }
+        }
+
+        void ShowStage()
+        {
+            if (stageName == null) return;
+            var stage = StageProgress.CurrentData;
+            if (stage == null) return;
+            stageName.text = stage.boss != 0 ? $"{stage.name} 보스" : stage.name;
         }
 
         void Select(SkillNode node)

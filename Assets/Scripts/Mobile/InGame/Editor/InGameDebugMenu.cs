@@ -3,28 +3,31 @@ using UnityEngine;
 
 namespace MoreMush.Mobile.EditorTools
 {
-    // 개발용 InGame 메뉴. 판 수(보스 판 주기)를 바꾼다
+    // 개발용 InGame 메뉴. 지금 스테이지를 바꾼다 (Stage.xlsx 기준)
     static class InGameDebugMenu
     {
-        const int BossEvery = 10;   // HarvestGame의 RoundBase.bossEvery 기본값과 같게
-
-        [MenuItem("MoreMush/Debug/Next Round Is Boss")]
-        static void NextRoundBoss()
+        [MenuItem("MoreMush/Debug/Go To Next Boss Stage")]
+        static void NextBossStage()
         {
-            int done = PlayerPrefs.GetInt(HarvestGame.RoundKey, 0);
-            int next = done + 1;
-            int target = (next + BossEvery - 1) / BossEvery * BossEvery;   // 다음 보스 판 번호
-            PlayerPrefs.SetInt(HarvestGame.RoundKey, target - 1);
-            PlayerPrefs.Save();
-            Debug.Log($"[InGameDebug] 다음 판 = {target}번째 판 (보스 판)");
+            GameData.Reload();
+            int now = StageProgress.Current;
+            int target = 0;
+            foreach (var s in GameData.Stages.All)
+                if (s.boss != 0 && s.stage >= now && (target == 0 || s.stage < target)) target = s.stage;
+            if (target == 0)
+            {
+                Debug.LogWarning("[InGameDebug] 지금 이후로 보스 스테이지가 없다");
+                return;
+            }
+            StageProgress.Set(target);
+            Debug.Log($"[InGameDebug] 다음 판 = {target}스테이지 (보스)");
         }
 
-        [MenuItem("MoreMush/Debug/Reset Round Count")]
-        static void ResetRounds()
+        [MenuItem("MoreMush/Debug/Reset Stage")]
+        static void ResetStage()
         {
-            PlayerPrefs.DeleteKey(HarvestGame.RoundKey);
-            PlayerPrefs.Save();
-            Debug.Log("[InGameDebug] 판 수를 0으로 되돌렸다");
+            StageProgress.Set(1);
+            Debug.Log("[InGameDebug] 1스테이지로 되돌렸다");
         }
     }
 }

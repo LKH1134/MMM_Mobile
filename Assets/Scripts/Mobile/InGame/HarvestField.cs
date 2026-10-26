@@ -491,7 +491,8 @@ namespace MoreMush.Mobile
             return cells;
         }
 
-        // 보스 판: 군락지 대신 큰 보스 하나를 필드 가운데 위쪽에 놓는다. 유도·번개·회오리가 보스를 노리도록 군락지 하나로 등록한다
+        // 보스 판: 군락지 대신 큰 보스 하나를 필드 가운데 위쪽에 놓는다. 유도·번개·회오리가 보스를 노리도록 군락지 하나로 등록한다.
+        // 체력 = 기본 보스 체력 × 보스 hpRate × 스테이지 hpRate. 기믹은 BossGimmicks가 맡는다
         void SpawnBoss()
         {
             var b = stats.Base;
@@ -499,16 +500,47 @@ namespace MoreMush.Mobile
             float radius = clusterPrefab.BaseRadius * b.bossSize;
             var center = new Vector2(0f, Mathf.Lerp(r.yMin + spawnBottom + radius, r.yMax - spawnTop - radius, 0.6f));
             var colony = new Colony { id = nextColonyId++, center = center, footprint = radius };
+            colonies.Add(colony);
+            float hp = b.bossBaseHp * Mathf.Max(0.0001f, stats.Boss.hpRate) * stats.HpRate;
+            SpawnBossPart(center, hp, b.bossSize);
+        }
+
+        // 보스 몸 하나 (본체 또는 분신). 보스 군락지에 넣는다
+        public Mushroom SpawnBossPart(Vector2 position, float hp, float size)
+        {
+            var colony = colonies.Count > 0 ? colonies[0] : null;
+            var tint = stats.Base.bossTint;
+            if (stats.Boss != null && !string.IsNullOrEmpty(stats.Boss.color)) ColorUtility.TryParseHtmlString(stats.Boss.color, out tint);
             var boss = clusterPool.Get();
             boss.Pool = clusterPool;
-            boss.Place(center);
-            boss.Setup(MushroomTier.Legendary, Mathf.CeilToInt((float)b.bossHp / Mathf.Max(1, clusterPrefab.MaxHp)), false, b.bossSize, b.bossTint);
-            boss.Colony = colony.id;
+            boss.Place(position);
+            boss.Setup(MushroomTier.Legendary, hp / Mathf.Max(1, clusterPrefab.MaxHp), false, size, tint);
+            boss.Colony = colony != null ? colony.id : -1;
             boss.IsCenter = true;
             boss.IsBoss = true;
             mushrooms.Add(boss);
-            colony.members.Add(boss);
-            colonies.Add(colony);
+            if (colony != null) colony.members.Add(boss);
+            return boss;
+        }
+
+        // 보스가 아직 남아 있는지 (분신 포함)
+        public bool AnyBossAlive()
+        {
+            foreach (var m in mushrooms) if (m.IsBoss && m.Alive) return true;
+            return false;
+        }
+
+        // 임시 수확기(분열체)를 모두 없앤다 (죽음의 천사)
+        public int PurgeTemporaryHarvesters()
+        {
+            int removed = 0;
+            for (int i = harvesters.Count - 1; i >= 0; i--)
+            {
+                if (!harvesters[i].Temporary) continue;
+                DespawnHarvester(harvesters[i]);
+                removed++;
+            }
+            return removed;
         }
 
         // 다시 돋을 때: 격자 칸 중 빈 곳을 먼저 보고, 없으면 아무 빈 자리나 찾는다
@@ -610,7 +642,7 @@ namespace MoreMush.Mobile
             m.Pool = pool;
             m.Place(pos);
             bool golden = stats.GoldenChance > 0f && Random.value < stats.GoldenChance;
-            m.Setup(look.tier, look.hpMul, golden, mushroomSize, golden ? goldenTint : look.tint);
+            m.Setup(look.tier, look.hpMul * stats.HpRate, golden, mushroomSize, golden ? goldenTint : look.tint);
             m.Colony = colonyId;
             mushrooms.Add(m);
             return m;

@@ -48,13 +48,30 @@ namespace MoreMush.Mobile
         public int[] requires;     // 이전 레벨 노드 index들 (같은 스킬의 앞 노드). 최대 레벨까지 배워야 열린다
     }
 
-    // Boss.xlsx — 4001~4999
+    // Stage.xlsx — 5001~5999. 한 행 = 스테이지 하나 (stage 1부터 차례로). 보스 스테이지는 boss에 보스 index를 넣는다
+    public class StageData : TableRow
+    {
+        public int stage;          // 스테이지 번호 (1부터)
+        public string theme;       // 지역 (숲·달빛 밤·들판). 배경 등 연출용
+        public float hpRate;       // 체력 계수. 버섯·보스 체력에 곱한다. 뒤로 갈수록 크다
+        public float rewardRate;   // 점수·수확량 배율
+        public int boss;           // 보스 index (Boss.xlsx). 0이면 일반 스테이지
+    }
+
+    public enum BossGimmick { None, Heal, Purge, Split, Move }   // 없음 / 체력 회복 / 임시 수확기 제거 / 분신 / 좌우 이동
+
+    // Boss.xlsx — 6001~6999
     public class BossData : TableRow
     {
-        public float hpRate;       // 체력 배율. 최종 체력 = 스테이지 체력 계수 × hpRate
-        public string ability;     // 능력 종류 키
-        public float abilityValue;
-        public long reward;        // 처치 보상
+        public float hpRate;       // 체력 배수. 보스 체력 = 기본 보스 체력 × hpRate × 스테이지 hpRate
+        public BossGimmick gimmick;
+        public float gimmickValue; // Heal: 회복 비율(최대 체력 대비) / Split: 분신 체력 (분열 순간 본체 체력 대비) / Move: 속도(px/초)
+        public float gimmickInterval; // Heal·Purge: 간격(초)
+        public string color;       // 임시 구분 색 (#rrggbb). 보스 그림이 생기면 prefab으로 바꾼다
+        public long reward;        // 처치 점수 (스테이지 rewardRate를 곱한다)
+        public int drop;           // 처치 때 얻는 레전더리 버섯 수
+        public int gem;            // 처치 때 얻는 균사석 (지갑이 생기면 지급)
+        public float failGold;     // 못 잡았을 때 그 판 골드 배율 (비우면 1)
         public string prefab;
     }
 }

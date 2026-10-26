@@ -14,7 +14,8 @@ namespace MoreMush.Mobile
         public static readonly DataTable<MushroomData> Mushrooms = new DataTable<MushroomData>("Mushroom", 1001, 1999);
         public static readonly DataTable<HarvesterData> Harvesters = new DataTable<HarvesterData>("Harvester", 2001, 2999);
         public static readonly DataTable<SkillData> Skills = new DataTable<SkillData>("Skill", 3001, 3999);
-        public static readonly DataTable<BossData> Bosses = new DataTable<BossData>("Boss", 4001, 4999);
+        public static readonly DataTable<StageData> Stages = new DataTable<StageData>("Stage", 5001, 5999);
+        public static readonly DataTable<BossData> Bosses = new DataTable<BossData>("Boss", 6001, 6999);
 
         public static bool Loaded { get; private set; }
 
@@ -28,6 +29,7 @@ namespace MoreMush.Mobile
             Load(Mushrooms, issues);
             Load(Harvesters, issues);
             Load(Skills, issues);
+            Load(Stages, issues);
             Load(Bosses, issues);
             Loaded = true;
             foreach (var issue in issues) Debug.LogWarning("[GameData] " + issue);

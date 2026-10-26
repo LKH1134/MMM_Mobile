@@ -21,10 +21,10 @@ namespace MoreMush.Mobile
         RectTransform rect;
         Coroutine punch;
         Graphic tintTarget;
-        int hpMul = 1;
+        float hpMul = 1f;
         float scale = 1f;
 
-        public int MaxHp => maxHp * hpMul;
+        public int MaxHp => Mathf.Max(1, Mathf.RoundToInt(maxHp * hpMul));
         public int Hp { get; private set; }
         public bool Alive => Hp > 0;
         public long Reward => reward;
@@ -45,12 +45,12 @@ namespace MoreMush.Mobile
             if (visual != null) tintTarget = visual.GetComponent<Graphic>();
         }
 
-        // 등급·황금 변종·크기를 정한다. 꺼낸 직후(OnSpawned 다음)에 부른다
-        public void Setup(MushroomTier tier, int hpMultiplier, bool golden, float size, Color tint)
+        // 등급·황금 변종·크기를 정한다. 꺼낸 직후(OnSpawned 다음)에 부른다. 체력 = 기본 체력 × hpMultiplier (등급 × 스테이지 계수)
+        public void Setup(MushroomTier tier, float hpMultiplier, bool golden, float size, Color tint)
         {
             Tier = tier;
             Golden = golden;
-            hpMul = Mathf.Max(1, hpMultiplier);
+            hpMul = Mathf.Max(0.0001f, hpMultiplier);
             scale = size;
             rect.localScale = new Vector3(size, size, 1f);
             if (tintTarget != null) tintTarget.color = tint;
@@ -61,7 +61,7 @@ namespace MoreMush.Mobile
         public void OnSpawned()
         {
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            hpMul = 1;
+            hpMul = 1f;
             scale = 1f;
             rect.localScale = Vector3.one;
             Tier = MushroomTier.Normal;
@@ -92,6 +92,14 @@ namespace MoreMush.Mobile
             ShowHp();
             if (Alive) Play(Pop(0.15f, 0.8f, 1f));
             return !Alive;
+        }
+
+        // 체력 회복 (보스 기믹). 최대 체력을 넘지 않는다
+        public void Heal(int amount)
+        {
+            if (!Alive || amount <= 0) return;
+            Hp = Mathf.Min(MaxHp, Hp + amount);
+            ShowHp();
         }
 
         void ShowHp()

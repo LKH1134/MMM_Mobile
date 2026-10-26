@@ -4065,9 +4065,9 @@ MonoBehaviour:
   m_fontSize: 40
   m_fontSizeBase: 40
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 40
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -4229,6 +4229,7 @@ MonoBehaviour:
     prefab: {fileID: 576154472304968870, guid: 818dafe1a976dd442b0addeb3149aa8e, type: 3}
   workshopPopup:
     prefab: {fileID: 2188284286884072998, guid: 779c5f912d7adc2498d4c896272dbd76, type: 3}
+  stageName: {fileID: 1900000057}
   worldTreeScene: WorldTree
   stageScene: InGame
 --- !u!1 &1910000000

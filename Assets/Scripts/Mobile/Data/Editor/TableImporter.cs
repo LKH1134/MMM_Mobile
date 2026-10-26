@@ -66,6 +66,7 @@ namespace MoreMush.Mobile.EditorTools
                 case "Mushroom": return Check(new DataTable<MushroomData>(name, GameData.Mushrooms.IndexMin, GameData.Mushrooms.IndexMax), bytes, issues);
                 case "Harvester": return Check(new DataTable<HarvesterData>(name, GameData.Harvesters.IndexMin, GameData.Harvesters.IndexMax), bytes, issues);
                 case "Skill": return Check(new DataTable<SkillData>(name, GameData.Skills.IndexMin, GameData.Skills.IndexMax), bytes, issues);
+                case "Stage": return Check(new DataTable<StageData>(name, GameData.Stages.IndexMin, GameData.Stages.IndexMax), bytes, issues);
                 case "Boss": return Check(new DataTable<BossData>(name, GameData.Bosses.IndexMin, GameData.Bosses.IndexMax), bytes, issues);
                 default: return -1;
             }
