@@ -1081,6 +1081,19 @@ MonoBehaviour:
   resultPopup:
     prefab: {fileID: 5568184748944377759, guid: 1a148018bca0f124eb6b94f6029b2e07, type: 3}
   resultDelay: 0.6
+  roundBase:
+    duration: 15
+    colonies: 3
+    singlesPerColony: 3
+    colonyRespawn: 7
+    minRespawn: 0.5
+    epicChance: 0.05
+    uniqueChance: 0.01
+    comboFactor: 0.1
+    critDamage: 0.5
+    goldenScore: 10
+    goldenYield: 5
+    finalRushSeconds: 5
 --- !u!1 &551238312
 GameObject:
   m_ObjectHideFlags: 0
@@ -2847,22 +2860,30 @@ MonoBehaviour:
   pierce: 1
   bar: {fileID: 1224015027}
   restGap: 4
-  kinds:
-  - prefab: {fileID: 3758636139128055095, guid: 34a578b2a5c6b384c86a857259ac2f22, type: 3}
-    weight: 4
-    maxAlive: 0
-    prewarm: 12
-  - prefab: {fileID: 2238027093601932462, guid: 2e9858bae7ce72842a26d14424ddcbb1, type: 3}
-    weight: 1
-    maxAlive: 3
-    prewarm: 4
+  maxBarRatio: 0.6
+  clusterPrefab: {fileID: 2238027093601932462, guid: 2e9858bae7ce72842a26d14424ddcbb1, type: 3}
+  singlePrefab: {fileID: 3758636139128055095, guid: 34a578b2a5c6b384c86a857259ac2f22, type: 3}
   mushroomLayer: {fileID: 554654435}
-  mushroomCount: 12
-  respawnDelay: 0.8
+  tiers:
+  - tier: 0
+    hpMul: 1
+    scoreMul: 1
+    tint: {r: 1, g: 1, b: 1, a: 1}
+  - tier: 1
+    hpMul: 2
+    scoreMul: 3
+    tint: {r: 0.75, g: 0.6, b: 1, a: 1}
+  - tier: 2
+    hpMul: 3
+    scoreMul: 8
+    tint: {r: 1, g: 0.6, b: 0.45, a: 1}
+  goldenTint: {r: 1, g: 0.85, b: 0.25, a: 1}
+  ringGap: 6
+  colonyGap: 16
+  minMushroomSize: 0.35
   spawnTop: 30
   spawnBottom: 380
   spawnSide: 20
-  spawnGap: 12
 --- !u!1 &2133315920
 GameObject:
   m_ObjectHideFlags: 0

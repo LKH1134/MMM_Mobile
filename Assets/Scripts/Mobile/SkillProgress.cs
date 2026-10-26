@@ -5,7 +5,31 @@ namespace MoreMush.Mobile
     // 스킬 능력 키. Skill.xlsx의 ability 칸에 이 문자열을 쓴다
     public static class SkillAbility
     {
-        public const string HarvesterDamage = "harvester_damage";   // 수확기 공격력 + (abilityValue × 레벨)
+        // 수확기
+        public const string HarvesterDamage = "harvester_damage";   // 공격력 +
+        public const string HarvesterSpeed = "harvester_speed";     // 속도 +비율
+        public const string HarvesterSize = "harvester_size";       // 크기 +비율
+        public const string CritChance = "crit_chance";             // 치명타 확률
+        public const string CritDamage = "crit_damage";             // 치명타 피해 (1 = 100%)
+        // 바·콤보
+        public const string BarLength = "bar_length";               // 바 길이 +비율
+        public const string ComboRate = "combo_rate";               // 콤보 계수 +비율
+        // 스테이지
+        public const string RoundTime = "round_time";               // 제한 시간 +초
+        public const string ColonyCount = "colony_count";           // 군락지 수 +
+        public const string ColonySingles = "colony_single_mushroom"; // 군락지 주변 단일 버섯 +
+        public const string ColonyRespawn = "colony_respawn";       // 군락지 리스폰 +초 (음수)
+        public const string EpicSpawn = "epic_spawn";               // 에픽 버섯 스폰율 +
+        public const string UniqueSpawn = "unique_spawn";           // 유니크 버섯 스폰율 +
+        public const string GoldenSpawn = "golden_spawn";           // 황금 변종 스폰율 +
+        // 획득
+        public const string ScoreRate = "score_rate";               // 획득 점수 +비율
+        public const string GoldConversion = "gold_conversion";     // 점수 골드 전환율 +비율
+        public const string TripleScoreChance = "triple_score_chance"; // 점수 3배 확률
+        public const string NormalYield = "normal_yield";           // 일반 버섯 수확량 +비율
+        public const string EpicYield = "epic_yield";
+        public const string UniqueYield = "unique_yield";
+        public const string FinalRushBonus = "final_rush_bonus";    // 마지막 param초 점수·수확량 +비율
     }
 
     // 배운 스킬 레벨. 지금은 PlayerPrefs("Skill.Level.<index>")에 저장한다 (세이브 구조가 생기면 옮긴다).
@@ -66,6 +90,15 @@ namespace MoreMush.Mobile
                 if (level > 0) sum += skill.abilityBase + skill.abilityValue * level;
             }
             return sum;
+        }
+
+        // 배운 스킬 중 이 능력을 가진 것의 고정 수치(param). 여럿이면 가장 큰 값, 없으면 fallback
+        public static float Param(string ability, float fallback = 0f)
+        {
+            float best = float.NegativeInfinity;
+            foreach (var skill in GameData.Skills.All)
+                if (skill.ability == ability && GetLevel(skill.index) > 0) best = Mathf.Max(best, skill.param);
+            return float.IsNegativeInfinity(best) ? fallback : best;
         }
 
         // 개발용: 배운 스킬 전부 초기화

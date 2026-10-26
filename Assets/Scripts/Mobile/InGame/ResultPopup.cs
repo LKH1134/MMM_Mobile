@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // InGame 결과 팝업. 시간이 다 되면 HarvestGame이 열어 이번 판에 번 돈·캔 버섯 수를 보여 준다.
+    // InGame 결과 팝업. 시간이 다 되면 HarvestGame이 열어 이번 판에 번 골드(점수 × 전환율)와 점수·수확량을 보여 준다.
     // 닫기 버튼·배경 눌러 닫기는 없다 — 다시 하기(이 씬을 다시 연다) 아니면 세계수로 돌아가기
     [RequireComponent(typeof(UiPopup))]
     public class ResultPopup : MonoBehaviour
@@ -16,7 +16,7 @@ namespace MoreMush.Mobile
         [SerializeField] Button retryButton;
         [SerializeField] Button worldTreeButton;
         [SerializeField] string worldTreeScene = "WorldTree";
-        [SerializeField] float countUpDuration = 0.8f;   // 번 돈이 0부터 올라가는 시간
+        [SerializeField] float countUpDuration = 0.8f;   // 번 골드가 0부터 올라가는 시간
 
         UiPopup popup;
         Coroutine countUp;
@@ -28,12 +28,12 @@ namespace MoreMush.Mobile
             worldTreeButton.onClick.AddListener(GoWorldTree);
         }
 
-        public void Show(long earned, int harvested)
+        public void Show(long earned, long score, long harvested)
         {
             // 꺼진 채로 만들어져 아직 Awake 전일 수 있다. Open이 켜면서 Awake가 돈다
             if (popup == null) popup = GetComponent<UiPopup>();
             popup.Open();
-            countText.text = $"버섯 {harvested:N0}개";
+            countText.text = $"점수 {score:N0} · 버섯 {harvested:N0}개";
             if (countUp != null) StopCoroutine(countUp);
             countUp = StartCoroutine(CountUp(earned));
         }

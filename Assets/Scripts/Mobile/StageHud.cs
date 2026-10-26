@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // InGame 씬 상단 HUD. 제한 시간을 스스로 세고(일시정지 중엔 멈춤), 번 골드·콤보는 게임 쪽에서 SetGold/SetCombo로 넣는다.
+    // InGame 씬 상단 HUD. 제한 시간을 스스로 세고(일시정지 중엔 멈춤), 점수·콤보는 게임 쪽에서 SetScore/SetCombo로 넣는다.
+    // 제한 시간은 스킬에 따라 달라서 HarvestGame이 SetDuration으로 넣는다.
     // startOnAwake를 끄면 게임 쪽에서 StartTimer를 부를 때(첫 투척)부터 센다.
     // 배속(1·2·4배)도 여기서 Time.timeScale로 건다 — 게임 전체(제한 시간 포함)가 같이 빨라진다.
     // 일시정지는 팝업 없이 Time.timeScale만 0으로 내린다. 옵션 팝업이 열려 있는 동안에도 멈춘다
@@ -14,7 +15,7 @@ namespace MoreMush.Mobile
         [SerializeField] float duration = 30f;        // 스테이지 제한 시간(초)
         [SerializeField] bool startOnAwake = true;    // 끄면 StartTimer를 부를 때까지 시간이 흐르지 않는다
 
-        [SerializeField] TMP_Text earnedGoldText;
+        [SerializeField] TMP_Text earnedGoldText;     // 이번 판 점수 (골드는 판이 끝나고 전환율을 곱해 정한다)
         [SerializeField] TMP_Text timerText;
         [SerializeField] RectTransform timerFill;     // 진행 바 안쪽 채움. 앵커 x 최대값 = 남은 비율
         [SerializeField] GameObject comboRoot;        // 콤보가 2 미만이면 숨긴다
@@ -47,7 +48,7 @@ namespace MoreMush.Mobile
         public float Speed => speeds.Length > 0 ? speeds[speedIndex].scale : 1f;
         public event System.Action TimeUp;
 
-        long gold;
+        long score;
         int combo;
         int shownSecond = -1;
         int speedIndex;
@@ -67,7 +68,7 @@ namespace MoreMush.Mobile
             ApplyTimeScale();
             Remaining = duration;
             TimerStarted = startOnAwake;
-            SetGold(0);
+            SetScore(0);
             SetCombo(0);
             ShowTime();
         }
@@ -88,13 +89,21 @@ namespace MoreMush.Mobile
 
         public void StartTimer() => TimerStarted = true;
 
-        public void SetGold(long value)
+        // 시간이 흐르기 전(첫 투척 전)에만 바꾼다
+        public void SetDuration(float seconds)
         {
-            gold = value;
-            earnedGoldText.text = gold.ToString("N0");
+            if (TimerStarted) return;
+            duration = Mathf.Max(1f, seconds);
+            Remaining = duration;
+            shownSecond = -1;
+            ShowTime();
         }
 
-        public void AddGold(long delta) => SetGold(gold + delta);
+        public void SetScore(long value)
+        {
+            score = value;
+            earnedGoldText.text = score.ToString("N0");
+        }
 
         public void SetCombo(int value)
         {

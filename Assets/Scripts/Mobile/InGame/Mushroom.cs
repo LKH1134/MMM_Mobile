@@ -5,34 +5,68 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 버섯. 단일 개체는 maxHp 1(한 번 맞으면 캠), 군락 개체는 maxHp를 높여 체력이 다 닳을 때까지 맞아야 캔다.
-    // 종류마다 프리팹을 따로 두고, HarvestField가 프리팹별 풀에서 꺼내 놓는다
+    // 종류마다 프리팹을 따로 두고, HarvestField가 프리팹별 풀에서 꺼내 놓는다.
+    // 꺼낸 뒤 Setup으로 등급(체력 배율·색)·황금 변종·크기를 정한다 — 임시로 그림 색만 바꿔 구분한다
     [RequireComponent(typeof(RectTransform))]
     public class Mushroom : MonoBehaviour, IPoolable
     {
         [SerializeField] int maxHp = 1;
-        [SerializeField] long reward = 10;            // 캤을 때 오르는 돈
-        [SerializeField] float radius = 50f;          // 충돌 반지름
+        [SerializeField] long reward = 10;            // 캤을 때 오르는 기본 점수
+        [SerializeField] int drop = 1;                // 캤을 때 얻는 기본 수확량(버섯 개수)
+        [SerializeField] float radius = 50f;          // 충돌 반지름 (크기 1일 때)
         [SerializeField] RectTransform visual;        // 맞을 때 출렁이는 그림
         [SerializeField] GameObject hpRoot;           // 체력 바. 다치기 전엔 숨긴다. 비우면 표시 없음
         [SerializeField] RectTransform hpFill;        // 체력 바 안쪽 채움. 앵커 x 최대값 = 남은 비율
 
         RectTransform rect;
         Coroutine punch;
+        Graphic tintTarget;
+        int hpMul = 1;
+        float scale = 1f;
 
-        public int MaxHp => maxHp;
+        public int MaxHp => maxHp * hpMul;
         public int Hp { get; private set; }
         public bool Alive => Hp > 0;
         public long Reward => reward;
-        public float Radius => radius;
+        public int Drop => drop;
+        public float Radius => radius * scale;
+        public float BaseRadius => radius;
+        public MushroomTier Tier { get; private set; }
+        public bool Golden { get; private set; }
+        public int Colony { get; set; } = -1;         // 속한 군락지 번호 (HarvestField가 쓴다)
         public Vector2 Position => rect.anchoredPosition;
         internal PrefabPool<Mushroom> Pool { get; set; }
 
-        void Awake() => rect = (RectTransform)transform;
+        void Awake()
+        {
+            rect = (RectTransform)transform;
+            if (visual != null) tintTarget = visual.GetComponent<Graphic>();
+        }
+
+        // 등급·황금 변종·크기를 정한다. 꺼낸 직후(OnSpawned 다음)에 부른다
+        public void Setup(MushroomTier tier, int hpMultiplier, bool golden, float size, Color tint)
+        {
+            Tier = tier;
+            Golden = golden;
+            hpMul = Mathf.Max(1, hpMultiplier);
+            scale = size;
+            rect.localScale = new Vector3(size, size, 1f);
+            if (tintTarget != null) tintTarget.color = tint;
+            Hp = MaxHp;
+            ShowHp();
+        }
 
         public void OnSpawned()
         {
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            Hp = maxHp;
+            hpMul = 1;
+            scale = 1f;
+            rect.localScale = Vector3.one;
+            Tier = MushroomTier.Normal;
+            Golden = false;
+            Colony = -1;
+            if (tintTarget != null) tintTarget.color = Color.white;
+            Hp = MaxHp;
             ShowHp();
             if (visual != null) visual.localScale = Vector3.one;
             Play(Pop(0.18f, 0f, 1f));
@@ -59,8 +93,8 @@ namespace MoreMush.Mobile
         void ShowHp()
         {
             if (hpRoot == null) return;
-            hpRoot.SetActive(Hp < maxHp && Hp > 0);
-            if (hpFill != null) hpFill.anchorMax = new Vector2((float)Hp / maxHp, hpFill.anchorMax.y);
+            hpRoot.SetActive(Hp < MaxHp && Hp > 0);
+            if (hpFill != null) hpFill.anchorMax = new Vector2((float)Hp / MaxHp, hpFill.anchorMax.y);
         }
 
         void Play(IEnumerator routine)

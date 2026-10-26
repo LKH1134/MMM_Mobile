@@ -6,17 +6,19 @@ namespace MoreMush.Mobile
     // 수확 필드. 수확기·버섯을 풀에서 꺼내 놓고, 매 프레임 수확기를 움직이며 벽·바·버섯과의 충돌을 계산한다.
     // 좌표는 이 RectTransform 로컬(가운데 기준, 캔버스 픽셀). 상하좌우 가장자리 모두 벽이라 수확기는 빠져나가지 않는다.
     // 수확기는 판 시작 때 한 번 던지면 시간이 끝날 때까지 같은 속도로 튕겨 다닌다.
-    // 캐진 버섯은 풀로 돌아가고, 잠시 뒤 빈 자리에 새 버섯이 돋는다
+    // 버섯은 군락지 단위로 돋는다: 가운데 군락 버섯 1개 + 둘레의 단일 버섯 몇 개. 군락지 하나는 모두 같은 등급이다.
+    // 군락지의 버섯을 다 캐면 군락지가 사라지고, 정해진 시간 뒤 빈 자리에 새 군락지가 돋는다.
+    // 군락지가 많아 필드에 다 안 들어가면 버섯 크기를 줄여서 넣는다
     [RequireComponent(typeof(RectTransform))]
     public class HarvestField : MonoBehaviour
     {
         [System.Serializable]
-        public class MushroomKind
+        public class TierLook
         {
-            public Mushroom prefab;
-            public float weight = 1f;                 // 돋아날 때 뽑힐 비중
-            public int maxAlive;                      // 필드에 동시에 있을 수 있는 수. 0이면 제한 없음
-            public int prewarm = 8;
+            public MushroomTier tier;
+            public int hpMul = 1;                     // 체력 배율
+            public float scoreMul = 1f;               // 점수 배율
+            public Color tint = Color.white;          // 임시 구분용 색 (등급 그림이 생기면 바꾼다)
         }
 
         [Header("수확기")]
@@ -29,52 +31,92 @@ namespace MoreMush.Mobile
         [Header("바")]
         [SerializeField] Bar bar;
         [SerializeField] float restGap = 4f;          // 바 위에 놓일 때 띄울 거리
+        [SerializeField] float maxBarRatio = 0.6f;    // 바 길이 상한 (필드 폭 대비)
 
         [Header("버섯")]
-        [SerializeField] MushroomKind[] kinds;
+        [SerializeField] Mushroom clusterPrefab;      // 군락지 가운데
+        [SerializeField] Mushroom singlePrefab;       // 군락지 둘레
         [SerializeField] RectTransform mushroomLayer;
-        [SerializeField] int mushroomCount = 12;      // 필드에 유지할 버섯 수
-        [SerializeField] float respawnDelay = 0.8f;
+        [SerializeField] TierLook[] tiers =
+        {
+            new TierLook { tier = MushroomTier.Normal, hpMul = 1, scoreMul = 1f, tint = Color.white },
+            new TierLook { tier = MushroomTier.Epic, hpMul = 2, scoreMul = 3f, tint = new Color(0.75f, 0.6f, 1f) },
+            new TierLook { tier = MushroomTier.Unique, hpMul = 3, scoreMul = 8f, tint = new Color(1f, 0.6f, 0.45f) },
+        };
+        [SerializeField] Color goldenTint = new Color(1f, 0.85f, 0.25f);
+        [SerializeField] float ringGap = 6f;          // 가운데 버섯과 둘레 버섯 사이
+        [SerializeField] float colonyGap = 16f;       // 군락지끼리 띄울 거리
+        [SerializeField] float minMushroomSize = 0.35f;   // 군락지가 많을 때 줄일 수 있는 최소 크기
         [SerializeField] float spawnTop = 30f;        // 위 가장자리에서 띄울 거리
         [SerializeField] float spawnBottom = 380f;    // 아래 가장자리에서 띄울 거리 (바 근처는 비운다)
         [SerializeField] float spawnSide = 20f;
-        [SerializeField] float spawnGap = 12f;        // 버섯끼리 띄울 최소 거리
+
+        class Colony
+        {
+            public int id;
+            public Vector2 center;
+            public float footprint;                   // 군락지 전체 반지름
+            public readonly List<Mushroom> members = new List<Mushroom>();
+        }
 
         RectTransform rect;
+        RoundStats stats;
+        float mushroomSize = 1f;
+        int nextColonyId;
         readonly Dictionary<Harvester, PrefabPool<Harvester>> harvesterPools = new Dictionary<Harvester, PrefabPool<Harvester>>();
-        readonly Dictionary<Mushroom, PrefabPool<Mushroom>> mushroomPools = new Dictionary<Mushroom, PrefabPool<Mushroom>>();
+        PrefabPool<Mushroom> clusterPool, singlePool;
         readonly List<Harvester> harvesters = new List<Harvester>();
         readonly List<Mushroom> mushrooms = new List<Mushroom>();
-        readonly List<float> respawns = new List<float>();   // 남은 대기 시간
+        readonly List<Colony> colonies = new List<Colony>();
+        readonly List<float> respawns = new List<float>();   // 군락지가 다시 돋기까지 남은 시간
 
         public RectTransform Rect => rect;
+        public RoundStats Stats => stats;
         public bool Running { get; private set; }
         public IReadOnlyList<Harvester> Harvesters => harvesters;
         public IReadOnlyList<Mushroom> Mushrooms => mushrooms;
         public Harvester Main => harvesters.Count > 0 ? harvesters[0] : null;   // 플레이어가 던지는 수확기
         public bool MainReady => Running && Main != null && !Main.IsMoving;    // 아직 안 던졌다 (한 판에 한 번만 던진다)
         public Bar Bar => bar;
+        public float Speed => speed * (stats != null ? stats.SpeedMul : 1f);
 
         public event System.Action<Harvester> Launched;
         public event System.Action<Harvester> BarHit;
         public event System.Action<Mushroom, Harvester> Harvested;   // 풀로 돌아가기 직전에 불린다
+        public event System.Action<Mushroom, Harvester, int, bool> Hit;   // 맞힌 버섯, 수확기, 피해, 치명타
+        public event System.Action<Vector2> ColonyCleared;           // 군락지 하나를 다 캤다 (가운데 위치)
 
         void Awake()
         {
             rect = (RectTransform)transform;
             harvesterPools.Add(harvesterPrefab, new PrefabPool<Harvester>(harvesterPrefab, harvesterLayer, 1));
-            foreach (var kind in kinds)
+        }
+
+        // 판 시작 전에 HarvestGame이 넣는다. 안 넣으면 스킬 없는 기본값으로 시작한다
+        public void Configure(RoundStats roundStats)
+        {
+            stats = roundStats;
+            if (bar != null)
             {
-                if (kind.prefab == null || mushroomPools.ContainsKey(kind.prefab)) continue;
-                mushroomPools.Add(kind.prefab, new PrefabPool<Mushroom>(kind.prefab, mushroomLayer, kind.prewarm));
+                var barRect = (RectTransform)bar.transform;
+                float width = barRect.sizeDelta.x * stats.BarMul;
+                float max = ((RectTransform)transform).rect.width * maxBarRatio;
+                barRect.sizeDelta = new Vector2(max > 0f ? Mathf.Min(width, max) : width, barRect.sizeDelta.y);
             }
         }
 
         void Start()
         {
+            if (stats == null) stats = RoundStats.FromSkills(new RoundBase());
             Canvas.ForceUpdateCanvases();
+
+            // 군락지 크기만큼 미리 만들어 둔다
+            int perColony = stats.SinglesPerColony;
+            clusterPool = new PrefabPool<Mushroom>(clusterPrefab, mushroomLayer, stats.Colonies + 1);
+            singlePool = new PrefabPool<Mushroom>(singlePrefab, mushroomLayer, (stats.Colonies + 1) * perColony);
+
             SpawnHarvester(RestPosition(0f));
-            for (int i = 0; i < mushroomCount; i++) TrySpawnMushroom();
+            PlanColonies();
             Running = true;
         }
 
@@ -92,17 +134,24 @@ namespace MoreMush.Mobile
             // 캐진 버섯은 충돌 계산이 다 끝난 뒤에 돌려놓는다
             for (int i = mushrooms.Count - 1; i >= 0; i--)
             {
-                if (mushrooms[i].Alive) continue;
-                Despawn(mushrooms[i]);
-                respawns.Add(respawnDelay);
+                var m = mushrooms[i];
+                if (m.Alive) continue;
+                var colony = FindColony(m.Colony);
+                Despawn(m);
+                if (colony == null) continue;
+                colony.members.Remove(m);
+                if (colony.members.Count > 0) continue;
+                colonies.Remove(colony);
+                respawns.Add(stats.ColonyRespawn);
+                ColonyCleared?.Invoke(colony.center);
             }
 
             for (int i = respawns.Count - 1; i >= 0; i--)
             {
                 respawns[i] -= dt;
                 if (respawns[i] > 0f) continue;
-                if (TrySpawnMushroom()) respawns.RemoveAt(i);
-                else respawns[i] = 0.2f;   // 빈 자리가 없으면 조금 뒤 다시
+                if (TrySpawnColony()) respawns.RemoveAt(i);
+                else respawns[i] = 0.5f;   // 빈 자리가 없으면 조금 뒤 다시
             }
         }
 
@@ -129,7 +178,8 @@ namespace MoreMush.Mobile
                 harvesterPools.Add(prefab, pool = new PrefabPool<Harvester>(prefab, harvesterLayer));
             var h = pool.Get();
             h.Pool = pool;
-            h.BonusDamage = Mathf.RoundToInt(SkillProgress.Total(SkillAbility.HarvesterDamage));
+            h.BonusDamage = stats.BonusDamage;
+            h.Size = stats.SizeMul;
             h.Place(position);
             harvesters.Add(h);
             return h;
@@ -151,7 +201,7 @@ namespace MoreMush.Mobile
         // 바 위 가운데에서 x만큼 옆
         public Vector2 RestPosition(float x)
         {
-            float r = harvesterPrefab.Radius;
+            float r = harvesterPrefab.BaseRadius * (stats != null ? stats.SizeMul : 1f);
             if (bar == null) return new Vector2(x, rect.rect.yMin + r + restGap);
             Rect b = bar.GetRect(rect);
             return new Vector2(Mathf.Clamp(b.center.x + x, b.xMin + r, b.xMax - r), b.yMax + r + restGap);
@@ -192,7 +242,11 @@ namespace MoreMush.Mobile
                     float min = r + m.Radius;
                     if (d.sqrMagnitude >= min * min) continue;
 
-                    bool harvested = m.Hit(h.Damage);
+                    int damage = h.Damage;
+                    bool crit = stats.CritChance > 0f && Random.value < stats.CritChance;
+                    if (crit) damage = Mathf.CeilToInt(damage * stats.CritMul);
+                    bool harvested = m.Hit(damage);
+                    Hit?.Invoke(m, h, damage, crit);
                     if (harvested)
                     {
                         h.Combo++;
@@ -210,7 +264,7 @@ namespace MoreMush.Mobile
             h.Sync(dt);
         }
 
-        // 방향은 두고 속도를 speed로 맞춘다. 세로 성분이 너무 작으면 키워서 좌우로만 오가지 않게 한다
+        // 방향은 두고 속도를 Speed로 맞춘다. 세로 성분이 너무 작으면 키워서 좌우로만 오가지 않게 한다
         Vector2 KeepSpeed(Vector2 v)
         {
             Vector2 dir = v.normalized;
@@ -220,7 +274,7 @@ namespace MoreMush.Mobile
                 float x = Mathf.Sqrt(1f - y * y) * (dir.x >= 0f ? 1f : -1f);
                 dir = new Vector2(x, y);
             }
-            return dir * speed;
+            return dir * Speed;
         }
 
         // 바는 윗면(선분)만 충돌한다. 위에서 내려오는 중이고 중심이 윗면보다 위일 때만 막고 반사한다.
@@ -240,68 +294,185 @@ namespace MoreMush.Mobile
             return true;
         }
 
-        bool TrySpawnMushroom()
-        {
-            var prefab = PickKind();
-            if (prefab == null) return false;
+        // ── 군락지 ──
 
+        // 군락지 하나의 반지름 (가운데 + 둘레 버섯까지)
+        float Footprint(float size)
+        {
+            float rc = clusterPrefab.BaseRadius * size, rs = singlePrefab.BaseRadius * size;
+            return stats.SinglesPerColony > 0 ? rc + ringGap + rs * 2f : rc;
+        }
+
+        // 판 시작 때 군락지를 모두 놓는다. 엇갈린 격자(벌집 모양) 칸에 나눠 놓고 칸 안에서 조금씩 흔든다.
+        // 칸이 군락지 수보다 모자라면 버섯 크기를 줄여 칸을 늘린다
+        void PlanColonies()
+        {
+            List<Vector2> cells = null;
+            for (mushroomSize = 1f; mushroomSize >= minMushroomSize; mushroomSize *= 0.95f)
+            {
+                cells = GridCells(Footprint(mushroomSize));
+                if (cells.Count >= stats.Colonies) break;
+            }
+            mushroomSize = Mathf.Max(mushroomSize, minMushroomSize);
+
+            // 칸을 섞어 앞에서부터 쓴다
+            for (int i = cells.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (cells[i], cells[j]) = (cells[j], cells[i]);
+            }
+            int placed = Mathf.Min(cells.Count, stats.Colonies);
+            for (int i = 0; i < placed; i++) SpawnColony(cells[i]);
+            // 그래도 모자란 군락지는 리스폰 대기열로 (빈 자리가 생기면 돋는다)
+            for (int i = placed; i < stats.Colonies; i++) respawns.Add(0.5f);
+        }
+
+        // 군락지 반지름 foot으로 스폰 구역을 채우는 엇갈린 격자의 가운데 자리들 (칸 안에서 남는 만큼 흔든다)
+        List<Vector2> GridCells(float foot)
+        {
+            var cells = new List<Vector2>();
             Rect b = rect.rect;
-            float r = prefab.Radius;
-            float xMin = b.xMin + spawnSide + r, xMax = b.xMax - spawnSide - r;
-            float yMin = b.yMin + spawnBottom + r, yMax = b.yMax - spawnTop - r;
+            float xMin = b.xMin + spawnSide + foot, xMax = b.xMax - spawnSide - foot;
+            float yMin = b.yMin + spawnBottom + foot, yMax = b.yMax - spawnTop - foot;
+            if (xMin > xMax || yMin > yMax) return cells;
+
+            float dx = foot * 2f + colonyGap;
+            float dy = dx * 0.866f;                     // 엇갈린 줄 사이 (정삼각형 높이)
+            int rows = Mathf.FloorToInt((yMax - yMin) / dy) + 1;
+            for (int r = 0; r < rows; r++)
+            {
+                float offset = (r % 2) * dx * 0.5f;
+                int cols = Mathf.FloorToInt((xMax - xMin - offset) / dx) + 1;
+                if (cols <= 0) continue;
+                // 남는 폭·높이를 가운데 맞춤
+                float spareX = xMax - xMin - offset - (cols - 1) * dx;
+                float spareY = yMax - yMin - (rows - 1) * dy;
+                for (int c = 0; c < cols; c++)
+                {
+                    var pos = new Vector2(xMin + offset + spareX * 0.5f + c * dx, yMin + spareY * 0.5f + r * dy);
+                    float jitter = Mathf.Min(spareX, spareY) * 0.25f;
+                    pos += Random.insideUnitCircle * Mathf.Min(jitter, colonyGap * 0.5f);
+                    cells.Add(pos);
+                }
+            }
+            return cells;
+        }
+
+        // 다시 돋을 때: 격자 칸 중 빈 곳을 먼저 보고, 없으면 아무 빈 자리나 찾는다
+        bool TrySpawnColony()
+        {
+            float foot = Footprint(mushroomSize);
+            var none = new List<Vector2>();
+            var cells = GridCells(foot);
+            for (int i = cells.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (cells[i], cells[j]) = (cells[j], cells[i]);
+            }
+            foreach (var cell in cells)
+            {
+                if (!SpotFree(cell, foot, none)) continue;
+                SpawnColony(cell);
+                return true;
+            }
+            if (!FindSpot(foot, none, out var spot)) return false;
+            SpawnColony(spot);
+            return true;
+        }
+
+        // 다른 군락지·수확기와 겹치지 않는 가운데 자리. pending은 아직 놓지 않은 예정 자리들
+        bool FindSpot(float foot, List<Vector2> pending, out Vector2 spot)
+        {
+            Rect b = rect.rect;
+            float xMin = b.xMin + spawnSide + foot, xMax = b.xMax - spawnSide - foot;
+            float yMin = b.yMin + spawnBottom + foot, yMax = b.yMax - spawnTop - foot;
+            spot = default;
             if (xMin > xMax || yMin > yMax) return false;
 
-            for (int attempt = 0; attempt < 24; attempt++)
+            for (int attempt = 0; attempt < 60; attempt++)
             {
                 var pos = new Vector2(Random.Range(xMin, xMax), Random.Range(yMin, yMax));
-                if (!IsFree(pos, r)) continue;
-
-                var pool = mushroomPools[prefab];
-                var m = pool.Get();
-                m.Pool = pool;
-                m.Place(pos);
-                mushrooms.Add(m);
+                if (!SpotFree(pos, foot, pending)) continue;
+                spot = pos;
                 return true;
             }
             return false;
         }
 
-        bool IsFree(Vector2 pos, float r)
+        bool SpotFree(Vector2 pos, float foot, List<Vector2> pending)
         {
-            foreach (var m in mushrooms)
+            foreach (var c in colonies)
             {
-                float min = r + m.Radius + spawnGap;
-                if ((m.Position - pos).sqrMagnitude < min * min) return false;
+                float min = foot + c.footprint + colonyGap;
+                if ((c.center - pos).sqrMagnitude < min * min) return false;
             }
+            foreach (var other in pending)
+            {
+                float min = foot * 2f + colonyGap;
+                if ((other - pos).sqrMagnitude < min * min) return false;
+            }
+            // 남아 있는 버섯 (다 캐지 않은 옛 군락지 버섯은 colonies에 남아 있으므로 위에서 걸린다)
             foreach (var h in harvesters)
             {
-                float min = r + h.Radius;
+                float min = foot + h.Radius;
                 if ((h.Position - pos).sqrMagnitude < min * min) return false;
             }
             return true;
         }
 
-        // 비중대로 뽑되, 최대 수에 닿은 종류는 뺀다 (오래 버티는 군락이 필드를 채우지 않게)
-        Mushroom PickKind()
+        void SpawnColony(Vector2 center)
         {
-            float total = 0f;
-            foreach (var kind in kinds) if (CanSpawn(kind)) total += Mathf.Max(0f, kind.weight);
-            if (total <= 0f) return null;
+            var colony = new Colony { id = nextColonyId++, center = center, footprint = Footprint(mushroomSize) };
+            var tier = RollTier();
+            var look = Look(tier);
 
-            float roll = Random.value * total;
-            Mushroom last = null;
-            foreach (var kind in kinds)
+            colony.members.Add(SpawnMushroom(clusterPool, center, colony.id, look));
+            int n = stats.SinglesPerColony;
+            float ring = (clusterPrefab.BaseRadius + ringGap + singlePrefab.BaseRadius) * mushroomSize;
+            float start = Random.value * Mathf.PI * 2f;
+            for (int i = 0; i < n; i++)
             {
-                if (!CanSpawn(kind)) continue;
-                last = kind.prefab;
-                roll -= Mathf.Max(0f, kind.weight);
-                if (roll <= 0f) return kind.prefab;
+                float a = start + i * Mathf.PI * 2f / n + Random.Range(-0.15f, 0.15f);
+                var pos = center + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * ring;
+                colony.members.Add(SpawnMushroom(singlePool, pos, colony.id, look));
             }
-            return last;
+            colonies.Add(colony);
         }
 
-        bool CanSpawn(MushroomKind kind) =>
-            kind.prefab != null && (kind.maxAlive <= 0 || mushroomPools[kind.prefab].CountActive < kind.maxAlive);
+        Mushroom SpawnMushroom(PrefabPool<Mushroom> pool, Vector2 pos, int colonyId, TierLook look)
+        {
+            var m = pool.Get();
+            m.Pool = pool;
+            m.Place(pos);
+            bool golden = stats.GoldenChance > 0f && Random.value < stats.GoldenChance;
+            m.Setup(look.tier, look.hpMul, golden, mushroomSize, golden ? goldenTint : look.tint);
+            m.Colony = colonyId;
+            mushrooms.Add(m);
+            return m;
+        }
+
+        // 유니크 → 에픽 → 일반 순으로 굴린다
+        MushroomTier RollTier()
+        {
+            float roll = Random.value;
+            if (roll < stats.UniqueChance) return MushroomTier.Unique;
+            if (roll < stats.UniqueChance + stats.EpicChance) return MushroomTier.Epic;
+            return MushroomTier.Normal;
+        }
+
+        TierLook Look(MushroomTier tier)
+        {
+            foreach (var t in tiers) if (t.tier == tier) return t;
+            return tiers.Length > 0 ? tiers[0] : new TierLook();
+        }
+
+        public float ScoreMul(MushroomTier tier) => Look(tier).scoreMul;
+
+        Colony FindColony(int id)
+        {
+            foreach (var c in colonies) if (c.id == id) return c;
+            return null;
+        }
 
         void Despawn(Mushroom m)
         {

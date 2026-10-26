@@ -14,8 +14,21 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform visual;        // 돌릴 그림. 비우면 회전 없음
 
         RectTransform rect;
+        float size = 1f;
 
-        public float Radius => radius;
+        public float Radius => radius * size;
+        public float BaseRadius => radius;
+        // 크기 배율 (초토화). 충돌 반지름과 그림을 함께 키운다
+        public float Size
+        {
+            get => size;
+            set
+            {
+                size = value;
+                if (rect == null) rect = (RectTransform)transform;
+                rect.localScale = new Vector3(value, value, 1f);
+            }
+        }
         public int BonusDamage { get; set; }          // 스킬 등으로 더해지는 공격력. 꺼낼 때 HarvestField가 넣는다
         public int Damage => damage + BonusDamage;
         public Vector2 Position { get; set; }
@@ -31,6 +44,7 @@ namespace MoreMush.Mobile
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
             Velocity = Vector2.zero;
             Combo = 0;
+            Size = 1f;
             if (visual != null) visual.localRotation = Quaternion.identity;
         }
 
