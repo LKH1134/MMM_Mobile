@@ -28,12 +28,13 @@ namespace MoreMush.Mobile
             worldTreeButton.onClick.AddListener(GoWorldTree);
         }
 
-        public void Show(long earned, long score, long harvested)
+        // note: 보스 판이면 "보스 처치"·"보스 실패" 같은 한 마디를 앞에 붙인다
+        public void Show(long earned, long score, long harvested, string note = null)
         {
             // 꺼진 채로 만들어져 아직 Awake 전일 수 있다. Open이 켜면서 Awake가 돈다
             if (popup == null) popup = GetComponent<UiPopup>();
             popup.Open();
-            countText.text = $"점수 {score:N0} · 버섯 {harvested:N0}개";
+            countText.text = (string.IsNullOrEmpty(note) ? "" : note + " · ") + $"점수 {score:N0} · 버섯 {harvested:N0}개";
             if (countUp != null) StopCoroutine(countUp);
             countUp = StartCoroutine(CountUp(earned));
         }

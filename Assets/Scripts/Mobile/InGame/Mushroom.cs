@@ -35,6 +35,7 @@ namespace MoreMush.Mobile
         public bool Golden { get; private set; }
         public int Colony { get; set; } = -1;         // 속한 군락지 번호 (HarvestField가 쓴다)
         public bool IsCenter { get; set; }            // 군락지 가운데 군락 버섯 ("군락 충돌" 스킬이 이걸 본다)
+        public bool IsBoss { get; set; }              // 보스 판의 보스 (관통되지 않고, 보스 피해가 붙는다)
         public Vector2 Position => rect.anchoredPosition;
         internal PrefabPool<Mushroom> Pool { get; set; }
 
@@ -67,6 +68,7 @@ namespace MoreMush.Mobile
             Golden = false;
             Colony = -1;
             IsCenter = false;
+            IsBoss = false;
             if (tintTarget != null) tintTarget.color = Color.white;
             Hp = MaxHp;
             ShowHp();

@@ -139,7 +139,8 @@ namespace MoreMush.Mobile
                 SpawnHarvester(RestPosition((i % 2 == 1 ? 1f : -1f) * ((i + 1) / 2) * gap));
 
             BeforeColonies?.Invoke();
-            PlanColonies();
+            if (stats.BossRound) SpawnBoss();
+            else PlanColonies();
             Running = true;
         }
 
@@ -170,7 +171,7 @@ namespace MoreMush.Mobile
                 colony.members.Remove(m);
                 if (colony.members.Count > 0) continue;
                 colonies.Remove(colony);
-                respawns.Add(stats.ColonyRespawn);
+                if (!stats.BossRound) respawns.Add(stats.ColonyRespawn);   // 보스 판엔 군락지가 다시 돋지 않는다
                 ColonyCleared?.Invoke(colony.center);
             }
 
@@ -210,6 +211,7 @@ namespace MoreMush.Mobile
         public bool DealDamage(Mushroom m, int damage, Harvester source)
         {
             if (m == null || !m.Alive) return false;
+            if (m.IsBoss) damage = Mathf.RoundToInt(damage * stats.BossDamageMul);
             bool harvested = m.Hit(Mathf.Max(1, damage));
             Hit?.Invoke(m, source, damage, false);
             if (harvested) Harvested?.Invoke(m, source);
@@ -248,6 +250,7 @@ namespace MoreMush.Mobile
             h.BonusDamage = stats.BonusDamage;
             h.PowerDamage = stats.PowerAttack;
             h.StumpMul = 1f + stats.Base.stumpAttack;
+            h.WeakMul = stats.Base.sporeWeak;
             h.Size = stats.SizeMul;
             h.Place(position);
             harvesters.Add(h);
@@ -348,7 +351,7 @@ namespace MoreMush.Mobile
                     // 관통 중에 겹쳐 지나가는 동안에는 한 번만 때린다
                     if (touching.Contains(m)) continue;
 
-                    int damage = Mathf.Max(1, Mathf.RoundToInt(h.Damage * h.NextHitMul));
+                    int damage = Mathf.Max(1, Mathf.RoundToInt(h.Damage * h.NextHitMul * (m.IsBoss ? stats.BossDamageMul : 1f)));
                     h.NextHitMul = 1f;
                     bool crit = stats.CritChance > 0f && Random.value < stats.CritChance;
                     if (crit) damage = Mathf.CeilToInt(damage * stats.CritMul);
@@ -360,7 +363,7 @@ namespace MoreMush.Mobile
                         Harvested?.Invoke(m, h);
                         if (pierce) continue;
                     }
-                    if (h.Has(HarvesterBuff.Pierce))
+                    if (h.Has(HarvesterBuff.Pierce) && !m.IsBoss)
                     {
                         touching.Add(m);
                         continue;
@@ -401,6 +404,7 @@ namespace MoreMush.Mobile
                 dir = new Vector2(x, y);
             }
             float haste = h.Has(HarvesterBuff.Haste) ? 1f + stats.Base.hasteBoost : 1f;
+            if (h.Has(HarvesterBuff.Slow)) haste *= stats.Base.sporeSlow;
             return dir * Speed * haste;
         }
 
@@ -485,6 +489,26 @@ namespace MoreMush.Mobile
                 }
             }
             return cells;
+        }
+
+        // 보스 판: 군락지 대신 큰 보스 하나를 필드 가운데 위쪽에 놓는다. 유도·번개·회오리가 보스를 노리도록 군락지 하나로 등록한다
+        void SpawnBoss()
+        {
+            var b = stats.Base;
+            Rect r = rect.rect;
+            float radius = clusterPrefab.BaseRadius * b.bossSize;
+            var center = new Vector2(0f, Mathf.Lerp(r.yMin + spawnBottom + radius, r.yMax - spawnTop - radius, 0.6f));
+            var colony = new Colony { id = nextColonyId++, center = center, footprint = radius };
+            var boss = clusterPool.Get();
+            boss.Pool = clusterPool;
+            boss.Place(center);
+            boss.Setup(MushroomTier.Legendary, Mathf.CeilToInt((float)b.bossHp / Mathf.Max(1, clusterPrefab.MaxHp)), false, b.bossSize, b.bossTint);
+            boss.Colony = colony.id;
+            boss.IsCenter = true;
+            boss.IsBoss = true;
+            mushrooms.Add(boss);
+            colony.members.Add(boss);
+            colonies.Add(colony);
         }
 
         // 다시 돋을 때: 격자 칸 중 빈 곳을 먼저 보고, 없으면 아무 빈 자리나 찾는다

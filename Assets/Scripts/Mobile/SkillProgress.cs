@@ -53,6 +53,10 @@ namespace MoreMush.Mobile
         public const string SporeBurst = "spore_burst_chance";      // 군락 충돌 → 전체 피해 (공격력 × param)
         // 필드
         public const string FieldRestoration = "field_restoration"; // 1 그루터기 / 2 꽃밭 / 3 도토리
+        // 디버프·보스
+        public const string DebuffCleanse = "debuff_cleanse_chance"; // 군락 충돌로 디버프를 얻을 때 바로 해제할 확률
+        public const string BossDamage = "boss_damage";             // 보스 피해 +비율
+        public const string LegendaryYield = "legendary_yield";     // 보스 전용 레전더리 버섯 수확량 +비율
     }
 
     // 배운 스킬 레벨. 지금은 PlayerPrefs("Skill.Level.<index>")에 저장한다 (세이브 구조가 생기면 옮긴다).

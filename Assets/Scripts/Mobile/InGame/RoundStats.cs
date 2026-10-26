@@ -32,6 +32,21 @@ namespace MoreMush.Mobile
         public float acornDuration = 5f;
         public float orbitDamageBase = 0.05f; // 회전 회오리가 없을 때 꼬마 수확기 공격력 (공격력 대비)
         public float lightningRadius = 110f;  // 번개가 맞히는 반지름
+
+        [Header("3단계: 포자 디버프 (표에 없는 값)")]
+        [Range(0f, 1f)] public float sporeChance = 0.2f;   // 군락(가운데 버섯)에 부딪힐 때 디버프를 얻을 확률
+        public float sporeDuration = 3f;
+        public float sporeSlow = 0.75f;       // 느림: 속도 배율
+        public float sporeWeak = 0.5f;        // 약화: 공격력 배율
+
+        [Header("3단계: 보스 판")]
+        public int bossEvery = 10;            // 이 판마다 보스 판 (군락지 대신 보스 하나, 처치하면 판이 끝난다)
+        public int bossHp = 300;              // 보스 체력 (군락 버섯 기본 체력에 곱하지 않는 값)
+        public float bossSize = 1.8f;         // 군락 버섯 대비 크기
+        public Color bossTint = new Color(1f, 0.45f, 0.45f);
+        public float bossHitScore = 5f;       // 보스에 준 피해 1당 점수
+        public long bossKillScore = 3000;     // 처치 점수
+        public int bossDrop = 30;             // 처치 때 얻는 레전더리 버섯 수
     }
 
     // 판 시작 때 배운 스킬로 정해지는 수치 모음 (판 중에는 바뀌지 않는다)
@@ -65,6 +80,9 @@ namespace MoreMush.Mobile
         public float WhirlChance, WhirlDamage, WhirlDuration;
         public float BurstChance, BurstDamage;
         public int Restoration;
+        // 3단계
+        public float CleanseChance, BossDamageMul, LegendaryYieldMul;
+        public bool BossRound;                // HarvestGame이 판 수를 보고 정한다
 
         public bool AnyBarBuff => PowerAttack > 0 || HasteDuration > 0f || PierceDuration > 0f || HomingDuration > 0f
                                   || FeverDuration > 0f || WisdomRate > 0f || HealDuration > 0f;
@@ -110,6 +128,9 @@ namespace MoreMush.Mobile
                 BurstChance = T(SkillAbility.SporeBurst),
                 BurstDamage = P(SkillAbility.SporeBurst, 0.1f),
                 Restoration = Mathf.RoundToInt(T(SkillAbility.FieldRestoration)),
+                CleanseChance = Mathf.Clamp01(T(SkillAbility.DebuffCleanse)),
+                BossDamageMul = 1f + T(SkillAbility.BossDamage),
+                LegendaryYieldMul = 1f + T(SkillAbility.LegendaryYield),
 
                 Duration = Mathf.Max(1f, b.duration + T(SkillAbility.RoundTime)),
                 Colonies = Mathf.Max(1, b.colonies + Mathf.RoundToInt(T(SkillAbility.ColonyCount))),
@@ -145,6 +166,7 @@ namespace MoreMush.Mobile
                 case MushroomTier.Epic: return EpicYieldMul;
                 case MushroomTier.Unique: return UniqueYieldMul;
                 case MushroomTier.Normal: return NormalYieldMul;
+                case MushroomTier.Legendary: return LegendaryYieldMul;
                 default: return 1f;
             }
         }

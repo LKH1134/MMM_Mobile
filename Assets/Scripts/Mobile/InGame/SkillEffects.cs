@@ -9,7 +9,8 @@ namespace MoreMush.Mobile
     // 판 중에 발동하는 스킬 효과 (HarvestField 이벤트를 듣는다). 수치는 HarvestField.Stats(RoundStats)에서 읽는다.
     //   바에 닿을 때 (던지는 수확기만, 분열체 제외): 사냥 준비·가속·관통·유도·약손은 그 수확기에, 피버·지혜는 판 전체에 100% 걸린다 (다시 닿으면 시간을 새로 채움).
     //     분열·분신술은 확률 (지혜가 걸려 있으면 그만큼 더한다)
-    //   단일 버섯을 캘 때: 이독제독 / 군락지를 다 캘 때: 연속 번개 / 군락(가운데 버섯)에 부딪힐 때: 회오리·포자 폭발
+    //   단일 버섯을 캘 때: 이독제독 / 군락지를 다 캘 때: 연속 번개 / 군락(가운데 버섯)에 부딪힐 때: 회오리·포자 폭발,
+    //     그리고 확률로 포자 디버프(느림·약화). 약손 중엔 막고, 탈피 확률로 바로 해제한다
     //   첫 투척 때: 전설의 할아버지 (보유 버프마다 확률로 바로 건다)
     //   회전 꼬마 수확기: 메인 수확기 둘레를 돌며 닿는 버섯을 때린다
     // 분열체·분신 바·꼬마 수확기·번개 그림은 판 시작 때 최대치만큼 미리 만들어 두고 풀에서 꺼내 쓴다
@@ -36,6 +37,7 @@ namespace MoreMush.Mobile
         [SerializeField] Color pierceTint = new Color(1f, 0.5f, 0.5f);
         [SerializeField] Color homingTint = new Color(0.6f, 1f, 0.6f);
         [SerializeField] Color splitTint = new Color(0.85f, 0.75f, 1f);
+        [SerializeField] Color debuffTint = new Color(0.55f, 0.65f, 0.4f);
 
         class CloneBar
         {
@@ -139,6 +141,9 @@ namespace MoreMush.Mobile
             h.SetBuff(HarvesterBuff.Homing, s.HomingDuration);
             if (s.HealDuration > 0f)
             {
+                // 약손: 포자 디버프를 지우고 그동안 새 디버프를 막는다
+                h.ClearBuff(HarvesterBuff.Slow);
+                h.ClearBuff(HarvesterBuff.Weak);
                 h.SetBuff(HarvesterBuff.Heal, s.HealDuration);
                 Healed?.Invoke(h);
             }
@@ -223,6 +228,7 @@ namespace MoreMush.Mobile
         void OnHit(Mushroom m, Harvester h, int damage, bool crit)
         {
             if (dealing || h == null || !m.IsCenter) return;
+            Spore(h);
             // 회오리: 그 군락지에 지속 피해
             if (s.WhirlChance > 0f && Chance(s.WhirlChance))
                 dots.Add(new Dot { colony = m.Colony, life = s.WhirlDuration, tick = 0f });
@@ -236,6 +242,22 @@ namespace MoreMush.Mobile
                 ShowFlash(m.Position, 260f, new Color(0.7f, 1f, 0.5f, 0.6f));
             }
         }
+
+        // 포자 디버프: 군락(가운데 버섯)에 부딪히면 확률로 느림 또는 약화. 약손 중이면 막고, 탈피 확률로 바로 해제
+        void Spore(Harvester h)
+        {
+            var b = s.Base;
+            if (b.sporeChance <= 0f || Random.value >= b.sporeChance) return;
+            if (h.Has(HarvesterBuff.Heal)) return;
+            if (s.CleanseChance > 0f && Random.value < s.CleanseChance)
+            {
+                SporeResisted++;
+                return;
+            }
+            h.SetBuff(Random.value < 0.5f ? HarvesterBuff.Slow : HarvesterBuff.Weak, b.sporeDuration);
+        }
+
+        public int SporeResisted { get; private set; }   // 탈피로 막은 횟수 (확인용)
 
         // 연속 번개: 군락지를 다 캐면 다른 군락지(Lv.3부터는 아무 곳)에 번개
         void OnColonyCleared(Vector2 at)
@@ -386,6 +408,7 @@ namespace MoreMush.Mobile
                 if (h.Has(HarvesterBuff.Haste)) tint = hasteTint;
                 if (h.Has(HarvesterBuff.Homing)) tint = homingTint;
                 if (h.Has(HarvesterBuff.Pierce)) tint = pierceTint;
+                if (h.Debuffed) tint = debuffTint;
                 h.Tint(tint);
             }
             if (buffText == null) return;
@@ -400,6 +423,8 @@ namespace MoreMush.Mobile
                 Add("유도", main.Remaining(HarvesterBuff.Homing));
                 Add("약손", main.Remaining(HarvesterBuff.Heal));
                 Add("그루터기", main.Remaining(HarvesterBuff.Stump));
+                Add("느림", main.Remaining(HarvesterBuff.Slow));
+                Add("약화", main.Remaining(HarvesterBuff.Weak));
             }
             Add("피버", fever);
             Add("지혜", wisdom);

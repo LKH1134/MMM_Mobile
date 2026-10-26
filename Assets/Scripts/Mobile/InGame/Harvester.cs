@@ -4,8 +4,9 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 수확기 하나에 걸리는 버프 (바에 닿거나 장치를 지날 때 SkillEffects·FieldDevices가 건다)
-    public enum HarvesterBuff { Power, Haste, Pierce, Homing, Heal, Stump }
+    // 수확기 하나에 걸리는 버프 (바에 닿거나 장치를 지날 때 SkillEffects·FieldDevices가 건다).
+    // Slow·Weak는 포자 디버프 (군락에 부딪힐 때 확률로 걸린다)
+    public enum HarvesterBuff { Power, Haste, Pierce, Homing, Heal, Stump, Slow, Weak }
 
     // 수확기(낫). 한 번 던지면 감속 없이 같은 속도로 날아가며 상하좌우 벽·바·버섯에 부딪혀 반사각으로 튄다.
     // 움직임·충돌 계산은 HarvestField가 한꺼번에 한다 (좌표는 필드 로컬, 단위는 캔버스 픽셀).
@@ -45,12 +46,15 @@ namespace MoreMush.Mobile
         public float DamageMul { get; set; } = 1f;    // 분열체 등 공격력 배율
         public float StumpMul { get; set; } = 1f;     // 그루터기 버프가 걸려 있을 때 곱할 값
         public float NextHitMul { get; set; } = 1f;   // 다음 한 번만 곱할 피해 (이독제독). 맞히면 1로 돌아간다
+        public float WeakMul { get; set; } = 1f;      // 약화 디버프 중 공격력 배율
+        public bool Debuffed => Has(HarvesterBuff.Slow) || Has(HarvesterBuff.Weak);
         public int Damage
         {
             get
             {
                 float d = (damage + BonusDamage + (Has(HarvesterBuff.Power) ? PowerDamage : 0)) * DamageMul;
                 if (Has(HarvesterBuff.Stump)) d *= StumpMul;
+                if (Has(HarvesterBuff.Weak)) d *= WeakMul;
                 return Mathf.Max(1, Mathf.RoundToInt(d));
             }
         }
@@ -76,7 +80,7 @@ namespace MoreMush.Mobile
             Combo = 0;
             Size = 1f;
             BonusDamage = PowerDamage = 0;
-            DamageMul = StumpMul = NextHitMul = 1f;
+            DamageMul = StumpMul = NextHitMul = WeakMul = 1f;
             Temporary = false;
             Life = 0f;
             System.Array.Clear(buffs, 0, buffs.Length);
