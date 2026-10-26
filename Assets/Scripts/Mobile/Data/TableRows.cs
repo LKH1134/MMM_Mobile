@@ -42,9 +42,12 @@ namespace MoreMush.Mobile
         public float abilityValue; // 레벨당 능력 수치 (배율·증가량 등, 해석은 ability마다). 비율은 0.1 = 10%
         public float param;        // 레벨과 무관한 고정 수치 (번개 공격력 30%, 버프 지속 3초 등, 해석은 ability마다)
         public int maxLevel;       // 최대 레벨. 비우면 1
-        public long unlockPrice;   // 해금 가격
-        public Currency currency;
-        public int link;           // 연결 노드 index (트리에 선으로 그린다). 1레벨 이상 배워야 열린다. 0 = 없음 (시작 노드)
+        public long unlockPrice;   // 첫 레벨 가격
+        public Currency currency;  // 첫 레벨 재화
+        public long levelPrice;    // 2레벨부터의 첫 가격. 비우면 unlockPrice × priceGrowth^(레벨-1)을 같은 재화로
+        public Currency levelCurrency; // 2레벨부터의 재화 (levelPrice가 있을 때만 읽는다)
+        public float priceGrowth;  // 레벨마다 가격 배율 (비우면 1)
+        public int link;          // 연결 노드 index (트리에 선으로 그린다). 1레벨 이상 배워야 열린다. 0 = 없음 (시작 노드)
         public int[] requires;     // 이전 레벨 노드 index들 (같은 스킬의 앞 노드). 최대 레벨까지 배워야 열린다
     }
 

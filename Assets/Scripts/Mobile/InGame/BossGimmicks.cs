@@ -22,6 +22,15 @@ namespace MoreMush.Mobile
 
         void Update() => Step(Time.deltaTime);
 
+        // 판을 처음부터 다시 (밸런스 측정기)
+        public void Restart()
+        {
+            boss = null;
+            main = null;
+            nextSplit = 0;
+            moveDir.Clear();
+        }
+
         // dt초 진행. 테스트에서도 직접 부를 수 있다
         public void Step(float dt)
         {

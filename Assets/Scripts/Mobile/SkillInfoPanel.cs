@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 스킬 정보 창 (SkillTree 씬의 SkillInfo). 노드를 누르면 열려 이름·레벨·설명을 보여 주고, 배우기 버튼으로 레벨을 올린다.
-    // 임시: 가격은 표시·차감하지 않는다 (지갑 기능이 생기면 붙인다)
+    // 배우기 버튼에 다음 레벨 가격을 보여 주고, 재화가 모자라면 누를 수 없다 (차감은 SkillProgress.LevelUp)
     public class SkillInfoPanel : MonoBehaviour
     {
         [SerializeField] TMP_Text nameText;
@@ -77,8 +77,18 @@ namespace MoreMush.Mobile
                 desc.Append("</size>");
             }
             descText.text = desc.ToString();
-            learnButton.interactable = !maxed && ready;
-            learnLabel.text = maxed ? "최대 레벨" : !ready ? "선행 스킬 필요" : level == 0 ? "배우기" : "레벨 업";
+
+            // 다음 레벨 가격 (재화가 모자라면 누를 수 없다)
+            long price = SkillProgress.NextPrice(skill, out var currency);
+            bool afford = Wallet.CanAfford(currency, price);
+            learnButton.interactable = !maxed && ready && afford;
+            string verb = level == 0 ? "배우기" : "레벨 업";
+            string cost = price > 0 ? $"\n<size=70%>{Wallet.Format(price)} {(currency == Currency.Mycelite ? "균사석" : "골드")}</size>" : "";
+            learnLabel.text = maxed ? "최대 레벨" : !ready ? "선행 스킬 필요" : verb + cost;
         }
+
+        void OnEnable() => Wallet.Changed += OnWalletChanged;
+        void OnDisable() => Wallet.Changed -= OnWalletChanged;
+        void OnWalletChanged() => Refresh();
     }
 }

@@ -32,6 +32,8 @@ namespace MoreMush.Mobile
         [SerializeField] PopupSlot workshopPopup;
 
         [SerializeField] TMP_Text stageName;          // 스테이지 입장 버튼 위 지금 스테이지 이름 (보스 스테이지면 표시)
+        [SerializeField] TMP_Text goldText;           // 지갑 골드
+        [SerializeField] TMP_Text myceliteText;       // 지갑 균사석
 
         [SerializeField] string worldTreeScene = "WorldTree";
         [SerializeField] string stageScene = "InGame";
@@ -47,6 +49,8 @@ namespace MoreMush.Mobile
 
             if (treeView != null) treeView.Build();
             ShowStage();
+            Wallet.Changed += ShowWallet;
+            ShowWallet();
             if (nodeRoot != null)
                 foreach (var node in nodeRoot.GetComponentsInChildren<SkillNode>(true)) node.Clicked += Select;
             if (blankArea != null) blankArea.onClick.AddListener(Deselect);
@@ -64,12 +68,22 @@ namespace MoreMush.Mobile
             }
         }
 
+        void OnDestroy() => Wallet.Changed -= ShowWallet;
+
+        void ShowWallet()
+        {
+            if (goldText != null) goldText.text = Wallet.Format(Wallet.Gold);
+            if (myceliteText != null) myceliteText.text = Wallet.Format(Wallet.Mycelite);
+        }
+
+        // 보스 스테이지면 "보스", 보스에게 져서 파밍 중이면 "파밍 n"
         void ShowStage()
         {
             if (stageName == null) return;
             var stage = StageProgress.CurrentData;
             if (stage == null) return;
-            stageName.text = stage.boss != 0 ? $"{stage.name} 보스" : stage.name;
+            int farm = StageProgress.FarmLeft;
+            stageName.text = stage.boss == 0 ? stage.name : farm > 0 ? $"{stage.name} 파밍 {farm}" : $"{stage.name} 보스";
         }
 
         void Select(SkillNode node)

@@ -99,11 +99,40 @@ namespace MoreMush.Mobile
             if (buffText != null) buffText.text = "";
         }
 
-        void Update()
+        void Update() => Step(Time.deltaTime);
+
+        // 판을 처음부터 다시 (밸런스 측정기). 필드 Restart 뒤에 부른다
+        public void Restart()
         {
-            if (s == null || !field.Running) return;
-            float dt = Time.deltaTime;
-            if (dt <= 0f) return;
+            s = field.Stats;
+            fever = wisdom = acorn = 0f;
+            openingDone = false;
+            foreach (var c in clones)
+            {
+                field.RemoveBar(c.bar);
+                clonePool.Release(c.bar);
+            }
+            clones.Clear();
+            dots.Clear();
+            orbitCooldown.Clear();
+            foreach (var f in flashes)
+            {
+                f.image.gameObject.SetActive(false);
+                freeFlashes.Push(f.image);
+            }
+            flashes.Clear();
+            if (s.CloneBarMax > 0 && clonePool == null && field.Bar != null)
+                clonePool = new PrefabPool<Bar>(field.Bar, field.Bar.transform.parent, s.CloneBarMax);
+            while (orbits.Count < s.OrbitCount) orbits.Add(MakeRect("Orbit", orbitSprite, orbitSize, field.HarvesterLayer));
+            for (int i = 0; i < orbits.Count; i++) orbits[i].gameObject.SetActive(false);
+            int flashCount = (s.LightningChance > 0f ? 2 : 0) + (s.BurstChance > 0f ? 2 : 0);
+            while (freeFlashes.Count < flashCount) freeFlashes.Push(MakeRect("Flash", flashSprite, 100f, field.Rect).GetComponent<Image>());
+        }
+
+        // dt초 진행 (측정기도 직접 부른다)
+        public void Step(float dt)
+        {
+            if (s == null || !field.Running || dt <= 0f) return;
 
             fever = Mathf.Max(0f, fever - dt);
             wisdom = Mathf.Max(0f, wisdom - dt);
@@ -324,12 +353,14 @@ namespace MoreMush.Mobile
                 else orbitCooldown[m] = left;
             }
 
+            int count = Mathf.Min(orbits.Count, s.OrbitCount);
             for (int i = 0; i < orbits.Count; i++)
             {
                 var o = orbits[i];
-                if (o.gameObject.activeSelf != show) o.gameObject.SetActive(show);
-                if (!show) continue;
-                float a = (orbitAngle + i * 360f / orbits.Count) * Mathf.Deg2Rad;
+                bool on = show && i < count;
+                if (o.gameObject.activeSelf != on) o.gameObject.SetActive(on);
+                if (!on) continue;
+                float a = (orbitAngle + i * 360f / count) * Mathf.Deg2Rad;
                 Vector2 pos = main.Position + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * (main.Radius + orbitDistance);
                 o.anchoredPosition = pos;
                 o.localRotation = Quaternion.Euler(0f, 0f, -orbitAngle * 2f);

@@ -102,22 +102,32 @@ namespace MoreMush.Mobile
         public event System.Action<Vector2> ColonyCleared;           // 군락지 하나를 다 캤다 (가운데 위치)
         public event System.Action BeforeColonies;                    // 판 시작 때 군락지를 놓기 직전 (장치 자리를 먼저 잡는다)
 
+        Vector2 barBaseSize;
+        Vector2 barBasePos;
+
         void Awake()
         {
             rect = (RectTransform)transform;
-            if (bar != null) bars.Add(bar);
+            if (bar != null)
+            {
+                bars.Add(bar);
+                var barRect = (RectTransform)bar.transform;
+                barBaseSize = barRect.sizeDelta;
+                barBasePos = barRect.anchoredPosition;
+            }
         }
 
-        // 판 시작 전에 HarvestGame이 넣는다. 안 넣으면 스킬 없는 기본값으로 시작한다
+        // 판 시작 전에 HarvestGame이 넣는다. 안 넣으면 스킬 없는 기본값으로 시작한다. 바 길이는 씬의 원래 길이 × 바 길이 배율
         public void Configure(RoundStats roundStats)
         {
             stats = roundStats;
             if (bar != null)
             {
                 var barRect = (RectTransform)bar.transform;
-                float width = barRect.sizeDelta.x * stats.BarMul;
+                float width = barBaseSize.x * stats.BarMul;
                 float max = ((RectTransform)transform).rect.width * maxBarRatio;
-                barRect.sizeDelta = new Vector2(max > 0f ? Mathf.Min(width, max) : width, barRect.sizeDelta.y);
+                barRect.sizeDelta = new Vector2(max > 0f ? Mathf.Min(width, max) : width, barBaseSize.y);
+                barRect.anchoredPosition = barBasePos;
             }
         }
 
@@ -131,7 +141,25 @@ namespace MoreMush.Mobile
             clusterPool = new PrefabPool<Mushroom>(clusterPrefab, mushroomLayer, stats.Colonies + 1);
             singlePool = new PrefabPool<Mushroom>(singlePrefab, mushroomLayer, (stats.Colonies + 1) * perColony);
             harvesterPools.Add(harvesterPrefab, new PrefabPool<Harvester>(harvesterPrefab, harvesterLayer, 1 + stats.ExtraHarvesters + stats.MaxSplit));
+            BeginRound();
+        }
 
+        // 판을 처음부터 다시 (밸런스 측정기가 판마다 부른다). Configure로 새 수치를 넣은 뒤 부른다
+        public void Restart()
+        {
+            for (int i = harvesters.Count - 1; i >= 0; i--) DespawnHarvester(harvesters[i]);
+            for (int i = mushrooms.Count - 1; i >= 0; i--) Despawn(mushrooms[i]);
+            colonies.Clear();
+            respawns.Clear();
+            obstacles.Clear();
+            bars.Clear();
+            if (bar != null) bars.Add(bar);
+            Running = false;
+            BeginRound();
+        }
+
+        void BeginRound()
+        {
             // 함께 던지는 수확기는 메인 양옆에 놓는다
             SpawnHarvester(RestPosition(0f));
             float gap = harvesterPrefab.BaseRadius * stats.SizeMul * 2.2f;
@@ -268,6 +296,14 @@ namespace MoreMush.Mobile
         {
             Running = false;
             foreach (var h in harvesters) h.Stop();
+        }
+
+        // 바를 가로 x 위치로 (측정기 봇의 조작). 필드 밖으로는 나가지 않는다
+        public void MoveBarTo(float x, float maxStep)
+        {
+            if (bar == null) return;
+            float now = ((RectTransform)bar.transform).anchoredPosition.x;
+            bar.MoveBy(Mathf.Clamp(x - now, -maxStep, maxStep), rect);
         }
 
         // 바 위 가운데에서 x만큼 옆
@@ -501,8 +537,7 @@ namespace MoreMush.Mobile
             var center = new Vector2(0f, Mathf.Lerp(r.yMin + spawnBottom + radius, r.yMax - spawnTop - radius, 0.6f));
             var colony = new Colony { id = nextColonyId++, center = center, footprint = radius };
             colonies.Add(colony);
-            float hp = b.bossBaseHp * Mathf.Max(0.0001f, stats.Boss.hpRate) * stats.HpRate;
-            SpawnBossPart(center, hp, b.bossSize);
+            SpawnBossPart(center, stats.BossHp * stats.BossHpMul, b.bossSize);
         }
 
         // 보스 몸 하나 (본체 또는 분신). 보스 군락지에 넣는다

@@ -24,13 +24,20 @@ namespace MoreMush.Mobile
         [SerializeField] Color acornOn = new Color(1f, 0.85f, 0.3f);
 
         readonly List<Image> acorns = new List<Image>();
+        readonly List<GameObject> made = new List<GameObject>();
         int lit;
         bool acornUsed;
 
         void Awake() => field.BeforeColonies += Place;
 
+        // 판마다 새로 놓는다 (측정기가 필드를 Restart하면 다시 불린다)
         void Place()
         {
+            foreach (var go in made) if (go != null) Destroy(go);
+            made.Clear();
+            acorns.Clear();
+            lit = 0;
+            acornUsed = false;
             var s = field.Stats;
             if (s.Restoration >= 1 && field.FindFreeSpot(stumpRadius, out var stump))
             {
@@ -74,6 +81,7 @@ namespace MoreMush.Mobile
             image.sprite = circle;
             image.color = color;
             image.raycastTarget = false;
+            made.Add(go);
             return image;
         }
     }

@@ -73,10 +73,20 @@ namespace MoreMush.Mobile
             ShowTime();
         }
 
-        void Update()
+        void Update() => Tick(Time.deltaTime);
+
+        // 측정기: 시간을 처음으로 되돌린다
+        public void ResetTimer(float seconds)
         {
-            if (!TimerStarted || Remaining <= 0f) return;
-            Remaining = Mathf.Max(0f, Remaining - Time.deltaTime);
+            TimerStarted = false;
+            SetDuration(seconds);
+        }
+
+        // dt초 흐르게 (측정기도 직접 부른다)
+        public void Tick(float dt)
+        {
+            if (!TimerStarted || Remaining <= 0f || dt <= 0f) return;
+            Remaining = Mathf.Max(0f, Remaining - dt);
             ShowTime();
             if (Remaining <= 0f) TimeUp?.Invoke();
         }

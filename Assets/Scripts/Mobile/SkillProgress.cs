@@ -67,9 +67,13 @@ namespace MoreMush.Mobile
 
         public static event System.Action<int> Changed;   // 레벨이 바뀐 스킬 index
 
+        // 밸런스 측정기(BalanceBot)용: 넣으면 PlayerPrefs 대신 이 사전의 레벨을 쓴다 (실제 저장값은 건드리지 않음)
+        public static System.Collections.Generic.Dictionary<int, int> SimLevels;
+
         public static int MaxLevel(SkillData skill) => Mathf.Max(1, skill.maxLevel);
 
-        public static int GetLevel(int index) => PlayerPrefs.GetInt(KeyPrefix + index, 0);
+        public static int GetLevel(int index) =>
+            SimLevels != null ? (SimLevels.TryGetValue(index, out int l) ? l : 0) : PlayerPrefs.GetInt(KeyPrefix + index, 0);
         public static bool IsMaxed(SkillData skill) => GetLevel(skill.index) >= MaxLevel(skill);
 
         // 선행 조건: 연결 노드(link)는 1레벨 이상, 이전 레벨 노드(requires)는 최대 레벨까지
@@ -97,10 +101,40 @@ namespace MoreMush.Mobile
 
         public static bool CanLevelUp(SkillData skill) => skill != null && !IsMaxed(skill) && RequirementsMet(skill);
 
-        // 임시: 가격은 아직 빼지 않는다 (지갑이 생기면 unlockPrice·currency로 차감)
+        // level(1부터) 레벨을 배우는 가격과 재화. 1레벨 = unlockPrice·currency, 2레벨부터는 levelPrice가 있으면
+        // levelPrice × priceGrowth^(level-2)·levelCurrency, 없으면 unlockPrice × priceGrowth^(level-1)·currency
+        public static long Price(SkillData skill, int level, out Currency currency)
+        {
+            float growth = skill.priceGrowth > 0f ? skill.priceGrowth : 1f;
+            if (level <= 1)
+            {
+                currency = skill.currency;
+                return skill.unlockPrice;
+            }
+            if (skill.levelPrice > 0)
+            {
+                currency = skill.levelCurrency;
+                return (long)System.Math.Round(skill.levelPrice * System.Math.Pow(growth, level - 2));
+            }
+            currency = skill.currency;
+            return (long)System.Math.Round(skill.unlockPrice * System.Math.Pow(growth, level - 1));
+        }
+
+        // 다음 레벨 가격
+        public static long NextPrice(SkillData skill, out Currency currency) => Price(skill, GetLevel(skill.index) + 1, out currency);
+
+        public static bool CanAfford(SkillData skill)
+        {
+            long price = NextPrice(skill, out var currency);
+            return Wallet.CanAfford(currency, price);
+        }
+
+        // 선행 조건을 채웠고 돈이 있으면 지갑에서 빼고 레벨을 올린다
         public static bool LevelUp(SkillData skill)
         {
             if (!CanLevelUp(skill)) return false;
+            long price = NextPrice(skill, out var currency);
+            if (!Wallet.TrySpend(currency, price)) return false;
             PlayerPrefs.SetInt(KeyPrefix + skill.index, GetLevel(skill.index) + 1);
             PlayerPrefs.Save();
             Changed?.Invoke(skill.index);

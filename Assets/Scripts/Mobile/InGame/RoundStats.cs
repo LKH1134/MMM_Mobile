@@ -43,7 +43,9 @@ namespace MoreMush.Mobile
         public float bossBaseHp = 100f;       // 기본 보스 체력. × 보스 hpRate × 스테이지 hpRate
         public float bossSize = 1.8f;         // 군락 버섯 대비 크기
         public Color bossTint = new Color(1f, 0.45f, 0.45f);   // 보스 color가 비었을 때
-        public float bossHitScore = 5f;       // 보스에 준 피해 1당 점수 (스테이지 hpRate로 나눠 체력이 커져도 점수가 튀지 않게)
+        public float bossHitShare = 0.6f;     // 보스 체력을 다 깎는 만큼 때리면 직전 일반 판 점수의 이 비율 (못 잡은 판 ≈ 일반 판의 0.5~0.6배, PC 원칙 P15)
+        public float bossHitScore = 5f;       // 직전 일반 판 기록이 없을 때: 피해 1당 점수 (스테이지 hpRate로 나눔)
+        public float bossRewardMul = 2f;      // 처치 보상 골드 = max(이번 판 골드, 직전 일반 판 골드) × 이 값 (PC판 BOSS_REWARD_MUL)
         public float splitCloneSize = 0.75f;  // 환상 버섯 분신 크기 (본체 대비)
     }
 
@@ -84,6 +86,8 @@ namespace MoreMush.Mobile
         public StageData Stage;
         public BossData Boss;                 // 보스 스테이지가 아니면 null
         public bool BossRound => Boss != null;
+        public float BossHp => Boss != null ? Base.bossBaseHp * Mathf.Max(0.0001f, Boss.hpRate) * HpRate : 0f;
+        public float BossHpMul = 1f;          // 측정기 전용: 보스를 죽지 않게 해 판 전체 피해를 잴 때 (게임에선 1)
         public float HpRate => Stage != null && Stage.hpRate > 0f ? Stage.hpRate : 1f;
         public float RewardRate => Stage != null && Stage.rewardRate > 0f ? Stage.rewardRate : 1f;
 

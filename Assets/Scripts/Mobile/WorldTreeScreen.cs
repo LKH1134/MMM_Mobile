@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // WorldTree 씬 화면. 재화·바구니(세계수 보상 누적치) 표시, 옵션 팝업, 성장·꼬마·꾸미기·제작소 시트, 스킬 트리로 돌아가기.
-    // 값은 게임 쪽에서 SetGold/SetMycelite/SetBasket으로 넣는다.
+    // 골드·균사석은 지갑(Wallet)을 보여 주고, 바구니 값은 SetBasket으로 넣는다.
     // 바구니를 누르면 쌓인 골드를 받았다는 문구만 띄운다 (실제로 받는 처리는 추후)
     public class WorldTreeScreen : MonoBehaviour
     {
@@ -43,6 +43,17 @@ namespace MoreMush.Mobile
                 if (m.button != null) m.button.onClick.AddListener(() => m.popup.Get(transform).Toggle());
             }
             if (basketButton != null) basketButton.onClick.AddListener(CollectBasket);
+            Wallet.Changed += ShowWallet;
+            ShowWallet();
+        }
+
+        void OnDestroy() => Wallet.Changed -= ShowWallet;
+
+        // 지갑(Wallet)의 골드·균사석
+        void ShowWallet()
+        {
+            SetGold(Wallet.Gold);
+            SetMycelite(Wallet.Mycelite);
         }
 
         // Back 버튼 OnClick(인스펙터)에 연결돼 있다
@@ -52,8 +63,8 @@ namespace MoreMush.Mobile
             else Debug.LogWarning($"[WorldTreeScreen] 빌드 설정에 없는 씬: {backScene}");
         }
 
-        public void SetGold(long value) => goldText.text = value.ToString("N0");
-        public void SetMycelite(long value) => myceliteText.text = value.ToString("N0");
+        public void SetGold(long value) => goldText.text = Wallet.Format(value);
+        public void SetMycelite(long value) => myceliteText.text = Wallet.Format(value);
 
         public void SetBasket(double value)
         {
