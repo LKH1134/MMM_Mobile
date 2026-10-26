@@ -104,23 +104,30 @@ namespace MoreMush.Mobile
 
         Vector2 barBaseSize;
         Vector2 barBasePos;
+        bool barBaseSaved;
 
         void Awake()
         {
             rect = (RectTransform)transform;
-            if (bar != null)
-            {
-                bars.Add(bar);
-                var barRect = (RectTransform)bar.transform;
-                barBaseSize = barRect.sizeDelta;
-                barBasePos = barRect.anchoredPosition;
-            }
+            if (bar != null) bars.Add(bar);
+            SaveBarBase();
+        }
+
+        // 씬에 놓인 바의 원래 길이·자리. HarvestGame.Awake가 이 Awake보다 먼저 Configure를 부를 수 있어 처음 쓸 때 한 번 저장한다
+        void SaveBarBase()
+        {
+            if (barBaseSaved || bar == null) return;
+            var barRect = (RectTransform)bar.transform;
+            barBaseSize = barRect.sizeDelta;
+            barBasePos = barRect.anchoredPosition;
+            barBaseSaved = true;
         }
 
         // 판 시작 전에 HarvestGame이 넣는다. 안 넣으면 스킬 없는 기본값으로 시작한다. 바 길이는 씬의 원래 길이 × 바 길이 배율
         public void Configure(RoundStats roundStats)
         {
             stats = roundStats;
+            SaveBarBase();
             if (bar != null)
             {
                 var barRect = (RectTransform)bar.transform;
