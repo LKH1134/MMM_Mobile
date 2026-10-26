@@ -51,12 +51,22 @@ namespace MoreMush.Mobile
         [SerializeField] float spawnBottom = 380f;    // 아래 가장자리에서 띄울 거리 (바 근처는 비운다)
         [SerializeField] float spawnSide = 20f;
 
-        class Colony
+        public class Colony
         {
             public int id;
             public Vector2 center;
             public float footprint;                   // 군락지 전체 반지름
             public readonly List<Mushroom> members = new List<Mushroom>();
+        }
+
+        // 필드 장치(그루터기·꽃밭·도토리)처럼 버섯을 놓지 않을 자리. solid면 수확기가 튕긴다
+        public class Obstacle
+        {
+            public Vector2 position;
+            public float radius;
+            public bool solid;
+            public System.Action<Harvester> touched;  // 수확기가 닿을 때마다 (닿아 있는 동안 처음 한 번)
+            internal readonly List<Harvester> inside = new List<Harvester>();
         }
 
         RectTransform rect;
@@ -69,27 +79,33 @@ namespace MoreMush.Mobile
         readonly List<Mushroom> mushrooms = new List<Mushroom>();
         readonly List<Colony> colonies = new List<Colony>();
         readonly List<float> respawns = new List<float>();   // 군락지가 다시 돋기까지 남은 시간
+        readonly List<Bar> bars = new List<Bar>();           // 본 바 + 분신 바
+        readonly List<Obstacle> obstacles = new List<Obstacle>();
 
         public RectTransform Rect => rect;
+        public RectTransform HarvesterLayer => harvesterLayer;
         public RoundStats Stats => stats;
         public bool Running { get; private set; }
         public IReadOnlyList<Harvester> Harvesters => harvesters;
         public IReadOnlyList<Mushroom> Mushrooms => mushrooms;
+        public IReadOnlyList<Colony> Colonies => colonies;
         public Harvester Main => harvesters.Count > 0 ? harvesters[0] : null;   // 플레이어가 던지는 수확기
         public bool MainReady => Running && Main != null && !Main.IsMoving;    // 아직 안 던졌다 (한 판에 한 번만 던진다)
         public Bar Bar => bar;
         public float Speed => speed * (stats != null ? stats.SpeedMul : 1f);
+        public float MushroomSize => mushroomSize;
 
         public event System.Action<Harvester> Launched;
         public event System.Action<Harvester> BarHit;
-        public event System.Action<Mushroom, Harvester> Harvested;   // 풀로 돌아가기 직전에 불린다
+        public event System.Action<Mushroom, Harvester> Harvested;   // 풀로 돌아가기 직전에 불린다. 스킬 피해로 캤으면 수확기가 null일 수 있다
         public event System.Action<Mushroom, Harvester, int, bool> Hit;   // 맞힌 버섯, 수확기, 피해, 치명타
         public event System.Action<Vector2> ColonyCleared;           // 군락지 하나를 다 캤다 (가운데 위치)
+        public event System.Action BeforeColonies;                    // 판 시작 때 군락지를 놓기 직전 (장치 자리를 먼저 잡는다)
 
         void Awake()
         {
             rect = (RectTransform)transform;
-            harvesterPools.Add(harvesterPrefab, new PrefabPool<Harvester>(harvesterPrefab, harvesterLayer, 1));
+            if (bar != null) bars.Add(bar);
         }
 
         // 판 시작 전에 HarvestGame이 넣는다. 안 넣으면 스킬 없는 기본값으로 시작한다
@@ -110,12 +126,19 @@ namespace MoreMush.Mobile
             if (stats == null) stats = RoundStats.FromSkills(new RoundBase());
             Canvas.ForceUpdateCanvases();
 
-            // 군락지 크기만큼 미리 만들어 둔다
+            // 판 중에 만들지 않도록 최대치만큼 미리 만들어 둔다 (군락지, 함께 던지는 수확기 + 분열체)
             int perColony = stats.SinglesPerColony;
             clusterPool = new PrefabPool<Mushroom>(clusterPrefab, mushroomLayer, stats.Colonies + 1);
             singlePool = new PrefabPool<Mushroom>(singlePrefab, mushroomLayer, (stats.Colonies + 1) * perColony);
+            harvesterPools.Add(harvesterPrefab, new PrefabPool<Harvester>(harvesterPrefab, harvesterLayer, 1 + stats.ExtraHarvesters + stats.MaxSplit));
 
+            // 함께 던지는 수확기는 메인 양옆에 놓는다
             SpawnHarvester(RestPosition(0f));
+            float gap = harvesterPrefab.BaseRadius * stats.SizeMul * 2.2f;
+            for (int i = 1; i <= stats.ExtraHarvesters; i++)
+                SpawnHarvester(RestPosition((i % 2 == 1 ? 1f : -1f) * ((i + 1) / 2) * gap));
+
+            BeforeColonies?.Invoke();
             PlanColonies();
             Running = true;
         }
@@ -128,8 +151,13 @@ namespace MoreMush.Mobile
             if (!Running || dt <= 0f) return;
 
             Rect bounds = rect.rect;
-            Rect barRect = bar != null ? bar.GetRect(rect) : default;
-            for (int i = 0; i < harvesters.Count; i++) Move(harvesters[i], dt, bounds, barRect);
+            for (int i = harvesters.Count - 1; i >= 0; i--)
+            {
+                var h = harvesters[i];
+                h.TickBuffs(dt);
+                if (h.Temporary && (h.Life -= dt) <= 0f) DespawnHarvester(h);
+            }
+            for (int i = 0; i < harvesters.Count; i++) Move(harvesters[i], dt, bounds);
 
             // 캐진 버섯은 충돌 계산이 다 끝난 뒤에 돌려놓는다
             for (int i = mushrooms.Count - 1; i >= 0; i--)
@@ -155,10 +183,18 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 플레이어 투척. 판 시작 때 한 번만 된다
+        // 플레이어 투척. 판 시작 때 한 번만 된다. 함께 던지는 수확기(장인의 도구)는 조금씩 벌어진 방향으로 같이 나간다
         public bool LaunchMain(Vector2 direction)
         {
             if (!MainReady) return false;
+            if (direction.sqrMagnitude < 0.0001f) direction = Vector2.up;
+            for (int i = harvesters.Count - 1; i >= 1; i--)
+            {
+                var h = harvesters[i];
+                if (h.Temporary || h.IsMoving) continue;
+                float angle = (i % 2 == 1 ? 1f : -1f) * ((i + 1) / 2) * 12f;
+                Launch(h, Quaternion.Euler(0f, 0f, angle) * direction);
+            }
             Launch(Main, direction);
             return true;
         }
@@ -166,9 +202,40 @@ namespace MoreMush.Mobile
         public void Launch(Harvester h, Vector2 direction)
         {
             if (direction.sqrMagnitude < 0.0001f) direction = Vector2.up;
-            h.Launch(KeepSpeed(direction));
+            h.Launch(KeepSpeed(h, direction));
             Launched?.Invoke(h);
         }
+
+        // 스킬 피해 (번개·회오리·포자 폭발·꼬마 수확기). source는 점수·콤보를 받을 수확기 (없으면 null)
+        public bool DealDamage(Mushroom m, int damage, Harvester source)
+        {
+            if (m == null || !m.Alive) return false;
+            bool harvested = m.Hit(Mathf.Max(1, damage));
+            Hit?.Invoke(m, source, damage, false);
+            if (harvested) Harvested?.Invoke(m, source);
+            return harvested;
+        }
+
+        // ── 분신 바·장치 ──
+        public void AddBar(Bar extra)
+        {
+            if (!bars.Contains(extra)) bars.Add(extra);
+        }
+
+        public void RemoveBar(Bar extra)
+        {
+            if (extra != bar) bars.Remove(extra);
+        }
+
+        public Obstacle AddObstacle(Vector2 position, float radius, bool solid, System.Action<Harvester> touched)
+        {
+            var o = new Obstacle { position = position, radius = radius, solid = solid, touched = touched };
+            obstacles.Add(o);
+            return o;
+        }
+
+        // 군락지·장치와 겹치지 않는 빈 자리 (장치를 놓을 때 쓴다)
+        public bool FindFreeSpot(float radius, out Vector2 spot) => FindSpot(radius, new List<Vector2>(), out spot);
 
         // 분신·소환용. 첫 번째로 꺼낸 것이 메인이 된다
         public Harvester SpawnHarvester(Vector2 position, Harvester prefab = null)
@@ -179,6 +246,8 @@ namespace MoreMush.Mobile
             var h = pool.Get();
             h.Pool = pool;
             h.BonusDamage = stats.BonusDamage;
+            h.PowerDamage = stats.PowerAttack;
+            h.StumpMul = 1f + stats.Base.stumpAttack;
             h.Size = stats.SizeMul;
             h.Place(position);
             harvesters.Add(h);
@@ -207,7 +276,7 @@ namespace MoreMush.Mobile
             return new Vector2(Mathf.Clamp(b.center.x + x, b.xMin + r, b.xMax - r), b.yMax + r + restGap);
         }
 
-        void Move(Harvester h, float dt, Rect bounds, Rect barRect)
+        void Move(Harvester h, float dt, Rect bounds)
         {
             if (!h.IsMoving) return;
 
@@ -228,21 +297,59 @@ namespace MoreMush.Mobile
                 if (p.y - r < bounds.yMin) { p.y = bounds.yMin + r; v.y = Mathf.Abs(v.y); }
                 else if (p.y + r > bounds.yMax) { p.y = bounds.yMax - r; v.y = -Mathf.Abs(v.y); }
 
-                if (bar != null && Bounce(ref p, ref v, r, barRect))
+                for (int b = 0; b < bars.Count; b++)
                 {
+                    if (!Bounce(ref p, ref v, r, bars[b].GetRect(rect))) continue;
                     h.Combo = 0;
                     BarHit?.Invoke(h);
+                    // 유도: 바에 튕길 때마다 가장 가까운 군락지 쪽으로 (위로만)
+                    if (h.Has(HarvesterBuff.Homing) && NearestColony(p, out var target))
+                    {
+                        Vector2 dir = target - p;
+                        if (dir.y < 0.2f * dir.magnitude) dir.y = 0.2f * dir.magnitude;
+                        v = dir.normalized * v.magnitude;
+                    }
                 }
 
+                for (int i = 0; i < obstacles.Count; i++)
+                {
+                    var o = obstacles[i];
+                    Vector2 d = p - o.position;
+                    float min = r + o.radius;
+                    bool overlap = d.sqrMagnitude < min * min;
+                    if (!overlap)
+                    {
+                        o.inside.Remove(h);
+                        continue;
+                    }
+                    if (!o.inside.Contains(h))
+                    {
+                        o.inside.Add(h);
+                        o.touched?.Invoke(h);
+                    }
+                    if (!o.solid) continue;
+                    Vector2 n = d.sqrMagnitude > 0.0001f ? d.normalized : -v.normalized;
+                    p = o.position + n * min;
+                    if (Vector2.Dot(v, n) < 0f) v = Vector2.Reflect(v, n);
+                }
+
+                var touching = h.Touching;
                 for (int i = 0; i < mushrooms.Count; i++)
                 {
                     var m = mushrooms[i];
                     if (!m.Alive) continue;
                     Vector2 d = p - m.Position;
                     float min = r + m.Radius;
-                    if (d.sqrMagnitude >= min * min) continue;
+                    if (d.sqrMagnitude >= min * min)
+                    {
+                        touching.Remove(m);
+                        continue;
+                    }
+                    // 관통 중에 겹쳐 지나가는 동안에는 한 번만 때린다
+                    if (touching.Contains(m)) continue;
 
-                    int damage = h.Damage;
+                    int damage = Mathf.Max(1, Mathf.RoundToInt(h.Damage * h.NextHitMul));
+                    h.NextHitMul = 1f;
                     bool crit = stats.CritChance > 0f && Random.value < stats.CritChance;
                     if (crit) damage = Mathf.CeilToInt(damage * stats.CritMul);
                     bool harvested = m.Hit(damage);
@@ -253,6 +360,11 @@ namespace MoreMush.Mobile
                         Harvested?.Invoke(m, h);
                         if (pierce) continue;
                     }
+                    if (h.Has(HarvesterBuff.Pierce))
+                    {
+                        touching.Add(m);
+                        continue;
+                    }
                     Vector2 n = d.sqrMagnitude > 0.0001f ? d.normalized : -v.normalized;
                     p = m.Position + n * min;
                     if (Vector2.Dot(v, n) < 0f) v = Vector2.Reflect(v, n);
@@ -260,12 +372,26 @@ namespace MoreMush.Mobile
             }
 
             h.Position = p;
-            h.Velocity = KeepSpeed(v);
+            h.Velocity = KeepSpeed(h, v);
             h.Sync(dt);
         }
 
-        // 방향은 두고 속도를 Speed로 맞춘다. 세로 성분이 너무 작으면 키워서 좌우로만 오가지 않게 한다
-        Vector2 KeepSpeed(Vector2 v)
+        bool NearestColony(Vector2 from, out Vector2 center)
+        {
+            center = default;
+            float best = float.MaxValue;
+            foreach (var c in colonies)
+            {
+                float d = (c.center - from).sqrMagnitude;
+                if (d >= best) continue;
+                best = d;
+                center = c.center;
+            }
+            return best < float.MaxValue;
+        }
+
+        // 방향은 두고 속도를 맞춘다 (가속 버프 중이면 더 빠르게). 세로 성분이 너무 작으면 키워서 좌우로만 오가지 않게 한다
+        Vector2 KeepSpeed(Harvester h, Vector2 v)
         {
             Vector2 dir = v.normalized;
             if (Mathf.Abs(dir.y) < minVertical)
@@ -274,7 +400,8 @@ namespace MoreMush.Mobile
                 float x = Mathf.Sqrt(1f - y * y) * (dir.x >= 0f ? 1f : -1f);
                 dir = new Vector2(x, y);
             }
-            return dir * Speed;
+            float haste = h.Has(HarvesterBuff.Haste) ? 1f + stats.Base.hasteBoost : 1f;
+            return dir * Speed * haste;
         }
 
         // 바는 윗면(선분)만 충돌한다. 위에서 내려오는 중이고 중심이 윗면보다 위일 때만 막고 반사한다.
@@ -310,7 +437,9 @@ namespace MoreMush.Mobile
             List<Vector2> cells = null;
             for (mushroomSize = 1f; mushroomSize >= minMushroomSize; mushroomSize *= 0.95f)
             {
-                cells = GridCells(Footprint(mushroomSize));
+                float foot = Footprint(mushroomSize);
+                cells = GridCells(foot);
+                cells.RemoveAll(c => !ObstacleFree(c, foot));
                 if (cells.Count >= stats.Colonies) break;
             }
             mushroomSize = Mathf.Max(mushroomSize, minMushroomSize);
@@ -417,6 +546,16 @@ namespace MoreMush.Mobile
                 float min = foot + h.Radius;
                 if ((h.Position - pos).sqrMagnitude < min * min) return false;
             }
+            return ObstacleFree(pos, foot);
+        }
+
+        bool ObstacleFree(Vector2 pos, float foot)
+        {
+            foreach (var o in obstacles)
+            {
+                float min = foot + o.radius + colonyGap;
+                if ((o.position - pos).sqrMagnitude < min * min) return false;
+            }
             return true;
         }
 
@@ -426,7 +565,9 @@ namespace MoreMush.Mobile
             var tier = RollTier();
             var look = Look(tier);
 
-            colony.members.Add(SpawnMushroom(clusterPool, center, colony.id, look));
+            var centerMushroom = SpawnMushroom(clusterPool, center, colony.id, look);
+            centerMushroom.IsCenter = true;
+            colony.members.Add(centerMushroom);
             int n = stats.SinglesPerColony;
             float ring = (clusterPrefab.BaseRadius + ringGap + singlePrefab.BaseRadius) * mushroomSize;
             float start = Random.value * Mathf.PI * 2f;

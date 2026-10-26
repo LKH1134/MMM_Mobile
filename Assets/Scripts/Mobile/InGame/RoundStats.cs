@@ -20,6 +20,18 @@ namespace MoreMush.Mobile
         public float goldenScore = 10f;       // 황금 변종 점수 배율
         public float goldenYield = 5f;        // 황금 변종 수확량 배율
         public float finalRushSeconds = 5f;   // 할아버지의 전설이 걸리는 마지막 시간 (표의 param이 있으면 그 값)
+
+        [Header("2단계: 버프·소환 (표에 없는 값)")]
+        public float hasteBoost = 0.3f;       // 가속 중 속도 +30%
+        public int splitCount = 2;            // 분열 때 나오는 수확기 수
+        public float splitSize = 0.7f;        // 분열체 크기 (본체 대비)
+        public float stumpAttack = 0.5f;      // 그루터기 버프 공격력 +50%
+        public float stumpDuration = 5f;
+        public float flowerHaste = 2f;        // 꽃밭을 지나면 가속 몇 초
+        public float acornScoreMul = 2f;      // 도토리를 모두 밝히면 점수 배율
+        public float acornDuration = 5f;
+        public float orbitDamageBase = 0.05f; // 회전 회오리가 없을 때 꼬마 수확기 공격력 (공격력 대비)
+        public float lightningRadius = 110f;  // 번개가 맞히는 반지름
     }
 
     // 판 시작 때 배운 스킬로 정해지는 수치 모음 (판 중에는 바뀌지 않는다)
@@ -38,13 +50,67 @@ namespace MoreMush.Mobile
         public float NormalYieldMul, EpicYieldMul, UniqueYieldMul;
         public float GoldenScore, GoldenYield;
         public float FinalRushBonus, FinalRushSeconds;
+        // 2단계
+        public RoundBase Base;
+        public int PowerAttack; public float PowerDuration;
+        public float HasteDuration, PierceDuration, HomingDuration, HealDuration;
+        public float FeverDuration, FeverCombo;
+        public float WisdomRate, WisdomDuration;
+        public float SplitDuration, SplitChance;
+        public float CloneBarDuration, CloneBarChance; public int CloneBarMax;
+        public float OpeningChance;
+        public int ExtraHarvesters, OrbitCount; public float OrbitDamage;
+        public float PoisonChance, PoisonMul;
+        public float LightningChance, LightningDamage; public bool LightningAnywhere;
+        public float WhirlChance, WhirlDamage, WhirlDuration;
+        public float BurstChance, BurstDamage;
+        public int Restoration;
+
+        public bool AnyBarBuff => PowerAttack > 0 || HasteDuration > 0f || PierceDuration > 0f || HomingDuration > 0f
+                                  || FeverDuration > 0f || WisdomRate > 0f || HealDuration > 0f;
+        // 분열로 한꺼번에 있을 수 있는 최대 수 (던지는 수확기마다 한 번씩) — 이만큼 미리 만들어 둔다
+        public int MaxSplit => SplitDuration > 0f ? (1 + ExtraHarvesters) * Base.splitCount : 0;
 
         public static RoundStats FromSkills(RoundBase b)
         {
             float T(string ability) => SkillProgress.Total(ability);
+            float P(string ability, float fallback) => SkillProgress.Param(ability, fallback);
             float critDamage = T(SkillAbility.CritDamage);
+            float cloneDuration = T(SkillAbility.CloneBar);
             return new RoundStats
             {
+                Base = b,
+                PowerAttack = Mathf.RoundToInt(T(SkillAbility.PowerBuff)),
+                PowerDuration = P(SkillAbility.PowerBuff, 3f),
+                HasteDuration = T(SkillAbility.HasteBuff),
+                PierceDuration = T(SkillAbility.PierceBuff),
+                HomingDuration = T(SkillAbility.HomingBuff),
+                HealDuration = T(SkillAbility.HealBuff),
+                FeverDuration = T(SkillAbility.FeverBuff),
+                FeverCombo = P(SkillAbility.FeverBuff, 0.5f),
+                WisdomRate = T(SkillAbility.WisdomBuff),
+                WisdomDuration = P(SkillAbility.WisdomBuff, 3f),
+                SplitDuration = T(SkillAbility.SplitBuff),
+                SplitChance = P(SkillAbility.SplitBuff, 0.1f),
+                CloneBarDuration = cloneDuration,
+                CloneBarChance = P(SkillAbility.CloneBar, 0.1f),
+                CloneBarMax = cloneDuration > 0f ? 1 + Mathf.RoundToInt(T(SkillAbility.CloneBarCount)) : 0,
+                OpeningChance = Mathf.Clamp01(T(SkillAbility.OpeningBuff)),
+                ExtraHarvesters = Mathf.RoundToInt(T(SkillAbility.HarvesterSlot)),
+                OrbitCount = Mathf.RoundToInt(T(SkillAbility.OrbitCount)),
+                OrbitDamage = T(SkillAbility.OrbitDamage) > 0f ? T(SkillAbility.OrbitDamage) : b.orbitDamageBase,
+                PoisonChance = T(SkillAbility.PoisonStrike),
+                PoisonMul = 1f + P(SkillAbility.PoisonStrike, 2f),
+                LightningChance = T(SkillAbility.ChainLightning),
+                LightningDamage = P(SkillAbility.ChainLightning, 0.3f),
+                LightningAnywhere = SkillProgress.SeriesLevel("chain_lightning") >= 3,
+                WhirlChance = T(SkillAbility.Whirlwind),
+                WhirlDamage = P(SkillAbility.Whirlwind, 0.05f),
+                WhirlDuration = 2f + SkillProgress.SeriesLevel("whirlwind"),   // 3·4·5초
+                BurstChance = T(SkillAbility.SporeBurst),
+                BurstDamage = P(SkillAbility.SporeBurst, 0.1f),
+                Restoration = Mathf.RoundToInt(T(SkillAbility.FieldRestoration)),
+
                 Duration = Mathf.Max(1f, b.duration + T(SkillAbility.RoundTime)),
                 Colonies = Mathf.Max(1, b.colonies + Mathf.RoundToInt(T(SkillAbility.ColonyCount))),
                 SinglesPerColony = Mathf.Max(0, b.singlesPerColony + Mathf.RoundToInt(T(SkillAbility.ColonySingles))),

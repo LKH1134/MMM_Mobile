@@ -30,6 +30,29 @@ namespace MoreMush.Mobile
         public const string EpicYield = "epic_yield";
         public const string UniqueYield = "unique_yield";
         public const string FinalRushBonus = "final_rush_bonus";    // 마지막 param초 점수·수확량 +비율
+        // 바 버프 (바에 닿을 때마다 걸리고 시간이 새로 채워진다)
+        public const string PowerBuff = "start_attack_buff";        // 공격력 + (param초)
+        public const string HasteBuff = "buff_haste_duration";      // 가속 지속(초)
+        public const string PierceBuff = "buff_pierce_duration";    // 관통 지속(초)
+        public const string HomingBuff = "buff_homing_duration";    // 유도 지속(초)
+        public const string FeverBuff = "buff_fever_duration";      // 피버 지속(초), param = 콤보 계수 +비율
+        public const string WisdomBuff = "buff_wisdom_rate";        // 지혜: 스킬 발동률 +, param = 지속(초)
+        public const string HealBuff = "buff_heal_duration";        // 약손: 포자 디버프 제거 + 보호 지속(초)
+        public const string SplitBuff = "buff_split_duration";      // 분열 지속(초), param = 발동 확률
+        public const string CloneBar = "clone_bar_duration";        // 분신 바 지속(초), param = 발동 확률
+        public const string CloneBarCount = "clone_bar_count";      // 분신 바 최대 수 +
+        public const string OpeningBuff = "opening_buff_chance";    // 시작 때 보유 버프 즉시 발동 확률
+        // 수확기 수
+        public const string HarvesterSlot = "harvester_slot";       // 함께 던지는 수확기 +
+        public const string OrbitCount = "orbit_harvester_count";   // 회전 꼬마 수확기 +
+        public const string OrbitDamage = "orbit_harvester_damage"; // 회전 꼬마 수확기 공격력 (공격력 대비 비율)
+        // 확률 발동
+        public const string PoisonStrike = "poison_strike_chance";  // 단일 버섯 캘 때 → 다음 타격 피해 +param
+        public const string ChainLightning = "chain_lightning_chance"; // 군락지 다 캘 때 → 번개 (공격력 × param)
+        public const string Whirlwind = "whirlwind_chance";         // 군락 충돌 → 지속 피해 (공격력 × param)
+        public const string SporeBurst = "spore_burst_chance";      // 군락 충돌 → 전체 피해 (공격력 × param)
+        // 필드
+        public const string FieldRestoration = "field_restoration"; // 1 그루터기 / 2 꽃밭 / 3 도토리
     }
 
     // 배운 스킬 레벨. 지금은 PlayerPrefs("Skill.Level.<index>")에 저장한다 (세이브 구조가 생기면 옮긴다).
@@ -90,6 +113,19 @@ namespace MoreMush.Mobile
                 if (level > 0) sum += skill.abilityBase + skill.abilityValue * level;
             }
             return sum;
+        }
+
+        // 계열(group)에서 지금까지 오른 레벨 (Lv.4 노드를 1레벨 배웠으면 4). 안 배웠으면 0
+        public static int SeriesLevel(string group)
+        {
+            int best = 0;
+            foreach (var skill in GameData.Skills.All)
+            {
+                if (skill.group != group) continue;
+                int level = Mathf.Min(GetLevel(skill.index), MaxLevel(skill));
+                if (level > 0) best = Mathf.Max(best, Mathf.Max(1, skill.startLevel) + level - 1);
+            }
+            return best;
         }
 
         // 배운 스킬 중 이 능력을 가진 것의 고정 수치(param). 여럿이면 가장 큰 값, 없으면 fallback

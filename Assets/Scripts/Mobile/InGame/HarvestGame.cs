@@ -13,6 +13,7 @@ namespace MoreMush.Mobile
         [SerializeField] StageHud hud;
         [SerializeField] HarvestField field;
         [SerializeField] FieldInput input;
+        [SerializeField] SkillEffects effects;       // 피버(콤보 계수)·도토리(점수) 배율. 비워도 된다
         [SerializeField] PopupSlot resultPopup;      // 프리팹. 시간이 다 되면 HUD 캔버스 아래에 만든다
         [SerializeField] float resultDelay = 0.6f;   // 멈춘 화면을 잠깐 보여 준 뒤 결과를 연다
         [SerializeField] RoundBase roundBase = new RoundBase();
@@ -51,8 +52,11 @@ namespace MoreMush.Mobile
         {
             if (Finished) return;
             float rush = FinalRush ? 1f + Stats.FinalRushBonus : 1f;
+            int combo = h != null ? h.Combo : 0;
+            float comboFactor = Stats.ComboFactor * (effects != null ? effects.ComboMul : 1f);
+            float skillMul = effects != null ? effects.ScoreMul : 1f;
 
-            double gain = m.Reward * field.ScoreMul(m.Tier) * (1f + h.Combo * Stats.ComboFactor) * Stats.ScoreMul * rush;
+            double gain = m.Reward * field.ScoreMul(m.Tier) * (1f + combo * comboFactor) * Stats.ScoreMul * rush * skillMul;
             if (m.Golden) gain *= Stats.GoldenScore;
             if (Stats.TripleChance > 0f && Random.value < Stats.TripleChance) gain *= 3f;
             score += gain;
@@ -63,7 +67,7 @@ namespace MoreMush.Mobile
 
             HarvestCount++;
             hud.SetScore(Score);
-            if (h == field.Main) hud.SetCombo(h.Combo);
+            if (h != null && h == field.Main) hud.SetCombo(h.Combo);
         }
 
         void Finish()
