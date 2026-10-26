@@ -4220,6 +4220,9 @@ MonoBehaviour:
   indexButton: {fileID: 1900000044}
   workshopButton: {fileID: 1900000049}
   stageButton: {fileID: 571503370}
+  optionButton: {fileID: 1900000017}
+  optionPopup:
+    prefab: {fileID: 5568184748944377759, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
   questPopup:
     prefab: {fileID: 3950159655243416996, guid: 3a3339dc1fbfad647a1690e3183b3af4, type: 3}
   indexPopup:

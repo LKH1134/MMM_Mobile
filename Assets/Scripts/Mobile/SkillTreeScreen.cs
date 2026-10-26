@@ -23,6 +23,9 @@ namespace MoreMush.Mobile
         [SerializeField] Button workshopButton;
         [SerializeField] Button stageButton;
 
+        [SerializeField] Button optionButton;
+        [SerializeField] PopupSlot optionPopup;       // 설정 (데이터 초기화). 다른 메뉴 팝업과 같이 한 번에 하나만
+
         [SerializeField] PopupSlot questPopup;
         [SerializeField] PopupSlot indexPopup;
         [SerializeField] PopupSlot workshopPopup;
@@ -37,6 +40,7 @@ namespace MoreMush.Mobile
             questButton.onClick.AddListener(() => Show(questPopup));
             indexButton.onClick.AddListener(() => Show(indexPopup));
             workshopButton.onClick.AddListener(() => Show(workshopPopup));
+            if (optionButton != null && optionPopup != null) optionButton.onClick.AddListener(() => Show(optionPopup));
 
             if (treeView != null) treeView.Build();
             if (nodeRoot != null)
@@ -90,6 +94,7 @@ namespace MoreMush.Mobile
             questPopup.Close();
             indexPopup.Close();
             workshopPopup.Close();
+            if (optionPopup != null) optionPopup.Close();
         }
 
         static void Go(string scene)
