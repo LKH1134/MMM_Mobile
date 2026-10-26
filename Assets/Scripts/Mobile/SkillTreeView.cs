@@ -6,22 +6,23 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 스킬 트리 배치. Skill 표의 lane·row 자리에 SkillNode 프리팹을 깔고, link(연결 노드)를 선으로 잇는다.
-    // row 0(시작 노드)이 맨 아래이고 위로 갈수록 레어도가 높다. 세로 스크롤(ScrollRect)로 보며, 처음엔 맨 아래를 보여 준다.
-    // 바로 위 줄의 옆 칸이나, 사이가 빈 같은 칸이면 곧은 선으로 잇는다. 그 밖의 선은 다른 노드를 지나지 않게
-    // 노드 사이 틈(통로)으로 돌아간다: 출발 노드 옆 → 통로 → (줄 사이 띠를 따라 옆 통로로) → 도착 노드 옆.
+    // row 0(시작 노드)이 맨 아래이고 위로 갈수록 레어도가 높다. 칸 수는 표에 따라 정해지고, 화면보다 넓으면
+    // 가로·세로로 끌어서 본다. 처음엔 시작 노드가 가운데 아래에 오게 보여 준다.
+    // 사이에 다른 노드·이름이 없으면 곧은 선으로 잇는다. 그 밖의 선은 다른 노드를 지나지 않게
+    // 출발 노드 위 띠 → 노드 사이 틈(통로) → 도착 줄 아래 띠 → 도착 노드로 돌아간다.
     // 같은 통로·띠를 쓰는 선끼리는 조금씩 비켜 그린다
     public class SkillTreeView : MonoBehaviour
     {
         [SerializeField] ScrollRect scroll;
-        [SerializeField] RectTransform content;       // 아래 기준(pivot y 0). 높이는 줄 수에 맞춰 정한다
+        [SerializeField] RectTransform content;       // 왼쪽 아래 기준. 크기는 칸·줄 수에 맞춰 정한다
         [SerializeField] RectTransform lineRoot;
         [SerializeField] RectTransform nodeRoot;
         [SerializeField] SkillNode nodePrefab;
 
         [Header("배치")]
-        [SerializeField] int laneCount = 5;
         [SerializeField] float laneGap = 200f;
         [SerializeField] float rowGap = 290f;
+        [SerializeField] float sidePadding = 300f;    // 맨 바깥 칸 노드 중심에서 가장자리까지
         [SerializeField] float bottomPadding = 600f;  // 시작 노드 중심 높이. 하단 메뉴에 가리지 않게
         [SerializeField] float topPadding = 480f;     // 상단 재화에 가리지 않게
 
@@ -69,7 +70,7 @@ namespace MoreMush.Mobile
 
         readonly List<SkillNode> nodes = new List<SkillNode>();
         readonly List<Link> links = new List<Link>();
-        readonly HashSet<Vector2Int> occupied = new HashSet<Vector2Int>();   // (lane, row)
+        readonly List<Rect> blockers = new List<Rect>();     // 노드와 그 이름이 차지하는 칸 (선이 피해 갈 곳)
         readonly Dictionary<int, Tracks> channels = new Dictionary<int, Tracks>();   // 통로 번호(lane×2±1) → 세로 트랙
         readonly Dictionary<int, Tracks> bands = new Dictionary<int, Tracks>();      // 줄 번호 → 그 줄 위 띠의 가로 트랙
         float nodeHalf;
@@ -83,21 +84,34 @@ namespace MoreMush.Mobile
         {
             Clear();
             var skills = GameData.Skills.All;
-            int topRow = 0;
+            int topRow = 0, rightLane = 0;
             foreach (var skill in skills)
             {
                 topRow = Mathf.Max(topRow, skill.row);
-                occupied.Add(new Vector2Int(skill.lane, skill.row));
+                rightLane = Mathf.Max(rightLane, skill.lane);
             }
-            content.sizeDelta = new Vector2(content.sizeDelta.x, bottomPadding + topRow * rowGap + topPadding);
-            nodeHalf = ((RectTransform)nodePrefab.transform).rect.height * 0.5f;
+            var prefabRect = ((RectTransform)nodePrefab.transform).rect;
+            nodeHalf = prefabRect.height * 0.5f;
+            foreach (var skill in skills)
+            {
+                Vector2 c = Position(skill.lane, skill.row);
+                float bottom = c.y - nodeHalf - 6f - labelHeight;
+                blockers.Add(Rect.MinMaxRect(c.x - prefabRect.width * 0.5f, bottom, c.x + prefabRect.width * 0.5f, c.y + nodeHalf));
+            }
+
+            content.anchorMin = content.anchorMax = content.pivot = Vector2.zero;
+            content.anchoredPosition = Vector2.zero;
+            float viewWidth = scroll.viewport != null ? scroll.viewport.rect.width : 1080f;
+            content.sizeDelta = new Vector2(Mathf.Max(viewWidth, sidePadding * 2f + rightLane * laneGap),
+                                            bottomPadding + topRow * rowGap + topPadding);
+            scroll.horizontal = content.sizeDelta.x > viewWidth;
 
             foreach (var skill in skills)
             {
                 var node = Instantiate(nodePrefab, nodeRoot);
                 node.name = $"Skill_{skill.index}";
                 var rt = (RectTransform)node.transform;
-                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+                rt.anchorMin = rt.anchorMax = Vector2.zero;
                 rt.anchoredPosition = Position(skill.lane, skill.row);
                 node.Setup(skill.index);
                 AddLabel(node, skill, rt.rect.width);
@@ -122,9 +136,16 @@ namespace MoreMush.Mobile
             }
             RefreshLines();
 
-            // 처음엔 시작 노드가 보이게 맨 아래로
+            // 처음엔 시작 노드가 가운데 아래에 오게
             Canvas.ForceUpdateCanvases();
             scroll.verticalNormalizedPosition = 0f;
+            foreach (var skill in skills)
+            {
+                if (skill.link != 0) continue;
+                float range = content.sizeDelta.x - viewWidth;
+                if (range > 0f) scroll.horizontalNormalizedPosition = Mathf.Clamp01((Position(skill.lane, 0).x - viewWidth * 0.5f) / range);
+                break;
+            }
         }
 
         void Clear()
@@ -134,7 +155,7 @@ namespace MoreMush.Mobile
                 foreach (var segment in link.segments) if (segment != null) Destroy(segment.gameObject);
             nodes.Clear();
             links.Clear();
-            occupied.Clear();
+            blockers.Clear();
             channels.Clear();
             bands.Clear();
         }
@@ -145,7 +166,7 @@ namespace MoreMush.Mobile
             return from == null ? 0 : Mathf.Abs(skill.row - from.row) * 10 + Mathf.Abs(skill.lane - from.lane);
         }
 
-        float LaneX(float lane) => (lane - (laneCount - 1) * 0.5f) * laneGap;
+        float LaneX(float lane) => sidePadding + lane * laneGap;
         Vector2 Position(int lane, int row) => new Vector2(LaneX(lane), bottomPadding + row * rowGap);
 
         // 선이 지나갈 점들을 선분 목록으로 돌려준다
@@ -155,8 +176,8 @@ namespace MoreMush.Mobile
             Vector2 p = Position(from.lane, from.row), q = Position(to.lane, to.row);
             int dLane = to.lane - from.lane, dRow = to.row - from.row;
 
-            // 바로 위 줄의 같은 칸·옆 칸, 또는 사이가 빈 같은 칸 → 곧은 선
-            if ((dRow == 1 && Mathf.Abs(dLane) <= 1) || (dLane == 0 && dRow > 0 && ColumnFree(from.lane, from.row + 1, to.row - 1)))
+            // 사이에 다른 노드·이름이 없으면 곧은 선
+            if (Clear(p, q))
             {
                 result.Add((p, q));
                 return result;
@@ -175,8 +196,8 @@ namespace MoreMush.Mobile
                 return result;
             }
 
-            // 통로: 도착 칸 옆의 출발 쪽 틈. 같은 칸이면 가운데 쪽 틈
-            int side = dLane != 0 ? (int)Mathf.Sign(dLane) : (from.lane < (laneCount - 1) * 0.5f ? 1 : -1);
+            // 통로: 도착 칸 옆의 출발 쪽 틈. 같은 칸이면 오른쪽 틈
+            int side = dLane != 0 ? (int)Mathf.Sign(dLane) : 1;
             int channel = dLane != 0 ? to.lane * 2 - side : from.lane * 2 + side;   // 통로 위치 = 통로 번호 / 2 (lane 단위)
             float cx = ChannelBase(channel);
             y1 = BandY(from.row, p.x, cx);
@@ -190,11 +211,38 @@ namespace MoreMush.Mobile
             return result;
         }
 
-        bool ColumnFree(int lane, int fromRow, int toRow)
+        // 선분 p→q가 양 끝 노드 말고 다른 노드·이름 칸을 지나지 않는지 (도착 노드 이름은 지나가도 된다)
+        bool Clear(Vector2 p, Vector2 q)
         {
-            for (int r = fromRow; r <= toRow; r++)
-                if (occupied.Contains(new Vector2Int(lane, r))) return false;
+            const float margin = 8f;
+            foreach (var box in blockers)
+            {
+                if (box.Contains(p) || box.Contains(q)) continue;   // 출발·도착 노드 (도착 노드 이름 포함)
+                var r = Rect.MinMaxRect(box.xMin - margin, box.yMin - margin, box.xMax + margin, box.yMax + margin);
+                if (SegmentHits(p, q, r)) return false;
+            }
             return true;
+        }
+
+        // Liang–Barsky 선분·사각형 교차
+        static bool SegmentHits(Vector2 p, Vector2 q, Rect r)
+        {
+            float t0 = 0f, t1 = 1f;
+            Vector2 d = q - p;
+            float[] pp = { -d.x, d.x, -d.y, d.y };
+            float[] qq = { p.x - r.xMin, r.xMax - p.x, p.y - r.yMin, r.yMax - p.y };
+            for (int i = 0; i < 4; i++)
+            {
+                if (Mathf.Abs(pp[i]) < 1e-5f)
+                {
+                    if (qq[i] < 0f) return false;
+                    continue;
+                }
+                float t = qq[i] / pp[i];
+                if (pp[i] < 0f) t0 = Mathf.Max(t0, t);
+                else t1 = Mathf.Min(t1, t);
+            }
+            return t0 < t1;
         }
 
         float ChannelBase(int channel) => LaneX(channel * 0.5f);
@@ -258,7 +306,7 @@ namespace MoreMush.Mobile
             var go = new GameObject("Line", typeof(RectTransform));
             var rt = (RectTransform)go.transform;
             rt.SetParent(lineRoot, false);
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.anchorMin = rt.anchorMax = Vector2.zero;
             rt.pivot = new Vector2(0.5f, 0.5f);
             Vector2 d = b - a;
             bool straight = Mathf.Abs(d.x) < 0.01f || Mathf.Abs(d.y) < 0.01f;
