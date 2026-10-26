@@ -35,6 +35,8 @@ namespace MoreMush.Mobile
         public SkillTag tag;
         public string group;       // 같은 스킬 계열 키 (효율적 사냥 Lv.1~3 / Lv.4 / Lv.5 노드가 같은 값)
         public int startLevel;     // 이 노드의 첫 레벨이 계열에서 몇 레벨인지 (Lv.4 노드면 4). 비우면 1
+        public int lane;           // 스킬 트리의 세로 줄 (0~4, 왼쪽부터)
+        public int row;            // 스킬 트리의 가로 줄 (0 = 맨 아래 시작 노드, 위로 갈수록 큼)
         public string ability;     // 능력 종류 키 (SkillAbility). 효과 코드가 이 키로 찾는다
         public float abilityBase;  // 1레벨 이상일 때 한 번 더하는 값 (레벨마다 오르는 폭이 첫 레벨과 다를 때)
         public float abilityValue; // 레벨당 능력 수치 (배율·증가량 등, 해석은 ability마다). 비율은 0.1 = 10%

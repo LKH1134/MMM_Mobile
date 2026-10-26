@@ -10,6 +10,7 @@ namespace MoreMush.Mobile
     // 스킬 노드를 누르면 SkillInfo가 열리고, 같은 노드를 다시 누르거나 빈 곳을 누르면 닫힌다.
     public class SkillTreeScreen : MonoBehaviour
     {
+        [SerializeField] SkillTreeView treeView;      // 시작할 때 Skill 표대로 노드를 깐다
         [SerializeField] RectTransform nodeRoot;      // 이 아래의 SkillNode를 모두 찾는다
         [SerializeField] SkillInfoPanel skillInfo;
         [SerializeField] Button blankArea;            // 노드 뒤 투명 판. 누르면 SkillInfo를 닫는다
@@ -37,6 +38,7 @@ namespace MoreMush.Mobile
             indexButton.onClick.AddListener(() => Show(indexPopup));
             workshopButton.onClick.AddListener(() => Show(workshopPopup));
 
+            if (treeView != null) treeView.Build();
             if (nodeRoot != null)
                 foreach (var node in nodeRoot.GetComponentsInChildren<SkillNode>(true)) node.Clicked += Select;
             if (blankArea != null) blankArea.onClick.AddListener(Deselect);

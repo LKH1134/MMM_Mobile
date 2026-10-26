@@ -21,6 +21,13 @@ namespace MoreMush.Mobile
 
         void Awake() => GetComponent<Button>().onClick.AddListener(() => Clicked?.Invoke(this));
 
+        // 코드로 깔 때 (SkillTreeView) 어느 스킬인지 정한다
+        public void Setup(int index)
+        {
+            skillIndex = index;
+            Refresh();
+        }
+
         void OnEnable()
         {
             SkillProgress.Changed += OnChanged;
