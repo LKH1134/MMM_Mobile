@@ -44,7 +44,8 @@ namespace MoreMush.Mobile
         public int maxLevel;       // 최대 레벨. 비우면 1
         public long unlockPrice;   // 해금 가격
         public Currency currency;
-        public int[] requires;     // 먼저 해금해야 하는 스킬 index들 (스킬 트리 선행 조건)
+        public int link;           // 연결 노드 index (트리에 선으로 그린다). 1레벨 이상 배워야 열린다. 0 = 없음 (시작 노드)
+        public int[] requires;     // 이전 레벨 노드 index들 (같은 스킬의 앞 노드). 최대 레벨까지 배워야 열린다
     }
 
     // Boss.xlsx — 4001~4999

@@ -168,17 +168,19 @@ MonoBehaviour:
   nodePrefab: {fileID: 8639501145604043071, guid: aa42d535acafa2544919c4753585a978, type: 3}
   laneCount: 5
   laneGap: 200
-  rowGap: 260
+  rowGap: 290
   bottomPadding: 600
   topPadding: 480
   labelFont: {fileID: 11400000, guid: 5049dd357cc23d446afce057e7d4337f, type: 2}
-  labelSize: 26
+  labelSize: 24
+  labelHeight: 60
   startColor: {r: 0.92, g: 0.92, b: 0.88, a: 1}
   edibleColor: {r: 1, g: 0.72, b: 0.3, a: 1}
   medicinalColor: {r: 0.45, g: 0.88, b: 0.48, a: 1}
   toxicColor: {r: 0.78, g: 0.6, b: 1, a: 1}
-  lineWidth: 10
-  lineColor: {r: 0.55, g: 0.47, b: 0.36, a: 0.6}
+  lineWidth: 6
+  trackGap: 9
+  lineColor: {r: 0.55, g: 0.47, b: 0.36, a: 0.7}
   learnedLineColor: {r: 1, g: 0.86, b: 0.5, a: 1}
 --- !u!1 &306610258
 GameObject:
