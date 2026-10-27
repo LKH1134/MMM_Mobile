@@ -123,6 +123,22 @@ namespace MoreMush.Mobile
         // 다음 레벨 가격
         public static long NextPrice(SkillData skill, out Currency currency) => Price(skill, GetLevel(skill.index) + 1, out currency);
 
+        // 지금 배운 레벨까지 이 재화로 낸 가격의 합 (옛 세이브 이관에 쓴다)
+        public static long Spent(Currency currency)
+        {
+            long sum = 0;
+            foreach (var skill in GameData.Skills.All)
+            {
+                int level = Mathf.Min(GetLevel(skill.index), MaxLevel(skill));
+                for (int l = 1; l <= level; l++)
+                {
+                    long price = Price(skill, l, out var c);
+                    if (c == currency) sum += price;
+                }
+            }
+            return sum;
+        }
+
         public static bool CanAfford(SkillData skill)
         {
             long price = NextPrice(skill, out var currency);

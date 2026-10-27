@@ -59,7 +59,13 @@ namespace MoreMush.Mobile
         public float hpRate;       // 체력 계수. 버섯·보스 체력에 곱한다. 뒤로 갈수록 크다
         public float rewardRate;   // 점수·수확량 배율
         public int boss;           // 보스 index (Boss.xlsx). 0이면 일반 스테이지
+        public StageGoal goalType; // 일반 스테이지 클리어 조건. None이면 판을 마치기만 하면 넘어간다 (보스 스테이지는 보스 처치)
+        public int goal;           // 목표 수치 (Harvest: 버섯 n개). 같은 스테이지를 연속으로 못 넘으면 RoundBase.goalRelief만큼 줄여 준다
+        public float mushHpMul;    // 일반 버섯 체력 배율 (보스엔 안 곱함). 비우면 1
+        public int gem;            // 첫 클리어 때 주는 균사석 (★ 스테이지). 보스 스테이지는 Boss.xlsx gem을 더한다
     }
+
+    public enum StageGoal { None, Harvest }   // 없음 / 버섯 n개 수확
 
     public enum BossGimmick { None, Heal, Purge, Split, Move }   // 없음 / 체력 회복 / 임시 수확기 제거 / 분신 / 좌우 이동
 
@@ -73,7 +79,7 @@ namespace MoreMush.Mobile
         public string color;       // 임시 구분 색 (#rrggbb). 보스 그림이 생기면 prefab으로 바꾼다
         public long reward;        // 처치 점수 (스테이지 rewardRate를 곱한다)
         public int drop;           // 처치 때 얻는 레전더리 버섯 수
-        public int gem;            // 처치 때 얻는 균사석 (지갑이 생기면 지급)
+        public int gem;            // 첫 처치 때 얻는 균사석 (다시 잡으면 없음, StageProgress.Cleared)
         public float failGold;     // 못 잡았을 때 그 판 골드 배율 (비우면 1)
         public string prefab;
     }

@@ -106,6 +106,7 @@ namespace MoreMush.Mobile
         {
             s = field.Stats;
             fever = wisdom = acorn = 0f;
+            orbitAngle = 0f;   // 판마다 같은 자리에서 (같은 시드면 같은 결과)
             openingDone = false;
             foreach (var c in clones)
             {

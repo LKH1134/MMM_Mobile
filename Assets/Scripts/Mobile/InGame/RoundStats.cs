@@ -15,7 +15,8 @@ namespace MoreMush.Mobile
         public float minRespawn = 0.5f;
         [Range(0f, 1f)] public float epicChance = 0.05f;     // 군락지가 에픽으로 돋을 확률
         [Range(0f, 1f)] public float uniqueChance = 0.01f;   // 유니크로 돋을 확률
-        public float comboFactor = 0.1f;      // 콤보 1당 점수 +10%
+        public float comboFactor = 0.05f;     // 콤보 1당 점수 +5%
+        public int comboCap = 20;             // 점수 배율에 쓰는 콤보 상한 (HUD 콤보는 계속 오른다). 0이면 상한 없음
         public float critDamage = 0.5f;       // 치명 박살이 없을 때 치명타 피해 +50%
         public float goldenScore = 10f;       // 황금 변종 점수 배율
         public float goldenYield = 5f;        // 황금 변종 수확량 배율
@@ -43,10 +44,15 @@ namespace MoreMush.Mobile
         public float bossBaseHp = 100f;       // 기본 보스 체력. × 보스 hpRate × 스테이지 hpRate
         public float bossSize = 1.8f;         // 군락 버섯 대비 크기
         public Color bossTint = new Color(1f, 0.45f, 0.45f);   // 보스 color가 비었을 때
-        public float bossHitShare = 0.6f;     // 보스 체력을 다 깎는 만큼 때리면 직전 일반 판 점수의 이 비율 (못 잡은 판 ≈ 일반 판의 0.5~0.6배, PC 원칙 P15)
+        public float bossHitShare = 0.35f;    // 기본 비율: 보스 체력을 다 깎는 만큼 때리면 직전 일반 판 점수의 이 비율 (덜 깎으면 비례해서 덜 받음)
         public float bossHitScore = 5f;       // 직전 일반 판 기록이 없을 때: 피해 1당 점수 (스테이지 hpRate로 나눔)
-        public float bossRewardMul = 2f;      // 처치 보상 골드 = max(이번 판 골드, 직전 일반 판 골드) × 이 값 (PC판 BOSS_REWARD_MUL)
+        public float bossRewardMul = 3f;      // 처치 보상 골드 = max(이번 판 골드, 직전 일반 판 골드) × 이 값 (PC판 BOSS_REWARD_MUL 2 → 패배 패널티를 없앤 대신 3)
         public float splitCloneSize = 0.75f;  // 환상 버섯 분신 크기 (본체 대비)
+
+        [Header("일반 스테이지 목표 (목표 수치·버섯 체력 배율은 Stage.xlsx)")]
+        public float goalRelief = 0.9f;       // 같은 스테이지를 연속으로 못 넘을 때마다 목표 × 이 값
+        public float goalReliefMin = 0.7f;    // 줄여 주는 하한 (원래 목표 대비)
+        public Color hardTint = new Color(0.8f, 0.8f, 0.8f);   // 단단한 버섯(mushHpMul > 1) 임시 구분 색 (등급 색에 곱한다)
     }
 
     // 판 시작 때 배운 스킬로 정해지는 수치 모음 (판 중에는 바뀌지 않는다)
@@ -61,6 +67,7 @@ namespace MoreMush.Mobile
         public float SpeedMul, SizeMul, BarMul;
         public float CritChance, CritMul;
         public float ComboFactor;
+        public int ComboCap;                  // 점수 배율에 쓰는 콤보 상한 (0 = 없음)
         public float ScoreMul, GoldMul, TripleChance;
         public float NormalYieldMul, EpicYieldMul, UniqueYieldMul;
         public float GoldenScore, GoldenYield;
@@ -90,6 +97,21 @@ namespace MoreMush.Mobile
         public float BossHpMul = 1f;          // 측정기 전용: 보스를 죽지 않게 해 판 전체 피해를 잴 때 (게임에선 1)
         public float HpRate => Stage != null && Stage.hpRate > 0f ? Stage.hpRate : 1f;
         public float RewardRate => Stage != null && Stage.rewardRate > 0f ? Stage.rewardRate : 1f;
+        // 일반 버섯 체력 배율 (Stage.xlsx mushHpMul). 보스 체력(BossHp)엔 곱하지 않는다
+        public float MushHpMul => Stage != null && Stage.mushHpMul > 0f ? Stage.mushHpMul : 1f;
+        public int Goal;                      // 이번 판 수확 목표 (완화 반영). 0이면 목표 없음 (보스·파밍·목표 없는 스테이지)
+        public bool HasGoal => Goal > 0;
+
+        public const int TutorialStages = 3;  // 1~3 튜토리얼: 목표 3·4·5 고정 (연속 실패 완화 없음)
+
+        // 스테이지 목표에 연속 실패 완화를 걸어 이번 판 목표를 정한다. 일반 판이 아니거나 목표가 없으면 0
+        public static int GoalFor(StageData stage, int failStreak, RoundBase b)
+        {
+            if (stage == null || stage.boss != 0 || stage.goalType != StageGoal.Harvest || stage.goal <= 0) return 0;
+            if (stage.stage <= TutorialStages) return stage.goal;
+            float relief = Mathf.Max(b.goalReliefMin, Mathf.Pow(b.goalRelief, Mathf.Max(0, failStreak)));
+            return Mathf.Max(1, Mathf.RoundToInt(stage.goal * relief));
+        }
 
         public bool AnyBarBuff => PowerAttack > 0 || HasteDuration > 0f || PierceDuration > 0f || HomingDuration > 0f
                                   || FeverDuration > 0f || WisdomRate > 0f || HealDuration > 0f;
@@ -153,6 +175,7 @@ namespace MoreMush.Mobile
                 CritChance = Mathf.Clamp01(T(SkillAbility.CritChance)),
                 CritMul = 1f + (critDamage > 0f ? critDamage : b.critDamage),
                 ComboFactor = b.comboFactor * (1f + T(SkillAbility.ComboRate)),
+                ComboCap = b.comboCap,
                 ScoreMul = 1f + T(SkillAbility.ScoreRate),
                 GoldMul = 1f + T(SkillAbility.GoldConversion),
                 TripleChance = Mathf.Clamp01(T(SkillAbility.TripleScoreChance)),

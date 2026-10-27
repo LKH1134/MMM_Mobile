@@ -20,6 +20,8 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform timerFill;     // 진행 바 안쪽 채움. 앵커 x 최대값 = 남은 비율
         [SerializeField] GameObject comboRoot;        // 콤보가 2 미만이면 숨긴다
         [SerializeField] TMP_Text comboText;
+        [SerializeField] TMP_Text goalText;           // 일반 스테이지 목표 "수확 n/N". 목표가 없는 판(보스·파밍)은 숨긴다
+        [SerializeField] Color goalMetColor = new Color(0.25f, 0.6f, 0.2f);   // "목표 달성!" 색
 
         [SerializeField] Button optionButton;
         [SerializeField] PopupSlot optionPopup;   // 프리팹. 처음 열 때 이 캔버스 아래에 만든다
@@ -114,6 +116,20 @@ namespace MoreMush.Mobile
             score = value;
             earnedGoldText.text = score.ToString("N0");
         }
+
+        // goal이 0이면 숨긴다. count가 goal에 닿으면 "목표 달성!"
+        public void SetGoal(int count, int goal)
+        {
+            if (goalText == null) return;
+            goalText.gameObject.SetActive(goal > 0);
+            if (goal <= 0) return;
+            if (goalColor == null) goalColor = goalText.color;
+            bool met = count >= goal;
+            goalText.text = met ? $"목표 달성! {count}/{goal}" : $"수확 {count}/{goal}";
+            goalText.color = met ? goalMetColor : goalColor.Value;
+        }
+
+        Color? goalColor;
 
         public void SetCombo(int value)
         {

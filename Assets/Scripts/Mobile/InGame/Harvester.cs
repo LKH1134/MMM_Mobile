@@ -61,7 +61,6 @@ namespace MoreMush.Mobile
         public Vector2 Position { get; set; }
         public Vector2 Velocity { get; set; }
         public bool IsMoving => Velocity.sqrMagnitude > 0f;
-        public int Combo { get; set; }                // 마지막으로 바에 닿은 뒤 캔 버섯 수
         public bool Temporary { get; set; }           // 분열체 등 잠깐 있는 수확기 (바 버프를 받지 않는다)
         public float Life { get; set; }               // Temporary일 때 남은 시간
         public List<Mushroom> Touching => touching;
@@ -77,7 +76,6 @@ namespace MoreMush.Mobile
         {
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
             Velocity = Vector2.zero;
-            Combo = 0;
             Size = 1f;
             BonusDamage = PowerDamage = 0;
             DamageMul = StumpMul = NextHitMul = WeakMul = 1f;
@@ -104,7 +102,6 @@ namespace MoreMush.Mobile
         public void Launch(Vector2 velocity)
         {
             Velocity = velocity;
-            Combo = 0;
         }
 
         public void Stop() => Velocity = Vector2.zero;

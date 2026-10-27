@@ -11,7 +11,9 @@ namespace MoreMush.Mobile
     //   조작: 첫 투척은 위로(±약간), 바는 가장 낮게 내려오는 영구 수확기가 닿을 자리를 따라가되 0.5초마다 바뀌는 오차
     //         (오차 폭 = 2 × SKILL × 바 반길이 → 바 받을 확률 ≈ min(1, 0.5/SKILL). 0.6 = 보수적 기준, 1.0 ≈ 사람 쪽)
     //   구매: 판이 끝날 때마다 가장 싼 것부터 살 수 있는 만큼 전부 (골드·균사석 따로). schedule을 주면 그 판에 정해진 것을 돈과 상관없이 산다
-    //   진행: 일반 판은 다음 스테이지, 보스는 처치하면 다음·못 잡으면 farmRounds판 파밍 뒤 재도전 (게임 규칙과 같음)
+    //   진행: 일반 판은 목표(Stage.xlsx goal, 연속 실패 완화 포함)를 채우면 다음 스테이지·못 채우면 같은 스테이지 다시,
+    //         보스는 처치하면 다음·못 잡으면 바로 재도전 (farmRounds를 주면 그만큼 파밍 뒤) — 게임 규칙과 같음
+    //   균사석: 보스·★ 스테이지 첫 클리어만 (StageProgress.FirstClearGem, 다시 넘거나 파밍·재도전은 0)
     //   시간: 판마다 (판 경과 초 + menuSeconds) / 60분
     // 사용: Begin(config) → Run(n)을 끝날 때까지 여러 번 → Save(path) → End()
     public static class BalanceBot
@@ -25,7 +27,7 @@ namespace MoreMush.Mobile
             public int stopStage = 50;          // 이 스테이지 보스를 처치하면 끝
             public float incomeMul = 1f;        // 사람 수입 보정 (봇 수입 × 이 값)
             public float bossDamageMul = 1f;    // 사람 보스 피해 보정 (봇 피해 × 이 값. 실제 보스는 체력 ÷ 이 값으로 같은 효과)
-            public int farmRounds = StageProgress.FarmRounds;
+            public int farmRounds = 0;          // 보스에 지면 파밍할 판 수. 0 = 결과 팝업에서 "재도전"을 고른 것 (기본)
             public Dictionary<int, List<int>> schedule;   // 판 번호 → 그 판 끝에 살 스킬 index (레벨 하나씩). 있으면 돈 무시
             // 보스 판을 '죽지 않는 보스'로 돌려 판 전체 피해를 잰다. 처치 여부 = 피해 ≥ 실효 체력
             // (실효 체력: 환상 버섯 ×3.27 — 분신 (모바일 실측), 청소부 × (1 + 0.01 × (판 시간 − 2) × 0.7) — 회복. 이론 문서 4-4)
@@ -35,8 +37,8 @@ namespace MoreMush.Mobile
 
         public class RoundLog
         {
-            public int round, stage, buys, gemBuys, harvested, harvesters, levels;
-            public bool boss, killed;
+            public int round, stage, buys, gemBuys, harvested, harvesters, levels, goal, failStreak;
+            public bool boss, killed, goalMet;
             public float duration, elapsed, minutes, hpRate, bossHp, bossDamage, attack;
             public long score, gold, bonus, gems, spent, goldLeft, gemsLeft, nextPrice;
         }
@@ -51,7 +53,7 @@ namespace MoreMush.Mobile
         static readonly List<RoundLog> logs = new List<RoundLog>();
         static readonly List<(int round, int index, int level, long price, Currency currency)> purchases = new List<(int, int, int, long, Currency)>();
         static long gold, gems, lastScore, lastGold;
-        static int stage, farmLeft, round;
+        static int stage, farmLeft, round, cleared, failStreak;
         static float minutes, bossDamage, errTimer, err;
         static bool done;
         static System.Random rng;
@@ -77,7 +79,7 @@ namespace MoreMush.Mobile
             rng = new System.Random(cfg.seed);
             gold = gems = lastScore = lastGold = 0;
             stage = 1;
-            farmLeft = round = 0;
+            farmLeft = round = cleared = failStreak = 0;
             minutes = 0f;
             done = false;
             field.Hit -= OnHit;
@@ -103,7 +105,7 @@ namespace MoreMush.Mobile
             for (int i = 0; i < n && !done; i++) PlayRound();
             var last = logs.Count > 0 ? logs[logs.Count - 1] : null;
             return last == null ? "no rounds" :
-                $"round {last.round} stage {last.stage} {(last.boss ? (last.killed ? "보스 처치" : "보스 실패") : "일반")} min {last.minutes:0.0} gold {gold} gems {gems} levels {LevelCount()} done={done}";
+                $"round {last.round} stage {last.stage} {(last.boss ? (last.killed ? "보스 처치" : "보스 실패") : last.goal > 0 ? $"목표 {last.harvested}/{last.goal}" : "일반")} min {last.minutes:0.0} gold {gold} gems {gems} levels {LevelCount()} done={done}";
         }
 
         static void PlayRound()
@@ -111,7 +113,7 @@ namespace MoreMush.Mobile
             round++;
             var stageData = StageProgress.Get(stage);
             bool bossRound = stageData != null && stageData.boss != 0 && farmLeft == 0;
-            game.Prepare(stage, bossRound, lastScore, lastGold);
+            game.Prepare(stage, bossRound, lastScore, lastGold, failStreak);
             // 체력은 int라 1e9를 넘지 않게 (넘으면 넘쳐서 1이 된다)
             if (bossRound && cfg.probeBoss) game.Stats.BossHpMul = Mathf.Max(1f, 1e9f / Mathf.Max(1f, game.Stats.BossHp));
             else if (bossRound) game.Stats.BossHpMul = 1f / Mathf.Max(0.01f, cfg.bossDamageMul);
@@ -126,6 +128,7 @@ namespace MoreMush.Mobile
             {
                 round = round, stage = stage, boss = bossRound, duration = game.Stats.Duration, hpRate = game.Stats.HpRate,
                 bossHp = game.Stats.BossHp, attack = field.Main != null ? field.Main.Damage : 0, harvesters = field.Harvesters.Count,
+                goal = game.Stats.Goal, failStreak = failStreak,
             };
 
             field.LaunchMain(new Vector2((float)(rng.NextDouble() - 0.5) * 0.6f, 1f));
@@ -157,25 +160,29 @@ namespace MoreMush.Mobile
             log.harvested = game.HarvestCount;
             log.elapsed = elapsed;
             log.bossDamage = bossDamage;
+            log.goalMet = !bossRound && game.GoalMet;
+            bool stageCleared = bossRound ? log.killed : game.StageCleared;
 
-            // 정산
+            // 정산 (균사석은 처음 넘은 스테이지만)
             gold += (long)(game.TotalGold * cfg.incomeMul);
-            if (game.BossKilled && game.Stats.Boss.gem > 0) gems += game.Stats.Boss.gem;
-            log.gems = game.BossKilled ? game.Stats.Boss.gem : 0;
+            log.gems = StageProgress.FirstClearGem(stageData, game.Stats.Boss, stageCleared, cleared);
+            gems += log.gems;
 
             // 진행
             int stageBefore = stage;
-            if (bossRound)
+            if (stageCleared)
             {
-                if (log.killed) { stage = Mathf.Min(stage + 1, StageProgress.MaxStage); farmLeft = 0; }
-                else farmLeft = cfg.farmRounds;
+                cleared = Mathf.Max(cleared, stage);
+                stage = Mathf.Min(stage + 1, StageProgress.MaxStage);
+                farmLeft = failStreak = 0;
             }
-            else
+            else if (bossRound) farmLeft = cfg.farmRounds;
+            else if (stageData != null && stageData.boss != 0) farmLeft = Mathf.Max(0, farmLeft - 1);   // 파밍 판
+            else failStreak++;   // 목표 실패: 같은 스테이지 다시
+            if (!bossRound)
             {
                 lastScore = game.Score;
                 lastGold = game.Gold;
-                if (stageData != null && stageData.boss != 0) farmLeft = Mathf.Max(0, farmLeft - 1);
-                else stage = Mathf.Min(stage + 1, StageProgress.MaxStage);
             }
             minutes += (elapsed + cfg.menuSeconds) / 60f;
             log.minutes = minutes;
@@ -365,12 +372,13 @@ namespace MoreMush.Mobile
         public static string Save(string path)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("round,stage,boss,killed,duration,elapsed,minutes,hpRate,attack,harvesters,score,gold,bonus,gems,buys,gemBuys,spent,goldLeft,gemsLeft,levels,nextPrice,bossHp,bossDamage,harvested");
+            sb.AppendLine("round,stage,boss,killed,duration,elapsed,minutes,hpRate,attack,harvesters,score,gold,bonus,gems,buys,gemBuys,spent,goldLeft,gemsLeft,levels,nextPrice,bossHp,bossDamage,harvested,goal,goalMet,failStreak");
             var ci = CultureInfo.InvariantCulture;
             foreach (var l in logs)
                 sb.AppendLine(string.Join(",", l.round, l.stage, l.boss ? 1 : 0, l.killed ? 1 : 0, l.duration.ToString(ci), l.elapsed.ToString("0.##", ci),
                     l.minutes.ToString("0.##", ci), l.hpRate.ToString(ci), l.attack.ToString(ci), l.harvesters, l.score, l.gold, l.bonus, l.gems,
-                    l.buys, l.gemBuys, l.spent, l.goldLeft, l.gemsLeft, l.levels, l.nextPrice, l.bossHp.ToString("0", ci), l.bossDamage.ToString("0", ci), l.harvested));
+                    l.buys, l.gemBuys, l.spent, l.goldLeft, l.gemsLeft, l.levels, l.nextPrice, l.bossHp.ToString("0", ci), l.bossDamage.ToString("0", ci), l.harvested,
+                    l.goal, l.goalMet ? 1 : 0, l.failStreak));
             System.IO.File.WriteAllText(path, sb.ToString());
             // 구매 기록: <path>_buys.csv
             var bs = new StringBuilder("round,index,level,price,currency\n");

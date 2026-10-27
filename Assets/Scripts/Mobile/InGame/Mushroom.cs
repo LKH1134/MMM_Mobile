@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,8 +18,11 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform hpFill;        // 체력 바 안쪽 채움. 앵커 x 최대값 = 남은 비율
 
         RectTransform rect;
-        Coroutine punch;
         Graphic tintTarget;
+        // 출렁임: 코루틴 대신 Update에서 진행한다. 측정기는 한 프레임 안에서 수천 판을 돌리는데,
+        // 끝나지 못한 코루틴을 맞을 때마다 멈추고 새로 걸면 Unity 안쪽에 쌓여 판이 점점 느려졌다
+        float punchTime = -1f;                        // 0 이상이면 진행 중
+        float punchDuration, punchFrom, punchTo;
         float hpMul = 1f;
         float scale = 1f;
 
@@ -73,13 +75,12 @@ namespace MoreMush.Mobile
             Hp = MaxHp;
             ShowHp();
             if (visual != null) visual.localScale = Vector3.one;
-            Play(Pop(0.18f, 0f, 1f));
+            Pop(0.18f, 0f, 1f);
         }
 
         public void OnDespawned()
         {
-            if (punch != null) StopCoroutine(punch);
-            punch = null;
+            punchTime = -1f;
         }
 
         public void Place(Vector2 position) => rect.anchoredPosition = position;
@@ -90,7 +91,7 @@ namespace MoreMush.Mobile
             if (!Alive) return false;
             Hp = Mathf.Max(0, Hp - Mathf.Max(1, damage));
             ShowHp();
-            if (Alive) Play(Pop(0.15f, 0.8f, 1f));
+            if (Alive) Pop(0.15f, 0.8f, 1f);
             return !Alive;
         }
 
@@ -109,25 +110,35 @@ namespace MoreMush.Mobile
             if (hpFill != null) hpFill.anchorMax = new Vector2((float)Hp / MaxHp, hpFill.anchorMax.y);
         }
 
-        void Play(IEnumerator routine)
+        // from에서 1.15배로 부풀었다가 to로 돌아온다 (다시 걸면 처음부터)
+        void Pop(float duration, float from, float to)
         {
             if (visual == null || !isActiveAndEnabled) return;
-            if (punch != null) StopCoroutine(punch);
-            punch = StartCoroutine(routine);
+            punchDuration = duration;
+            punchFrom = from;
+            punchTo = to;
+            punchTime = 0f;
+            ShowPunch();
         }
 
-        // from에서 1.15배로 부풀었다가 to로 돌아온다
-        IEnumerator Pop(float duration, float from, float to)
+        void Update()
         {
-            for (float t = 0f; t < duration; t += Time.deltaTime)
+            if (punchTime < 0f) return;
+            punchTime += Time.deltaTime;
+            ShowPunch();
+        }
+
+        void ShowPunch()
+        {
+            if (punchTime >= punchDuration)
             {
-                float k = t / duration;
-                float s = k < 0.5f ? Mathf.Lerp(from, 1.15f, k * 2f) : Mathf.Lerp(1.15f, to, k * 2f - 1f);
-                visual.localScale = Vector3.one * s;
-                yield return null;
+                visual.localScale = Vector3.one * punchTo;
+                punchTime = -1f;
+                return;
             }
-            visual.localScale = Vector3.one * to;
-            punch = null;
+            float k = punchTime / punchDuration;
+            float s = k < 0.5f ? Mathf.Lerp(punchFrom, 1.15f, k * 2f) : Mathf.Lerp(1.15f, punchTo, k * 2f - 1f);
+            visual.localScale = Vector3.one * s;
         }
     }
 }

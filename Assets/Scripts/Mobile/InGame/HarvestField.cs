@@ -94,6 +94,9 @@ namespace MoreMush.Mobile
         public Bar Bar => bar;
         public float Speed => speed * (stats != null ? stats.SpeedMul : 1f);
         public float MushroomSize => mushroomSize;
+        // 콤보 = 판 전체에 하나. 수확기가 버섯을 캘 때마다 +1, 수확기가 바를 놓쳐 바닥 벽에 닿으면 0 (바에 닿아도 유지).
+        // 잠깐 있다 사라지는 수확기(분열체)는 바닥에 닿아도 끊지 않는다. HUD·점수 배율이 모두 이 값을 본다
+        public int Combo { get; private set; }
 
         public event System.Action<Harvester> Launched;
         public event System.Action<Harvester> BarHit;
@@ -101,6 +104,7 @@ namespace MoreMush.Mobile
         public event System.Action<Mushroom, Harvester, int, bool> Hit;   // 맞힌 버섯, 수확기, 피해, 치명타
         public event System.Action<Vector2> ColonyCleared;           // 군락지 하나를 다 캤다 (가운데 위치)
         public event System.Action BeforeColonies;                    // 판 시작 때 군락지를 놓기 직전 (장치 자리를 먼저 잡는다)
+        public event System.Action<int> ComboChanged;                // 콤보가 오르거나 끊겼다 (새 값)
 
         Vector2 barBaseSize;
         Vector2 barBasePos;
@@ -167,6 +171,7 @@ namespace MoreMush.Mobile
 
         void BeginRound()
         {
+            SetCombo(0);
             // 함께 던지는 수확기는 메인 양옆에 놓는다
             SpawnHarvester(RestPosition(0f));
             float gap = harvesterPrefab.BaseRadius * stats.SizeMul * 2.2f;
@@ -298,6 +303,13 @@ namespace MoreMush.Mobile
             h.Pool.Release(h);
         }
 
+        void SetCombo(int value)
+        {
+            if (Combo == value) return;
+            Combo = value;
+            ComboChanged?.Invoke(value);
+        }
+
         // 시간이 다 되면 멈춘다. 수확기는 그 자리에 선다
         public void Stop()
         {
@@ -340,13 +352,17 @@ namespace MoreMush.Mobile
 
                 if (p.x - r < bounds.xMin) { p.x = bounds.xMin + r; v.x = Mathf.Abs(v.x); }
                 else if (p.x + r > bounds.xMax) { p.x = bounds.xMax - r; v.x = -Mathf.Abs(v.x); }
-                if (p.y - r < bounds.yMin) { p.y = bounds.yMin + r; v.y = Mathf.Abs(v.y); }
+                if (p.y - r < bounds.yMin)
+                {
+                    p.y = bounds.yMin + r;
+                    v.y = Mathf.Abs(v.y);
+                    if (!h.Temporary) SetCombo(0);   // 바를 놓쳤다
+                }
                 else if (p.y + r > bounds.yMax) { p.y = bounds.yMax - r; v.y = -Mathf.Abs(v.y); }
 
                 for (int b = 0; b < bars.Count; b++)
                 {
                     if (!Bounce(ref p, ref v, r, bars[b].GetRect(rect))) continue;
-                    h.Combo = 0;
                     BarHit?.Invoke(h);
                     // 유도: 바에 튕길 때마다 가장 가까운 군락지 쪽으로 (위로만)
                     if (h.Has(HarvesterBuff.Homing) && NearestColony(p, out var target))
@@ -402,7 +418,7 @@ namespace MoreMush.Mobile
                     Hit?.Invoke(m, h, damage, crit);
                     if (harvested)
                     {
-                        h.Combo++;
+                        SetCombo(Combo + 1);
                         Harvested?.Invoke(m, h);
                         if (pierce) continue;
                     }
@@ -683,8 +699,12 @@ namespace MoreMush.Mobile
             var m = pool.Get();
             m.Pool = pool;
             m.Place(pos);
-            bool golden = stats.GoldenChance > 0f && Random.value < stats.GoldenChance;
-            m.Setup(look.tier, look.hpMul * stats.HpRate, golden, mushroomSize, golden ? goldenTint : look.tint);
+            bool golden = !stats.BossRound && stats.GoldenChance > 0f && Random.value < stats.GoldenChance;
+            // 단단한 스테이지(Stage.xlsx mushHpMul)는 일반 버섯 체력만 올리고 색을 조금 어둡게 (같은 풀 프리팹)
+            bool hard = stats.MushHpMul > 1f;
+            Color tint = golden ? goldenTint : look.tint;
+            if (hard) tint *= stats.Base.hardTint;
+            m.Setup(look.tier, look.hpMul * stats.HpRate * stats.MushHpMul, golden, mushroomSize, tint);
             m.Colony = colonyId;
             mushrooms.Add(m);
             return m;
