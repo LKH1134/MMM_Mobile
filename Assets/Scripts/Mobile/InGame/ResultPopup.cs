@@ -9,7 +9,7 @@ namespace MoreMush.Mobile
     // InGame 결과 팝업. 시간이 다 되면 HarvestGame이 열어 이번 판에 번 골드(점수 × 전환율)와 점수·수확량을 보여 준다.
     // 닫기 버튼·배경 눌러 닫기는 없다 — 다음 판(이 씬을 다시 연다) 아니면 스킬트리로.
     // 다음 판 버튼 글자는 판이 끝난 뒤 진행(StageProgress)에 따라: 스테이지가 올랐으면 "다음 스테이지", 파밍을 마쳐 보스가 기다리면 "보스 도전",
-    // 마지막 스테이지에 머물면 "다시 하기". 첫 클리어 균사석은 따로 강조한 줄로 보여 준다.
+    // 진행이 그대로면 "다시 하기". 첫 클리어 균사석은 따로 강조한 줄로 보여 준다.
     // 보스에 지면 버튼이 "재도전 / 파밍 / 스킬트리로" 셋이 된다 (파밍 = StageProgress.ChooseFarm 뒤 다시 연다)
     [RequireComponent(typeof(UiPopup))]
     public class ResultPopup : MonoBehaviour

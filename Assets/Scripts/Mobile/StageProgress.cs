@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoreMush.Mobile
@@ -6,7 +7,9 @@ namespace MoreMush.Mobile
     //   일반 스테이지: 목표가 없다 — 판을 마치면 다음 스테이지로
     //   보스 스테이지: 처치하면 다음으로. 못 잡으면 그대로 — 결과 팝업에서 바로 재도전하거나 ChooseFarm으로
     //                 FarmRounds판 그 스테이지 일반 판(파밍)을 돈 뒤 재도전한다 (강제 파밍 없음)
-    //   마지막 스테이지를 넘으면 마지막 스테이지에 머문다.
+    //   스테이지는 끝이 없다. 표(Stage.xlsx)의 마지막 스테이지를 넘으면 마지막 CycleLength개 묶음을 되풀이해 만든다 (Generate):
+    //                 체력·보상 계수는 한 바퀴마다 표의 마지막 묶음이 커진 만큼 (마지막 스테이지 ÷ CycleLength 앞 스테이지) 곱해 끊김 없이 잇고,
+    //                 CycleLength번째마다 보스 (표의 보스를 차례로 다시 쓴다)
     // 첫 클리어 기록(Cleared = 넘은 가장 높은 스테이지): 보스·★ 균사석은 처음 넘을 때만 준다 (FirstClearGem).
     // 보스 보상 계산용으로 직전 일반 판의 점수·골드도 남긴다
     public static class StageProgress
@@ -18,8 +21,10 @@ namespace MoreMush.Mobile
         const string ClearedKey = "Stage.Cleared";
 
         public const int FarmRounds = 1;   // 보스에 지고 "파밍"을 고르면 이만큼 일반 판을 돈 뒤 재도전
+        public const int CycleLength = 10;   // 표 뒤 스테이지: 이만큼씩 되풀이, 마지막 스테이지가 보스
 
-        public static int Current => Mathf.Clamp(PlayerPrefs.GetInt(Key, 1), 1, Mathf.Max(1, MaxStage));
+        // 옛 세이브는 표의 마지막 스테이지(그때의 끝)를 넘고도 거기 머물러 있었다 — 넘은 스테이지 다음으로 본다
+        public static int Current => Mathf.Max(1, Mathf.Max(PlayerPrefs.GetInt(Key, 1), Cleared + 1));
         public static int FarmLeft => Mathf.Max(0, PlayerPrefs.GetInt(FarmKey, 0));
         public static long LastNormalScore => long.TryParse(PlayerPrefs.GetString(LastScoreKey, "0"), out var v) ? v : 0;
         public static long LastNormalGold => long.TryParse(PlayerPrefs.GetString(LastGoldKey, "0"), out var v) ? v : 0;
@@ -39,7 +44,7 @@ namespace MoreMush.Mobile
         // 지금까지 받은 균사석(지갑 + 균사석 노드에 쓴 몫)이 마지막 보스 전 보스들의 합을 넘으면 마지막 보스까지 잡은 것으로 본다
         static void MigrateCleared()
         {
-            int current = Current, max = MaxStage;
+            int current = Mathf.Max(1, PlayerPrefs.GetInt(Key, 1)), max = TableMaxStage;
             int cleared = current - 1;
             if (current == max && max > 0)
             {
@@ -61,7 +66,8 @@ namespace MoreMush.Mobile
             return Mathf.Max(0, stage.gem) + (boss != null ? Mathf.Max(0, boss.gem) : 0);
         }
 
-        public static int MaxStage
+        // 표(Stage.xlsx)에 있는 마지막 스테이지. 그 뒤는 Generate로 만든다
+        public static int TableMaxStage
         {
             get
             {
@@ -71,11 +77,57 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 스테이지 번호의 행. 표에 없으면 null
+        // 스테이지 번호의 행. 표 뒤 스테이지는 만들어 준다 (표가 비었거나 1 미만이면 null)
         public static StageData Get(int stage)
         {
             foreach (var s in GameData.Stages.All) if (s.stage == stage) return s;
-            return null;
+            int max = TableMaxStage;
+            if (stage <= max || max <= 0) return null;
+            if (generated.TryGetValue(stage, out var made) && made.source == GameData.Stages.Get(made.data.index)) return made.data;
+            var data = Generate(stage, max);
+            if (data != null) generated[stage] = (data, GameData.Stages.Get(data.index));
+            return data;
+        }
+
+        // 표를 다시 읽으면 원본 행이 바뀌므로 그때 다시 만든다
+        static readonly Dictionary<int, (StageData data, StageData source)> generated = new Dictionary<int, (StageData, StageData)>();
+
+        // 표 뒤 스테이지: 표의 마지막 CycleLength개 중 같은 자리 행을 본떠, 넘은 바퀴 수만큼 체력·보상을 키운다.
+        // 보스 자리(CycleLength번째)는 표의 보스를 차례로 다시 쓰고, 마지막 보스만큼 버티게 체력을 맞춘다 (BossHpMul)
+        static StageData Generate(int stage, int max)
+        {
+            int cycle = (stage - max - 1) / CycleLength + 1;                 // 표 뒤 몇 바퀴째인지 (1부터)
+            int templateStage = stage - cycle * CycleLength;                // 표 안의 같은 자리
+            StageData t = null, last = null, prev = null;
+            foreach (var s in GameData.Stages.All)
+            {
+                if (s.stage == templateStage) t = s;
+                if (s.stage == max) last = s;
+                if (s.stage == max - CycleLength) prev = s;
+            }
+            if (t == null || last == null) return null;
+            float Growth(float lastValue, float prevValue) => prev != null && prevValue > 0f && lastValue > 0f ? lastValue / prevValue : 1f;
+            var data = new StageData
+            {
+                index = t.index, key = t.key, stage = stage, theme = last.theme,
+                hpRate = t.hpRate * Mathf.Pow(Growth(last.hpRate, prev != null ? prev.hpRate : 0f), cycle),
+                rewardRate = t.rewardRate * Mathf.Pow(Growth(last.rewardRate, prev != null ? prev.rewardRate : 0f), cycle),
+                mushHpMul = t.mushHpMul, gem = t.gem,
+            };
+            if (stage % CycleLength == 0)
+            {
+                var bosses = new List<BossData>();
+                foreach (var s in GameData.Stages.All)
+                    if (s.boss != 0 && GameData.Bosses.Get(s.boss) is BossData b && !bosses.Contains(b)) bosses.Add(b);
+                var lastBoss = last.boss != 0 ? GameData.Bosses.Get(last.boss) : null;
+                if (bosses.Count > 0)
+                {
+                    var boss = bosses[(stage / CycleLength - 1) % bosses.Count];
+                    data.boss = boss.index;
+                    if (lastBoss != null && boss.hpRate > 0f) data.BossHpMul = Mathf.Max(1f, lastBoss.hpRate / boss.hpRate);
+                }
+            }
+            return data;
         }
 
         public static StageData CurrentData => Get(Current);
@@ -119,7 +171,7 @@ namespace MoreMush.Mobile
         {
             int current = Current;
             PlayerPrefs.SetInt(ClearedKey, Mathf.Max(Cleared, current));
-            PlayerPrefs.SetInt(Key, Mathf.Min(current + 1, Mathf.Max(1, MaxStage)));
+            PlayerPrefs.SetInt(Key, current + 1);
             PlayerPrefs.SetInt(FarmKey, 0);
         }
 

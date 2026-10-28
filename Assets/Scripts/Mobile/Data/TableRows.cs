@@ -63,6 +63,9 @@ namespace MoreMush.Mobile
         public int goal;           // 표에만 남은 열 (옛 수확 목표). 게임은 쓰지 않는다
         public float mushHpMul;    // 일반 버섯 체력 배율 (보스엔 안 곱함). 비우면 1
         public int gem;            // 첫 클리어 때 주는 균사석 (★ 스테이지). 보스 스테이지는 Boss.xlsx gem을 더한다
+
+        // 표에 없는 값 (속성이라 표 열로 읽지 않는다). 표 뒤 스테이지에서 다시 쓰는 보스의 체력 배율 (StageProgress.Generate)
+        public float BossHpMul { get; set; } = 1f;
     }
 
     public enum StageGoal { None, Harvest }   // 없음 / 버섯 n개 수확

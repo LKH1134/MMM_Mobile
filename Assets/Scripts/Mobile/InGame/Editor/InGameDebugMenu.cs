@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MoreMush.Mobile.EditorTools
 {
-    // 개발용 InGame 메뉴. 지금 스테이지를 바꾼다 (Stage.xlsx 기준)
+    // 개발용 InGame 메뉴. 지금 스테이지를 바꾼다 (표 뒤 만든 스테이지 포함)
     static class InGameDebugMenu
     {
         [MenuItem("MoreMush/Debug/Go To Next Boss Stage")]
@@ -12,8 +12,8 @@ namespace MoreMush.Mobile.EditorTools
             GameData.Reload();
             int now = StageProgress.Current;
             int target = 0;
-            foreach (var s in GameData.Stages.All)
-                if (s.boss != 0 && s.stage >= now && (target == 0 || s.stage < target)) target = s.stage;
+            for (int s = now; s < now + 1000 && target == 0; s++)
+                if (StageProgress.Get(s) is StageData d && d.boss != 0) target = s;
             if (target == 0)
             {
                 Debug.LogWarning("[InGameDebug] 지금 이후로 보스 스테이지가 없다");

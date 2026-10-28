@@ -90,7 +90,7 @@ namespace MoreMush.Mobile
         public StageData Stage;
         public BossData Boss;                 // 보스 스테이지가 아니면 null
         public bool BossRound => Boss != null;
-        public float BossHp => Boss != null ? Base.bossBaseHp * Mathf.Max(0.0001f, Boss.hpRate) * HpRate : 0f;
+        public float BossHp => Boss != null ? Base.bossBaseHp * Mathf.Max(0.0001f, Boss.hpRate) * HpRate * (Stage != null ? Stage.BossHpMul : 1f) : 0f;
         public float BossHpMul = 1f;          // 측정기 전용: 보스를 죽지 않게 해 판 전체 피해를 잴 때 (게임에선 1)
         public float HpRate => Stage != null && Stage.hpRate > 0f ? Stage.hpRate : 1f;
         public float RewardRate => Stage != null && Stage.rewardRate > 0f ? Stage.rewardRate : 1f;

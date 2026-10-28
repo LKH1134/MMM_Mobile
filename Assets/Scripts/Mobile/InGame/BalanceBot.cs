@@ -84,7 +84,7 @@ namespace MoreMush.Mobile
             done = false;
             field.Hit -= OnHit;
             field.Hit += OnHit;
-            return $"[BalanceBot] seed={cfg.seed} SKILL={cfg.skill} menu={cfg.menuSeconds}s income×{cfg.incomeMul} boss×{cfg.bossDamageMul} farm={cfg.farmRounds} stop={cfg.stopStage} schedule={(cfg.schedule != null)} stages={StageProgress.MaxStage} skills={GameData.Skills.Count}";
+            return $"[BalanceBot] seed={cfg.seed} SKILL={cfg.skill} menu={cfg.menuSeconds}s income×{cfg.incomeMul} boss×{cfg.bossDamageMul} farm={cfg.farmRounds} stop={cfg.stopStage} schedule={(cfg.schedule != null)} stages={StageProgress.TableMaxStage}+ skills={GameData.Skills.Count}";
         }
 
         public static void End()
@@ -171,7 +171,7 @@ namespace MoreMush.Mobile
             if (stageCleared)
             {
                 cleared = Mathf.Max(cleared, stage);
-                stage = Mathf.Min(stage + 1, StageProgress.MaxStage);
+                stage++;
                 farmLeft = 0;
             }
             else if (bossRound) farmLeft = cfg.farmRounds;
