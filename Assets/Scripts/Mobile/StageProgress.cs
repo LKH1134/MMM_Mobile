@@ -3,8 +3,7 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 지금 도전할 스테이지 번호와 보스 도전 상태. PlayerPrefs에 저장한다 (세이브 구조가 생기면 옮긴다).
-    //   일반 스테이지: 목표(Stage.xlsx goal)를 채우면 다음 스테이지로. 못 채우면 같은 스테이지를 다시 (골드는 다 받음),
-    //                 연속 실패 수(FailStreak)만큼 목표를 줄여 준다 (RoundStats.GoalFor)
+    //   일반 스테이지: 목표가 없다 — 판을 마치면 다음 스테이지로
     //   보스 스테이지: 처치하면 다음으로. 못 잡으면 그대로 — 결과 팝업에서 바로 재도전하거나 ChooseFarm으로
     //                 FarmRounds판 그 스테이지 일반 판(파밍)을 돈 뒤 재도전한다 (강제 파밍 없음)
     //   마지막 스테이지를 넘으면 마지막 스테이지에 머문다.
@@ -17,7 +16,6 @@ namespace MoreMush.Mobile
         const string LastScoreKey = "Stage.LastNormalScore";
         const string LastGoldKey = "Stage.LastNormalGold";
         const string ClearedKey = "Stage.Cleared";
-        const string FailKey = "Stage.FailStreak";
 
         public const int FarmRounds = 1;   // 보스에 지고 "파밍"을 고르면 이만큼 일반 판을 돈 뒤 재도전
 
@@ -25,9 +23,8 @@ namespace MoreMush.Mobile
         public static int FarmLeft => Mathf.Max(0, PlayerPrefs.GetInt(FarmKey, 0));
         public static long LastNormalScore => long.TryParse(PlayerPrefs.GetString(LastScoreKey, "0"), out var v) ? v : 0;
         public static long LastNormalGold => long.TryParse(PlayerPrefs.GetString(LastGoldKey, "0"), out var v) ? v : 0;
-        public static int FailStreak => Mathf.Max(0, PlayerPrefs.GetInt(FailKey, 0));
 
-        // 넘은(일반 목표 달성·보스 처치) 가장 높은 스테이지. 키가 없는 옛 세이브는 처음 읽을 때 옮겨 적는다
+        // 넘은(일반 판을 마침·보스 처치) 가장 높은 스테이지. 키가 없는 옛 세이브는 처음 읽을 때 옮겨 적는다
         public static int Cleared
         {
             get
@@ -57,7 +54,7 @@ namespace MoreMush.Mobile
         }
 
         // 이번 판으로 처음 넘은 스테이지면 첫 클리어 균사석 (★ 스테이지 gem + 보스 gem), 아니면 0.
-        // cleared = 목표 달성·보스 처치 (파밍 판은 false), clearedBefore = 판 전의 Cleared. 측정기도 같은 규칙을 쓴다
+        // cleared = 일반 판을 마침·보스 처치 (파밍 판은 false), clearedBefore = 판 전의 Cleared. 측정기도 같은 규칙을 쓴다
         public static int FirstClearGem(StageData stage, BossData boss, bool cleared, int clearedBefore)
         {
             if (stage == null || !cleared || stage.stage <= clearedBefore) return 0;
@@ -93,7 +90,7 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 판이 끝났을 때. bossRound = 보스 판이었는지, cleared = 보스를 처치했는지 / 일반 판이면 목표를 채웠는지 (파밍 판은 무시)
+        // 판이 끝났을 때. bossRound = 보스 판이었는지, cleared = 보스를 처치했는지 / 일반 판이면 넘었는지 (파밍 판은 무시)
         public static void Complete(bool bossRound, bool cleared, long score, long gold)
         {
             var s = CurrentData;
@@ -107,7 +104,6 @@ namespace MoreMush.Mobile
                 PlayerPrefs.SetString(LastGoldKey, gold.ToString());
                 if (s != null && s.boss != 0) PlayerPrefs.SetInt(FarmKey, Mathf.Max(0, FarmLeft - 1));   // 보스 스테이지에서 파밍
                 else if (cleared) Advance();
-                else PlayerPrefs.SetInt(FailKey, FailStreak + 1);   // 같은 스테이지를 다시, 다음 목표는 조금 낮게
             }
             PlayerPrefs.Save();
         }
@@ -125,7 +121,6 @@ namespace MoreMush.Mobile
             PlayerPrefs.SetInt(ClearedKey, Mathf.Max(Cleared, current));
             PlayerPrefs.SetInt(Key, Mathf.Min(current + 1, Mathf.Max(1, MaxStage)));
             PlayerPrefs.SetInt(FarmKey, 0);
-            PlayerPrefs.SetInt(FailKey, 0);
         }
 
         // 개발용. 앞 스테이지는 다 넘은 것으로 친다 (건너뛴 보스·★ 균사석은 주지 않고, 되돌아가면 다시 받을 수 있다)
@@ -135,7 +130,6 @@ namespace MoreMush.Mobile
             PlayerPrefs.SetInt(Key, stage);
             PlayerPrefs.SetInt(ClearedKey, stage - 1);
             PlayerPrefs.SetInt(FarmKey, 0);
-            PlayerPrefs.SetInt(FailKey, 0);
             PlayerPrefs.Save();
         }
     }

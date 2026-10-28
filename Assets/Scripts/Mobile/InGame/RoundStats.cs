@@ -49,9 +49,6 @@ namespace MoreMush.Mobile
         public float bossRewardMul = 3f;      // 처치 보상 골드 = max(이번 판 골드, 직전 일반 판 골드) × 이 값 (PC판 BOSS_REWARD_MUL 2 → 패배 패널티를 없앤 대신 3)
         public float splitCloneSize = 0.75f;  // 환상 버섯 분신 크기 (본체 대비)
 
-        [Header("일반 스테이지 목표 (목표 수치·버섯 체력 배율은 Stage.xlsx)")]
-        public float goalRelief = 0.9f;       // 같은 스테이지를 연속으로 못 넘을 때마다 목표 × 이 값
-        public float goalReliefMin = 0.7f;    // 줄여 주는 하한 (원래 목표 대비)
         public Color hardTint = new Color(0.8f, 0.8f, 0.8f);   // 단단한 버섯(mushHpMul > 1) 임시 구분 색 (등급 색에 곱한다)
     }
 
@@ -99,20 +96,6 @@ namespace MoreMush.Mobile
         public float RewardRate => Stage != null && Stage.rewardRate > 0f ? Stage.rewardRate : 1f;
         // 일반 버섯 체력 배율 (Stage.xlsx mushHpMul). 보스 체력(BossHp)엔 곱하지 않는다
         public float MushHpMul => Stage != null && Stage.mushHpMul > 0f ? Stage.mushHpMul : 1f;
-        public int Goal;                      // 이번 판 수확 목표 (완화 반영). 0이면 목표 없음 (보스·파밍·목표 없는 스테이지)
-        public bool HasGoal => Goal > 0;
-
-        public const int TutorialStages = 3;  // 1~3 튜토리얼: 목표 3·4·5 고정 (연속 실패 완화 없음)
-
-        // 스테이지 목표에 연속 실패 완화를 걸어 이번 판 목표를 정한다. 일반 판이 아니거나 목표가 없으면 0
-        public static int GoalFor(StageData stage, int failStreak, RoundBase b)
-        {
-            if (stage == null || stage.boss != 0 || stage.goalType != StageGoal.Harvest || stage.goal <= 0) return 0;
-            if (stage.stage <= TutorialStages) return stage.goal;
-            float relief = Mathf.Max(b.goalReliefMin, Mathf.Pow(b.goalRelief, Mathf.Max(0, failStreak)));
-            return Mathf.Max(1, Mathf.RoundToInt(stage.goal * relief));
-        }
-
         public bool AnyBarBuff => PowerAttack > 0 || HasteDuration > 0f || PierceDuration > 0f || HomingDuration > 0f
                                   || FeverDuration > 0f || WisdomRate > 0f || HealDuration > 0f;
         // 분열로 한꺼번에 있을 수 있는 최대 수 (던지는 수확기마다 한 번씩) — 이만큼 미리 만들어 둔다

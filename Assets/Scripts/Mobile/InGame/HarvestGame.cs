@@ -11,7 +11,7 @@ namespace MoreMush.Mobile
     // 보스 판: 보스 체력을 다 깎는 만큼 때리면 직전 일반 판 점수의 bossHitShare만큼 점수를 받는다 (못 잡은 판은 일반 판보다 손해).
     //   분신까지 모두 쓰러뜨리면 처치: 추가 골드 max(이번 판, 직전 일반 판) × bossRewardMul + 균사석 + 레전드리 버섯, 판이 바로 끝난다.
     //   못 잡으면 그 판 골드 × failGold(지금 표는 1 = 감액 없음), 결과 팝업에서 재도전·파밍을 고른다. 스테이지 진행·파밍은 StageProgress가 맡는다.
-    // 일반 판 목표(Stats.Goal, 버섯 n개): 채우면 HUD에 "목표 달성!", 판은 시간 끝까지 계속. 못 채우면 같은 스테이지를 다시 (골드는 다 받음).
+    // 일반 판은 목표가 없다: 시간 끝까지 돌면 다음 스테이지로 넘어간다 (보스 스테이지의 일반 판 = 파밍은 넘는 판이 아니다).
     // 보스·★ 스테이지를 처음 넘으면 균사석(StageProgress.FirstClearGem)
     // Simulating이면 지갑·스테이지 저장과 결과 팝업을 건너뛴다 (밸런스 측정기 BalanceBot이 쓴다)
     public class HarvestGame : MonoBehaviour
@@ -40,10 +40,9 @@ namespace MoreMush.Mobile
         public int HarvestCount { get; private set; }
         public bool Finished { get; private set; }
         public bool BossKilled { get; private set; }
-        public bool GoalMet => !Stats.HasGoal || HarvestCount >= Stats.Goal;
         public bool FarmRound => !Stats.BossRound && Stats.Stage != null && Stats.Stage.boss != 0;   // 보스 스테이지의 일반 판
-        // 스테이지를 넘었는지: 보스 판은 처치, 일반 판은 목표 달성 (파밍 판은 넘는 판이 아니다)
-        public bool StageCleared => Stats.BossRound ? BossKilled : !FarmRound && GoalMet;
+        // 스테이지를 넘었는지: 보스 판은 처치, 일반 판은 늘 넘는다 (파밍 판은 넘는 판이 아니다)
+        public bool StageCleared => Stats.BossRound ? BossKilled : !FarmRound;
         public int MyceliteEarned { get; private set; }   // 이번 판 첫 클리어 균사석 (측정기는 스스로 센다)
         public int StageNumber { get; private set; }
         public bool Simulating { get; set; }
@@ -62,17 +61,16 @@ namespace MoreMush.Mobile
             field.ComboChanged += hud.SetCombo;
             hud.TimeUp += Finish;
 
-            Prepare(StageProgress.Current, StageProgress.BossActive, StageProgress.LastNormalScore, StageProgress.LastNormalGold, StageProgress.FailStreak);
+            Prepare(StageProgress.Current, StageProgress.BossActive, StageProgress.LastNormalScore, StageProgress.LastNormalGold);
         }
 
-        // 판 준비 (Awake에서 한 번, 측정기는 판마다 다시 부른다). bossRound면 그 스테이지의 보스, 아니면 일반·파밍 판.
-        // failStreak = 이 스테이지 목표를 연속으로 못 채운 수 (목표 완화)
-        public void Prepare(int stageNumber, bool bossRound, long referenceScore, long referenceGold, int failStreak = 0)
+        // 판 준비 (Awake에서 한 번, 측정기는 판마다 다시 부른다). bossRound면 그 스테이지의 보스, 아니면 일반·파밍 판
+        public void Prepare(int stageNumber, bool bossRound, long referenceScore, long referenceGold)
         {
             score = yield = 0;
             bossDealt = 0f;
             HarvestCount = 0;
-            Finished = BossKilled = goalShown = false;
+            Finished = BossKilled = false;
             BonusGold = 0;
             MyceliteEarned = 0;
             ReferenceScore = referenceScore;
@@ -81,13 +79,10 @@ namespace MoreMush.Mobile
             Stats = RoundStats.FromSkills(roundBase);
             Stats.Stage = StageProgress.Get(StageNumber);
             Stats.Boss = bossRound && Stats.Stage != null && Stats.Stage.boss != 0 ? GameData.Bosses.Get(Stats.Stage.boss) : null;
-            Stats.Goal = bossRound ? 0 : RoundStats.GoalFor(Stats.Stage, failStreak, roundBase);
             if (Stats.Stage == null) Debug.LogWarning($"[HarvestGame] Stage 표에 {StageNumber}스테이지가 없다 — 계수 1로 진행");
             field.Configure(Stats);
-            hud.SetGoal(0, Stats.Goal);
+            hud.SetStage(StageNumber, Stats.BossRound);
         }
-
-        bool goalShown;
 
         void Start() => hud.SetDuration(Stats.Duration);
 
@@ -137,11 +132,6 @@ namespace MoreMush.Mobile
 
             HarvestCount++;
             hud.SetScore(Score);
-            if (Stats.HasGoal && !goalShown)
-            {
-                goalShown = GoalMet;
-                hud.SetGoal(HarvestCount, Stats.Goal);   // 채운 순간 "목표 달성!", 그 뒤로는 바꾸지 않는다
-            }
         }
 
         // 측정기(죽지 않는 보스로 잰 판): 처치로 친다. 시간이 다 돼 이미 끝났어도 처치 보상을 다시 셈한다
@@ -176,10 +166,9 @@ namespace MoreMush.Mobile
         IEnumerator ShowResult()
         {
             yield return new WaitForSecondsRealtime(resultDelay);
-            string note = Stats.BossRound ? (BossKilled ? "보스 처치" : "보스 실패")
-                : Stats.HasGoal ? (GoalMet ? $"목표 {Stats.Goal}개 달성" : $"목표 {HarvestCount}/{Stats.Goal} · 다시 도전") : null;
+            string note = Stats.BossRound ? (BossKilled ? "보스 처치" : "보스 실패") : null;
             var popup = resultPopup.Get(hud.transform).GetComponent<ResultPopup>();
-            popup.Show(TotalGold, Score, Yield, note, MyceliteEarned, Stats.BossRound && !BossKilled);
+            popup.Show(TotalGold, Score, Yield, note, MyceliteEarned, Stats.BossRound && !BossKilled, StageNumber);
         }
     }
 }
