@@ -28,7 +28,9 @@ namespace MoreMush.Mobile.EditorTools
             var ns = new XmlNamespaceManager(doc.NameTable);
             ns.AddNamespace("android", Android);
 
-            if (doc.SelectSingleNode($"//intent-filter/action[@android:name='{TestLoop}']", ns) != null) return;
+            // Unity는 gradle 프로젝트를 다시 쓰므로 전에 붙인 것이 남아 있을 수 있다 — 지우고 늘 같은 자리에 다시 붙인다
+            foreach (XmlNode old in doc.SelectNodes($"//intent-filter[action/@android:name='{TestLoop}']", ns))
+                old.ParentNode.RemoveChild(old);
             var launcher = doc.SelectSingleNode("//activity[intent-filter/category[@android:name='android.intent.category.LAUNCHER']]", ns) as XmlElement;
             if (launcher == null)
             {
@@ -40,7 +42,10 @@ namespace MoreMush.Mobile.EditorTools
             filter.AppendChild(Element(doc, "action", "name", TestLoop));
             filter.AppendChild(Element(doc, "category", "name", "android.intent.category.DEFAULT"));
             filter.AppendChild(Element(doc, "data", "mimeType", "application/javascript"));
-            launcher.AppendChild(filter);
+            // 런처 intent-filter 바로 뒤에 둔다. 액티비티 끝(<layout> 뒤)에 붙였더니 Firebase가
+            // "Game Loop intent filter가 없거나 형식이 잘못됐다"며 받지 않았다 (안드로이드 자체는 순서를 안 따진다)
+            var launcherFilter = launcher.SelectSingleNode("intent-filter[category/@android:name='android.intent.category.LAUNCHER']", ns);
+            launcher.InsertAfter(filter, launcherFilter);
             doc.Save(manifest);
             Debug.Log($"[GameLoopManifest] {launcher.GetAttribute("name", Android)}에 Game Loop 신호를 붙였다");
         }
