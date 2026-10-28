@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,7 +15,6 @@ namespace MoreMush.Mobile
     public class SkillEffects : MonoBehaviour
     {
         [SerializeField] HarvestField field;
-        [SerializeField] TMP_Text buffText;           // 걸린 버프 목록 (임시 표시). 비워도 된다
         [SerializeField] Sprite orbitSprite;          // 꼬마 수확기 그림 (임시: 수확기 그림)
         [SerializeField] Sprite flashSprite;          // 번개·폭발 표시 (임시: 동그라미)
 
@@ -69,7 +66,6 @@ namespace MoreMush.Mobile
         readonly List<Mushroom> scratch = new List<Mushroom>();
         readonly List<Flash> flashes = new List<Flash>();
         readonly Stack<Image> freeFlashes = new Stack<Image>();
-        readonly StringBuilder label = new StringBuilder();
         float orbitAngle;
 
         public float ComboMul => fever > 0f ? 1f + s.FeverCombo : 1f;          // 피버 중 콤보 계수 배율
@@ -96,7 +92,6 @@ namespace MoreMush.Mobile
             for (int i = 0; i < s.OrbitCount; i++) orbits.Add(MakeRect("Orbit", orbitSprite, orbitSize, field.HarvesterLayer));
             int flashCount = (s.LightningChance > 0f ? 2 : 0) + (s.BurstChance > 0f ? 2 : 0);
             for (int i = 0; i < flashCount; i++) freeFlashes.Push(MakeRect("Flash", flashSprite, 100f, field.Rect).GetComponent<Image>());
-            if (buffText != null) buffText.text = "";
         }
 
         void Update() => Step(Time.deltaTime);
@@ -429,7 +424,7 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 임시 표시: 걸린 버프를 수확기 색과 글자로 보여 준다
+        // 임시 표시: 걸린 버프를 수확기 색으로 보여 준다 (예전의 버프 글자 목록은 정신없어서 뺐다)
         void ShowBuffs()
         {
             foreach (var h in field.Harvesters)
@@ -442,33 +437,6 @@ namespace MoreMush.Mobile
                 if (h.Has(HarvesterBuff.Pierce)) tint = pierceTint;
                 if (h.Debuffed) tint = debuffTint;
                 h.Tint(tint);
-            }
-            if (buffText == null) return;
-
-            label.Clear();
-            var main = field.Main;
-            if (main != null)
-            {
-                Add("공격", main.Remaining(HarvesterBuff.Power));
-                Add("가속", main.Remaining(HarvesterBuff.Haste));
-                Add("관통", main.Remaining(HarvesterBuff.Pierce));
-                Add("유도", main.Remaining(HarvesterBuff.Homing));
-                Add("약손", main.Remaining(HarvesterBuff.Heal));
-                Add("그루터기", main.Remaining(HarvesterBuff.Stump));
-                Add("느림", main.Remaining(HarvesterBuff.Slow));
-                Add("약화", main.Remaining(HarvesterBuff.Weak));
-            }
-            Add("피버", fever);
-            Add("지혜", wisdom);
-            Add("도토리", acorn);
-            if (clones.Count > 0) Add("분신 바", clones[0].life);
-            buffText.text = label.ToString();
-
-            void Add(string name, float seconds)
-            {
-                if (seconds <= 0f) return;
-                if (label.Length > 0) label.Append("  ");
-                label.Append(name).Append(' ').Append(seconds.ToString("0.0"));
             }
         }
 
