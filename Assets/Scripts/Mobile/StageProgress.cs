@@ -109,7 +109,7 @@ namespace MoreMush.Mobile
             float Growth(float lastValue, float prevValue) => prev != null && prevValue > 0f && lastValue > 0f ? lastValue / prevValue : 1f;
             var data = new StageData
             {
-                index = t.index, key = t.key, stage = stage, theme = last.theme,
+                index = t.index, key = $"stage_{stage}", name = $"{last.theme} {stage}", stage = stage, theme = last.theme,
                 hpRate = t.hpRate * Mathf.Pow(Growth(last.hpRate, prev != null ? prev.hpRate : 0f), cycle),
                 rewardRate = t.rewardRate * Mathf.Pow(Growth(last.rewardRate, prev != null ? prev.rewardRate : 0f), cycle),
                 mushHpMul = t.mushHpMul, gem = t.gem,
