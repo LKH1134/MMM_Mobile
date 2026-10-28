@@ -139,10 +139,29 @@ namespace MoreMush.Mobile
         {
             if (speeds.Length == 0) return;
             speedIndex = (speedIndex + 1) % speeds.Length;
+            forcedSpeed = 0f;
             PlayerPrefs.SetInt(SpeedKey, speedIndex);
             ShowSpeed();
             ApplyTimeScale();
         }
+
+        // 벤치마크: 배속을 정해 걸고 아이콘·글자도 맞춘다. 저장하지 않는다 (다음 판엔 플레이어가 고른 배속).
+        // 배속 목록에 없는 값이면 가장 가까운 단계를 보여 주고 시간 배율만 그 값으로
+        public void ForceSpeed(float scale)
+        {
+            if (speeds.Length > 0)
+            {
+                int best = 0;
+                for (int i = 1; i < speeds.Length; i++)
+                    if (Mathf.Abs(speeds[i].scale - scale) < Mathf.Abs(speeds[best].scale - scale)) best = i;
+                speedIndex = best;
+                ShowSpeed();
+            }
+            forcedSpeed = scale;
+            ApplyTimeScale();
+        }
+
+        float forcedSpeed;   // 0이 아니면 배속 단계 대신 이 값 (ForceSpeed)
 
         void ShowSpeed()
         {
@@ -152,7 +171,7 @@ namespace MoreMush.Mobile
             if (speedIcon != null && step.icon != null) speedIcon.sprite = step.icon;
         }
 
-        void ApplyTimeScale() => Time.timeScale = Paused || optionPopup.IsOpen ? 0f : Speed;
+        void ApplyTimeScale() => Time.timeScale = Paused || optionPopup.IsOpen ? 0f : forcedSpeed > 0f ? forcedSpeed : Speed;
 
         void ShowTime()
         {

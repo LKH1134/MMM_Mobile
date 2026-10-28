@@ -274,7 +274,7 @@ namespace MoreMush.Mobile
             if (effects != null) effects.Restart();
             if (gimmicks != null) gimmicks.Restart();
             hud.ResetTimer((warmup + measure + 30f) * speed);   // 제한 시간은 게임 시간이라 배속만큼 빨리 준다
-            Time.timeScale = speed;
+            hud.ForceSpeed(speed);   // 시간 배율과 HUD 배속 아이콘을 같이 (저장은 안 한다)
             errTimer = 0f;
             piloting = true;
             // 분신 보스는 체력 66%·33%에서 분신을 부르는데 죽지 않는 보스는 거기까지 안 깎인다 — 30%로 깎아 분신 둘을 띄운 채로 잰다
@@ -355,7 +355,7 @@ namespace MoreMush.Mobile
         void Update()
         {
             if (!piloting || field == null || !field.Running) return;
-            if (Time.timeScale != speed && Time.timeScale > 0f) Time.timeScale = speed;   // 배속 버튼이 눌려도 시나리오 배속으로
+            if (Time.timeScale != speed && Time.timeScale > 0f && hud != null) hud.ForceSpeed(speed);   // 배속 버튼이 눌려도 시나리오 배속으로
             if (field.MainReady)
             {
                 field.LaunchMain(new Vector2(Random.Range(-0.3f, 0.3f), 1f));
