@@ -258,6 +258,8 @@
 - 저장값은 건드리지 않습니다(`SkillProgress.SimLevels`, `HarvestGame.Simulating`). 보스는 죽지 않게(`BossHpMul`), 분신 보스는 30%로 깎아 분신 둘을 띄운 채로, 배속은 1배로 고정합니다. 바 조작은 `BalanceBot.AimX`를 같이 씁니다.
 - CPU·GPU 프레임 시간은 Player Settings의 **Frame Timing Stats**(이번에 켬)가 있어야 나옵니다. 드로우 콜 같은 렌더 카운터는 정식 빌드에서 0으로 나오는 기기가 있습니다. 에디터 수치는 PC 성능이라 참고용입니다. **MCP 스크린샷(`manage_camera screenshot`)은 플레이 모드를 일시정지시키므로 벤치마크 도중엔 찍지 마세요**(그 구간 수치가 망가집니다).
 - 앱 전체 목표 프레임은 `AppSettings.TargetFrameRate` = 60 (전에는 설정이 없어 모바일 기본 30fps였음).
+- **Firebase Test Lab Game Loop** (2026-10-28): 안드로이드 빌드 때 `GameLoopManifest`(`IPostGenerateGradleAndroidProject`)가 런처 액티비티에 `com.google.intent.action.TEST_LOOP` intent-filter를 붙입니다(커스텀 매니페스트 없음). 이 신호로 켜지면 벤치마크가 바로 돌고, 끝나면 요약+1초 기록을 Firebase 결과 파일(intent data URI)에 쓰고 `Application.Quit()`. 시나리오 번호는 무시하고 늘 5개 전부(약 3분 → Test Lab 제한 시간 5분 이상). CSV도 받으려면 가져올 폴더에 `/sdcard/Android/data/com.soomyouth.moremustmush/files/Benchmark` 지정.
+- 안드로이드 패키지 이름: `com.soomyouth.moremustmush` (2026-10-28, 전에는 URP 템플릿 기본값).
 
 **주의할 점**
 - **폰트 글자 누락:** 폰트 SDF가 전부 Static 아틀라스입니다. 없는 글자는 □로 나옵니다. Jua는 원본 TTF(`Assets/Fonts/Source/Jua-Regular.ttf`, OFL)가 있어서, 폰트 에셋을 잠시 Dynamic으로 바꿔 `TryAddCharacters` 후 Static으로 되돌리면 추가됩니다(빌드에 TTF가 딸려 가지 않게 `m_SourceFontFile`은 비워 둠). 이번에 흥렉섬굉둔링괴덤탈혜옹박·패·됩을 추가했습니다. 금액 단위(`Wallet.Format`) 억도 추가했습니다 (만·조·경은 원래 있음). `→ − ·`은 Jua에 없고 대체 폰트로 나옵니다. Nunito는 한글이 없습니다.

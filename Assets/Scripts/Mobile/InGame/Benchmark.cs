@@ -18,6 +18,8 @@ namespace MoreMush.Mobile
     // 시작: Benchmark.Start() — 에디터 메뉴 MoreMush/Debug/Run Benchmark, 개발 빌드 옵션 팝업의 벤치마크 버튼,
     //   또는 실행 인자 "-benchmark" (선택: "-benchmark-seconds=60", "-benchmark-repeat=3"). 안드로이드는
     //   adb shell am start -n <패키지>/com.unity3d.player.UnityPlayerGameActivity -e unity "-benchmark"
+    //   Firebase Test Lab Game Loop: TEST_LOOP 신호로 켜지면(매니페스트는 빌드 때 GameLoopManifest가 붙인다) 바로 시작하고,
+    //   끝나면 요약·1초 기록을 Firebase 결과 파일(신호의 data URI)에 쓰고 앱을 끈다. 시나리오 번호는 쓰지 않는다 (늘 전부)
     // 정확한 CPU·GPU 시간은 Player Settings의 Frame Timing Stats가 켜져 있어야 나온다 (꺼져 있으면 빈칸).
     // 드로우 콜 같은 렌더 카운터는 개발 빌드에서만 값이 나오는 기기가 있다
     public static class Benchmark
@@ -44,6 +46,7 @@ namespace MoreMush.Mobile
         public const string ReturnScene = "SkillTree";
 
         public static bool Running => runner != null;
+        public static bool GameLoop { get; private set; }   // Firebase Game Loop로 켜졌다
         public static string LastSummaryPath { get; private set; }
 
         static BenchmarkRunner runner;
@@ -64,14 +67,17 @@ namespace MoreMush.Mobile
             runner = null;
         }
 
-        // 실행 인자 "-benchmark"로 켜면 첫 씬이 뜬 뒤 바로 시작한다
+        const string TestLoopAction = "com.google.intent.action.TEST_LOOP";
+
+        // 실행 인자 "-benchmark"나 Game Loop 신호로 켜면 첫 씬이 뜬 뒤 바로 시작한다
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void StartFromCommandLine()
         {
             var args = new List<string>(System.Environment.GetCommandLineArgs());
-            string extra = AndroidIntentArgs();
+            string extra = Intent(i => i.Call<string>("getStringExtra", "unity"));
             if (!string.IsNullOrEmpty(extra)) args.Add(extra);
-            bool on = false;
+            GameLoop = Intent(i => i.Call<string>("getAction")) == TestLoopAction;
+            bool on = GameLoop;
             float seconds = 30f;
             int repeat = 1;
             foreach (var raw in args)
@@ -86,8 +92,8 @@ namespace MoreMush.Mobile
             if (on) Start(seconds, 3f, repeat);
         }
 
-        // 안드로이드: am start ... -e unity "<인자>"로 넘긴 문자열 (다른 플랫폼·없으면 null)
-        static string AndroidIntentArgs()
+        // 안드로이드: 앱을 켠 intent에서 값을 읽는다 (am start -e unity "<인자>", Game Loop 신호 등). 다른 플랫폼·실패면 null
+        static string Intent(System.Func<AndroidJavaObject, string> read)
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
             try
@@ -95,14 +101,46 @@ namespace MoreMush.Mobile
                 using (var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
                 using (var activity = player.GetStatic<AndroidJavaObject>("currentActivity"))
                 using (var intent = activity.Call<AndroidJavaObject>("getIntent"))
-                    return intent.Call<string>("getStringExtra", "unity");
+                    return read(intent);
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning("[Benchmark] 실행 인자를 못 읽었다: " + e.Message);
+                Debug.LogWarning("[Benchmark] 실행 intent를 못 읽었다: " + e.Message);
             }
 #endif
             return null;
+        }
+
+        // Game Loop: Firebase가 넘긴 결과 파일(intent data URI)에 쓴다. Firebase 콘솔의 결과 파일로 받는다
+        internal static void WriteGameLoopResult(string text)
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                using (var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                using (var activity = player.GetStatic<AndroidJavaObject>("currentActivity"))
+                using (var intent = activity.Call<AndroidJavaObject>("getIntent"))
+                using (var uri = intent.Call<AndroidJavaObject>("getData"))
+                {
+                    if (uri == null) { Debug.LogWarning("[Benchmark] Game Loop 결과 파일 URI가 없다"); return; }
+                    using (var resolver = activity.Call<AndroidJavaObject>("getContentResolver"))
+                    using (var pfd = resolver.Call<AndroidJavaObject>("openFileDescriptor", uri, "w"))
+                    using (var fd = pfd.Call<AndroidJavaObject>("getFileDescriptor"))
+                    using (var output = new AndroidJavaObject("java.io.FileOutputStream", fd))
+                    {
+                        output.Call("write", Encoding.UTF8.GetBytes(text));
+                        output.Call("flush");
+                        output.Call("close");
+                        pfd.Call("close");
+                    }
+                }
+                Debug.Log("[Benchmark] Game Loop 결과 파일에 썼다");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[Benchmark] Game Loop 결과 파일에 못 썼다: " + e.Message);
+            }
+#endif
         }
 
         internal static Dictionary<int, int> LevelsFor(float skill)
@@ -131,7 +169,7 @@ namespace MoreMush.Mobile
 
         readonly List<Result> results = new List<Result>();
         readonly StringBuilder timeline = new StringBuilder();
-        string summaryPath, error;
+        string summaryPath, summaryText, error;
         bool showResult;
         Dictionary<int, int> previousSim;
         float previousTimeScale;
@@ -185,6 +223,13 @@ namespace MoreMush.Mobile
             Application.runInBackground = previousRunInBackground;
             summaryPath = Save();
             Benchmark.Finished(summaryPath);
+            if (Benchmark.GameLoop)
+            {
+                // Firebase는 앱이 스스로 꺼져야 테스트가 끝난 것으로 본다
+                Benchmark.WriteGameLoopResult(summaryText + System.Environment.NewLine + timeline);
+                Application.Quit();
+                yield break;
+            }
             showResult = true;
         }
 
@@ -341,7 +386,8 @@ namespace MoreMush.Mobile
                         F(r.drawSamples > 0 ? (float)(r.batches / r.drawSamples) : 0f), F(r.frames > 0 ? (float)(r.mushrooms / r.frames) : 0f),
                         F(r.frames > 0 ? (float)(r.harvesters / r.frames) : 0f), device));
                 }
-                System.IO.File.WriteAllText(summary, sb.ToString(), new UTF8Encoding(true));   // BOM: 엑셀에서 한글이 안 깨지게
+                summaryText = sb.ToString();
+                System.IO.File.WriteAllText(summary, summaryText, new UTF8Encoding(true));   // BOM: 엑셀에서 한글이 안 깨지게
                 System.IO.File.WriteAllText(System.IO.Path.Combine(dir, stamp + "_timeline.csv"), timeline.ToString(), new UTF8Encoding(true));
                 Debug.Log($"[Benchmark] 끝: {summary}");
                 return summary;
