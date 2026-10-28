@@ -275,9 +275,7 @@ namespace MoreMush.Mobile
         static void MoveBar(float dt)
         {
             if (field.Bar == null) return;
-            Rect r = field.Rect.rect;
-            Rect barRect = field.Bar.GetRect(field.Rect);
-            float half = barRect.width * 0.5f;
+            float half = field.Bar.GetRect(field.Rect).width * 0.5f;
             errTimer -= dt;
             if (errTimer <= 0f)
             {
@@ -285,6 +283,17 @@ namespace MoreMush.Mobile
                 err = (float)(rng.NextDouble() * 2 - 1) * 2f * cfg.skill * half;
             }
 
+            if (AimX(field, out float x)) field.MoveBarTo(x + err, 5000f * dt);
+        }
+
+        // 바를 둘 x: 가장 낮게 내려오는 영구 수확기가 바 윗면에 닿을 자리 (옆벽 반사를 접어서). 움직이는 수확기가 없으면 false.
+        // 벤치마크(Benchmark)의 자동 조작도 쓴다
+        public static bool AimX(HarvestField field, out float x)
+        {
+            x = 0f;
+            if (field.Bar == null) return false;
+            Rect r = field.Rect.rect;
+            Rect barRect = field.Bar.GetRect(field.Rect);
             Harvester target = null;
             foreach (var h in field.Harvesters)
             {
@@ -295,19 +304,18 @@ namespace MoreMush.Mobile
                 if (down && !targetDown) target = h;
                 else if (down == targetDown && h.Position.y < target.Position.y) target = h;
             }
-            if (target == null) return;
+            if (target == null) return false;
 
-            float x = target.Position.x;
+            x = target.Position.x;
             if (target.Velocity.y < 0f)
             {
-                // 바 윗면에 닿을 때의 x (옆벽 반사를 접어서)
                 float t = (target.Position.y - barRect.yMax - target.Radius) / -target.Velocity.y;
                 float raw = target.Position.x + target.Velocity.x * Mathf.Max(0f, t);
                 float lo = r.xMin + target.Radius, hi = r.xMax - target.Radius, w = hi - lo;
                 float u = Mathf.Repeat(raw - lo, 2f * w);
                 x = lo + (u <= w ? u : 2f * w - u);
             }
-            field.MoveBarTo(x + err, 5000f * dt);
+            return true;
         }
 
         // 여러 시드를 한 번에: outPrefix + seed + ".csv"로 저장. bossDamageMul을 비우면 수입 보정과 같은 값.

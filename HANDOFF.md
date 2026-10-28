@@ -240,7 +240,7 @@
 
 ## 8. 개발용
 
-**메뉴:** `MoreMush/Data/Reimport Tables` · `MoreMush/Debug/Go To Next Boss Stage` · `MoreMush/Debug/Reset Stage`
+**메뉴:** `MoreMush/Data/Reimport Tables` · `MoreMush/Debug/Go To Next Boss Stage` · `MoreMush/Debug/Reset Stage` · `MoreMush/Debug/Run Benchmark` · `MoreMush/Debug/Open Benchmark Folder`
 **PlayerPrefs 키:** `Skill.Level.<index>`, `Stage.Current`, `Stage.FarmLeft`, `Stage.LastNormalScore`, `Stage.LastNormalGold`, `Stage.Cleared`, `Stage.FailStreak`, `Wallet.Gold`, `Wallet.Mycelite`, `InGame.SpeedIndex`, `Option.BgmVolume`, `Option.SfxVolume`
 
 **밸런스 측정기 (`BalanceBot`, InGame 씬 플레이 모드에서 MCP `execute_code`로)**
@@ -249,6 +249,15 @@
 - 저장값은 건드리지 않습니다(`SkillProgress.SimLevels`, `HarvestGame.Simulating`).
 - 진행 규칙은 게임과 같음: 일반 판은 목표를 채워야 다음(실패면 같은 스테이지, 연속 실패 완화), 보스에 지면 바로 재도전(`Config.farmRounds` 0 = "재도전" 선택), 균사석은 `StageProgress.FirstClearGem`. CSV에 `goal`·`goalMet`·`failStreak` 열. 오래 걸리면 MCP 호출은 시간 초과로 실패로 뜨지만 계속 돌아 CSV가 나옵니다.
 - 측정기는 한 프레임 안에서(에디터가 뒤에 있으면 frameCount가 안 오름) 수천 판을 돕니다. 그래서 **프레임 끝에 처리되는 것(`Destroy`, 끝나지 못한 코루틴)을 판마다 만들면 쌓여서 점점 느려집니다**(2026-10-27 수정 전: 약 3,000판 뒤 ×70). 판마다 다시 쓰는 오브젝트는 풀/재사용, 짧은 연출은 코루틴 대신 Update로. 같은 시드는 같은 결과(판 사이에 남는 상태는 `Restart`에서 초기화).
+
+**성능 벤치마크 (`Benchmark`, 2026-10-28)**
+- 시나리오 5개(일반 1·25·49스테이지, 분신 보스 40, 이동 보스 50 / 스킬 없음·절반·최대)마다 InGame 씬을 새로 열어 자동 조작으로 판을 돌리며 매 프레임 잽니다. 기본 시나리오당 30초(예열 3초 버림), 약 3분.
+- 잰 값: FPS(평균·하위 1%·목표의 1.5배를 넘긴 끊김 비율), 프레임 시간 p95·최대, CPU 메인·렌더 스레드 ms, GPU ms, 메모리(Total Used·System Used·Mono 최대), GC 할당 KB/s, 드로우 콜·SetPass·배치, 평균 버섯·수확기 수. 기기 정보도 같이 적습니다.
+- 결과: `Application.persistentDataPath/Benchmark/<시각>_summary.csv`(시나리오별)·`_timeline.csv`(1초 단위). 엑셀에서 한글이 안 깨지게 BOM을 붙입니다. 끝나면 화면에 요약이 뜨고, 누르면 SkillTree 씬으로 갑니다.
+- 시작: 에디터 메뉴 `Run Benchmark`(플레이 중이 아니면 플레이 모드에 들어가 시작), 개발 빌드 옵션 팝업의 "벤치마크 (개발용)" 버튼(정식 빌드에선 숨김), 또는 실행 인자 `-benchmark`(선택 `-benchmark-seconds=60`·`-benchmark-repeat=3`). 안드로이드: `adb shell am start -n <패키지>/com.unity3d.player.UnityPlayerGameActivity -e unity "-benchmark"`, 결과는 `adb pull /sdcard/Android/data/<패키지>/files/Benchmark/`.
+- 저장값은 건드리지 않습니다(`SkillProgress.SimLevels`, `HarvestGame.Simulating`). 보스는 죽지 않게(`BossHpMul`), 분신 보스는 30%로 깎아 분신 둘을 띄운 채로, 배속은 1배로 고정합니다. 바 조작은 `BalanceBot.AimX`를 같이 씁니다.
+- CPU·GPU 프레임 시간은 Player Settings의 **Frame Timing Stats**(이번에 켬)가 있어야 나옵니다. 드로우 콜 같은 렌더 카운터는 정식 빌드에서 0으로 나오는 기기가 있습니다. 에디터 수치는 PC 성능이라 참고용입니다. **MCP 스크린샷(`manage_camera screenshot`)은 플레이 모드를 일시정지시키므로 벤치마크 도중엔 찍지 마세요**(그 구간 수치가 망가집니다).
+- 앱 전체 목표 프레임은 `AppSettings.TargetFrameRate` = 60 (전에는 설정이 없어 모바일 기본 30fps였음).
 
 **주의할 점**
 - **폰트 글자 누락:** 폰트 SDF가 전부 Static 아틀라스입니다. 없는 글자는 □로 나옵니다. Jua는 원본 TTF(`Assets/Fonts/Source/Jua-Regular.ttf`, OFL)가 있어서, 폰트 에셋을 잠시 Dynamic으로 바꿔 `TryAddCharacters` 후 Static으로 되돌리면 추가됩니다(빌드에 TTF가 딸려 가지 않게 `m_SourceFontFile`은 비워 둠). 이번에 흥렉섬굉둔링괴덤탈혜옹박·패·됩을 추가했습니다. 금액 단위(`Wallet.Format`) 억도 추가했습니다 (만·조·경은 원래 있음). `→ − ·`은 Jua에 없고 대체 폰트로 나옵니다. Nunito는 한글이 없습니다.
