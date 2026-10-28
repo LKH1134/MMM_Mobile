@@ -49,6 +49,8 @@ namespace MoreMush.Mobile
 
         readonly List<SkillNode> nodes = new List<SkillNode>();
         readonly List<Link> links = new List<Link>();
+        // 가지별 배치 (좌우를 고르게 찾느라 가지 하나에 수십 ms 걸려서 화면 폭이 같으면 다시 쓴다)
+        readonly Dictionary<SkillBranch, (float width, SkillTreeLayout.Result layout)> layouts = new Dictionary<SkillBranch, (float, SkillTreeLayout.Result)>();
 
         public IReadOnlyList<SkillNode> Nodes => nodes;
         public SkillBranch Branch { get; private set; }
@@ -71,7 +73,8 @@ namespace MoreMush.Mobile
             float nodeHalf = prefabRect.height * 0.5f;
             float nodeHalfWidth = prefabRect.width * 0.5f;
             const float margin = 4f;
-            var layout = SkillTreeLayout.Build(skills, new SkillTreeLayout.Settings
+            if (!layouts.TryGetValue(branch, out var cached) || !Mathf.Approximately(cached.width, viewWidth))
+                layouts[branch] = cached = (viewWidth, SkillTreeLayout.Build(skills, new SkillTreeLayout.Settings
             {
                 columns = columns,
                 centerX = viewWidth * 0.5f,
@@ -86,7 +89,8 @@ namespace MoreMush.Mobile
                 // 틈에서 벗어날 수 있는 거리: 노드 가장자리와 선 사이에 선 두께만큼 띄운다
                 innerReach = laneGap * 0.5f - nodeHalfWidth - lineWidth * 2f,
                 outerReach = outerGap - nodeHalfWidth - lineWidth * 2f,
-            });
+            }));
+            var layout = cached.layout;
 
             content.anchorMin = content.anchorMax = content.pivot = Vector2.zero;
             content.localScale = Vector3.one;
