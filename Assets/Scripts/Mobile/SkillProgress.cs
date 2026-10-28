@@ -76,12 +76,13 @@ namespace MoreMush.Mobile
             SimLevels != null ? (SimLevels.TryGetValue(index, out int l) ? l : 0) : PlayerPrefs.GetInt(KeyPrefix + index, 0);
         public static bool IsMaxed(SkillData skill) => GetLevel(skill.index) >= MaxLevel(skill);
 
-        // 선행 조건: 연결 노드(link)는 1레벨 이상, 이전 레벨 노드(requires)는 최대 레벨까지
+        // 선행 조건: 트리에서 선으로 이어진 이전 노드(link)를 1레벨 이상 배웠을 것. 이것 하나뿐이다
+        // (표의 requires — 같은 스킬의 앞 레벨 노드 — 는 선으로 보이지 않는 조건이라 쓰지 않는다)
         public static bool RequirementsMet(SkillData skill) => MissingRequirements(skill).Count == 0;
 
         static readonly System.Collections.Generic.List<SkillData> missing = new System.Collections.Generic.List<SkillData>();
 
-        // 아직 못 채운 선행 노드들 (돌려준 목록은 다음 호출 때 바뀐다)
+        // 아직 못 채운 선행 노드 (없거나 하나. 돌려준 목록은 다음 호출 때 바뀐다)
         public static System.Collections.Generic.IReadOnlyList<SkillData> MissingRequirements(SkillData skill)
         {
             missing.Clear();
@@ -90,12 +91,6 @@ namespace MoreMush.Mobile
                 var link = GameData.Skills.Get(skill.link);
                 if (link != null && GetLevel(link.index) <= 0) missing.Add(link);
             }
-            if (skill.requires != null)
-                foreach (int index in skill.requires)
-                {
-                    var prev = GameData.Skills.Get(index);
-                    if (prev != null && !IsMaxed(prev)) missing.Add(prev);
-                }
             return missing;
         }
 

@@ -160,7 +160,7 @@
 | `Wallet.cs` | 골드·균사석(PlayerPrefs, long), `Add`·`TrySpend`·`Changed`, `Format`(만·억·조·경) |
 
 - **노드 규격 (사용자 확정):** `Prefabs/Mobile/SkillTree/SkillNode` — 루트 150×150 `btn_cream`, Icon 80×80(위로 16), Level Jua 24pt. 새 노드는 이 프리팹 인스턴스로, `skillIndex`만 바꿉니다. 모양을 바꿀 땐 먼저 물어보세요.
-- **선행 조건:** `link`(연결 노드)는 1레벨 이상, `requires`(같은 스킬의 이전 레벨 노드)는 최대 레벨까지.
+- **선행 조건 (사용자 확정, 2026-10-28):** 트리에서 선으로 이어진 이전 노드(`link`)를 1레벨 이상 배웠을 것 — 이것 하나뿐입니다. 표의 `requires`(같은 스킬의 앞 레벨 노드, 135노드 중 89개에 있었고 모두 선과 다른 곳을 가리킴)는 선으로 보이지 않는 조건이라 해금 판정에서 뺐습니다(표 칸은 남아 있고 읽기만 함). 그래서 같은 스킬의 Lv.2·Lv.3 노드를 앞 레벨 노드 없이 먼저 배울 수 있고, 계열 레벨(`SeriesLevel`: 연속 번개 Lv.3 이상이면 어디서나 번개, 회오리 Lv당 지속 +1초)도 그 노드의 레벨로 바로 올라갑니다. 밸런스 측정기(`BalanceBot`)도 같은 판정을 씁니다.
 - **가지 페이지:** 가지(독 · 식용 · 약용)마다 한 화면. 처음엔 **식용**. 양옆 화살표로 이웃 가지로 넘깁니다(독 ← 식용 → 약용, 끝 가지에선 그쪽 화살표를 숨김). 시작 노드 "사냥 준비"(3001)는 모든 가지의 맨 아래 가운데에 있고 그 가지의 첫 노드(3101·3201·3301)로 이어집니다. 넘기면 선택·스킬 정보 창은 닫힙니다.
 - **배치 (코드 자동, 표의 `lane`·`row` 자리는 안 씀):** 가로 3칸(칸 간격 320, 화면 폭에 맞춤) × 층 간격 290, 위아래로만 스크롤. 가지마다 17~20층(식용 20, 독 19, 약용 17). 시작 노드 중심 높이 650(하단 메뉴 위로 ~100px 띄움). 화면에 3칸 × 4층쯤 보입니다.
   1. 층: 깊이 우선(형제는 작은 갈래부터)으로 쌓으며, 부모보다 위이고 칸이 남은 가장 낮은 층에. 한 갈래를 먼저 쌓아 대부분 부모 바로 위에 놓입니다. 단 **첫 갈림**(식용 3101, 약용 3201, 독 3301)에서는 두 갈래를 따로 쌓으며 함께 키웁니다(더 낮은 층에 놓일 쪽부터). (표의 row 순서로 쌓으면 갈래가 뒤섞여 여러 층을 건너는 선이 4배쯤 많아서 버렸습니다. 모든 갈림에서 따로 키워도 긴 선이 2배쯤 늘었습니다.)
@@ -187,7 +187,7 @@
 공통 열: `index`, `key`, `name`, `icon`, `desc`, `#memo`(`#`으로 시작하는 열은 읽지 않음).
 **시트 형식:** 1행 열 이름(= C# 필드 이름) · 2행 자료형 · 3행 설명 · **4행부터 데이터**. `index`가 빈 행은 건너뜁니다.
 
-**Skill.xlsx 주요 열:** `branch`(Start·Edible·Medicinal·Toxic) · `rarity`(0~19, 유저 비공개) · `tag` · `group`(같은 스킬 계열) · `startLevel` · `maxLevel` · `lane`(형제의 좌우 순서만 씀)·`row`(지금 배치엔 안 씀) · `ability`·`abilityBase`·`abilityValue`·`param` · `unlockPrice`·`currency`(1레벨 가격·재화) · `levelPrice`·`levelCurrency`(2레벨부터 첫 가격·재화, 비우면 1레벨과 같은 재화) · `priceGrowth`(레벨마다 배율) · `link` · `requires`.
+**Skill.xlsx 주요 열:** `branch`(Start·Edible·Medicinal·Toxic) · `rarity`(0~19, 유저 비공개) · `tag` · `group`(같은 스킬 계열) · `startLevel` · `maxLevel` · `lane`(형제의 좌우 순서만 씀)·`row`(지금 배치엔 안 씀) · `ability`·`abilityBase`·`abilityValue`·`param` · `unlockPrice`·`currency`(1레벨 가격·재화) · `levelPrice`·`levelCurrency`(2레벨부터 첫 가격·재화, 비우면 1레벨과 같은 재화) · `priceGrowth`(레벨마다 배율) · `link`(유일한 해금 조건) · `requires`(지금은 안 씀).
 
 **Stage.xlsx:** `stage` · `theme`(숲 1~, 달빛 밤 20~, 들판 45~ — PC판 지역) · `hpRate`(체력 계수 1 → 10.4) · `rewardRate`(점수·수확량 배율 1 → 736, hpRate와 따로 — 수입 성장 목표용) · `boss` · `goalType`(`StageGoal`: None / Harvest) · `goal`(목표 버섯 수, M2 맞춤) · `mushHpMul`(일반 버섯 체력 배율, 비우면 1) · `gem`(★ 첫 클리어 균사석).
 

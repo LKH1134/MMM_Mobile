@@ -67,12 +67,10 @@ namespace MoreMush.Mobile
                 desc.Append("\n<size=80%>필요: ");
                 for (int i = 0; i < missing.Count; i++)
                 {
+                    // 이전 노드의 첫 레벨
                     var need = missing[i];
-                    int first = Mathf.Max(1, need.startLevel);
-                    // 연결 노드는 첫 레벨, 이전 레벨 노드는 마지막 레벨까지
-                    int needLevel = need.index == skill.link ? first : first + SkillProgress.MaxLevel(need) - 1;
                     if (i > 0) desc.Append(", ");
-                    desc.Append(need.name).Append(" Lv.").Append(needLevel);
+                    desc.Append(need.name).Append(" Lv.").Append(Mathf.Max(1, need.startLevel));
                 }
                 desc.Append("</size>");
             }

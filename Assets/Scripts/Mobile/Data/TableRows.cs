@@ -47,8 +47,8 @@ namespace MoreMush.Mobile
         public long levelPrice;    // 2레벨부터의 첫 가격. 비우면 unlockPrice × priceGrowth^(레벨-1)을 같은 재화로
         public Currency levelCurrency; // 2레벨부터의 재화 (levelPrice가 있을 때만 읽는다)
         public float priceGrowth;  // 레벨마다 가격 배율 (비우면 1)
-        public int link;          // 연결 노드 index (트리에 선으로 그린다). 1레벨 이상 배워야 열린다. 0 = 없음 (시작 노드)
-        public int[] requires;     // 이전 레벨 노드 index들 (같은 스킬의 앞 노드). 최대 레벨까지 배워야 열린다
+        public int link;          // 연결 노드 index (트리에 선으로 그린다). 1레벨 이상 배워야 열린다 (유일한 해금 조건). 0 = 없음 (시작 노드)
+        public int[] requires;     // 이전 레벨 노드 index들 (같은 스킬의 앞 노드). 지금은 해금 조건에 쓰지 않는다 (선으로 보이지 않는 조건이라 뺐다)
     }
 
     // Stage.xlsx — 5001~5999. 한 행 = 스테이지 하나 (stage 1부터 차례로). 보스 스테이지는 boss에 보스 index를 넣는다
