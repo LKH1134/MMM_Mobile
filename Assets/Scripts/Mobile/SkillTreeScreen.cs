@@ -9,14 +9,24 @@ namespace MoreMush.Mobile
     // SkillTree 씬 하단 메뉴. 세계수·스테이지 진입은 씬 이동, 의뢰·공방·도감은 팝업.
     // 팝업은 한 번에 하나만 연다 (다른 메뉴를 누르면 열려 있던 것은 닫힌다). 팝업은 프리팹이고 처음 열 때 이 캔버스 아래에 만든다.
     // 스킬 노드를 누르면 SkillInfo가 열리고, 같은 노드를 다시 누르거나 빈 곳을 누르면 닫힌다.
+    // 스킬 트리는 가지(독 · 식용 · 약용)마다 한 화면이고, 처음엔 식용을 보여 준다. 양옆 화살표로 이웃 가지로 넘긴다.
     public class SkillTreeScreen : MonoBehaviour
     {
-        [SerializeField] SkillTreeView treeView;      // 시작할 때 Skill 표대로 노드를 깐다
-        [SerializeField] RectTransform nodeRoot;      // 이 아래의 SkillNode를 모두 찾는다
+        [SerializeField] SkillTreeView treeView;      // 가지를 넘길 때마다 그 가지의 노드를 다시 깐다
         [SerializeField] SkillInfoPanel skillInfo;
         [SerializeField] Button blankArea;            // 노드 뒤 투명 판. 누르면 SkillInfo를 닫는다
 
         SkillNode selected;
+
+        [Header("가지 넘기기")]
+        [SerializeField] SkillBranch firstBranch = SkillBranch.Edible;
+        [SerializeField] Button prevBranchButton;     // 왼쪽 화살표
+        [SerializeField] Button nextBranchButton;     // 오른쪽 화살표
+        [SerializeField] TMP_Text prevBranchLabel;    // 화살표 아래 넘어갈 가지 이름
+        [SerializeField] TMP_Text nextBranchLabel;
+
+        static readonly SkillBranch[] BranchOrder = { SkillBranch.Toxic, SkillBranch.Edible, SkillBranch.Medicinal };
+        int branchAt;
 
         [SerializeField] Button worldTreeButton;
         [SerializeField] Button questButton;
@@ -47,14 +57,48 @@ namespace MoreMush.Mobile
             workshopButton.onClick.AddListener(() => Show(workshopPopup));
             if (optionButton != null && optionPopup != null) optionButton.onClick.AddListener(() => Show(optionPopup));
 
-            if (treeView != null) treeView.Build();
+            if (prevBranchButton != null) prevBranchButton.onClick.AddListener(() => ShowBranch(branchAt - 1));
+            if (nextBranchButton != null) nextBranchButton.onClick.AddListener(() => ShowBranch(branchAt + 1));
+            ShowBranch(Mathf.Max(0, System.Array.IndexOf(BranchOrder, firstBranch)));
             ShowStage();
             Wallet.Changed += ShowWallet;
             ShowWallet();
-            if (nodeRoot != null)
-                foreach (var node in nodeRoot.GetComponentsInChildren<SkillNode>(true)) node.Clicked += Select;
             if (blankArea != null) blankArea.onClick.AddListener(Deselect);
             if (skillInfo != null) skillInfo.Hide();
+        }
+
+        void ShowBranch(int at)
+        {
+            if (at < 0 || at >= BranchOrder.Length) return;
+            Deselect();
+            branchAt = at;
+            if (treeView != null)
+            {
+                treeView.Build(BranchOrder[at]);
+                foreach (var node in treeView.Nodes) node.Clicked += Select;
+            }
+            SetArrow(prevBranchButton, prevBranchLabel, at - 1);
+            SetArrow(nextBranchButton, nextBranchLabel, at + 1);
+        }
+
+        // 넘어갈 가지가 없으면 숨긴다
+        void SetArrow(Button button, TMP_Text label, int at)
+        {
+            if (button == null) return;
+            bool exists = at >= 0 && at < BranchOrder.Length;
+            button.gameObject.SetActive(exists);
+            if (exists && label != null) label.text = BranchName(BranchOrder[at]);
+        }
+
+        static string BranchName(SkillBranch branch)
+        {
+            switch (branch)
+            {
+                case SkillBranch.Edible: return "식용";
+                case SkillBranch.Medicinal: return "약용";
+                case SkillBranch.Toxic: return "독";
+                default: return "";
+            }
         }
 
         void Update()
