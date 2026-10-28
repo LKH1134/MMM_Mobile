@@ -12,7 +12,8 @@ namespace MoreMush.Mobile
     // 성능 벤치마크. 정해진 시나리오(스테이지 × 스킬 레벨)마다 InGame 씬을 새로 열어, 사람 대신 자동 조작으로 판을 돌리며
     // 프레임 시간·CPU(메인·렌더 스레드)·GPU·메모리·드로우 콜을 매 프레임 잰다. 저장값은 건드리지 않는다:
     //   스킬 레벨은 SkillProgress.SimLevels, 판 결과(지갑·스테이지·결과 팝업)는 HarvestGame.Simulating으로 건너뛴다.
-    //   보스는 죽지 않게(BossHpMul) 해서 판 내내 같은 부하를 준다. 제한 시간도 측정이 끝날 때까지 늘린다. 배속은 1배로 고정.
+    //   보스는 죽지 않게(BossHpMul) 해서 판 내내 같은 부하를 준다. 제한 시간도 측정이 끝날 때까지 늘린다.
+    //   배속은 시나리오의 speed로 고정한다 (HUD 배속 버튼과 같은 Time.timeScale. 측정 시간은 배속과 상관없이 실제 초).
     // 결과: Application.persistentDataPath/Benchmark/<시각>_summary.csv (시나리오별 요약) · _timeline.csv (1초 단위).
     //   안드로이드: /sdcard/Android/data/<패키지>/files/Benchmark/ — 끝나면 화면에도 요약을 띄운다 (눌러서 닫으면 SkillTree 씬으로).
     // 시작: Benchmark.Start() — 에디터 메뉴 MoreMush/Debug/Run Benchmark, 개발 빌드 옵션 팝업의 벤치마크 버튼,
@@ -30,6 +31,8 @@ namespace MoreMush.Mobile
             public int stage;
             public bool boss;
             public float skill;   // 모든 스킬 레벨 = 최대 레벨 × 이 값 (0 = 하나도 안 배움, 1 = 전부 최대)
+            public string[] maxAbilities;   // 이 능력(SkillAbility 키)을 가진 스킬은 skill과 상관없이 최대 레벨
+            public float speed = 1f;        // 배속 (StageHud 배속 버튼과 같은 Time.timeScale)
         }
 
         // 기본 시나리오: 가벼운 판 → 무거운 판. 스킬 최대 = 분열·분신술·수확기 수가 가장 많은 경우
@@ -40,6 +43,9 @@ namespace MoreMush.Mobile
             new Scenario { name = "일반 49스테이지 · 스킬 최대", stage = 49, skill = 1f },
             new Scenario { name = "보스 분신(40) · 스킬 최대", stage = 40, boss = true, skill = 1f },
             new Scenario { name = "보스 이동(50) · 스킬 최대", stage = 50, boss = true, skill = 1f },
+            // 분열 스킬만 다 찍고 배속을 바꿔 가며: 같은 판에서 배속이 프레임에 주는 영향을 본다
+            new Scenario { name = "일반 25스테이지 · 분열 최대 · 1배속", stage = 25, maxAbilities = new[] { SkillAbility.SplitBuff }, speed = 1f },
+            new Scenario { name = "일반 25스테이지 · 분열 최대 · 4배속", stage = 25, maxAbilities = new[] { SkillAbility.SplitBuff }, speed = 4f },
         };
 
         public const string InGameScene = "InGame";
@@ -143,12 +149,16 @@ namespace MoreMush.Mobile
 #endif
         }
 
-        internal static Dictionary<int, int> LevelsFor(float skill)
+        internal static Dictionary<int, int> LevelsFor(Scenario scenario)
         {
             var levels = new Dictionary<int, int>();
-            if (skill <= 0f) return levels;
             foreach (var s in GameData.Skills.All)
-                levels[s.index] = Mathf.Clamp(Mathf.RoundToInt(SkillProgress.MaxLevel(s) * skill), 0, SkillProgress.MaxLevel(s));
+            {
+                int max = SkillProgress.MaxLevel(s);
+                int level = Mathf.Clamp(Mathf.RoundToInt(max * scenario.skill), 0, max);
+                if (scenario.maxAbilities != null && System.Array.IndexOf(scenario.maxAbilities, s.ability) >= 0) level = max;
+                if (level > 0) levels[s.index] = level;
+            }
             return levels;
         }
     }
@@ -164,6 +174,7 @@ namespace MoreMush.Mobile
         HarvestGame game;
         StageHud hud;
         bool piloting;
+        float speed = 1f;
         float errTimer, err;
         const float PilotSkill = 0.3f;   // 바 오차 (BalanceBot SKILL과 같은 뜻). 낮을수록 수확기를 잘 받아 콤보·분열이 많이 터진다
 
@@ -180,6 +191,7 @@ namespace MoreMush.Mobile
         {
             public string name;
             public int round, frames;
+            public float speed;
             public float seconds;
             public readonly List<float> frameMs = new List<float>();
             public readonly List<float> mainMs = new List<float>();
@@ -236,7 +248,8 @@ namespace MoreMush.Mobile
         IEnumerator RunScenario(Benchmark.Scenario s, int round)
         {
             // 스킬 레벨은 씬을 열기 전에 (HarvestGame.Awake가 수치를 정한다)
-            SkillProgress.SimLevels = Benchmark.LevelsFor(s.skill);
+            SkillProgress.SimLevels = Benchmark.LevelsFor(s);
+            speed = Mathf.Max(0.01f, s.speed);
             piloting = false;
             var load = SceneManager.LoadSceneAsync(Benchmark.InGameScene);
             if (load == null) { error = $"씬을 열 수 없다: {Benchmark.InGameScene}"; yield break; }
@@ -260,8 +273,8 @@ namespace MoreMush.Mobile
             field.Restart();
             if (effects != null) effects.Restart();
             if (gimmicks != null) gimmicks.Restart();
-            hud.ResetTimer(warmup + measure + 30f);
-            Time.timeScale = 1f;
+            hud.ResetTimer((warmup + measure + 30f) * speed);   // 제한 시간은 게임 시간이라 배속만큼 빨리 준다
+            Time.timeScale = speed;
             errTimer = 0f;
             piloting = true;
             // 분신 보스는 체력 66%·33%에서 분신을 부르는데 죽지 않는 보스는 거기까지 안 깎인다 — 30%로 깎아 분신 둘을 띄운 채로 잰다
@@ -277,7 +290,7 @@ namespace MoreMush.Mobile
 
             for (float t = 0f; t < warmup; t += Time.unscaledDeltaTime) yield return null;
 
-            var r = new Result { name = s.name, round = round };
+            var r = new Result { name = s.name, round = round, speed = speed };
             using (var rec = new Recorders())
             {
                 r.memStart = rec.TotalUsed;
@@ -342,7 +355,7 @@ namespace MoreMush.Mobile
         void Update()
         {
             if (!piloting || field == null || !field.Running) return;
-            if (Time.timeScale != 1f && Time.timeScale > 0f) Time.timeScale = 1f;   // 배속 버튼이 눌려도 1배로
+            if (Time.timeScale != speed && Time.timeScale > 0f) Time.timeScale = speed;   // 배속 버튼이 눌려도 시나리오 배속으로
             if (field.MainReady)
             {
                 field.LaunchMain(new Vector2(Random.Range(-0.3f, 0.3f), 1f));
@@ -369,7 +382,7 @@ namespace MoreMush.Mobile
             {
                 System.IO.Directory.CreateDirectory(dir);
                 var sb = new StringBuilder();
-                sb.AppendLine("round,scenario,seconds,frames,avgFps,low1Fps,avgFrameMs,p95FrameMs,maxFrameMs,jankPct,avgMainMs,p95MainMs,avgRenderMs,avgGpuMs," +
+                sb.AppendLine("round,scenario,speed,seconds,frames,avgFps,low1Fps,avgFrameMs,p95FrameMs,maxFrameMs,jankPct,avgMainMs,p95MainMs,avgRenderMs,avgGpuMs," +
                               "memStartMB,memMaxMB,memEndMB,systemMaxMB,monoMaxMB,gcAllocKBPerSec,avgDrawCalls,avgSetPass,avgBatches,avgMushrooms,avgHarvesters," +
                               "device,os,cpu,cores,ramMB,gpu,screen,targetFps,frameTimingStats,debugBuild,unity");
                 string device = string.Join(",", Csv(SystemInfo.deviceModel), Csv(SystemInfo.operatingSystem), Csv(SystemInfo.processorType), SystemInfo.processorCount,
@@ -378,7 +391,7 @@ namespace MoreMush.Mobile
                 foreach (var r in results)
                 {
                     float avgMs = Avg(r.frameMs);
-                    sb.AppendLine(string.Join(",", r.round, Csv(r.name), F(r.seconds), r.frames, F(avgMs > 0f ? 1000f / avgMs : 0f), F(Low1Fps(r)),
+                    sb.AppendLine(string.Join(",", r.round, Csv(r.name), F(r.speed), F(r.seconds), r.frames, F(avgMs > 0f ? 1000f / avgMs : 0f), F(Low1Fps(r)),
                         F(avgMs), F(Percentile(r.frameMs, 0.95f)), F(Max(r.frameMs)), F(JankPct(r)), F(Avg(r.mainMs)), F(Percentile(r.mainMs, 0.95f)),
                         F(Avg(r.renderMs)), F(Avg(r.gpuMs)), F(r.memStart / 1048576f), F(r.memMax / 1048576f), F(r.memEnd / 1048576f),
                         F(r.sysMax / 1048576f), F(r.monoMax / 1048576f), F(r.seconds > 0f ? r.gcTotal / 1024f / r.seconds : 0f),
