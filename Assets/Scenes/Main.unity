@@ -119,6 +119,24 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &18126905 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4980106765194131836, guid: ccdb74ec06353e745990f4c96d6d6e51, type: 3}
+  m_PrefabInstance: {fileID: 7079213890629147668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &18126909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 18126905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6e7a0cb80b406348b34576218d74ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.WalletLabel
+  currency: 0
 --- !u!1 &107349708
 GameObject:
   m_ObjectHideFlags: 0
@@ -144,12 +162,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 107349708}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1173986390}
+  m_Father: {fileID: 1098819486}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -169,7 +187,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -219,7 +237,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 238054607}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -228,7 +246,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.000061035156, y: 0}
   m_SizeDelta: {x: 1316, y: 1011.6}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &238054609
@@ -244,7 +262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.6392157}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -294,7 +312,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 263011675}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -304,7 +322,7 @@ RectTransform:
   - {fileID: 469936155}
   - {fileID: 732697892}
   - {fileID: 1463426290}
-  m_Father: {fileID: 1173986390}
+  m_Father: {fileID: 1098819486}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -324,7 +342,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -399,15 +417,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 0aa3fada74388f94095e46ea4cbfaaf7, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -424,6 +442,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 469936154}
   m_CullTransparentMesh: 1
+--- !u!114 &491511935 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4837877960753118651, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+  m_PrefabInstance: {fileID: 1029608843}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &534064002
 GameObject:
   m_ObjectHideFlags: 0
@@ -551,6 +580,24 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &593478838 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2662311140083005767, guid: ccdb74ec06353e745990f4c96d6d6e51, type: 3}
+  m_PrefabInstance: {fileID: 7079213890629147668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &593478842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593478838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6e7a0cb80b406348b34576218d74ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.WalletLabel
+  currency: 1
 --- !u!224 &606919300 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2877488479123427398, guid: aee2818c3dc248543a3444aa40bd3f5c, type: 3}
@@ -581,12 +628,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 611809354}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1098819486}
+  m_Father: {fileID: 1173986390}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -681,15 +728,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 0}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -922,7 +969,8 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5559397049069519507, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -932,6 +980,69 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1376669995390693769, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
   m_PrefabInstance: {fileID: 1029608843}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1077136854
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1077136855}
+  - component: {fileID: 1077136856}
+  m_Layer: 0
+  m_Name: UpgradePanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1077136855
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077136854}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1173986390}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: -406.40015}
+  m_SizeDelta: {x: 0, y: -1212.8003}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1077136856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077136854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c1711a84176cf47bfac97a9f1b517a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.UpgradePanel
+  toggleButton: {fileID: 491511935}
+  openOnStart: 1
+  font: {fileID: 11400000, guid: 455ca1920a5e574449a15e62373488ae, type: 2}
+  rowHeight: 170
+  rowGap: 14
+  padding: 24
+  panelSprite: Art/Dream/UI/panel_paper
+  buttonSprite: Art/Dream/UI/btn_go
+  goldIcon: Art/Dream/Icons/gold
+  statIcons:
+  - Art/Dream/Icons/hammer
+  - Art/Dream/Icons/clock
+  - Art/Dream/Icons/gem
+  - Art/Dream/Icons/f_beauty
+  - Art/Dream/Icons/gold
 --- !u!224 &1096253687 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4584256794023917275, guid: e80d189c40438b741a26dcadb7cf8102, type: 3}
@@ -1031,8 +1142,10 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 611809355}
   - {fileID: 1173986390}
+  - {fileID: 107349709}
+  - {fileID: 263011676}
+  - {fileID: 1308794056}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1090,15 +1203,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: d54a27029626ccd46bc11e24f463fee3, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1165,15 +1278,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: b276cb854d429cf46af410ac22ee81e7, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1219,14 +1332,14 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 238054608}
+  - {fileID: 611809355}
   - {fileID: 2080696279}
   - {fileID: 1029608844}
   - {fileID: 1386746092}
+  - {fileID: 1077136855}
   - {fileID: 1424194371}
   - {fileID: 1594813226}
-  - {fileID: 238054608}
-  - {fileID: 107349709}
-  - {fileID: 263011676}
   m_Father: {fileID: 1098819486}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1246,6 +1359,82 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b111e752b35c25842807a3316e2e01c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.SafeArea
+--- !u!1 &1308794055
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1308794056}
+  - component: {fileID: 1308794057}
+  m_Layer: 0
+  m_Name: IdleBattle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1308794056
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1308794055}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1098819486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1308794057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1308794055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a80368eeeaac19418c4c8f6e168bdf4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.IdleBattle
+  enemyArea: {fileID: 107349709}
+  ggomaSlots:
+  - {fileID: 1147350522}
+  - {fileID: 1136229612}
+  - {fileID: 469936155}
+  - {fileID: 732697892}
+  - {fileID: 1463426290}
+  effectLayer: {fileID: 0}
+  font: {fileID: 11400000, guid: 455ca1920a5e574449a15e62373488ae, type: 2}
+  hidePlaceholders: 1
+  ggomaPath: Art/Dream/Characters/Critters/Ggomas/icon_
+  ggomaIds:
+  - leaf
+  - dew
+  - fire
+  - rock
+  - coin
+  enemyFolder: Art/Dream/Characters/Critters/Mushrooms
+  bossFolder: Art/Dream/Characters/Critters/Bosses
+  harvesterFolder: Art/Dream/Harvesters
+  ggomaSize: 130
+  enemySize: 110
+  bossSize: 560
+  harvesterSize: 64
+  flightTime: 0.45
+  arcHeight: 140
+  waveDelay: 0.6
+  hudTop: -230
 --- !u!224 &1333311695 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4920776219341272592, guid: 50f66d37cc092364d9bd5d8088d9c2b1, type: 3}
@@ -2234,15 +2423,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 0}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -2480,6 +2669,42 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 9090979658247418866, guid: 3bd82f3d06df21346bcc53b8244e1762, type: 3}
   m_PrefabInstance: {fileID: 3339647491320083289}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1763165687 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1464422803810755167, guid: 85b605152807b7848bd4e145e149403f, type: 3}
+  m_PrefabInstance: {fileID: 2080696278}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1763165691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763165687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6e7a0cb80b406348b34576218d74ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.WalletLabel
+  currency: 0
+--- !u!1 &1768213303 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8483697099517665892, guid: 85b605152807b7848bd4e145e149403f, type: 3}
+  m_PrefabInstance: {fileID: 2080696278}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1768213307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768213303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6e7a0cb80b406348b34576218d74ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.WalletLabel
+  currency: 1
 --- !u!224 &1856017577 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6872043562373994102, guid: ccdb74ec06353e745990f4c96d6d6e51, type: 3}
@@ -2684,7 +2909,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1464422803810755167, guid: 85b605152807b7848bd4e145e149403f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1763165691}
+    - targetCorrespondingSourceObject: {fileID: 8483697099517665892, guid: 85b605152807b7848bd4e145e149403f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1768213307}
   m_SourcePrefab: {fileID: 100100000, guid: 85b605152807b7848bd4e145e149403f, type: 3}
 --- !u!224 &2080696279 stripped
 RectTransform:
@@ -3294,7 +3525,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4980106765194131836, guid: ccdb74ec06353e745990f4c96d6d6e51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 18126909}
+    - targetCorrespondingSourceObject: {fileID: 2662311140083005767, guid: ccdb74ec06353e745990f4c96d6d6e51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 593478842}
   m_SourcePrefab: {fileID: 100100000, guid: ccdb74ec06353e745990f4c96d6d6e51, type: 3}
 --- !u!1001 &7556006495141526537
 PrefabInstance:
