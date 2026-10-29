@@ -18,8 +18,6 @@ namespace MoreMush.Mobile
         [SerializeField] bool hidePlaceholders = true;      // 칸·영역에 임시로 넣어 둔 그림을 숨긴다
 
         [Header("임시 리소스 (Resources 경로)")]
-        [SerializeField] string ggomaPath = "Art/Dream/Characters/Critters/Ggomas/icon_";
-        [SerializeField] string[] ggomaIds = { "leaf", "dew", "fire", "rock", "coin" };
         [SerializeField] string enemyFolder = "Art/Dream/Characters/Critters/Mushrooms";
         [SerializeField] string bossFolder = "Art/Dream/Characters/Critters/Bosses";
         [SerializeField] string harvesterFolder = "Art/Dream/Harvesters";
@@ -34,7 +32,7 @@ namespace MoreMush.Mobile
         [SerializeField] float waveDelay = 0.6f;            // 웨이브 사이 쉬는 시간
         [SerializeField] float hudTop = -230f;              // HUD 위치 (캔버스 위쪽 기준)
 
-        class Ggoma { public RectTransform rt; public float timer, punch, phase; public Sprite harvester; }
+        class Ggoma { public RectTransform rt; public Image img; public int slot; public float timer, punch, phase; public Sprite harvester; }
 
         class Enemy
         {
@@ -94,11 +92,13 @@ namespace MoreMush.Mobile
                 var slot = ggomaSlots[i];
                 if (slot == null) continue;
                 if (hidePlaceholders) HideImage(slot);
-                var sp = Resources.Load<Sprite>(ggomaPath + ggomaIds[i % ggomaIds.Length]);
-                var img = MakeImage("Ggoma", slot, sp, new Vector2(ggomaSize, ggomaSize));
+                // 칸 i의 꼬마 = 편성 칸 i (Formation)
+                var img = MakeImage("Ggoma", slot, Formation.Icon(Formation.Get(i % Formation.SlotCount)), new Vector2(ggomaSize, ggomaSize));
                 ggomas.Add(new Ggoma
                 {
                     rt = img.rectTransform,
+                    img = img,
+                    slot = i % Formation.SlotCount,
                     timer = Random.Range(0f, 0.8f),     // 다 같이 던지지 않게 처음만 어긋나게
                     phase = i * 1.3f,
                     harvester = harvesterSprites.Length > 0 ? harvesterSprites[i % harvesterSprites.Length] : white,
@@ -113,7 +113,18 @@ namespace MoreMush.Mobile
             StartWave(1);
         }
 
-        void OnDisable() => FlushGold();
+        void OnEnable() => Formation.Changed += RefreshGgomas;
+
+        void OnDisable()
+        {
+            Formation.Changed -= RefreshGgomas;
+            FlushGold();
+        }
+
+        void RefreshGgomas()
+        {
+            foreach (var g in ggomas) g.img.sprite = Formation.Icon(Formation.Get(g.slot));
+        }
 
         void Update()
         {
