@@ -19,7 +19,7 @@ namespace MoreMush.Mobile
         [SerializeField] Button closeButton;
         [SerializeField] TMP_FontAsset font;
         [SerializeField] string clearIcon = "Art/Dream/UI/btn_close";   // 편성 해제 버튼 그림 (Resources 경로)
-        [SerializeField] int popupSortingOrder = 10; // 전투 화면(적·꼬마)보다 위에 그린다
+        [SerializeField] int popupSortingOrder = 10; // 부모 캔버스보다 이만큼 위에 그린다 (전투 화면·강화 목록 위)
 
         class Pick { public Button button; public Image bg, icon; public TMP_Text name, badge; public string id; }
 
@@ -64,7 +64,9 @@ namespace MoreMush.Mobile
                 charPopup.AddComponent<GraphicRaycaster>();
             }
             c.overrideSorting = true;
-            c.sortingOrder = popupSortingOrder;
+            // 부모 캔버스 순서 기준 (Main 캔버스 순서가 10000이라 고정값이면 뒤로 숨는다)
+            var parent = charPopup.transform.parent != null ? charPopup.transform.parent.GetComponentInParent<Canvas>() : null;
+            c.sortingOrder = (parent != null ? parent.rootCanvas.sortingOrder : 0) + popupSortingOrder;
             Refresh();
         }
 
