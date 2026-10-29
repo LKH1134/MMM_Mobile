@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    // 꼬마 편성: 칸 SlotCount개에 꼬마 id 하나씩. 칸 i = Main 전투의 Ggoma(i+1) 자리.
+    // 꼬마 편성: 칸 SlotCount개에 꼬마 id 하나씩(빈 칸 = ""). 칸 i = Main 전투의 Ggoma(i+1) 자리.
     // PlayerPrefs("Formation.<칸>")에 저장한다 (세이브 구조가 생기면 옮긴다)
     public static class Formation
     {
@@ -25,14 +25,25 @@ namespace MoreMush.Mobile
             return -1;
         }
 
-        // slot에 id를 놓는다. id가 다른 칸에 이미 있으면 두 칸을 맞바꾼다
+        public static bool IsEmpty(int slot) => string.IsNullOrEmpty(Get(slot));
+
+        // slot에 id를 놓는다. id가 다른 칸에 이미 있으면 두 칸을 맞바꾼다(빈 칸이었으면 그 칸이 빈다).
+        // 이미 그 칸에 있는 꼬마를 다시 고르면 편성 해제
         public static void Place(int slot, string id)
         {
             string old = Get(slot);
-            if (old == id) return;
+            if (old == id) { Clear(slot); return; }
             int from = SlotOf(id);
             if (from >= 0) PlayerPrefs.SetString("Formation." + from, old);
             PlayerPrefs.SetString("Formation." + slot, id);
+            PlayerPrefs.Save();
+            Changed?.Invoke();
+        }
+
+        public static void Clear(int slot)
+        {
+            if (IsEmpty(slot)) return;
+            PlayerPrefs.SetString("Formation." + slot, "");
             PlayerPrefs.Save();
             Changed?.Invoke();
         }
@@ -43,6 +54,6 @@ namespace MoreMush.Mobile
             return i >= 0 ? Names[i] : id;
         }
 
-        public static Sprite Icon(string id) => Resources.Load<Sprite>(IconPath + id);
+        public static Sprite Icon(string id) => string.IsNullOrEmpty(id) ? null : Resources.Load<Sprite>(IconPath + id);
     }
 }

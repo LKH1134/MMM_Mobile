@@ -7,6 +7,7 @@ namespace MoreMush.Mobile
 {
     // 편성 화면 (먼작귀 포켓식): 캐릭터 탭 → 동료 칸(Middle) → 칸을 누르면 꼬마 고르기 팝업(Char).
     // 고른 꼬마를 누른 칸에 놓고, 이미 다른 칸에 있던 꼬마면 두 칸을 맞바꾼다(Formation.Place).
+    // 팝업 첫 칸은 X 표시 "편성 해제" 버튼이고, 그 칸에 이미 있는 꼬마를 다시 골라도 해제된다.
     // 칸 버튼은 씬에 있는 것을 쓰고(자식 Image = 그림, w = 이름, w (1) = 레벨), 팝업 버튼에는 그림·배치 표시를 코드로 붙인다
     public class FormationPanel : MonoBehaviour
     {
@@ -17,6 +18,7 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform charGrid;    // 팝업 안 꼬마 버튼들의 부모
         [SerializeField] Button closeButton;
         [SerializeField] TMP_FontAsset font;
+        [SerializeField] string clearIcon = "Art/Dream/UI/btn_close";   // 편성 해제 버튼 그림 (Resources 경로)
         [SerializeField] int popupSortingOrder = 10; // 전투 화면(적·꼬마)보다 위에 그린다
 
         class Pick { public Button button; public Image bg, icon; public TMP_Text name, badge; public string id; }
@@ -75,11 +77,12 @@ namespace MoreMush.Mobile
         void Choose(string id)
         {
             if (targetSlot < 0) return;
-            Formation.Place(targetSlot, id);
+            if (string.IsNullOrEmpty(id)) Formation.Clear(targetSlot);
+            else Formation.Place(targetSlot, id);
             ClosePicker();
         }
 
-        // 팝업의 버튼을 화면 순서(위→아래, 왼→오른)로 꼬마 수만큼 쓰고 나머지는 숨긴다
+        // 팝업의 버튼을 화면 순서(위→아래, 왼→오른)로 쓴다: 첫 칸 = 편성 해제, 다음부터 꼬마 수만큼, 나머지는 숨긴다
         void BuildPicks()
         {
             var buttons = new List<Button>(charGrid.GetComponentsInChildren<Button>(true));
@@ -94,15 +97,15 @@ namespace MoreMush.Mobile
             for (int i = 0; i < buttons.Count; i++)
             {
                 var b = buttons[i];
-                if (i >= Formation.Ids.Length) { b.gameObject.SetActive(false); continue; }
-                string id = Formation.Ids[i];
+                if (i > Formation.Ids.Length) { b.gameObject.SetActive(false); continue; }
+                string id = i == 0 ? "" : Formation.Ids[i - 1];     // "" = 편성 해제
                 var rt = (RectTransform)b.transform;
                 var p = new Pick { button = b, bg = b.GetComponent<Image>(), id = id };
 
                 p.icon = new GameObject("Icon", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
                 p.icon.transform.SetParent(rt, false);
                 p.icon.transform.SetAsFirstSibling();
-                p.icon.sprite = Formation.Icon(id);
+                p.icon.sprite = id == "" ? Resources.Load<Sprite>(clearIcon) : Formation.Icon(id);
                 p.icon.preserveAspect = true;
                 p.icon.raycastTarget = false;
                 var irt = p.icon.rectTransform;
@@ -114,7 +117,7 @@ namespace MoreMush.Mobile
                 // 기존 글자(Text (TMP))를 이름 줄로 쓴다
                 p.name = b.GetComponentInChildren<TMP_Text>(true);
                 if (p.name == null) p.name = NewText("Name", rt, 30f);
-                p.name.text = Formation.Name(id);
+                p.name.text = id == "" ? "편성 해제" : Formation.Name(id);
                 p.name.fontSize = 30f;
                 p.name.alignment = TextAlignmentOptions.Bottom;
                 if (font != null) p.name.font = font;
@@ -148,17 +151,27 @@ namespace MoreMush.Mobile
             {
                 var slot = slotButtons[i].transform;
                 string id = Formation.Get(i);
+                bool empty = string.IsNullOrEmpty(id);
                 var img = slot.Find("Image")?.GetComponent<Image>();
-                if (img != null) { img.sprite = Formation.Icon(id); img.preserveAspect = true; img.color = Color.white; }
+                if (img != null) { img.sprite = Formation.Icon(id); img.preserveAspect = true; img.color = empty ? Color.clear : Color.white; }
                 var nameText = slot.Find("w")?.GetComponent<TMP_Text>();
-                if (nameText != null) { nameText.text = Formation.Name(id); if (font != null) nameText.font = font; }
+                if (nameText != null) { nameText.text = empty ? "동료 선택" : Formation.Name(id); if (font != null) nameText.font = font; }
                 var lvText = slot.Find("w (1)")?.GetComponent<TMP_Text>();
-                if (lvText != null) { lvText.text = "Lv.1"; if (font != null) lvText.font = font; }
+                if (lvText != null) { lvText.text = empty ? "" : "Lv.1"; if (font != null) lvText.font = font; }
             }
 
             string current = targetSlot >= 0 ? Formation.Get(targetSlot) : null;
             foreach (var p in picks)
             {
+                if (p.id == "")
+                {
+                    // 편성 해제: 고르는 칸이 이미 비어 있으면 누를 일이 없다
+                    bool can = !string.IsNullOrEmpty(current);
+                    p.button.interactable = can;
+                    p.bg.color = can ? Color.white : new Color(0.75f, 0.75f, 0.75f);
+                    p.badge.text = "";
+                    continue;
+                }
                 int at = Formation.SlotOf(p.id);
                 p.badge.text = at >= 0 ? $"{at + 1}번 배치" : "";
                 // 지금 고르는 칸에 있는 꼬마는 노랗게, 다른 칸에 있는 꼬마는 살짝 어둡게

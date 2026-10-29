@@ -104,6 +104,7 @@ namespace MoreMush.Mobile
                     harvester = harvesterSprites.Length > 0 ? harvesterSprites[i % harvesterSprites.Length] : white,
                 });
             }
+            RefreshGgomas();
             BuildHud();
         }
 
@@ -121,9 +122,14 @@ namespace MoreMush.Mobile
             FlushGold();
         }
 
+        // 편성대로 그림을 바꾼다. 빈 칸은 숨기고 던지지 않는다
         void RefreshGgomas()
         {
-            foreach (var g in ggomas) g.img.sprite = Formation.Icon(Formation.Get(g.slot));
+            foreach (var g in ggomas)
+            {
+                g.img.sprite = Formation.Icon(Formation.Get(g.slot));
+                g.img.enabled = g.img.sprite != null;
+            }
         }
 
         void Update()
@@ -225,6 +231,7 @@ namespace MoreMush.Mobile
                 g.rt.localScale = new Vector3(s, s, 1f);
                 g.rt.anchoredPosition = new Vector2(0f, Mathf.Sin(Time.time * 2.4f + g.phase) * 4f);
 
+                if (!g.img.enabled) continue;
                 g.timer -= dt;
                 if (g.timer > 0f) continue;
                 var target = PickTarget();
