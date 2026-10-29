@@ -602,7 +602,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC138\uACC4\uC218\uB85C \uB3CC\uC544\uAC00\uAE30"
+  m_text: "\uB85C\uBE44\uB85C \uB3CC\uC544\uAC00\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5049dd357cc23d446afce057e7d4337f, type: 2}
   m_sharedMaterial: {fileID: 1912433573789592034, guid: 5049dd357cc23d446afce057e7d4337f, type: 2}
@@ -796,13 +796,13 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5879706379201689773}
-  m_Father: {fileID: 2510517580243146676}
+  m_Father: {fileID: 8768183344313051355}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 40}
-  m_SizeDelta: {x: 540, y: 140}
-  m_Pivot: {x: 0.5, y: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -5, y: 0}
+  m_SizeDelta: {x: -10, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &820313372511284689
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -900,7 +900,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6287402579273931797
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1009,7 +1009,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8570634665724227902
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1392,13 +1392,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: InGameOptionPopup
       objectReference: {fileID: 0}
-    - target: {fileID: 3220445108832747398, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+    - target: {fileID: 2360183860304125281, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6695444630940069636, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 200
+    - target: {fileID: 3220445108832747398, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7668174412231387352, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       propertyPath: m_Pivot.x
@@ -1489,7 +1489,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6887037434282681719, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8570634665724227902}
-    - targetCorrespondingSourceObject: {fileID: 6887037434282681719, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 354185908670306840, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8316083027739513613}
     m_AddedComponents:
@@ -1502,6 +1502,28 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6887037434282681719, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
   m_PrefabInstance: {fileID: 9026491829846586051}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2647298459917892678 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6483386392995991173, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+  m_PrefabInstance: {fileID: 9026491829846586051}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
+--- !u!114 &7448661378321885803 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1880952622357452968, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+  m_PrefabInstance: {fileID: 9026491829846586051}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
 --- !u!1 &7659412082939890425 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1661609235979384890, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
@@ -1519,7 +1541,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcaaf415360b76749a413807747dfdd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.InGameOption
-  bgmSlider: {fileID: 6417930053131249137}
-  sfxSlider: {fileID: 5206063511519663925}
+  bgmSlider: {fileID: 2647298459917892678}
+  sfxSlider: {fileID: 7448661378321885803}
   worldTreeButton: {fileID: 2436488320478307321}
   worldTreeScene: WorldTree
+--- !u!224 &8768183344313051355 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 354185908670306840, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+  m_PrefabInstance: {fileID: 9026491829846586051}
+  m_PrefabAsset: {fileID: 0}
