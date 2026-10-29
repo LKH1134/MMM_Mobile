@@ -11,6 +11,19 @@ namespace MoreMush.Mobile
 
         public static event System.Action Changed;
 
+        // 테스트용: 처음 한 번 뽑기 재화(균사석)를 넣어 준다. 출시 전에 false로 끄거나 지운다
+        const bool GrantTestMycelite = true;
+        const long TestMycelite = 50000;
+        const string TestGrantKey = "Wallet.TestGrant";
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void GrantTestCurrency()
+        {
+            if (!GrantTestMycelite || PlayerPrefs.GetInt(TestGrantKey, 0) == 1) return;
+            PlayerPrefs.SetInt(TestGrantKey, 1);
+            Add(Currency.Mycelite, TestMycelite);
+        }
+
         // 골드는 long이라 문자열로 저장한다 (PlayerPrefs에 long이 없다)
         public static long Gold => long.TryParse(PlayerPrefs.GetString(GoldKey, "0"), out var v) ? v : 0;
         public static long Mycelite => long.TryParse(PlayerPrefs.GetString(MyceliteKey, "0"), out var v) ? v : 0;

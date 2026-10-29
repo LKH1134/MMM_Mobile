@@ -6170,6 +6170,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5365102831108003843}
+  - component: {fileID: 6100000000000000002}
   m_Layer: 0
   m_Name: Amor
   m_TagString: Untagged
@@ -6461,3 +6462,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6100000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8198138063344411011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 494419df75394f3889bd004768c49358, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.EquipmentPanel
+  kind: 1
+  font: {fileID: 11400000, guid: 455ca1920a5e574449a15e62373488ae, type: 2}
+  toastPrefab: {fileID: 56380357808796695, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}

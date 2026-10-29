@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -8,6 +9,7 @@ namespace MoreMush.Mobile
 {
     // 뽑기 패널: 광고 뽑기(11회, 하루 한 번) · 재화 뽑기(11회) · 재화 뽑기(35회).
     // 11회·35회는 보너스 포함 (10+1, 30+5) — 비용은 10회분·30회분. 비용·재화는 임시값이다 (기획 확정 전)
+    // kind = Character면 등급을 뽑은 뒤 그 등급의 꼬마로 바꿔 Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다
     public class GachaPanel : MonoBehaviour
     {
         public const int Count11 = 11;
@@ -91,13 +93,30 @@ namespace MoreMush.Mobile
         void DoRoll(int count)
         {
             var result = GachaProgress.Roll(kind, count);
-            GachaProgress.Apply(kind, result);
-            lastResult = FormatResult(count, result);
+            if (kind == GachaKind.Character)
+            {
+                var ids = GachaProgress.PickCharacters(result);
+                GachaProgress.Apply(kind, result);
+                Formation.AddOwned(ids);
+                lastResult = FormatCharacters(count, ids);
+            }
+            else if (Equipment.Of(kind) is Equipment eq)
+            {
+                var items = eq.PickItems(result);
+                GachaProgress.Apply(kind, result);
+                eq.AddItems(items);
+                lastResult = FormatItems(eq, count, items);
+            }
+            else
+            {
+                GachaProgress.Apply(kind, result);
+                lastResult = FormatResult(kind, count, result);
+            }
             Refresh();
             Notify(lastResult);
         }
 
-        static string FormatResult(int count, int[] result)
+        static string FormatResult(GachaKind kind, int count, int[] result)
         {
             var sb = new StringBuilder($"{count}회 결과: ");
             bool first = true;
@@ -110,6 +129,47 @@ namespace MoreMush.Mobile
             }
             return sb.ToString();
         }
+
+        // 꼬마 뽑기 결과: 높은 등급부터 "이름 ×개수"
+        static string FormatCharacters(int count, List<string> ids)
+        {
+            var counts = new Dictionary<string, int>();
+            foreach (var id in ids) counts[id] = counts.TryGetValue(id, out var c) ? c + 1 : 1;
+            var order = new List<string>(counts.Keys);
+            order.Sort((a, b) => Formation.Grade(b).CompareTo(Formation.Grade(a)));
+            var sb = new StringBuilder($"{count}회 결과: ");
+            for (int i = 0; i < order.Count; i++)
+            {
+                if (i > 0) sb.Append(" / ");
+                sb.Append(Formation.Name(order[i])).Append(" ×").Append(counts[order[i]]);
+            }
+            return sb.ToString();
+        }
+
+        // 장비 뽑기 결과: 높은 장비부터 "이름 ×개수"
+        static string FormatItems(Equipment eq, int count, List<int> items)
+        {
+            var counts = new int[eq.Count];
+            foreach (int i in items) counts[i]++;
+            var sb = new StringBuilder($"{count}회 결과: ");
+            bool first = true;
+            for (int i = counts.Length - 1; i >= 0; i--)
+            {
+                if (counts[i] <= 0) continue;
+                if (!first) sb.Append(" / ");
+                sb.Append(eq.Names[i]).Append(" ×").Append(counts[i]);
+                first = false;
+            }
+            return sb.ToString();
+        }
+
+        static string Title(GachaKind k) => k switch
+        {
+            GachaKind.Weapon => "수확기 뽑기",
+            GachaKind.Accessory => "방어구 뽑기",
+            GachaKind.Pet => "펫 뽑기",
+            _ => "꼬마 뽑기",
+        };
 
         void Notify(string message)
         {
@@ -131,7 +191,7 @@ namespace MoreMush.Mobile
             {
                 int level = GachaProgress.Level(kind), need = GachaProgress.ExpToNext(level);
                 string exp = need > 0 ? $"{GachaProgress.Exp(kind)}/{need}" : "MAX";
-                infoText.text = $"Lv.{level} ({exp})" + (lastResult.Length > 0 ? "\n" + lastResult : "");
+                infoText.text = $"{Title(kind)} Lv.{level} ({exp})" + (lastResult.Length > 0 ? "\n" + lastResult : "");
             }
         }
     }

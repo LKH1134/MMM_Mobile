@@ -11,6 +11,7 @@ namespace MoreMush.Mobile
 
         // Main 하단 탭 번호 (0 편성, 1 던전, 2 뽑기). -1 = 홈 (패널 없음)
         public const int Home = -1;
+        public const int TeamTab = 0, DungeonTab = 1, GachaTab = 2;
         public static int PendingTab { get; private set; } = Home;
 
         public static void Open(int tab)

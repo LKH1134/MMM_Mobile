@@ -19,6 +19,7 @@ namespace MoreMush.Mobile
         [SerializeField] Tab[] tabs = new Tab[0];
         [SerializeField] Button[] closeButtons = new Button[0];
         [SerializeField] Button homeButton;          // 모든 페이지를 닫는 탭 (홈·꼬마). 아무 페이지도 없을 때 선택된 색으로 보인다
+        [SerializeField] GameObject[] homeOnly = new GameObject[0];   // 아무 페이지도 없을 때(홈)만 켜는 것 (예: 방치형 강화 목록 — 페이지 위를 덮지 않게)
         [SerializeField] bool allowNone = true;
         [SerializeField] int defaultIndex = -1;      // 처음 열 탭 (-1 = 없음, allowNone이 아니면 0으로 본다)
         [SerializeField] bool readPendingMainTab;    // Main 하단바: 다른 씬에서 요청한 탭(MainNavigation)으로 시작
@@ -28,10 +29,12 @@ namespace MoreMush.Mobile
         Color homeNormalColor = Color.white;
 
         public int Current { get; private set; } = -1;
+        public static TabGroup MainBar { get; private set; }     // Main 하단바 (readPendingMainTab) — 다른 화면에서 탭을 열 때 쓴다
         public event Action<int> Changed;
 
         void Awake()
         {
+            if (readPendingMainTab) MainBar = this;
             normalColors = new Color[tabs.Length];
             for (int i = 0; i < tabs.Length; i++)
             {
@@ -48,6 +51,11 @@ namespace MoreMush.Mobile
                 if (homeButton.image != null) homeNormalColor = homeButton.image.color;
                 homeButton.onClick.AddListener(() => Select(-1));
             }
+        }
+
+        void OnDestroy()
+        {
+            if (MainBar == this) MainBar = null;
         }
 
         // 꺼질 때(OnDisable) 자식을 끄면 Unity가 막으므로, 다시 켜질 때 처음 상태로 돌린다
@@ -77,6 +85,8 @@ namespace MoreMush.Mobile
                 var img = tabs[i].button != null ? tabs[i].button.image : null;
                 if (img != null && normalColors != null) img.color = on ? selectedColor : normalColors[i];
             }
+            foreach (var go in homeOnly)
+                if (go != null && go.activeSelf != (Current < 0)) go.SetActive(Current < 0);
             if (homeButton != null && homeButton.image != null) homeButton.image.color = Current < 0 ? selectedColor : homeNormalColor;
             Changed?.Invoke(Current);
         }

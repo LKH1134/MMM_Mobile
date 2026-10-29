@@ -7,7 +7,11 @@ namespace MoreMush.Mobile
 {
     // Main 씬 방치형 전투. 꼬마(GgomaArea의 칸마다 1명)가 알아서 수확기를 던지고, 적은 EnemyArea 안 아무 데나 웨이브로 나온다.
     // 웨이브 IdleProgress.WavesPerStage개를 넘기면 보스 1마리 — 제한 시간 안에 잡으면 다음 스테이지, 못 잡으면 같은 스테이지 1웨이브부터.
-    // 적·수확기·숫자 팝업은 전부 코드로 만들고 풀에 돌려 쓴다. 그림은 임시 리소스(Resources 경로)를 쓴다
+    // 살아 있는 적은 꼬마 무리(체력 하나를 같이 쓴다)를 초당 공격하고, 체력은 초마다 재생된다. 체력이 0이 되면 패배 — 같은 스테이지 1웨이브부터.
+    // 체력은 스테이지를 넘기거나 패배·보스 실패 뒤에 가득 찬다.
+    // 적·수확기·숫자 팝업은 전부 코드로 만들고 풀에 돌려 쓴다. 그림은 임시 리소스(Resources 경로)를 쓴다.
+    // 전투는 홈(하단바 TabGroup에 열린 탭이 없을 때)에서만 보인다. 다른 탭을 여는 동안에도 보이지 않게 계속 진행하고,
+    // 홈으로 돌아오면 그동안(앱 밖에 있던 시간 포함, IdleAway) 번 것을 정산 팝업으로 보여 준다
     public class IdleBattle : MonoBehaviour
     {
         [Header("배치 (씬)")]
@@ -16,10 +20,12 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform effectLayer;         // 수확기·팝업·HUD가 올라가는 판 (비우면 이 오브젝트)
         [SerializeField] TMP_FontAsset font;
         [SerializeField] bool hidePlaceholders = true;      // 칸·영역에 임시로 넣어 둔 그림을 숨긴다
+        [SerializeField] TabGroup homeTabs;                 // Main 하단바 — 열린 탭이 없을 때(홈)만 전투를 보인다 (비우면 늘 보인다)
 
         [Header("임시 리소스 (Resources 경로)")]
         [SerializeField] string enemyFolder = "Art/Dream/Characters/Critters/Mushrooms";
         [SerializeField] string bossFolder = "Art/Dream/Characters/Critters/Bosses";
+        [SerializeField] string[] extraBossSprites = { "Art/Dream/Characters/Grandpa/grandpa_ref" };   // 폴더 밖 보스 그림 (Resources 경로, 확장자 없이)
         [SerializeField] string harvesterFolder = "Art/Dream/Harvesters";
 
         [Header("크기·연출")]
@@ -31,6 +37,7 @@ namespace MoreMush.Mobile
         [SerializeField] float arcHeight = 140f;            // 포물선 높이
         [SerializeField] float waveDelay = 0.6f;            // 웨이브 사이 쉬는 시간
         [SerializeField] float hudTop = -230f;              // HUD 위치 (캔버스 위쪽 기준)
+        [SerializeField] float enemyAttackDelay = 0.4f;     // 적이 나타나고 이만큼 지나야 공격한다
 
         class Ggoma { public RectTransform rt; public Image img; public int slot; public float timer, punch, phase; public Sprite harvester; }
 
@@ -68,16 +75,36 @@ namespace MoreMush.Mobile
         long pendingGold;
         float goldFlushIn;
 
+        // 꼬마 무리 체력
+        double partyHp, partyMaxHp, pendingHurt;
+        float hurtShowIn, hurtFlash, hpTextIn;
+
         // HUD
-        TMP_Text stageText, waveText, timerText;
-        RectTransform barFill, timerRoot, timerFill;
+        TMP_Text stageText, waveText, timerText, hpText, powerText, statsText;
+        RectTransform barFill, timerRoot, timerFill, hpFill;
+        GameObject statsPanel;
+        float powerRefreshIn;
+
+        // 홈 밖에서는 숨긴 채 진행
+        readonly List<CanvasGroup> views = new List<CanvasGroup>();
+        bool atHome = true;
+        IdleReportPopup reportPopup;
+        float markSeenIn;
+        const float MarkSeenInterval = 5f;      // 앱이 갑자기 꺼져도 이만큼 이내 시각부터 앱 밖 보상을 셈한다
 
         void Awake()
         {
             if (effectLayer == null) effectLayer = (RectTransform)transform;
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
             enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
-            bossSprites = Resources.LoadAll<Sprite>(bossFolder);
+            var bosses = new List<Sprite>(Resources.LoadAll<Sprite>(bossFolder));
+            foreach (var path in extraBossSprites)
+            {
+                var sp = string.IsNullOrEmpty(path) ? null : Resources.Load<Sprite>(path);
+                if (sp != null) bosses.Add(sp);
+                else Debug.LogWarning($"[IdleBattle] 보스 그림 없음: Resources/{path}");
+            }
+            bossSprites = bosses.ToArray();
             harvesterSprites = Resources.LoadAll<Sprite>(harvesterFolder);
             if (enemySprites.Length == 0) Debug.LogWarning($"[IdleBattle] 적 그림 없음: Resources/{enemyFolder}");
             if (bossSprites.Length == 0) bossSprites = enemySprites;
@@ -106,40 +133,125 @@ namespace MoreMush.Mobile
             }
             RefreshGgomas();
             BuildHud();
+            AddView(transform);
+            AddView(enemyArea);
+            if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddView(ggomaSlots[0].parent);
         }
 
         void Start()
         {
             stage = IdleProgress.Stage;
+            partyMaxHp = partyHp = IdleProgress.FinalHp;
             StartWave(1);
+
+            IdleAway.ApplyOffline();
+            if (homeTabs != null)
+            {
+                homeTabs.Changed += OnTabChanged;
+                SetHome(homeTabs.Current < 0);
+            }
+            else SetHome(true);
         }
 
-        void OnEnable() => Formation.Changed += RefreshGgomas;
+        void OnDestroy()
+        {
+            if (homeTabs != null) homeTabs.Changed -= OnTabChanged;
+        }
+
+        void OnApplicationPause(bool paused)
+        {
+            if (paused)
+            {
+                FlushGold();
+                IdleAway.MarkSeen();
+                return;
+            }
+            IdleAway.ApplyOffline();
+            if (atHome) ShowReport();
+        }
+
+        void OnApplicationQuit()
+        {
+            FlushGold();
+            IdleAway.MarkSeen();
+        }
+
+        // ── 홈 / 다른 탭 ──
+
+        void AddView(Transform t)
+        {
+            if (t == null) return;
+            if (!t.TryGetComponent<CanvasGroup>(out var g)) g = t.gameObject.AddComponent<CanvasGroup>();
+            if (!views.Contains(g)) views.Add(g);
+        }
+
+        void OnTabChanged(int tab) => SetHome(tab < 0);
+
+        void SetHome(bool home)
+        {
+            atHome = home;
+            foreach (var g in views)
+            {
+                g.alpha = home ? 1f : 0f;
+                g.blocksRaycasts = home;
+                g.interactable = home;
+            }
+            if (!home) { IdleAway.Begin(); return; }
+            FlushGold();
+            ShowReport();
+        }
+
+        void ShowReport()
+        {
+            var report = IdleAway.End();
+            if (report == null || report.IsEmpty) return;
+            if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
+            reportPopup.Show(report);
+        }
+
+        void OnEnable()
+        {
+            Formation.Changed += RefreshGgomas;
+            Equipment.Weapon.Changed += RefreshGgomas;   // 장착한 수확기(무기)가 바뀌면 던지는 그림을 바꾼다
+        }
 
         void OnDisable()
         {
             Formation.Changed -= RefreshGgomas;
+            Equipment.Weapon.Changed -= RefreshGgomas;
             FlushGold();
         }
 
-        // 편성대로 그림을 바꾼다. 빈 칸은 숨기고 던지지 않는다
+        // 편성대로 그림을 바꾼다. 빈 칸은 숨기고 던지지 않는다.
+        // 던지는 수확기 = 장착한 무기 (없으면 처음 그림 그대로)
         void RefreshGgomas()
         {
-            foreach (var g in ggomas)
+            var weapon = Equipment.Weapon.Sprite(Equipment.Weapon.Equipped);
+            for (int i = 0; i < ggomas.Count; i++)
             {
+                var g = ggomas[i];
                 g.img.sprite = Formation.Icon(Formation.Get(g.slot));
                 g.img.enabled = g.img.sprite != null;
+                if (weapon != null) g.harvester = weapon;
+                else g.harvester = harvesterSprites.Length > 0 ? harvesterSprites[i % harvesterSprites.Length] : white;
             }
         }
 
         void Update()
         {
             float dt = Time.deltaTime;
+            IdleAway.Tick(dt);
+            markSeenIn -= dt;
+            if (markSeenIn <= 0f) { markSeenIn = MarkSeenInterval; IdleAway.MarkSeen(); }
             UpdateGgomas(dt);
             UpdateShots(dt);
             UpdateEnemies(dt);
+            UpdateParty(dt);
             UpdatePopups(dt);
             UpdateFlow(dt);
+
+            powerRefreshIn -= dt;
+            if (powerRefreshIn <= 0f) { powerRefreshIn = 0.5f; RefreshPower(); }
 
             goldFlushIn -= dt;
             if (goldFlushIn <= 0f) { goldFlushIn = 1f; FlushGold(); }   // 처치마다 저장하지 않고 1초에 한 번 모아서 넣는다
@@ -178,6 +290,7 @@ namespace MoreMush.Mobile
                     ShowText(Center(), "보스 실패!", new Color(1f, 0.45f, 0.4f), 64f, 1.4f);
                     nextWaveIn = waveDelay * 2f;
                     wave = 0;
+                    partyHp = partyMaxHp;
                 }
                 RefreshHud();
                 return;
@@ -198,10 +311,15 @@ namespace MoreMush.Mobile
         {
             waveKilled++;
             pendingGold += e.gold;
+            IdleAway.AddKill();
             ShowText(e.rt.position, "+" + Wallet.Format(e.gold), new Color(1f, 0.85f, 0.25f), 34f, 0.8f);
             if (e.boss)
             {
                 boss = null;
+                Wallet.Add(Currency.Mycelite, IdleProgress.BossMycelite(stage));
+                IdleAway.AddMycelite(IdleProgress.BossMycelite(stage));
+                IdleAway.AddStage();
+                partyHp = partyMaxHp;
                 stage++;
                 IdleProgress.Stage = stage;
                 ShowText(Center(), $"스테이지 {stage}", Color.white, 72f, 1.4f);
@@ -211,10 +329,72 @@ namespace MoreMush.Mobile
             RefreshHud();
         }
 
+        // ── 꼬마 무리 체력: 적 공격·재생·패배 ──
+
+        void UpdateParty(float dt)
+        {
+            // 체력 강화·보유 효과로 최대 체력이 오르면 늘어난 만큼 바로 채운다
+            double max = IdleProgress.FinalHp;
+            if (max > partyMaxHp) partyHp += max - partyMaxHp;
+            partyMaxHp = max;
+
+            double enemyDps = 0;
+            foreach (var e in enemies)
+                if (!e.dead && e.age > enemyAttackDelay) enemyDps += e.boss ? IdleProgress.BossAttack(stage) : IdleProgress.EnemyAttack(stage);
+            double hurt = enemyDps * dt;
+            partyHp = System.Math.Min(partyMaxHp, partyHp + IdleProgress.FinalHpRegen * dt - hurt);
+
+            // 받은 피해는 0.5초씩 모아서 꼬마 쪽에 띄운다
+            pendingHurt += hurt;
+            hurtShowIn -= dt;
+            if (hurtShowIn <= 0f && pendingHurt >= 1)
+            {
+                hurtShowIn = 0.5f;
+                hurtFlash = 1f;
+                ShowText(PartyCenter(), "-" + IdleProgress.FormatNumber(pendingHurt), new Color(1f, 0.35f, 0.35f), 32f, 0.7f);
+                pendingHurt = 0;
+            }
+            hurtFlash = Mathf.Max(0f, hurtFlash - dt * 4f);
+            foreach (var g in ggomas) g.img.color = Color.Lerp(Color.white, new Color(1f, 0.5f, 0.5f), hurtFlash);
+
+            if (partyHp <= 0) Defeat();
+            RefreshHp(dt);
+        }
+
+        // 패배: 적을 거두고(보상 없음) 체력을 채운 뒤 같은 스테이지 1웨이브부터
+        void Defeat()
+        {
+            foreach (var e in enemies) if (!e.dead) Kill(e, false);
+            boss = null;
+            wave = 0;
+            nextWaveIn = waveDelay * 2f;
+            partyHp = partyMaxHp;
+            pendingHurt = 0;
+            ShowText(Center(), "패배! 다시 도전", new Color(1f, 0.45f, 0.4f), 64f, 1.4f);
+            RefreshHud();
+        }
+
+        void RefreshHp(float dt)
+        {
+            if (hpFill == null) return;
+            hpFill.anchorMax = new Vector2(partyMaxHp <= 0 ? 0f : Mathf.Clamp01((float)(partyHp / partyMaxHp)), 1f);
+            hpTextIn -= dt;
+            if (hpTextIn > 0f) return;
+            hpTextIn = 0.2f;
+            hpText.text = $"체력 {IdleProgress.FormatNumber(System.Math.Max(0, partyHp))} / {IdleProgress.FormatNumber(partyMaxHp)}";
+        }
+
+        Vector3 PartyCenter()
+        {
+            if (ggomaSlots.Length > 0 && ggomaSlots[0] != null && ggomaSlots[0].parent is RectTransform area) return area.TransformPoint(area.rect.center);
+            return Center();
+        }
+
         void FlushGold()
         {
             if (pendingGold <= 0) return;
             Wallet.Add(Currency.Gold, pendingGold);
+            IdleAway.AddGold(pendingGold);
             pendingGold = 0;
         }
 
@@ -253,7 +433,7 @@ namespace MoreMush.Mobile
 
         void Throw(Ggoma g, Enemy target)
         {
-            double dmg = IdleProgress.Value(IdleStat.Attack);
+            double dmg = IdleProgress.FinalAttack * Formation.AttackMultiplier(Formation.Get(g.slot));   // 꼬마마다 공격 배율
             bool crit = Random.value < IdleProgress.Value(IdleStat.CritChance);
             if (crit) dmg *= IdleProgress.Value(IdleStat.CritDamage);
 
@@ -307,7 +487,9 @@ namespace MoreMush.Mobile
         {
             var e = freeEnemies.Count > 0 ? freeEnemies.Pop() : NewEnemy();
             var sprites = isBoss ? bossSprites : enemySprites;
-            e.img.sprite = sprites.Length > 0 ? sprites[Random.Range(0, sprites.Length)] : white;
+            // 보스는 스테이지 순서대로 돌아가며 나온다 (같은 스테이지를 다시 해도 같은 보스). 일반 적은 무작위
+            int pickIndex = isBoss ? (stage - 1) % Mathf.Max(1, sprites.Length) : Random.Range(0, Mathf.Max(1, sprites.Length));
+            e.img.sprite = sprites.Length > 0 ? sprites[pickIndex] : white;
             float size = isBoss ? bossSize : enemySize;
             e.rt.sizeDelta = new Vector2(size, size);
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
@@ -502,6 +684,56 @@ namespace MoreMush.Mobile
             timerFill.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(-40f, -12f);
             timerText = MakeText("Sec", timerRoot, 30f);
             Place(timerText.rectTransform, new Vector2(190f, 0f), new Vector2(100f, 40f));
+
+            // 꼬마 무리 체력 막대 (보스 시간 아래)
+            hpFill = MakeBar("Hp", root, new Vector2(0f, -192f), new Vector2(460f, 30f), new Color(0.35f, 0.85f, 0.4f));
+            hpText = MakeText("HpText", hpFill.parent, 24f);
+            var hpTextRt = hpText.rectTransform;
+            hpTextRt.anchorMin = Vector2.zero;
+            hpTextRt.anchorMax = Vector2.one;
+            hpTextRt.offsetMin = hpTextRt.offsetMax = Vector2.zero;
+
+            // 전투력 (체력 막대 아래). 누르면 세부 통계 창을 열고 닫는다
+            var power = MakeImage("Power", root, white, new Vector2(460f, 46f));
+            power.preserveAspect = false;
+            power.color = new Color(0f, 0f, 0f, 0.45f);
+            power.raycastTarget = true;
+            Place(power.rectTransform, new Vector2(0f, -232f), new Vector2(460f, 46f));
+            power.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+            {
+                statsPanel.SetActive(!statsPanel.activeSelf);
+                RefreshPower();
+            });
+            powerText = MakeText("Text", power.rectTransform, 30f);
+            var prt = powerText.rectTransform;
+            prt.anchorMin = Vector2.zero;
+            prt.anchorMax = Vector2.one;
+            prt.offsetMin = prt.offsetMax = Vector2.zero;
+            powerText.color = new Color(1f, 0.85f, 0.35f);
+
+            var panel = MakeImage("Stats", root, white, new Vector2(620f, 330f));
+            panel.preserveAspect = false;
+            panel.color = new Color(0.08f, 0.06f, 0.05f, 0.82f);
+            panel.raycastTarget = true;
+            Place(panel.rectTransform, new Vector2(0f, -286f), new Vector2(620f, 330f));
+            panel.gameObject.AddComponent<Button>().onClick.AddListener(() => statsPanel.SetActive(false));   // 창을 눌러도 닫힌다
+            statsPanel = panel.gameObject;
+            statsText = MakeText("Text", panel.rectTransform, 26f);
+            statsText.alignment = TextAlignmentOptions.TopLeft;
+            var srt = statsText.rectTransform;
+            srt.anchorMin = Vector2.zero;
+            srt.anchorMax = Vector2.one;
+            srt.offsetMin = new Vector2(20f, 16f);
+            srt.offsetMax = new Vector2(-20f, -16f);
+            statsPanel.SetActive(false);
+            RefreshPower();
+        }
+
+        void RefreshPower()
+        {
+            if (powerText == null) return;
+            powerText.text = "전투력 " + CombatPower.Format(CombatPower.Total);
+            if (statsPanel.activeSelf) statsText.text = CombatPower.Describe();
         }
 
         void RefreshHud()
