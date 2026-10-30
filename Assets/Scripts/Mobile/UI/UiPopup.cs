@@ -38,7 +38,7 @@ namespace MoreMush.Mobile
         {
             if (IsOpen) return;
             IsOpen = true;
-            PopupGate.Opened(this, Close);
+            PopupGate.Opened(this, Close, backCloses: dim != null || closeButton != null);   // 닫기 수단이 없는 팝업(결과 등)은 뒤로가기로도 안 닫힌다
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
             BringToFront();

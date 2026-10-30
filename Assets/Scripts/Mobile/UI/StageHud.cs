@@ -74,6 +74,16 @@ namespace MoreMush.Mobile
             ShowTime();
         }
 
+        // 뒤로가기(BackButton): 열린 팝업이 없으면 설정 팝업을 연다 (일시정지되고, 거기서 로비로 나갈 수 있다)
+        void OnEnable() => BackButton.SceneHandler = OpenOption;
+
+        void OnDisable()
+        {
+            if (BackButton.SceneHandler == (System.Action)OpenOption) BackButton.SceneHandler = null;
+        }
+
+        void OpenOption() => optionPopup.Get(transform).Open();
+
         void Update() => Tick(Time.deltaTime);
 
         // 측정기: 시간을 처음으로 되돌린다

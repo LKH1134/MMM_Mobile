@@ -8,12 +8,15 @@ namespace MoreMush.Mobile
     {
         static Object owner;
         static System.Action closeOwner;
+        static bool ownerClosesOnBack;
 
-        public static void Opened(Object who, System.Action close)
+        // backCloses = false: 뒤로가기로 닫히지 않는 팝업 (닫기 버튼이 없는 결과 팝업 등) — 뒤로가기는 먹고 아무것도 안 한다
+        public static void Opened(Object who, System.Action close, bool backCloses = true)
         {
             if (owner != who) CloseCurrent();
             owner = who;
             closeOwner = close;
+            ownerClosesOnBack = backCloses;
         }
 
         public static void Closed(Object who)
@@ -21,6 +24,14 @@ namespace MoreMush.Mobile
             if (owner != who) return;
             owner = null;
             closeOwner = null;
+        }
+
+        // 뒤로가기(BackButton): 열린 팝업이 있으면 닫고 true. 없으면 false (씬이 처리한다)
+        public static bool HandleBack()
+        {
+            if (owner == null) return false;
+            if (ownerClosesOnBack) CloseCurrent();
+            return true;
         }
 
         public static void CloseAll() => CloseCurrent();
