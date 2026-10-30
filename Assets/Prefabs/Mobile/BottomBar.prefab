@@ -150,7 +150,6 @@ GameObject:
   - component: {fileID: 3376755493751606857}
   - component: {fileID: 4837877960753118651}
   - component: {fileID: 5647484594104594773}
-  - component: {fileID: 5559397049069519507}
   m_Layer: 5
   m_Name: TeamBtn
   m_TagString: Untagged
@@ -281,19 +280,6 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &5559397049069519507
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1336164663637804623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f02eb3de556274d459eb53b8573d6e4b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.SceneButton
-  scene: WorldTree
 --- !u!1 &1702308550967276507
 GameObject:
   m_ObjectHideFlags: 0
@@ -525,6 +511,7 @@ GameObject:
   - component: {fileID: 8927898325359386213}
   - component: {fileID: 1428184922901639640}
   - component: {fileID: 1301717375110184927}
+  - component: {fileID: 6581376515479209828}
   m_Layer: 5
   m_Name: WorldTreeBtn
   m_TagString: Untagged
@@ -655,6 +642,23 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &6581376515479209828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3064542504954873991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd29b5dc2d5a8fb4689401fbb37afb79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.ComingSoonButton
+  popup:
+    prefab: {fileID: 5568184748944377759, guid: 92f3b1ecd36e0dc4f84d81e4e442e0cb, type: 3}
+  popupRoot: {fileID: 0}
+  title: "\uC54C\uB9BC"
+  message: "\uC544\uC9C1 \uAC1C\uBC1C\uC911\uC778 \uAE30\uB2A5\uC785\uB2C8\uB2E4."
 --- !u!1 &4149692216041720971
 GameObject:
   m_ObjectHideFlags: 0

@@ -1286,6 +1286,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6581376515479209828, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+      propertyPath: popupRoot
+      value: 
+      objectReference: {fileID: 1624027208}
     - target: {fileID: 6866231736241723214, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1315,10 +1319,7 @@ PrefabInstance:
     - {fileID: 6808736416309680846, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3064542504954873991, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2100000008}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
 --- !u!224 &1029608844 stripped
 RectTransform:
@@ -3298,7 +3299,7 @@ RectTransform:
   m_GameObject: {fileID: 1624027207}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 611809355}
@@ -3868,11 +3869,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6342943509982797284, guid: 3bd82f3d06df21346bcc53b8244e1762, type: 3}
   m_PrefabInstance: {fileID: 3339647491320083289}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &2100000006 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3064542504954873991, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
-  m_PrefabInstance: {fileID: 1029608843}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2100000007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3906,19 +3902,6 @@ MonoBehaviour:
   readPendingMainTab: 1
   pagesArePopups: 0
   selectedColor: {r: 1, g: 0.85, b: 0.45, a: 1}
---- !u!114 &2100000008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2100000006}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f02eb3de556274d459eb53b8573d6e4b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.SceneButton
-  scene: WorldTree
 --- !u!114 &2100000101 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5233035918352674660, guid: ccdb74ec06353e745990f4c96d6d6e51, type: 3}

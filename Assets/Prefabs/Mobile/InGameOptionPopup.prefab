@@ -918,7 +918,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -895}
+  m_AnchoredPosition: {x: 0, y: -735}
   m_SizeDelta: {x: -80, y: 130}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &6862136564404906460
@@ -1482,7 +1482,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1111477224040338719, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 1045
+      value: 905
       objectReference: {fileID: 0}
     - target: {fileID: 1558290342468613744, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       propertyPath: m_isOrthographic
@@ -2275,8 +2275,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.InGameOption
   bgmSlider: {fileID: 2647298459917892678}
   sfxSlider: {fileID: 7448661378321885803}
-  worldTreeButton: {fileID: 2436488320478307321}
-  worldTreeScene: WorldTree
+  lobbyButton: {fileID: 2436488320478307321}
+  lobbyScene: Main
 --- !u!224 &8225904828436719580 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1111477224040338719, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}

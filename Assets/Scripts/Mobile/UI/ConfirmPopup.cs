@@ -34,6 +34,17 @@ namespace MoreMush.Mobile
             popup.Open();
         }
 
+        // 알림만: "확인" 버튼 하나 (아니오 버튼은 숨긴다)
+        public void ShowNotice(string title, string message)
+        {
+            if (noButton != null) noButton.gameObject.SetActive(false);
+            var rt = (RectTransform)yesButton.transform;     // 두 버튼 중 왼쪽 자리 → 가운데로
+            rt.anchoredPosition = new Vector2(0f, rt.anchoredPosition.y);
+            var label = yesButton.GetComponentInChildren<TMP_Text>(true);
+            if (label != null) label.text = "확인";
+            Show(title, message, null);
+        }
+
         void Yes()
         {
             var action = onYes;
