@@ -55,6 +55,8 @@ namespace MoreMush.Mobile
                 if (detailIcon != null) detailIcon.preserveAspect = true;
                 detailName = up.Find("Text (TMP)")?.GetComponent<TMP_Text>();
                 detailCount = up.Find("Text (TMP) (1)")?.GetComponent<TMP_Text>();
+                FitDetailText(detailName, 900f, 22f);   // 이름은 합성 막대 위 빈 줄을 한 줄로 쓴다 (좁으면 두 줄로 접혀 아래 글자와 겹친다)
+                FitDetailText(detailCount, 160.5f, 22f);
                 BuildMergeBar(FindChildByIndex(up, "Image", 1));
                 equipStat = AddRowText(up.Find("Panel (1)"));
                 ownStat = AddRowText(up.Find("Panel (2)"));
@@ -150,6 +152,22 @@ namespace MoreMush.Mobile
             img.type = Image.Type.Sliced;
             img.pixelsPerUnitMultiplier = pixelsPerUnit;
             img.color = Color.white;
+        }
+
+        // 왼쪽 끝은 그대로 두고 width만큼 오른쪽으로 넓힌다. 한 줄로만 쓰고, 넘치면 minSize까지 줄인 뒤 말줄임
+        static void FitDetailText(TMP_Text t, float width, float minSize)
+        {
+            if (t == null) return;
+            var rt = t.rectTransform;
+            float left = rt.anchoredPosition.x - rt.sizeDelta.x * rt.pivot.x;
+            rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
+            rt.anchoredPosition = new Vector2(left + width * rt.pivot.x, rt.anchoredPosition.y);
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            t.overflowMode = TextOverflowModes.Ellipsis;
+            t.alignment = TextAlignmentOptions.MidlineLeft;
+            t.fontSizeMax = t.fontSize;
+            t.fontSizeMin = minSize;
+            t.enableAutoSizing = true;
         }
 
         static void Center(RectTransform rt, Vector2 pos, Vector2 size)
