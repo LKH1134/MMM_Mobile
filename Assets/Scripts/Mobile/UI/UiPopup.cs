@@ -18,6 +18,7 @@ namespace MoreMush.Mobile
         [SerializeField] Button closeButton;
         [SerializeField] float duration = 0.25f;
         [SerializeField] float overhang = 160f;   // 시트 위로 튀어나온 탭 높이. 닫힐 때 이만큼 더 내려 완전히 숨긴다
+        [SerializeField] int sortingOffset = 100; // 부모 캔버스보다 이만큼 위에 그린다 (전투 화면·전투 UI 위)
 
         CanvasGroup group;
         Coroutine anim;
@@ -39,6 +40,7 @@ namespace MoreMush.Mobile
             IsOpen = true;
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
+            BringToFront();
             Play(true);
             Opened?.Invoke();
         }
@@ -52,6 +54,22 @@ namespace MoreMush.Mobile
         }
 
         public void Toggle() { if (IsOpen) Close(); else Open(); }
+
+        // 형제 순서만으로는 SafeArea 밖(전투 화면 등)에 가려진다 → 자기 캔버스로 맨 위에 그리고 입력도 먼저 받는다.
+        // 그래서 Dim을 누르면 팝업만 닫히고 뒤의 버튼은 눌리지 않는다
+        void BringToFront()
+        {
+            var parent = transform.parent != null ? transform.parent.GetComponentInParent<Canvas>() : null;
+            if (parent == null) return;
+            if (!TryGetComponent<Canvas>(out var canvas))
+            {
+                canvas = gameObject.AddComponent<Canvas>();
+                gameObject.AddComponent<GraphicRaycaster>();
+            }
+            canvas.overrideSorting = true;
+            // 부모 캔버스 순서 기준 (Main 캔버스 순서가 10000이라 고정값이면 뒤로 숨는다)
+            canvas.sortingOrder = parent.rootCanvas.sortingOrder + sortingOffset;
+        }
 
         void Play(bool open)
         {
