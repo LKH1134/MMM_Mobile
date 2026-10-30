@@ -95,11 +95,11 @@ namespace MoreMush.Mobile
             Center(icon.rectTransform, new Vector2(-450f, 103.4f), new Vector2(122.4f, 101.9f));
 
             var name = NewText("Text (TMP)", up, 36f);
-            name.color = Color.black;
+            name.color = Brown;
             name.alignment = TextAlignmentOptions.MidlineLeft;
             Center(name.rectTransform, new Vector2(-281.6f, 126f), new Vector2(160.5f, 50f));
             var count = NewText("Text (TMP) (1)", up, 36f);
-            count.color = Color.black;
+            count.color = Brown;
             count.alignment = TextAlignmentOptions.MidlineLeft;
             Center(count.rectTransform, new Vector2(-281.6f, 85f), new Vector2(160.5f, 50f));
 
@@ -111,7 +111,7 @@ namespace MoreMush.Mobile
             {
                 var row = NewImage(rowName, up);
                 row.preserveAspect = false;
-                row.color = new Color(1f, 1f, 1f, 0.392f);
+                Skin(row, CreamSprite, 2.5f);
                 var rt = row.rectTransform;
                 rt.anchorMin = Vector2.zero;
                 rt.anchorMax = Vector2.one;
@@ -126,13 +126,30 @@ namespace MoreMush.Mobile
                 img.raycastTarget = true;
                 Center(img.rectTransform, new Vector2(x, -121.2f), new Vector2(234.8f, 89.3f));
                 img.gameObject.AddComponent<Button>();
+                Skin(img, GoSprite, 1.4f);
                 var t = NewText("Text (TMP)", img.transform, 30f);
                 t.text = label;
+                t.color = Color.white;
                 var trt = t.rectTransform;
                 trt.anchorMin = Vector2.zero;
                 trt.anchorMax = Vector2.one;
                 trt.offsetMin = trt.offsetMax = Vector2.zero;
             }
+        }
+
+        // 프리팹 칸과 같은 게임 UI 그림 (Resources 경로)
+        const string CreamSprite = "Art/Dream/UI/Window/btn_cream";
+        const string GoSprite = "Art/Dream/UI/btn_go";
+        static readonly Color Brown = new Color(0.36f, 0.24f, 0.14f);
+
+        static void Skin(Image img, string sprite, float pixelsPerUnit)
+        {
+            var sp = Resources.Load<Sprite>(sprite);
+            if (sp == null) return;
+            img.sprite = sp;
+            img.type = Image.Type.Sliced;
+            img.pixelsPerUnitMultiplier = pixelsPerUnit;
+            img.color = Color.white;
         }
 
         static void Center(RectTransform rt, Vector2 pos, Vector2 size)
@@ -214,7 +231,7 @@ namespace MoreMush.Mobile
         {
             if (bar == null) return;
             var bg = bar.GetComponent<Image>();
-            if (bg != null) bg.color = new Color(0.85f, 0.82f, 0.78f);
+            if (bg != null && bg.sprite == null) bg.color = new Color(0.85f, 0.82f, 0.78f);   // 그림(progress_back)이 있으면 그대로
             var fill = NewImage("Fill", bar);
             fill.color = new Color(0.45f, 0.78f, 0.38f);
             fill.preserveAspect = false;

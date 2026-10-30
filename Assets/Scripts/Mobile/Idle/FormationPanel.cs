@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 편성 화면 (먼작귀 포켓식): 캐릭터 탭 → 동료 칸(Middle) → 칸을 누르면 꼬마 고르기 팝업(Char).
+    // 편성 화면 (먼작귀 포켓식): 캐릭터 탭 → 꼬마 칸(Middle) → 칸을 누르면 꼬마 고르기 팝업(Char).
     // 고른 꼬마를 누른 칸에 놓고, 이미 다른 칸에 있던 꼬마면 두 칸을 맞바꾼다(Formation.Place).
     // 팝업 첫 칸은 X 표시 "편성 해제" 버튼이고, 그 칸에 이미 있는 꼬마를 다시 골라도 해제된다. 못 얻은 꼬마는 "미보유"로 막는다.
     // 칸 버튼은 씬에 있는 것을 쓰고(자식 Image = 그림, w = 이름, w (1) = 레벨), 팝업 버튼에는 그림·배치 표시를 코드로 붙인다
@@ -13,7 +13,7 @@ namespace MoreMush.Mobile
     {
         [SerializeField] Button characterTab;       // Down/Button (1) "캐릭터"
         [SerializeField] Button autoButton;         // "자동 편성" — 비우면 GGoma/Button을 찾아 쓴다
-        [SerializeField] GameObject middle;         // 동료 칸 묶음
+        [SerializeField] GameObject middle;         // 꼬마 칸 묶음
         [SerializeField] Button[] slotButtons;      // Middle의 칸 버튼 (순서 = Formation 칸 = 전투 Ggoma1~5)
         [SerializeField] GameObject charPopup;      // 꼬마 고르기 팝업
         [SerializeField] RectTransform charGrid;    // 팝업 안 꼬마 버튼들의 부모
@@ -169,7 +169,7 @@ namespace MoreMush.Mobile
                 var img = slot.Find("Image")?.GetComponent<Image>();
                 if (img != null) { img.sprite = Formation.Icon(id); img.preserveAspect = true; img.color = empty ? Color.clear : Color.white; }
                 var nameText = slot.Find("w")?.GetComponent<TMP_Text>();
-                if (nameText != null) { nameText.text = empty ? "동료 선택" : Formation.Name(id); if (font != null) nameText.font = font; }
+                if (nameText != null) { nameText.text = empty ? "꼬마 선택" : Formation.Name(id); if (font != null) nameText.font = font; }
                 var lvText = slot.Find("w (1)")?.GetComponent<TMP_Text>();
                 if (lvText != null) { lvText.text = empty ? "" : "Lv.1"; if (font != null) lvText.font = font; }
             }
