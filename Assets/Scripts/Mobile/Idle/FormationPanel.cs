@@ -5,22 +5,22 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 편성 화면 (먼작귀 포켓식): 캐릭터 탭 → 꼬마 칸(Middle) → 칸을 누르면 꼬마 고르기 팝업(Char).
+    // 편성 화면 (먼작귀 포켓식): 칸 3×2(Middle) — 꼬마 칸 5개 + 6번째 펫 칸. 꼬마 칸을 누르면 꼬마 고르기 팝업(Char).
+    // 펫 칸은 장착한 펫을 보여 주고, 누르면 펫 창이 열린다 (Equit의 TabGroup이 펫 탭으로 쓴다).
     // 팝업에서 꼬마를 누르면 고른 것으로 표시하고 아래 정보 칸(CharacterDetail)에 레벨·조각·배율을 보여 준다 (장비 화면과 같은 방식).
     // 정보 칸의 "편성"으로 누른 칸에 놓고(이미 다른 칸에 있던 꼬마면 두 칸을 맞바꾼다, Formation.Place), "합성"·"일괄 합성"으로 레벨을 올린다.
     // 팝업 첫 칸은 X 표시 "편성 해제" 버튼(바로 해제)이고, 그 칸에 이미 있는 꼬마를 골라 "편성 해제"를 눌러도 해제된다. 못 얻은 꼬마는 "미보유"로 보여 주고 편성은 막는다.
     // 칸 버튼은 씬에 있는 것을 쓰고(자식 Image = 그림, w = 이름, w (1) = 레벨), 팝업 버튼에는 그림·배치 표시를 코드로 붙인다
     public class FormationPanel : MonoBehaviour
     {
-        [SerializeField] Button characterTab;       // Down/Button (1) "캐릭터"
         [SerializeField] Button autoButton;         // "자동 편성" — 비우면 GGoma/Button을 찾아 쓴다
-        [SerializeField] GameObject middle;         // 꼬마 칸 묶음
         [SerializeField] Button[] slotButtons;      // Middle의 칸 버튼 (순서 = Formation 칸 = 전투 Ggoma1~5)
+        [SerializeField] Transform petSlot;         // 6번째 칸 (펫) — 비우면 Middle/Pet을 찾아 쓴다
         [SerializeField] GameObject charPopup;      // 꼬마 고르기 팝업
         [SerializeField] RectTransform charGrid;    // 팝업 안 꼬마 버튼들의 부모
         [SerializeField] Button closeButton;
         [SerializeField] TMP_FontAsset font;
-        [SerializeField] string clearIcon = "Art/Dream/UI/btn_close";   // 편성 해제 버튼 그림 (Resources 경로)
+        [SerializeField] string clearIcon = "Art/Dream/UI/btn_close";   // 편성 해제 버튼·팝업 닫기 버튼 그림 (Resources 경로)
         [SerializeField] int popupSortingOrder = 10; // 부모 캔버스보다 이만큼 위에 그린다 (전투 화면·강화 목록 위)
 
         class Pick { public Button button; public Image bg, icon; public TMP_Text name, badge; public string id; }
@@ -33,16 +33,11 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
-            if (characterTab != null) characterTab.onClick.AddListener(ShowMiddle);
-            if (autoButton == null && characterTab != null && characterTab.transform.parent != null)
-            {
-                // GGoma 프리팹 구조: GGoma/Down/Button (1) = 캐릭터 탭, GGoma/Button = 자동 편성
-                var ggoma = characterTab.transform.parent.parent;
-                var found = ggoma != null ? ggoma.Find("Button") : null;
-                if (found != null) autoButton = found.GetComponent<Button>();
-            }
+            // GGoma 프리팹 구조: GGoma/Button = 자동 편성, GGoma/Middle/Pet = 펫 칸
+            if (autoButton == null) autoButton = transform.Find("Button")?.GetComponent<Button>();
             if (autoButton != null) autoButton.onClick.AddListener(Formation.AutoArrange);
             else Debug.LogWarning("[FormationPanel] 자동 편성 버튼을 찾지 못함");
+            if (petSlot == null) petSlot = transform.Find("Middle/Pet");
             for (int i = 0; i < slotButtons.Length; i++)
             {
                 int slot = i;
@@ -50,6 +45,7 @@ namespace MoreMush.Mobile
             }
             if (closeButton != null) closeButton.onClick.AddListener(ClosePicker);
             BuildPicks();
+            CreateCloseButton();    // BuildPicks 뒤에: 그리드 안 버튼을 꼬마 칸으로 모으므로 먼저 만들면 칸으로 잡힌다
             detail = CharacterDetail.Create(charGrid, font, DetailHeight);
             detail.PlaceRequested += PlaceSelected;
             ClosePicker();      // 씬에서 켜 두었어도 시작할 때는 닫는다
@@ -58,16 +54,32 @@ namespace MoreMush.Mobile
         void OnEnable()
         {
             Formation.Changed += Refresh;
+            Equipment.Pet.Changed += Refresh;
             Refresh();
         }
 
-        void OnDisable() => Formation.Changed -= Refresh;
-
-        void ShowMiddle()
+        void OnDisable()
         {
-            if (middle != null) middle.SetActive(true);
-            ClosePicker();
+            Formation.Changed -= Refresh;
+            Equipment.Pet.Changed -= Refresh;
         }
+
+        // 꼬마 고르기 창 오른쪽 위 모서리 X 버튼 (창 아래는 하단 바와 붙어 자리가 없다). 창이 화면 너비라 안쪽으로 들여 놓는다
+        void CreateCloseButton()
+        {
+            var img = new GameObject("Out", typeof(RectTransform), typeof(Image), typeof(Button)).GetComponent<Image>();
+            img.transform.SetParent(charGrid, false);
+            img.sprite = Resources.Load<Sprite>(clearIcon);
+            img.preserveAspect = true;
+            var rt = img.rectTransform;
+            rt.anchorMin = rt.anchorMax = Vector2.one;
+            rt.anchoredPosition = new Vector2(-CloseInset, -CloseInset);
+            rt.sizeDelta = new Vector2(CloseSize, CloseSize);
+            img.GetComponent<Button>().onClick.AddListener(ClosePicker);
+        }
+
+        const float CloseSize = 110f;
+        const float CloseInset = 50f;   // 버튼 가운데를 모서리에서 이만큼 안쪽으로
 
         void OpenPicker(int slot)
         {
@@ -195,6 +207,7 @@ namespace MoreMush.Mobile
                 var lvText = slot.Find("w (1)")?.GetComponent<TMP_Text>();
                 if (lvText != null) { lvText.text = empty ? "" : $"Lv.{Formation.Level(id)}"; if (font != null) lvText.font = font; }
             }
+            RefreshPetSlot();
 
             string current = targetSlot >= 0 ? Formation.Get(targetSlot) : null;
             foreach (var p in picks)
@@ -221,6 +234,21 @@ namespace MoreMush.Mobile
                 // 고른 꼬마는 노랗게, 다른 칸에 있는 꼬마는 살짝 어둡게
                 p.bg.color = picked ? new Color(1f, 0.9f, 0.45f) : at >= 0 && p.id != current ? new Color(0.85f, 0.85f, 0.85f) : Color.white;
             }
+        }
+
+        // 펫 칸: 꼬마 칸과 같은 구조 (Image = 그림, w = 이름, w (1) = 레벨). 장착한 펫이 없으면 "펫 선택"
+        void RefreshPetSlot()
+        {
+            if (petSlot == null) return;
+            var pet = Equipment.Pet;
+            int i = pet.Equipped;
+            bool empty = i < 0;
+            var img = petSlot.Find("Image")?.GetComponent<Image>();
+            if (img != null) { img.sprite = pet.Sprite(i); img.preserveAspect = true; img.color = empty ? Color.clear : Color.white; }
+            var nameText = petSlot.Find("w")?.GetComponent<TMP_Text>();
+            if (nameText != null) { nameText.text = empty ? "펫 선택" : pet.Names[i]; if (font != null) nameText.font = font; }
+            var lvText = petSlot.Find("w (1)")?.GetComponent<TMP_Text>();
+            if (lvText != null) { lvText.text = empty ? "" : $"Lv.{pet.Level(i)}"; if (font != null) lvText.font = font; }
         }
 
         TMP_Text NewText(string name, Transform parent, float size)
