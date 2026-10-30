@@ -28,6 +28,7 @@ namespace MoreMush.Mobile
             gameObject.SetActive(true);
             if (group == null) Awake();
             transform.SetAsLastSibling();
+            PopupLayer.Raise(gameObject, PopupLayer.Toast, raycast: false);   // 열린 팝업 위에도 보이게 (입력은 그대로 통과)
             messageText.text = message;
             if (play != null) StopCoroutine(play);
             play = StartCoroutine(Play(duration));

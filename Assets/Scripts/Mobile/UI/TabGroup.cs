@@ -14,6 +14,7 @@ namespace MoreMush.Mobile
         {
             public Button button;
             public GameObject page;
+            public GameObject[] hide = new GameObject[0];   // 이 탭이 열린 동안 끄는 것 (예: 던전·뽑기 머리줄과 겹치는 재화 줄)
         }
 
         [SerializeField] Tab[] tabs = new Tab[0];
@@ -73,6 +74,22 @@ namespace MoreMush.Mobile
 
         int StartIndex => allowNone ? defaultIndex : Mathf.Clamp(defaultIndex, 0, Mathf.Max(0, tabs.Length - 1));
 
+        // 어느 탭의 hide에든 든 것은 그 탭이 열렸을 때만 끄고, 나머지 때는 켠다
+        void ApplyHide()
+        {
+            var hidden = Current >= 0 ? tabs[Current].hide : null;
+            foreach (var tab in tabs)
+            {
+                if (tab.hide == null) continue;
+                foreach (var go in tab.hide)
+                {
+                    if (go == null) continue;
+                    bool on = hidden == null || Array.IndexOf(hidden, go) < 0;
+                    if (go.activeSelf != on) go.SetActive(on);
+                }
+            }
+        }
+
         void OnTabClicked(int index) => Select(index == Current && allowNone ? -1 : index);
 
         public void Select(int index)
@@ -90,11 +107,14 @@ namespace MoreMush.Mobile
             {
                 bool on = i == Current;
                 if (tabs[i].page != null && tabs[i].page.activeSelf != on) tabs[i].page.SetActive(on);
+                // 팝업 페이지는 자기 캔버스로 위에 올린다 — 형제 순서상 뒤에 오는 재화 줄 등에 가려지거나 뒤 버튼이 눌리지 않게
+                if (on && pagesArePopups && tabs[i].page != null) PopupLayer.Raise(tabs[i].page, PopupLayer.Panel);
                 var img = tabs[i].button != null ? tabs[i].button.image : null;
                 if (img != null && normalColors != null) img.color = on ? selectedColor : normalColors[i];
             }
             foreach (var go in homeOnly)
                 if (go != null && go.activeSelf != (Current < 0)) go.SetActive(Current < 0);
+            ApplyHide();
             if (homeButton != null && homeButton.image != null) homeButton.image.color = Current < 0 ? selectedColor : homeNormalColor;
             Changed?.Invoke(Current);
         }

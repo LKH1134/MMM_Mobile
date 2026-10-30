@@ -9,7 +9,8 @@ namespace MoreMush.Mobile
 {
     // 뽑기 패널: 광고 뽑기(11회, 하루 한 번) · 재화 뽑기(11회) · 재화 뽑기(35회).
     // 11회·35회는 보너스 포함 (10+1, 30+5) — 비용은 10회분·30회분. 비용·재화는 임시값이다 (기획 확정 전)
-    // kind = Character면 등급을 뽑은 뒤 그 등급의 꼬마로 바꿔 Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다
+    // kind = Character면 등급을 뽑은 뒤 그 등급의 꼬마로 바꿔 Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다.
+    // 뽑은 뒤에는 GachaResultPopup으로 무엇이 나왔는지 칸을 하나씩 띄워 보여 준다
     public class GachaPanel : MonoBehaviour
     {
         public const int Count11 = 11;
@@ -27,6 +28,8 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_Text coinLabel11;
         [SerializeField] TMP_Text coinLabel35;
         [SerializeField] TMP_Text infoText;         // 레벨·경험치·마지막 결과 (없어도 된다)
+        [SerializeField] TMP_Text titleText;        // 맨 위 띠의 뽑기 이름. 비우면 "Name" 띠 안에 만든다
+        [SerializeField] Image previewFrame;        // 왼쪽 큰 칸 — 이 뽑기의 대표 그림(임시)을 안에 띄운다. 비우면 "Image" 칸을 쓴다
         [SerializeField] Toast toast;               // 안내 문구 (없어도 된다)
         [SerializeField] Currency currency = Currency.Mycelite;
         [SerializeField] long cost11 = 100;
@@ -34,12 +37,62 @@ namespace MoreMush.Mobile
 
         string lastResult = "";
         bool adPlaying;
+        GachaResultPopup resultPopup;
 
         void Awake()
         {
             if (adButton != null) adButton.onClick.AddListener(OnAdClicked);
             if (coinButton11 != null) coinButton11.onClick.AddListener(() => PayAndRoll(Count11, cost11));
             if (coinButton35 != null) coinButton35.onClick.AddListener(() => PayAndRoll(Count35, cost35));
+            if (titleText == null) titleText = CreateTitle(transform.Find("Name"));
+            if (titleText != null) titleText.text = Title(kind);
+            if (previewFrame == null) previewFrame = transform.Find("Image")?.GetComponent<Image>();
+            ShowPreview();
+        }
+
+        // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 영웅 꼬마
+        void ShowPreview()
+        {
+            if (previewFrame == null) return;
+            var sprite = kind == GachaKind.Character ? Formation.Icon(PreviewCharacter)
+                : Equipment.Of(kind) is Equipment eq ? eq.Sprite(eq.Count - 1) : null;
+            if (sprite == null) return;
+            var img = new GameObject("Preview", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            img.transform.SetParent(previewFrame.transform, false);
+            img.sprite = sprite;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
+            var rt = img.rectTransform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(20f, 20f);
+            rt.offsetMax = new Vector2(-20f, -20f);
+        }
+
+        const string PreviewCharacter = "star";
+
+        // 맨 위 띠(Name 이미지)를 꽉 채우는 글자. 글꼴은 이 패널의 다른 글자에서 가져온다
+        TMP_Text CreateTitle(Transform bar)
+        {
+            if (bar == null) return null;
+            var label = GetComponentInChildren<TMP_Text>(true);
+            var t = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
+            t.transform.SetParent(bar, false);
+            var rt = t.rectTransform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(20f, 2f);
+            rt.offsetMax = new Vector2(-20f, -2f);
+            if (label != null) t.font = label.font;
+            t.color = new Color(0.36f, 0.24f, 0.14f);
+            t.fontStyle = FontStyles.Bold;
+            t.alignment = TextAlignmentOptions.Center;
+            t.enableAutoSizing = true;
+            t.fontSizeMin = 20f;
+            t.fontSizeMax = 40f;
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            t.raycastTarget = false;
+            return t;
         }
 
         void OnEnable()
@@ -96,24 +149,58 @@ namespace MoreMush.Mobile
             if (kind == GachaKind.Character)
             {
                 var ids = GachaProgress.PickCharacters(result);
+                Shuffle(ids);
+                var entries = new List<GachaResultPopup.Entry>();
+                var seen = new HashSet<string>();
+                foreach (var id in ids)
+                    entries.Add(new GachaResultPopup.Entry { icon = Formation.Icon(id), grade = Formation.Grade(id), isNew = !Formation.IsOwned(id) && seen.Add(id) });
                 GachaProgress.Apply(kind, result);
                 Formation.AddOwned(ids);
                 lastResult = FormatCharacters(count, ids);
+                ShowResult(entries);
             }
             else if (Equipment.Of(kind) is Equipment eq)
             {
                 var items = eq.PickItems(result);
+                Shuffle(items);
+                var entries = new List<GachaResultPopup.Entry>();
+                var seen = new HashSet<int>();
+                foreach (int i in items)
+                    entries.Add(new GachaResultPopup.Entry { icon = eq.Sprite(i), grade = Equipment.Grade(i), isNew = !eq.IsOwned(i) && seen.Add(i) });
                 GachaProgress.Apply(kind, result);
                 eq.AddItems(items);
                 lastResult = FormatItems(eq, count, items);
+                ShowResult(entries);
             }
             else
             {
                 GachaProgress.Apply(kind, result);
                 lastResult = FormatResult(kind, count, result);
+                Notify(lastResult);
             }
             Refresh();
-            Notify(lastResult);
+        }
+
+        // 뽑기 연출 (GachaResultPopup). 처음 쓸 때 캔버스 맨 위에 만들고, 글꼴은 이 패널 글자에서 가져온다
+        void ShowResult(List<GachaResultPopup.Entry> entries)
+        {
+            if (resultPopup == null)
+            {
+                var canvas = GetComponentInParent<Canvas>();
+                var label = GetComponentInChildren<TMP_Text>(true);
+                resultPopup = GachaResultPopup.Create(canvas != null ? canvas.rootCanvas.transform : transform, label != null ? label.font : null);
+            }
+            resultPopup.Show(entries);
+        }
+
+        // 뽑은 순서를 섞어 보여 준다 (PickItems·PickCharacters는 낮은 등급부터 모아 돌려준다)
+        static void Shuffle<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = UnityEngine.Random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
         }
 
         static string FormatResult(GachaKind kind, int count, int[] result)

@@ -16,7 +16,7 @@ namespace MoreMush.Mobile.EditorTools
             { "적", "index:int key:string hpCoefficient:double resourceId:int" },
             { "보스", "index:int key:string name:string hpCoefficient:double resourceId:int" },
             { "꼬마", "index:int key:string name:string grade:int attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int" },
-            { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int" },
+            { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int" },
             { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double" },
             { "리소스", "index:int key:string type:string path:string" },
         };
@@ -95,7 +95,8 @@ namespace MoreMush.Mobile.EditorTools
             {
                 if (!stats.Add(r.Text("stat"))) issues.Add(r.At("stat") + ": 강화 종류가 겹친다");
                 foreach (string col in new[] { "price", "priceDivisor", "maxLevel" }) Positive(r, col, issues);
-                foreach (string col in new[] { "baseValue", "perLevel", "priceExponent", "unlockLevel" }) Between(r, col, 0, double.MaxValue, issues);
+                foreach (string col in new[] { "baseValue", "perLevel", "priceExponent", "priceScale", "unlockLevel", "capEvery", "capStep" }) Between(r, col, 0, double.MaxValue, issues);
+                if (r.Int("capEvery") > 0 && (r.Int("capStep") <= 0 || r.Int("unlockLevel") <= 0)) issues.Add(r.At("capEvery") + ": 단계 제한은 capStep과 unlockLevel이 0보다 커야 한다");
                 if (r.Text("valueMode") != "Add" && r.Text("valueMode") != "Multiply") issues.Add(r.At("valueMode") + ": Add 또는 Multiply이어야 한다");
                 if (r.Text("currency") != "Gold") issues.Add(r.At("currency") + ": 현재 강화는 Gold를 사용한다");
             }
