@@ -49,11 +49,11 @@ namespace MoreMush.Mobile
         }
 
         // 무료 뽑기: 종류마다 하루 한 번. 던전 입장 횟수와 같이 한국 시각(UTC+9) 00시에 다시 생긴다
-        static string Today => DungeonTickets.KstNow.ToString("yyyyMMdd");
-        public static bool FreeAvailable(GachaKind k) => PlayerPrefs.GetString(FreeDayKey(k), "") != Today;
+        // (기기 시계를 되돌려 다시 받지 못하게 저장된 날보다 뒤의 날만 새날로 본다, DungeonTickets.IsNewDay)
+        public static bool FreeAvailable(GachaKind k) => DungeonTickets.IsNewDay(PlayerPrefs.GetString(FreeDayKey(k), ""));
         public static void MarkFreeUsed(GachaKind k)
         {
-            PlayerPrefs.SetString(FreeDayKey(k), Today);
+            PlayerPrefs.SetString(FreeDayKey(k), DungeonTickets.Today);
             PlayerPrefs.Save();
             Changed?.Invoke();
         }

@@ -131,7 +131,7 @@
 `Main` 던전 탭 → 던전 1 "입장하기"(`DungeonEntry`, 입장 횟수 1 사용) → **`InGame`**(판 하나) → 결과 팝업 "한 번 더하기"(입장 횟수 1 사용, 없으면 막힘) / "나가기"(→ `Main`). 인게임 설정 "로비로 돌아가기" → `Main`
 
 - 하단바(`BottomBar` 프리팹): 편성 · 세계수 · 홈 · 던전 · 뽑기. `TabGroup`(SafeArea)이 편성(`Equit`)·던전(`DungeonUI`)·뽑기(`GachaUI`) 페이지를 켜고 끕니다. 홈 = 아무 페이지도 없음. **세계수 = `ComingSoonButton`**("아직 개발중인 기능입니다." 알림, `ConfirmPopup.ShowNotice`).
-- 씬을 바꾸는 곳은 `SceneLoader.Load(이름)`을 씁니다(가운데 나이테 아이콘이 도는 로딩 팝업, 최소 0.3초, 터치 막음). 예외: Start → Main(`StartLoading` 퍼센트 화면), **InGame 결과 팝업·벤치마크는 아직 `SceneManager.LoadScene` 직접 호출**이라 로딩 팝업 없이 넘어갑니다(`ResultPopup.Retry/GoMain`, `Benchmark`). 인게임 설정 "로비로 돌아가기"는 10-30부터 `SceneLoader`.
+- 씬을 바꾸는 곳은 `SceneLoader.Load(이름)`을 씁니다(가운데 나이테 아이콘이 도는 로딩 팝업, 최소 0.3초, 터치 막음). 예외: Start → Main(`StartLoading` 퍼센트 화면), **벤치마크는 아직 `SceneManager.LoadScene` 직접 호출**. 인게임 설정 "로비로 돌아가기"·결과 팝업 "한 번 더하기/나가기"(`ResultPopup`, 10-30 최적화 작업)는 `SceneLoader` — 두 번 눌러도 한 번만 넘어가고 입장 횟수도 넘어갈 때만 씀.
 - **뒤로가기(Android 버튼·제스처, 에디터 Esc, `BackButton`):** 열린 팝업이 있으면 닫기(`PopupGate.HandleBack`, 닫기 수단이 없는 InGame 결과 팝업은 안 닫힘) → 없으면 씬 처리: Main = 탭이 열려 있으면 홈, 홈이면 "게임을 종료할까요?"(`MainBackHandler`) / InGame = 설정 팝업(`StageHud`). 로딩 중엔 무시.
 
 ### 3.1 Main (방치형)
@@ -409,7 +409,7 @@
 - **Awake 순서:** `HarvestGame.Awake`가 `HarvestField.Awake`보다 먼저 `Configure`를 부를 수 있습니다. 필드가 Awake에서 준비하는 값은 처음 쓸 때 준비되게 하세요(`SaveBarBase` 참고).
 
 **2026-10-30 작업에서 알게 된 것**
-- **잔액·강화 레벨은 메모리 캐시(KHD `4a783a7`):** `Wallet.Gold/Mycelite`와 `IdleProgress.Level`은 처음 한 번만 PlayerPrefs를 읽습니다. **값은 꼭 `Wallet`·`IdleProgress`를 거쳐 쓰고**, PlayerPrefs를 직접 지우거나 고쳤으면 `Wallet.Reload()`·`IdleProgress.ReloadLevels()`를 부르세요(데이터 초기화 버튼은 부름, 플레이 시작 때 자동). 꼬마 레벨(`Formation.Level`)은 아직 캐시 없음 — 전투 타격마다 PlayerPrefs를 읽음.
+- **잔액·강화 레벨은 메모리 캐시(KHD `4a783a7`):** `Wallet.Gold/Mycelite`와 `IdleProgress.Level`은 처음 한 번만 PlayerPrefs를 읽습니다. **값은 꼭 `Wallet`·`IdleProgress`를 거쳐 쓰고**, PlayerPrefs를 직접 지우거나 고쳤으면 `Wallet.Reload()`·`IdleProgress.ReloadLevels()`를 부르세요(데이터 초기화 버튼은 부름, 플레이 시작 때 자동). **10-30 최적화 작업부터 `Formation`(칸·꼬마 레벨·조각)·`Equipment`(레벨·조각·장착, `TotalPercent`)도 같은 방식** — 직접 고쳤으면 `Formation.Reload()`·`Equipment.ReloadAll()`.
 - **머지 뒤 새 스크립트가 컴파일에서 빠짐:** KHD 머지 직후 Unity가 새 .cs 5개를 에셋 DB엔 등록하고 컴파일 대상에선 빼서 "Missing script"·"type not found"가 났습니다. 다시 임포트로는 안 되고, 에디터에서 **파일 이름을 바꿨다 되돌리면**(`AssetDatabase.RenameAsset`) 들어갑니다. `CompilationPipeline.GetAssemblies()`의 `sourceFiles`로 확인.
 - **TMP 색을 코드로 바꾼 프리팹:** `LoadPrefabContents`에서 `TMP_Text.color`만 바꾸고 저장하면 `m_fontColor32`가 옛 값으로 남아, 씬을 저장할 때마다 글자 색 덮어쓰기가 수십 줄 생깁니다. 프리팹을 고칠 땐 `SerializedObject`로 `m_fontColor32.rgba`(= A<<24|B<<16|G<<8|R)도 맞추세요(편성 프리팹 5개는 10-30 맞춤).
 - **MCP로 플레이 확인:** 에디터가 뒤에 있으면 프레임이 안 넘어가 애니메이션·코루틴이 멈춥니다. `EditorApplication.isPaused = true` 후 `EditorApplication.Step()`을 반복하면 한 프레임씩 진행됩니다(이때 콘솔의 `JobTempAlloc` 경고는 무시). 스크린샷은 `manage_camera screenshot`(include_image=false로 파일 저장 → 잘라서 보기)이 안정적이고, `ScreenCapture.CaptureScreenshotAsTexture`는 빈 화면이 나왔습니다. 꺼진 오브젝트에선 코루틴이 안 돌므로 `SetActive(true)` 먼저.
@@ -419,6 +419,15 @@
 - **Player Settings는 저장해야 파일에 남음:** 회사명·게임명 등은 바꾸는 즉시 `ProjectSettings.asset`에 쓰이지 않습니다. **File > Save Project** 후 커밋하세요(안 하면 브랜치 전환·병합 때 되돌아감, 10-30).
 - **프리팹 Variant:** `InGameOptionPopup`은 `OptionPopup`의 Variant입니다. 원본에서 자식을 지우면 Variant에서 그 자식에 붙여 둔 것이 부모 밖으로 밀려납니다(10-30 "로비로 돌아가기"가 그랬음).
 - **MCP 입력 시험:** 에디터 창에 포커스가 없으면 `InputSystem.QueueStateEvent`로 넣은 키가 처리되지 않습니다. 뒤로가기는 `PopupGate.HandleBack()` → `BackButton.SceneHandler`를 직접 불러 확인했습니다.
+
+**최적화·안정화 (2026-10-30, 코드 컴파일만 확인 — 에디터·실기기 확인 필요)**
+- **PlayerPrefs 읽기 제거:** 전투가 매 프레임(`FinalHp`·`FinalHpRegen`)·던질 때마다(`FinalAttack`) 장비 15개 × 3종 레벨을 PlayerPrefs에서 읽고 있었음(프레임당 약 70번 + 키 문자열 할당, 안드로이드에선 JNI 호출). `Equipment`·`Formation`을 메모리 캐시로 바꾸고 `Equipment.TotalPercent`는 레벨·장착이 바뀔 때만 다시 셈.
+- **저장 모으기 `SaveScheduler`:** 자주 바뀌는 값(전투 골드 1초마다 `Wallet`, 강화 꾹 누르기 `IdleProgress.TryUpgrade`, 마지막 접속 시각 `IdleAway.MarkSeen`, 배속·볼륨)은 `SaveScheduler.MarkDirty()`만 하고 5초마다·앱이 뒤로 갈 때(`OnApplicationPause`/`Focus`)·종료 때 한 번에 `PlayerPrefs.Save()`. 뽑기·합성·편성·스테이지처럼 드물고 중요한 쓰기는 그대로 바로 저장(밀린 값도 같이 저장됨). **새로 자주 쓰는 값은 `MarkDirty`를 쓰세요.**
+- **전투 서브 캔버스:** `IdleBattle`이 Awake에서 `IdleBattle`·`EnemyArea`·`GgomaArea`에 `Canvas`를 붙임(`IdleBattle`만 `GraphicRaycaster`). 전투가 매 프레임 움직여도 Main 캔버스의 강화 목록·하단바·재화 바는 다시 묶이지 않음. **에디터에서 확인할 것:** 숫자 팝업·타격 이펙트가 옵션 버튼·재화 바·강화 목록보다 위로 그려지지 않는지(중첩 캔버스 그리는 순서). 문제가 있으면 `AddSubCanvas` 세 줄을 지우면 예전과 같아짐. 숫자 팝업·타격 이펙트는 `canvasRenderer.SetAlpha`로 흐려짐(TMP color를 바꾸면 매 프레임 메시를 새로 만듦). 체력·전투력 글자는 값이 바뀔 때만.
+- **기타 성능:** `UpgradePanel` — 잔액이 바뀔 때(1초마다)는 버튼 활성·색만(`RefreshAfford`), 글자는 강화 레벨이 바뀔 때만. `PowerSaveMode` — 씬 이름을 매 프레임 읽지 않음(문자열 할당). `BossHud` % 글자는 바뀔 때만. `Wallet.Format` 단위 배열 static.
+- **안정화:** 화면 꺼짐 방지(`Screen.sleepTimeout = NeverSleep`, `AppSettings` — 안 하면 기기 화면 꺼짐(30초~2분)이 절전 모드(3분)보다 먼저 와서 방치 전투가 멈춤). 앱으로 돌아오면 절전 덮개 해제. 골드 더하기가 long을 넘으면 0이 되던 것 → 최댓값에서 멈춤. 앱 밖 보상: 초당 골드를 `InvariantCulture`로 저장·읽기(기기 언어가 바뀌면 값이 1만 배 틀어질 수 있었음), 망가진 `Idle.LastSeen` 값 범위 검사, **시계를 되돌려도 마지막 접속 시각은 뒤로 가지 않음**. **던전 입장 횟수·무료 뽑기는 저장된 날짜보다 '뒤의 날'일 때만 다시 채움**(시계를 되돌렸다 맞추는 반복 방지). 둘 다 저장값이 지금보다 하루(`IdleAway.MaxClockSkew`) 넘게 앞서면 한때 틀린 시계로 보고 버림. 표에 없는 보스 스테이지는 일반 스테이지로 취급(`StageProgress.HasBoss`, 보스 판·파밍 판에 갇히지 않게). 무한 스테이지 체력·보상 float 넘침 상한(1e30), 스킬 가격 long 넘침 상한, 표에 없는 보스면 보스 판으로 보지 않음.
+- **설정:** URP `Mobile_RPAsset` — HDR·메인 라이트 그림자·라이트 쿠키·렌즈 플레어·지형 구멍·LOD 크로스페이드·혼합 조명·반사 프로브 블렌딩 끔(UI만 쓰는 게임이라 셰이더 변형·대역폭 절약), **Render Scale 0.8 → 1**(Main 캔버스가 Screen Space-Camera라 UI 전체가 80%로 그려져 흐렸음). Player — **Optimized Frame Pacing(Swappy) 켬**, 밉맵 스트리핑 켬, 릴리스 빌드 Log·Warning 스택 트레이스 끔(Error·Exception은 유지).
+- **안 한 것:** 스프라이트 아틀라스(Sprite Packer가 꺼져 있음 — 켜고 아틀라스를 만들면 드로우 콜이 줄지만 에디터에서 확인하며 해야 함), `homeTabs`가 Main 씬에서 비어 있어 전투가 늘 '홈'으로 동작(탭을 열어도 숨기지 않음·방치 정산 팝업 안 뜸 — 의도인지 확인 필요), InGame에 있던 시간이 앱 밖 시간으로 세어지는 것(던전 다녀오면 방치 보상도 받음 — 의도인지 확인 필요).
 
 **출시 준비 (Google Play, 2026-10-30 검증)**
 - **대상 API 36 고정**(`AndroidTargetSdkVersion: 36`, 2026-08-31부터 새 앱·업데이트 필수, 연장 시 11-01까지). Automatic이면 SDK 36이 없는 PC에서 내려가므로 고정함. 최소 25, IL2CPP + ARM64, 16KB 페이지는 Unity 6000.3 기본 지원, 런처 액티비티 `exported="true"`, 권한·서드파티 SDK 없음.
@@ -433,8 +442,8 @@
 ### 방치형 (2026-10-30 기준, 우선)
 0. **실기기 확인 + 출시 준비:** 해상도(노치·20:9)·뒤로가기 키를 실기기에서 확인, 서명 키·AAB 빌드 (8장 "출시 준비")
 1. **던전 다듬기:** 던전 1은 InGame으로 연결, 입장 횟수(하루 2회) 완료. 남은 것: 던전 2~5 내용·해금 조건, 보상 규칙, `DungeonRequest`로 던전 종류·스테이지 넘기기(지금은 늘 기본값)
-2. **InGame ↔ Main 이동에 로딩 팝업:** `ResultPopup.Retry/GoMain`·`Benchmark`가 `SceneManager.LoadScene`을 직접 부름 → `SceneLoader.Load`로 (`InGameOption`은 10-30 완료)
-3. **꼬마 강화 다듬기:** 레벨당 +5%는 임시값 → 밸런스 곡선에 맞춰 정하기. `Formation.Level` 캐시(전투 타격마다 PlayerPrefs 읽음). 꺼 둔 `Char` 아래 버튼 줄은 지울지 결정
+2. **InGame ↔ Main 이동에 로딩 팝업:** `Benchmark`만 남음 (`InGameOption`·`ResultPopup`은 10-30 완료)
+3. **꼬마 강화 다듬기:** 레벨당 +5%는 임시값 → 밸런스 곡선에 맞춰 정하기. 꺼 둔 `Char` 아래 버튼 줄은 지울지 결정 (`Formation` 캐시는 10-30 완료)
 4. **도감 팝업을 여는 버튼** 다시 두기 (지금 어디서도 안 열림)
 5. 옵션 팝업 기능 연결: 언어·진동·알림·BGM/SFX (게임 종료·도움말·데이터 초기화는 10-30 버튼 제거)
 6. 세계수를 다시 만들지·Main 패널로 흡수할지 (`Backup/WorldTree/`, `HANDOFF_IDLE_PIVOT.md` ❓). 스킬 트리를 다시 쓸지(`Backup/SkillTree/`)

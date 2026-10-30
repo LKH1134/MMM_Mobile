@@ -151,6 +151,7 @@ namespace MoreMush.Mobile
             speedIndex = (speedIndex + 1) % speeds.Length;
             forcedSpeed = 0f;
             PlayerPrefs.SetInt(SpeedKey, speedIndex);
+            SaveScheduler.MarkDirty();
             ShowSpeed();
             ApplyTimeScale();
         }

@@ -20,6 +20,7 @@ namespace MoreMush.Mobile
         public const double LevelBonus = 0.2;       // 레벨마다 효과 +20% (1레벨 값 기준)
         public const double EquipRatio = 3;         // 장착 효과 = 보유 효과 × 이 배수
         static readonly float[] SubWeights = { 0.6f, 0.3f, 0.1f };
+        static readonly string[] WeaponSprites = { "sam", "sam", "saw", "hs_gold", "hs_gold" };   // 등급별 수확기 그림
 
         public static readonly Equipment Weapon = new Equipment(GachaKind.Weapon, "Weapon", "무기", EquipStat.Attack,
             new[]
@@ -30,7 +31,7 @@ namespace MoreMush.Mobile
                 "붉은 낫", "불꽃 낫", "용암 낫",
                 "황금 낫", "별빛 낫", "태초의 낫",
             },
-            i => "Art/Dream/Harvesters/" + new[] { "sam", "sam", "saw", "hs_gold", "hs_gold" }[i / SubPerGrade]);
+            i => "Art/Dream/Harvesters/" + WeaponSprites[i / SubPerGrade]);
 
         public static readonly Equipment Armor = new Equipment(GachaKind.Accessory, "Armor", "방어구", EquipStat.Hp,
             new[]
@@ -71,6 +72,13 @@ namespace MoreMush.Mobile
 
         public event Action Changed;
 
+        // 레벨·조각·장착은 전투 중 매 프레임(IdleProgress.FinalHp 등 → TotalPercent) 읽는다 →
+        // PlayerPrefs(안드로이드에서 느림)를 처음 한 번만 읽고 메모리에 둔다. 쓸 때 둘 다 고친다. PlayerPrefs를 밖에서 지웠으면 ReloadAll
+        readonly string[] levelKeys, copiesKeys;
+        int[] levels, copies;                       // null = 아직 안 읽음
+        int equippedRaw;
+        double totalPercent = double.NaN;           // NaN = 다시 셈
+
         Equipment(GachaKind kind, string keyPrefix, string title, EquipStat stat, string[] names, Func<int, string> spritePath)
         {
             Kind = kind;
@@ -79,14 +87,68 @@ namespace MoreMush.Mobile
             Stat = stat;
             Names = names;
             this.spritePath = spritePath;
+            levelKeys = new string[names.Length];
+            copiesKeys = new string[names.Length];
+            for (int i = 0; i < names.Length; i++)
+            {
+                levelKeys[i] = $"{keyPrefix}.Level.{i}";
+                copiesKeys[i] = $"{keyPrefix}.Copies.{i}";
+            }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        public static void ReloadAll()
+        {
+            foreach (var e in All) e?.Reload();
+        }
+
+        void Reload()
+        {
+            levels = copies = null;
+            totalPercent = double.NaN;
+        }
+
+        void EnsureLoaded()
+        {
+            if (levels != null) return;
+            Migrate();
+            var lv = new int[Count];
+            var cp = new int[Count];
+            for (int i = 0; i < Count; i++)
+            {
+                lv[i] = Mathf.Clamp(PlayerPrefs.GetInt(levelKeys[i], 0), 0, MaxLevel);
+                cp[i] = Mathf.Max(0, PlayerPrefs.GetInt(copiesKeys[i], 0));
+            }
+            equippedRaw = PlayerPrefs.GetInt(EquippedKey, -1);
+            copies = cp;
+            levels = lv;
+            totalPercent = double.NaN;
+        }
+
+        void SetLevel(int i, int lv)
+        {
+            levels[i] = Mathf.Clamp(lv, 0, MaxLevel);
+            PlayerPrefs.SetInt(levelKeys[i], levels[i]);
+            totalPercent = double.NaN;
+        }
+
+        void SetCopies(int i, int n)
+        {
+            copies[i] = Mathf.Max(0, n);
+            PlayerPrefs.SetInt(copiesKeys[i], copies[i]);
+        }
+
+        void SetEquipped(int i)
+        {
+            equippedRaw = i;
+            PlayerPrefs.SetInt(EquippedKey, i);
+            totalPercent = double.NaN;
         }
 
         public int Count => Names.Length;
         public string StatName => Stat == EquipStat.Attack ? "공격력" : "체력";
 
         string OwnedKey(int i) => $"{keyPrefix}.Owned.{i}";        // 예전 세이브 (얻은 장수)
-        string LevelKey(int i) => $"{keyPrefix}.Level.{i}";
-        string CopiesKey(int i) => $"{keyPrefix}.Copies.{i}";
         string EquippedKey => keyPrefix + ".Equipped";
         string MigratedKey => keyPrefix + ".Migrated";
         string MigratedLevelKey => keyPrefix + ".MigratedLevel";
@@ -97,14 +159,20 @@ namespace MoreMush.Mobile
         // 장비 레벨 (0 = 아직 없음)
         public int Level(int i)
         {
-            Migrate();
-            return i >= 0 && i < Count ? Mathf.Clamp(PlayerPrefs.GetInt(LevelKey(i), 0), 0, MaxLevel) : 0;
+            if (i < 0 || i >= Count) return 0;
+            EnsureLoaded();
+            return levels[i];
         }
 
         public bool IsOwned(int i) => Level(i) > 0;
 
         // 레벨업에 쓸 조각 (같은 장비를 또 얻은 수)
-        public int Copies(int i) => i >= 0 && i < Count ? Mathf.Max(0, PlayerPrefs.GetInt(CopiesKey(i), 0)) : 0;
+        public int Copies(int i)
+        {
+            if (i < 0 || i >= Count) return 0;
+            EnsureLoaded();
+            return copies[i];
+        }
 
         // 레벨 lv → lv+1에 드는 조각 수 (임시: Lv.1→2는 2개, 레벨마다 1개씩 늘어난다)
         public static int CopiesToNext(int lv) => lv + 1;
@@ -114,8 +182,8 @@ namespace MoreMush.Mobile
         {
             get
             {
-                int i = PlayerPrefs.GetInt(EquippedKey, -1);
-                return IsOwned(i) ? i : -1;
+                EnsureLoaded();
+                return IsOwned(equippedRaw) ? equippedRaw : -1;
             }
         }
 
@@ -148,15 +216,23 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 스탯에 더해지는 % 전체 (보유 + 장착)
-        public double TotalPercent => TotalOwnPercent + EquipPercent(Equipped);
+        // 스탯에 더해지는 % 전체 (보유 + 장착). 레벨·장착이 바뀔 때만 다시 셈한다
+        public double TotalPercent
+        {
+            get
+            {
+                EnsureLoaded();
+                if (double.IsNaN(totalPercent)) totalPercent = TotalOwnPercent + EquipPercent(Equipped);
+                return totalPercent;
+            }
+        }
 
         public Sprite Sprite(int i) => i >= 0 && i < Count ? Resources.Load<Sprite>(spritePath(i)) : null;
 
         // 뽑기 결과(등급별 개수) → 장비 번호들
         public List<int> PickItems(int[] gradeCounts)
         {
-            Migrate();      // GachaProgress.Apply가 등급별 장수를 올리기 전에 옮겨 둔다 (두 번 세지 않게)
+            EnsureLoaded();     // GachaProgress.Apply가 등급별 장수를 올리기 전에 옛 세이브를 옮겨 둔다 (두 번 세지 않게)
             var items = new List<int>();
             for (int g = 0; g < gradeCounts.Length && g * SubPerGrade < Count; g++)
                 for (int n = 0; n < gradeCounts[g]; n++) items.Add(g * SubPerGrade + PickSub());
@@ -176,23 +252,23 @@ namespace MoreMush.Mobile
 
         public void AddItems(IEnumerable<int> items)
         {
-            Migrate();
+            EnsureLoaded();
             int best = -1;
             foreach (int i in items)
             {
                 if (i < 0 || i >= Count) continue;
-                if (Level(i) == 0) PlayerPrefs.SetInt(LevelKey(i), 1);                // 처음 얻음 → Lv.1
-                else PlayerPrefs.SetInt(CopiesKey(i), Copies(i) + 1);                // 또 얻음 → 조각
+                if (Level(i) == 0) SetLevel(i, 1);                 // 처음 얻음 → Lv.1
+                else SetCopies(i, Copies(i) + 1);                  // 또 얻음 → 조각
                 best = Mathf.Max(best, i);
             }
-            if (Equipped < 0 && best >= 0) PlayerPrefs.SetInt(EquippedKey, best);   // 처음 얻은 장비는 바로 장착
+            if (Equipped < 0 && best >= 0) SetEquipped(best);      // 처음 얻은 장비는 바로 장착
             Save();
         }
 
         public void Equip(int i)
         {
             if (!IsOwned(i) || Equipped == i) return;
-            PlayerPrefs.SetInt(EquippedKey, i);
+            SetEquipped(i);
             Save();
         }
 
@@ -221,17 +297,17 @@ namespace MoreMush.Mobile
 
         int LevelUp(int i)
         {
-            int lv = Level(i), copies = Copies(i), up = 0;
+            int lv = Level(i), left = Copies(i), up = 0;
             if (lv <= 0) return 0;
-            while (lv < MaxLevel && copies >= CopiesToNext(lv))
+            while (lv < MaxLevel && left >= CopiesToNext(lv))
             {
-                copies -= CopiesToNext(lv);
+                left -= CopiesToNext(lv);
                 lv++;
                 up++;
             }
             if (up == 0) return 0;
-            PlayerPrefs.SetInt(LevelKey(i), lv);
-            PlayerPrefs.SetInt(CopiesKey(i), copies);
+            SetLevel(i, lv);
+            SetCopies(i, left);
             return up;
         }
 
@@ -262,8 +338,8 @@ namespace MoreMush.Mobile
             {
                 int owned = PlayerPrefs.GetInt(OwnedKey(i), 0);
                 if (owned <= 0) continue;
-                if (PlayerPrefs.GetInt(LevelKey(i), 0) <= 0) { PlayerPrefs.SetInt(LevelKey(i), 1); owned--; }
-                PlayerPrefs.SetInt(CopiesKey(i), PlayerPrefs.GetInt(CopiesKey(i), 0) + owned);
+                if (PlayerPrefs.GetInt(levelKeys[i], 0) <= 0) { PlayerPrefs.SetInt(levelKeys[i], 1); owned--; }
+                PlayerPrefs.SetInt(copiesKeys[i], PlayerPrefs.GetInt(copiesKeys[i], 0) + owned);
                 PlayerPrefs.DeleteKey(OwnedKey(i));
             }
             PlayerPrefs.Save();

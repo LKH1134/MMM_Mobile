@@ -138,6 +138,21 @@ namespace MoreMush.Mobile
             AddView(transform);
             AddView(enemyArea);
             if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddView(ggomaSlots[0].parent);
+
+            // 전투 그림은 매 프레임 움직인다 → 따로 캔버스를 둬서 같은 캔버스의 Main UI(강화 목록·하단바·재화 바…)가
+            // 프레임마다 다시 묶이지 않게 한다. HUD의 전투력 버튼 때문에 이 오브젝트만 입력(GraphicRaycaster)을 받는다
+            AddSubCanvas(transform, true);
+            AddSubCanvas(enemyArea, false);
+            if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddSubCanvas(ggomaSlots[0].parent, false);
+        }
+
+        static void AddSubCanvas(Transform t, bool raycast)
+        {
+            if (t == null || t.GetComponent<Canvas>() != null) return;
+            var parent = t.parent != null ? t.parent.GetComponentInParent<Canvas>() : null;
+            var canvas = t.gameObject.AddComponent<Canvas>();
+            if (parent != null) canvas.additionalShaderChannels = parent.rootCanvas.additionalShaderChannels;
+            if (raycast) t.gameObject.AddComponent<GraphicRaycaster>();
         }
 
         void Start()
@@ -166,6 +181,7 @@ namespace MoreMush.Mobile
             {
                 FlushGold();
                 IdleAway.MarkSeen();
+                SaveScheduler.Flush();      // SaveScheduler의 OnApplicationPause가 이보다 먼저 불렸어도 여기 값까지 저장되게
                 return;
             }
             IdleAway.ApplyOffline();
@@ -176,6 +192,7 @@ namespace MoreMush.Mobile
         {
             FlushGold();
             IdleAway.MarkSeen();
+            SaveScheduler.Flush();
         }
 
         // ── 홈 / 다른 탭 ──
@@ -400,8 +417,15 @@ namespace MoreMush.Mobile
             hpTextIn -= dt;
             if (hpTextIn > 0f) return;
             hpTextIn = 0.2f;
-            hpText.text = $"체력 {IdleProgress.FormatNumber(System.Math.Max(0, partyHp))} / {IdleProgress.FormatNumber(partyMaxHp)}";
+            // 체력이 가득 찬 채로 있는 때가 많다 — 보이는 값이 그대로면 글자를 다시 만들지 않는다
+            double shownHp = System.Math.Max(0, partyHp);
+            if (shownHp == lastHpShown && partyMaxHp == lastMaxHpShown) return;
+            lastHpShown = shownHp;
+            lastMaxHpShown = partyMaxHp;
+            hpText.text = $"체력 {IdleProgress.FormatNumber(shownHp)} / {IdleProgress.FormatNumber(partyMaxHp)}";
         }
+
+        double lastHpShown = -1, lastMaxHpShown = -1;
 
         Vector3 PartyCenter()
         {
@@ -645,6 +669,7 @@ namespace MoreMush.Mobile
             var p = freePopups.Count > 0 ? freePopups.Pop() : NewPopup();
             p.text.text = text;
             p.text.color = color;
+            p.text.canvasRenderer.SetAlpha(1f);
             p.text.fontSize = size;
             p.pos = ToLayer(worldPos);
             p.t = 0f;
@@ -671,9 +696,8 @@ namespace MoreMush.Mobile
                 p.t += dt;
                 float k = p.t / p.life;
                 p.text.rectTransform.anchoredPosition = p.pos + Vector2.up * (60f * Mathf.Sqrt(Mathf.Clamp01(k)));
-                var c = p.text.color;
-                c.a = k < 0.6f ? 1f : Mathf.Clamp01(1f - (k - 0.6f) / 0.4f);
-                p.text.color = c;
+                // 흐려지기는 CanvasRenderer 알파로 — TMP color를 바꾸면 글자 메시를 매 프레임 새로 만든다
+                if (k >= 0.6f) p.text.canvasRenderer.SetAlpha(Mathf.Clamp01(1f - (k - 0.6f) / 0.4f));
                 if (k < 1f) continue;
                 p.text.gameObject.SetActive(false);
                 freePopups.Push(p);
@@ -753,9 +777,16 @@ namespace MoreMush.Mobile
         void RefreshPower()
         {
             if (powerText == null) return;
-            powerText.text = "전투력 " + CombatPower.Format(CombatPower.Total);
+            double total = CombatPower.Total;
+            if (total != shownPower)
+            {
+                shownPower = total;
+                powerText.text = "전투력 " + CombatPower.Format(total);
+            }
             if (statsPanel.activeSelf) statsText.text = CombatPower.Describe();
         }
+
+        double shownPower = double.NaN;
 
         void RefreshHud()
         {

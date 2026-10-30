@@ -109,10 +109,10 @@ namespace MoreMush.Mobile
             if (skill.levelPrice > 0)
             {
                 currency = skill.levelCurrency;
-                return (long)System.Math.Round(skill.levelPrice * System.Math.Pow(growth, level - 2));
+                return (long)System.Math.Min(9e18, System.Math.Round(skill.levelPrice * System.Math.Pow(growth, level - 2)));   // long을 넘으면 음수(공짜)가 되지 않게
             }
             currency = skill.currency;
-            return (long)System.Math.Round(skill.unlockPrice * System.Math.Pow(growth, level - 1));
+            return (long)System.Math.Min(9e18, System.Math.Round(skill.unlockPrice * System.Math.Pow(growth, level - 1)));
         }
 
         // 다음 레벨 가격

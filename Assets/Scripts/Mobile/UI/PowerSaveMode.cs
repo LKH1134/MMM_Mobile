@@ -46,7 +46,8 @@ namespace MoreMush.Mobile
             scaler.matchWidthOrHeight = 0.5f;
             instance = go.AddComponent<PowerSaveMode>();
             instance.lastInput = Time.unscaledTime;
-            SceneManager.sceneLoaded += (s, m) => instance.OnSceneLoaded();
+            instance.inMain = SceneManager.GetActiveScene().name == MainNavigation.MainScene;   // 첫 씬은 이미 읽힌 뒤라 sceneLoaded가 오지 않는다
+            SceneManager.sceneLoaded += (s, m) => instance.OnSceneLoaded(s, m);
         }
 
         void Update()
@@ -58,11 +59,17 @@ namespace MoreMush.Mobile
                 else if (Time.unscaledTime >= nextRefresh) Refresh();
                 return;
             }
-            if (Allowed() && Time.unscaledTime - lastInput >= IdleSeconds) Enter();
+            if (Time.unscaledTime - lastInput >= IdleSeconds && Allowed()) Enter();
         }
 
         // 방치 전투가 도는 Main에서만. 로딩 중·다른 씬에서는 쓰지 않는다
-        static bool Allowed() => SceneManager.GetActiveScene().name == MainNavigation.MainScene && !SceneLoader.IsLoading;
+        // (씬 이름은 읽을 때마다 문자열을 새로 만든다 → 씬이 바뀔 때 한 번만 보고 inMain에 둔다)
+        bool inMain;
+
+        bool Allowed() => inMain && !SceneLoader.IsLoading;
+
+        // 앱으로 돌아오면 덮개를 걷고 다시 센다 — 뒤에 있던 시간 때문에 바로 덮이거나 방치 정산 팝업을 가리지 않게
+        void OnApplicationPause(bool paused) { if (!paused) Exit(); }
 
         static bool AnyInput()
         {
@@ -99,8 +106,9 @@ namespace MoreMush.Mobile
         public void OnPointerClick(PointerEventData e) => Exit();
 
         // 씬이 바뀌면 해제하고, 글꼴은 새 씬 글자에서 다시 가져온다
-        void OnSceneLoaded()
+        void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            if (mode == LoadSceneMode.Single) inMain = scene.name == MainNavigation.MainScene;
             Exit();
             if (cover != null) ApplyFont();
         }

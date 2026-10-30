@@ -134,7 +134,7 @@ namespace MoreMush.Mobile
             int next = Level(stat) + 1;
             levels[(int)stat] = next;
             PlayerPrefs.SetInt(LevelKeys[(int)stat], next);
-            PlayerPrefs.Save();
+            SaveScheduler.MarkDirty();      // 꾹 누르면 초당 수십 번 — 파일 쓰기는 SaveScheduler가 모아서
             Changed?.Invoke();
             return true;
         }
