@@ -69,15 +69,7 @@ namespace MoreMush.Mobile
             PopupGate.Opened(this, ClosePicker);
             charPopup.SetActive(true);
             // 팝업은 Equit 안에 있어 뒤에 오는 강화 목록·전투 화면에 가려진다 → 자기 캔버스로 위에 올린다
-            if (!charPopup.TryGetComponent<Canvas>(out var c))
-            {
-                c = charPopup.AddComponent<Canvas>();
-                charPopup.AddComponent<GraphicRaycaster>();
-            }
-            c.overrideSorting = true;
-            // 부모 캔버스 순서 기준 (Main 캔버스 순서가 10000이라 고정값이면 뒤로 숨는다)
-            var parent = charPopup.transform.parent != null ? charPopup.transform.parent.GetComponentInParent<Canvas>() : null;
-            c.sortingOrder = (parent != null ? parent.rootCanvas.sortingOrder : 0) + popupSortingOrder;
+            PopupLayer.Raise(charPopup, popupSortingOrder);
             Refresh();
         }
 

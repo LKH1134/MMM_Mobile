@@ -196,7 +196,12 @@ namespace MoreMush.Mobile
                 g.blocksRaycasts = home;
                 g.interactable = home;
             }
-            if (!home) { IdleAway.Begin(); return; }
+            if (!home)
+            {
+                if (statsPanel != null) statsPanel.SetActive(false);   // 전투력 통계는 홈 전용 — 다른 탭에서 돌아왔을 때 열린 채로 남지 않게
+                IdleAway.Begin();
+                return;
+            }
             FlushGold();
             ShowReport();
         }
@@ -436,6 +441,7 @@ namespace MoreMush.Mobile
             double dmg = IdleProgress.FinalAttack * Formation.AttackMultiplier(Formation.Get(g.slot));   // 꼬마마다 공격 배율
             bool crit = Random.value < IdleProgress.Value(IdleStat.CritChance);
             if (crit) dmg *= IdleProgress.Value(IdleStat.CritDamage);
+            if (!target.boss) dmg *= IdleProgress.Value(IdleStat.NormalEnemyDamage);   // 후반 강화: 보스가 아닌 적에게만
 
             var s = freeShots.Count > 0 ? freeShots.Pop() : NewShot();
             s.img.sprite = g.harvester;

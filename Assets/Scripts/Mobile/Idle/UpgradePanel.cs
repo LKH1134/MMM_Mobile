@@ -167,15 +167,20 @@ namespace MoreMush.Mobile
                 int lv = IdleProgress.Level(r.stat);
                 bool unlocked = IdleProgress.Unlocked(r.stat);
                 bool max = IdleProgress.IsMax(r.stat);
+                bool capped = IdleProgress.IsCapped(r.stat);
                 long cost = IdleProgress.Cost(r.stat);
                 r.level.text = "LV " + lv;
                 r.value.text = IdleProgress.FormatValue(r.stat, IdleProgress.Value(r.stat));
                 r.lockCover.SetActive(!unlocked);
-                r.costRow.SetActive(!max);
-                r.buttonText.text = max ? "MAX" : "강화";
-                r.buttonText.rectTransform.anchoredPosition = new Vector2(0f, max ? 0f : 24f);
+                r.costRow.SetActive(!max && !capped);
+                // 단계 제한: 다음 단계를 여는 기준 강화 레벨을 버튼에 적는다
+                var d = IdleProgress.Get(r.stat);
+                r.buttonText.text = max ? "MAX" : capped ? $"{IdleProgress.Get(d.unlockStat).name}\nLv {IdleProgress.NextCapGateLevel(r.stat)} 필요" : "강화";
+                r.buttonText.fontSize = capped ? 28f : 36f;
+                r.buttonText.rectTransform.sizeDelta = new Vector2(280f, capped ? 100f : 50f);
+                r.buttonText.rectTransform.anchoredPosition = new Vector2(0f, max || capped ? 0f : 24f);
                 r.cost.text = Wallet.Format(cost);
-                bool can = unlocked && !max && gold >= cost;
+                bool can = unlocked && !max && !capped && gold >= cost;
                 r.button.interactable = can;
                 r.buttonImage.color = can ? Color.white : new Color(0.6f, 0.6f, 0.6f);
                 r.cost.color = gold >= cost ? Color.white : new Color(1f, 0.55f, 0.5f);

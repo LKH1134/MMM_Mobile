@@ -15,7 +15,7 @@ namespace MoreMush.Mobile
     //   보스는 죽지 않게(BossHpMul) 해서 판 내내 같은 부하를 준다. 제한 시간도 측정이 끝날 때까지 늘린다.
     //   배속은 시나리오의 speed로 고정한다 (HUD 배속 버튼과 같은 Time.timeScale. 측정 시간은 배속과 상관없이 실제 초).
     // 결과: Application.persistentDataPath/Benchmark/<시각>_summary.csv (시나리오별 요약) · _timeline.csv (1초 단위).
-    //   안드로이드: /sdcard/Android/data/<패키지>/files/Benchmark/ — 끝나면 화면에도 요약을 띄운다 (눌러서 닫으면 SkillTree 씬으로).
+    //   안드로이드: /sdcard/Android/data/<패키지>/files/Benchmark/ — 끝나면 화면에도 요약을 띄운다 (눌러서 닫으면 Main 씬으로).
     // 시작: Benchmark.Start() — 에디터 메뉴 MoreMush/Debug/Run Benchmark, 개발 빌드 옵션 팝업의 벤치마크 버튼,
     //   또는 실행 인자 "-benchmark" (선택: "-benchmark-seconds=60", "-benchmark-repeat=3"). 안드로이드는
     //   adb shell am start -n <패키지>/com.unity3d.player.UnityPlayerGameActivity -e unity "-benchmark"
@@ -49,7 +49,7 @@ namespace MoreMush.Mobile
         };
 
         public const string InGameScene = "InGame";
-        public const string ReturnScene = "SkillTree";
+        public const string ReturnScene = MainNavigation.MainScene;
 
         public static bool Running => runner != null;
         public static bool GameLoop { get; private set; }   // Firebase Game Loop로 켜졌다

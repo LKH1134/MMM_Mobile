@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // WorldTree 씬 화면. 재화·바구니(세계수 보상 누적치) 표시, 옵션 팝업, 성장·꼬마·꾸미기·제작소 시트, 스킬 트리로 돌아가기.
+    // WorldTree 씬 화면. 재화·바구니(세계수 보상 누적치) 표시, 옵션 팝업, 성장·꼬마·꾸미기·제작소 시트, Main으로 돌아가기.
     // 골드·균사석은 지갑(Wallet)을 보여 주고, 바구니 값은 SetBasket으로 넣는다.
     // 바구니를 누르면 쌓인 골드를 받았다는 문구만 띄운다 (실제로 받는 처리는 추후)
     public class WorldTreeScreen : MonoBehaviour
@@ -24,7 +24,7 @@ namespace MoreMush.Mobile
         [SerializeField] Button optionButton;
         [SerializeField] PopupSlot optionPopup;   // 프리팹. 처음 열 때 이 캔버스 아래에 만든다
         [SerializeField] Menu[] menus;            // 꼬마·꾸미기·제작소·의뢰. 하단바의 홈·던전 버튼은 MainTabButton으로 씬 이동만 한다 (여기 넣지 않는다)
-        [SerializeField] string backScene = "SkillTree";
+        [SerializeField] string backScene = "Main";
 
         [SerializeField] Button basketButton;
         [SerializeField] Toast toastPrefab;

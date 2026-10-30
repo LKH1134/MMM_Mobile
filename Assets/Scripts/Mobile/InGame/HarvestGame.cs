@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     // 수확량 = 버섯 기본 수확량 × 등급별 수확량 × 황금 × (마지막 몇 초 보너스) × 스테이지 보상 배율. 골드 = 점수 × 전환율.
     // 보스 판: 보스 체력을 다 깎는 만큼 때리면 직전 일반 판 점수의 bossHitShare만큼 점수를 받는다 (못 잡은 판은 일반 판보다 손해).
     //   분신까지 모두 쓰러뜨리면 처치: 추가 골드 max(이번 판, 직전 일반 판) × bossRewardMul + 균사석 + 레전드리 버섯, 판이 바로 끝난다.
-    //   못 잡으면 그 판 골드 × failGold(지금 표는 1 = 감액 없음), 결과 팝업에서 재도전·파밍을 고른다. 스테이지 진행·파밍은 StageProgress가 맡는다.
+    //   못 잡으면 그 판 골드 × failGold(지금 표는 1 = 감액 없음), 결과 팝업의 "한 번 더하기"로 다시 도전한다. 스테이지 진행·파밍은 StageProgress가 맡는다.
     // 일반 판은 목표가 없다: 시간 끝까지 돌면 다음 스테이지로 넘어간다 (보스 스테이지의 일반 판 = 파밍은 넘는 판이 아니다).
     // 보스·★ 스테이지를 처음 넘으면 균사석(StageProgress.FirstClearGem)
     // Simulating이면 지갑·스테이지 저장과 결과 팝업을 건너뛴다 (밸런스 측정기 BalanceBot이 쓴다)
@@ -84,7 +84,11 @@ namespace MoreMush.Mobile
             hud.SetStage(StageNumber, Stats.BossRound);
         }
 
-        void Start() => hud.SetDuration(Stats.Duration);
+        void Start()
+        {
+            hud.SetDuration(Stats.Duration);
+            if (!Simulating) InGameTutorial.Begin(field, hud.transform, hud.GetComponentInChildren<TMPro.TMP_Text>(true)?.font);
+        }
 
         // 보스 타격 점수는 보스 체력만큼까지만 (넘친 피해는 점수가 없다)
         void OnHit(Mushroom m, Harvester h, int damage, bool crit)
@@ -166,9 +170,8 @@ namespace MoreMush.Mobile
         IEnumerator ShowResult()
         {
             yield return new WaitForSecondsRealtime(resultDelay);
-            string note = Stats.BossRound ? (BossKilled ? "보스 처치" : "보스 실패") : null;
             var popup = resultPopup.Get(hud.transform).GetComponent<ResultPopup>();
-            popup.Show(TotalGold, Score, Yield, note, MyceliteEarned, Stats.BossRound && !BossKilled, StageNumber);
+            popup.Show(TotalGold);
         }
     }
 }

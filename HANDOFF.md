@@ -97,15 +97,15 @@
 
 ## 3. 씬 흐름
 
-빌드 씬: `Start` · `Main` · `SkillTree` · `WorldTree` (`InGame`은 10-30 삭제)
+빌드 씬: `Start` · `Main` · `WorldTree` · `InGame` (`SkillTree`는 10-30 삭제, `Backup/SkillTree/`에 백업. `InGame`은 10-30 삭제했다가 복원 — 던전 1 "입장하기"(기본 해금)로 들어가고 결과 팝업에서 `Main`으로 돌아온다)
 
-`Start`(퍼센트 로딩, `StartLoading.nextScene = Main`) → **`Main`(방치형, 상주)** ⇄ `WorldTree`(세계수) ⇄ `SkillTree`(스킬트리)
+`Start`(퍼센트 로딩, `StartLoading.nextScene = Main`) → **`Main`(방치형, 상주)** ⇄ `WorldTree`(세계수)
 
-- 하단바는 세 씬 공통 프리팹(`BottomBar`)입니다: 편성 · 세계수 · 홈 · 던전 · 뽑기.
+- 하단바는 두 씬 공통 프리팹(`BottomBar`)입니다: 편성 · 세계수 · 홈 · 던전 · 뽑기.
   - Main: `TabGroup`(SafeArea)이 편성(`Equit`)·던전(`DungeonUI`)·뽑기(`GachaUI`) 페이지를 켜고 끕니다. 홈 = 아무 페이지도 없음.
-  - WorldTree·SkillTree: 편성·홈·던전·뽑기 = `MainTabButton`(Main으로 가서 그 탭을 엶, `MainNavigation`), 세계수 = `SceneButton("WorldTree")`.
+  - WorldTree: 편성·홈·던전·뽑기 = `MainTabButton`(Main으로 가서 그 탭을 엶, `MainNavigation`), 세계수 = `SceneButton("WorldTree")`.
 - 씬을 바꾸는 곳은 모두 `SceneLoader.Load(이름)`을 씁니다(가운데 나이테 아이콘이 도는 로딩 팝업, 최소 0.3초, 터치 막음). Start → Main만 `StartLoading`의 퍼센트 화면.
-- WorldTree 뒤로가기 → SkillTree. SkillTree의 스테이지 입장 버튼은 막아 둠(`stageScene` 비움 — InGame이 없음).
+- WorldTree 뒤로가기(`backScene`) → Main. 버튼은 꺼져 있음.
 - 데이터 초기화(어느 옵션 팝업에서든) → 저장값 전부 삭제 → `Start`.
 
 ### 3.1 Main (방치형)
@@ -217,7 +217,7 @@
 
 ---
 
-## 5. 스킬 트리 (SkillTree 씬)
+## 5. 스킬 트리 (SkillTree 씬) — 10-30 제거, `Backup/SkillTree/`에 백업. 아래는 기록용 (`SkillProgress`·스킬 테이블은 남아 있음)
 
 | 파일 | 역할 |
 |---|---|

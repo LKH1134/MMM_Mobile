@@ -61,16 +61,8 @@ namespace MoreMush.Mobile
         // 그래서 Dim을 누르면 팝업만 닫히고 뒤의 버튼은 눌리지 않는다
         void BringToFront()
         {
-            var parent = transform.parent != null ? transform.parent.GetComponentInParent<Canvas>() : null;
-            if (parent == null) return;
-            if (!TryGetComponent<Canvas>(out var canvas))
-            {
-                canvas = gameObject.AddComponent<Canvas>();
-                gameObject.AddComponent<GraphicRaycaster>();
-            }
-            canvas.overrideSorting = true;
-            // 부모 캔버스 순서 기준 (Main 캔버스 순서가 10000이라 고정값이면 뒤로 숨는다)
-            canvas.sortingOrder = parent.rootCanvas.sortingOrder + sortingOffset;
+            if (transform.parent == null || transform.parent.GetComponentInParent<Canvas>() == null) return;
+            PopupLayer.Raise(gameObject, sortingOffset);
         }
 
         void Play(bool open)
