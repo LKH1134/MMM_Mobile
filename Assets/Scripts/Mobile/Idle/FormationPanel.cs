@@ -7,11 +7,12 @@ namespace MoreMush.Mobile
 {
     // 편성 화면 (먼작귀 포켓식): 캐릭터 탭 → 동료 칸(Middle) → 칸을 누르면 꼬마 고르기 팝업(Char).
     // 고른 꼬마를 누른 칸에 놓고, 이미 다른 칸에 있던 꼬마면 두 칸을 맞바꾼다(Formation.Place).
-    // 팝업 첫 칸은 X 표시 "편성 해제" 버튼이고, 그 칸에 이미 있는 꼬마를 다시 골라도 해제된다.
+    // 팝업 첫 칸은 X 표시 "편성 해제" 버튼이고, 그 칸에 이미 있는 꼬마를 다시 골라도 해제된다. 못 얻은 꼬마는 "미보유"로 막는다.
     // 칸 버튼은 씬에 있는 것을 쓰고(자식 Image = 그림, w = 이름, w (1) = 레벨), 팝업 버튼에는 그림·배치 표시를 코드로 붙인다
     public class FormationPanel : MonoBehaviour
     {
         [SerializeField] Button characterTab;       // Down/Button (1) "캐릭터"
+        [SerializeField] Button autoButton;         // "자동 편성" — 비우면 GGoma/Button을 찾아 쓴다
         [SerializeField] GameObject middle;         // 동료 칸 묶음
         [SerializeField] Button[] slotButtons;      // Middle의 칸 버튼 (순서 = Formation 칸 = 전투 Ggoma1~5)
         [SerializeField] GameObject charPopup;      // 꼬마 고르기 팝업
@@ -29,6 +30,15 @@ namespace MoreMush.Mobile
         void Awake()
         {
             if (characterTab != null) characterTab.onClick.AddListener(ShowMiddle);
+            if (autoButton == null && characterTab != null && characterTab.transform.parent != null)
+            {
+                // GGoma 프리팹 구조: GGoma/Down/Button (1) = 캐릭터 탭, GGoma/Button = 자동 편성
+                var ggoma = characterTab.transform.parent.parent;
+                var found = ggoma != null ? ggoma.Find("Button") : null;
+                if (found != null) autoButton = found.GetComponent<Button>();
+            }
+            if (autoButton != null) autoButton.onClick.AddListener(Formation.AutoArrange);
+            else Debug.LogWarning("[FormationPanel] 자동 편성 버튼을 찾지 못함");
             for (int i = 0; i < slotButtons.Length; i++)
             {
                 int slot = i;
@@ -174,6 +184,11 @@ namespace MoreMush.Mobile
                     p.badge.text = "";
                     continue;
                 }
+                // 꼬마 뽑기로 아직 못 얻은 꼬마는 어둡게, 누를 수 없다
+                bool owned = Formation.IsOwned(p.id);
+                p.button.interactable = owned;
+                if (p.icon != null) p.icon.color = owned ? Color.white : new Color(0.25f, 0.25f, 0.25f);
+                if (!owned) { p.badge.text = "미보유"; p.bg.color = new Color(0.6f, 0.6f, 0.6f); continue; }
                 int at = Formation.SlotOf(p.id);
                 p.badge.text = at >= 0 ? $"{at + 1}번 배치" : "";
                 // 지금 고르는 칸에 있는 꼬마는 노랗게, 다른 칸에 있는 꼬마는 살짝 어둡게

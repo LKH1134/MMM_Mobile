@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 방치형 강화 목록 (레전드 오브 슬라임식): 줄마다 아이콘·레벨 / 이름·현재 값 / 강화 버튼(비용).
-    // 잠긴 줄은 "OO Lv N 달성 시 잠금 해제"로 덮는다. 누르고 있으면 계속 강화된다(HoldRepeat).
+    // 잠긴 줄은 "OO Lv N 달성 시 잠금 해제"로 덮는다. 누르고 있으면 계속 강화된다(HoldRepeat). 줄이 판보다 길면 위아래로 스크롤한다.
     // 이 오브젝트는 늘 켜 두고, 목록(body)만 켜고 끈다 — toggleButton(하단바 업그레이드)으로 열고 닫는다
     public class UpgradePanel : MonoBehaviour
     {
@@ -20,8 +20,7 @@ namespace MoreMush.Mobile
         [Header("임시 리소스 (Resources 경로)")]
         [SerializeField] string panelSprite = "Art/Dream/UI/panel_paper";
         [SerializeField] string buttonSprite = "Art/Dream/UI/btn_go";
-        [SerializeField] string goldIcon = "Art/Dream/Icons/gold";
-        [SerializeField] string[] statIcons = { "Art/Dream/Icons/hammer", "Art/Dream/Icons/clock", "Art/Dream/Icons/gem", "Art/Dream/Icons/f_beauty", "Art/Dream/Icons/gold" };
+        [SerializeField] string goldIcon = "Art/Dream/Icons/gold";   // 능력치 아이콘은 IdleProgress.Def.icon
 
         class Row
         {
@@ -34,7 +33,7 @@ namespace MoreMush.Mobile
         }
 
         readonly List<Row> rows = new List<Row>();
-        RectTransform body;
+        RectTransform body, content;
 
         void Awake()
         {
@@ -72,6 +71,25 @@ namespace MoreMush.Mobile
             bg.type = Image.Type.Sliced;
             bg.color = bg.sprite != null ? Color.white : new Color(0.96f, 0.92f, 0.84f);
 
+            // 스크롤: body(ScrollRect) > Viewport(가림) > Content(줄들)
+            var viewport = NewRect("Viewport", body);
+            Stretch(viewport);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var hit = viewport.gameObject.AddComponent<Image>();   // 줄 사이 빈 곳도 끌어서 스크롤되게
+            hit.color = Color.clear;
+            content = NewRect("Content", viewport);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = new Vector2(0f, padding * 2f + IdleProgress.Defs.Length * (rowHeight + rowGap) - rowGap);
+            var scroll = body.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport;
+            scroll.content = content;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 30f;
+
             float y = -padding;
             foreach (var d in IdleProgress.Defs)
             {
@@ -83,7 +101,7 @@ namespace MoreMush.Mobile
         Row BuildRow(IdleProgress.Def d, float y)
         {
             var r = new Row { stat = d.stat };
-            var rowRt = NewRect("Row_" + d.stat, body);
+            var rowRt = NewRect("Row_" + d.stat, content);
             rowRt.anchorMin = new Vector2(0f, 1f);
             rowRt.anchorMax = new Vector2(1f, 1f);
             rowRt.pivot = new Vector2(0.5f, 1f);
@@ -95,8 +113,7 @@ namespace MoreMush.Mobile
             // 왼쪽: 아이콘 + 레벨
             var iconBox = NewImage("IconBox", rowRt, null, new Color(0.36f, 0.26f, 0.2f, 0.85f));
             SetRect(iconBox.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f + 70f, 0f), new Vector2(140f, 140f));
-            int idx = (int)d.stat;
-            var icon = NewImage("Icon", iconBox.rectTransform, idx < statIcons.Length ? Resources.Load<Sprite>(statIcons[idx]) : null, Color.white);
+            var icon = NewImage("Icon", iconBox.rectTransform, string.IsNullOrEmpty(d.icon) ? null : Resources.Load<Sprite>(d.icon), Color.white);
             icon.preserveAspect = true;
             SetRect(icon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 14f), new Vector2(90f, 90f));
             r.level = NewText("Level", iconBox.rectTransform, 30f, TextAlignmentOptions.Center, Color.white);

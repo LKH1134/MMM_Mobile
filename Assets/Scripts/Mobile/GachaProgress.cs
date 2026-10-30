@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    public enum GachaKind { Weapon, Accessory, Pet }
+    public enum GachaKind { Weapon, Accessory, Pet, Character }   // Weapon·Accessory(방어구)·Pet = 장비 (Equipment), Character = 꼬마 (Formation)
 
     // 뽑기 종류별 레벨·경험치·보유 수와 광고 뽑기 사용 기록. PlayerPrefs에 저장한다 (세이브 구조가 생기면 옮긴다).
     // 경험치는 뽑은 개수만큼 오른다 (11뽑이면 +11). 레벨이 오를수록 높은 등급 확률이 커진다.
@@ -26,6 +27,16 @@ namespace MoreMush.Mobile
         public static int Exp(GachaKind k) => Mathf.Max(0, PlayerPrefs.GetInt(ExpKey(k), 0));
         public static int Owned(GachaKind k, int grade) => Mathf.Max(0, PlayerPrefs.GetInt(OwnedKey(k, grade), 0));
 
+        // 보유 효과(%) 1레벨 기준값 (등급별). 장비마다 단계·레벨을 반영한 값은 Equipment가 셈한다.
+        // 무기·펫 = 공격력 %, 장신구(방어구) = 체력 % (IdleProgress가 쓴다)
+        public static readonly double[] OwnBase = { 2, 5, 15, 40, 100 };
+
+        public static double OwnPercent(GachaKind k)
+        {
+            var eq = Equipment.Of(k);
+            return eq != null ? eq.TotalPercent : 0;     // 장비별 보유 + 장착 (Equipment)
+        }
+
         // 다음 레벨까지 필요한 경험치. 최고 레벨이면 0
         public static int ExpToNext(int level) => level >= MaxLevel ? 0 : 100 * level;
 
@@ -45,6 +56,19 @@ namespace MoreMush.Mobile
             PlayerPrefs.SetString(AdDayKey(k), Today);
             PlayerPrefs.Save();
             Changed?.Invoke();
+        }
+
+        // 꼬마 뽑기: 등급별 개수(Roll 결과)를 그 등급의 꼬마들로 바꾼다 (등급 안에서는 같은 확률). 저장은 Formation.AddOwned
+        public static List<string> PickCharacters(int[] result)
+        {
+            var ids = new List<string>();
+            for (int g = 0; g < GradeCount; g++)
+            {
+                var pool = Formation.IdsOfGrade(g);
+                if (pool.Count == 0) continue;
+                for (int i = 0; i < result[g]; i++) ids.Add(pool[UnityEngine.Random.Range(0, pool.Count)]);
+            }
+            return ids;
         }
 
         // 결과 생성만 한다 (저장하지 않는다). 한 번에 뽑는 동안은 시작할 때의 레벨 확률을 쓴다
