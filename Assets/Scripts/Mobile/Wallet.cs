@@ -3,7 +3,8 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 지갑: 골드·균사석. PlayerPrefs("Wallet.Gold", "Wallet.Mycelite")에 저장한다 (세이브 구조가 생기면 옮긴다).
-    // 판이 끝나면 HarvestGame이 넣고, 스킬을 배울 때 SkillProgress가 뺀다. 화면은 Changed를 듣고 다시 그린다
+    // Main 방치 전투(IdleBattle)에서 웨이브 적을 잡으면 골드, 보스를 잡으면 균사석(+골드)이 들어오고, 비운 동안 골드는 IdleAway가 넣는다.
+    // 강화·뽑기·스킬에서 뺀다. 화면(WalletLabel 등)은 Changed를 듣고 다시 그린다
     public static class Wallet
     {
         const string GoldKey = "Wallet.Gold";
@@ -11,17 +12,17 @@ namespace MoreMush.Mobile
 
         public static event System.Action Changed;
 
-        // 테스트용: 처음 한 번 뽑기 재화(균사석)를 넣어 준다. 출시 전에 false로 끄거나 지운다
-        const bool GrantTestMycelite = true;
+        // 예전 테스트 지급(처음 한 번 균사석 50,000)을 받은 기기에서 한 번 되돌린다 — 지갑에는 직접 번 재화만 남긴다
         const long TestMycelite = 50000;
         const string TestGrantKey = "Wallet.TestGrant";
+        const string TestReclaimKey = "Wallet.TestReclaimed";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void GrantTestCurrency()
+        static void ReclaimTestCurrency()
         {
-            if (!GrantTestMycelite || PlayerPrefs.GetInt(TestGrantKey, 0) == 1) return;
-            PlayerPrefs.SetInt(TestGrantKey, 1);
-            Add(Currency.Mycelite, TestMycelite);
+            if (PlayerPrefs.GetInt(TestGrantKey, 0) != 1 || PlayerPrefs.GetInt(TestReclaimKey, 0) == 1) return;
+            PlayerPrefs.SetInt(TestReclaimKey, 1);
+            Set(Currency.Mycelite, Mycelite - TestMycelite);   // 이미 써 버렸으면 0에서 멈춘다
         }
 
         // 골드는 long이라 문자열로 저장한다 (PlayerPrefs에 long이 없다)
