@@ -89,12 +89,14 @@ namespace MoreMush.Mobile
         readonly List<CanvasGroup> views = new List<CanvasGroup>();
         bool atHome = true;
         IdleReportPopup reportPopup;
+        HitEffects hitFx;           // 타격 이펙트 (MoreMustMush FX/hit 프레임)
         float markSeenIn;
         const float MarkSeenInterval = 5f;      // 앱이 갑자기 꺼져도 이만큼 이내 시각부터 앱 밖 보상을 셈한다
 
         void Awake()
         {
             if (effectLayer == null) effectLayer = (RectTransform)transform;
+            hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
             enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
             var bosses = new List<Sprite>(Resources.LoadAll<Sprite>(bossFolder));
@@ -252,6 +254,7 @@ namespace MoreMush.Mobile
             UpdateShots(dt);
             UpdateEnemies(dt);
             UpdateParty(dt);
+            hitFx.Tick(dt);
             UpdatePopups(dt);
             UpdateFlow(dt);
 
@@ -559,6 +562,7 @@ namespace MoreMush.Mobile
             if (e.dead) return;
             e.hp -= dmg;
             e.flash = 1f;
+            hitFx.Play(ToLayer(e.rt.position), Mathf.Min(e.rt.sizeDelta.x, enemySize * 2f), crit);   // 보스는 화면을 덮지 않게 일반 적 2배까지
             ShowText(e.rt.position + (Vector3)(Random.insideUnitCircle * 20f),
                 IdleProgress.FormatNumber(dmg) + (crit ? "!" : ""),
                 crit ? new Color(1f, 0.55f, 0.15f) : Color.white, crit ? 46f : 34f, 0.6f);
