@@ -1,6 +1,6 @@
 # HANDOFF — 방치형 전환 · 뽑기 · 서버/보안 방침
 
-> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치 `cd69bd5`: Main 방치형 구현, InGame = 던전 1로 복원, SkillTree 제거, 꼬마 강화·편성 펫 칸)
+> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치 `dabec53`: Main 방치형 구현, InGame = 던전 1, SkillTree·WorldTree 제거, 꼬마 강화·펫 칸, 던전 입장 횟수, 무료 뽑기, 해상도 대응, 뒤로가기)
 > 이 문서는 **기획 논의와 결정 사항**을 모은 것이다. 구현된 Main 구조는 `HANDOFF.md` 3.1, 작업 기록은 `AGENT_WORKLOG.md`를 본다.
 > 표시: ✅ 확정 · 🟡 방향만 있음 · ❓ 미정
 
@@ -25,25 +25,27 @@ Start(로딩) → Main(방치형, 상주)  ⇄  InGame(던전 전투)
 - 던전 종류: 일일 던전(일반 스테이지), 주간 던전(보스전).
 - InGame 결과 팝업의 "돌아가기"는 Main으로, "재도전"만 InGame을 다시 로드한다.
 
-### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치 `cd69bd5`)
-- 빌드 씬: `Start`, `Main`, `WorldTree`, `InGame`. **`SkillTree`는 10-30 제거**(KHD, `Backup/SkillTree/`에 백업). `InGame.unity`는 10-30 한 번 지웠다가 KHD가 **던전 1로 복원**.
-- Start → Main 연결됨. Main Canvas Scaler = Scale With Screen Size 1080×2340, Match 0.5.
-- **던전 1 "입장하기" = `SceneButton("InGame")`**(기본 해금, 로딩 팝업 거침). 결과 팝업 "한 번 더하기"(InGame 다시) · "나가기"(→ Main). 위 합의안의 `DungeonRequest`는 **아직 없음** — InGame은 늘 일반 스테이지 기본값으로 시작.
-- 씬 이동은 `SceneLoader.Load(이름)`(로딩 팝업). 예외: `StartLoading`(Start → Main), InGame 안 코드(`ResultPopup`·`InGameOption`·`Benchmark`는 `SceneManager.LoadScene` 직접 — 로딩 팝업 없음).
-- 세계수 뒤로가기 → Main. 하단바 세계수 → WorldTree (스킬트리 경유 없음).
-- 뽑기 4종(수확기·방어구·펫·꼬마)은 구현됨: 뽑기 레벨·경험치 막대, 광고/11회/35회 소환(KHD). 중복 처리 = **조각 → 합성 레벨업**(장비·꼬마 같은 방식, 꼬마는 레벨당 공격 +5% 임시값).
+### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치 `dabec53`)
+- 빌드 씬: `Start`, `Main`, `InGame`. **`SkillTree`(KHD)·`WorldTree`는 10-30 제거**(`Backup/SkillTree/`·`Backup/WorldTree/`에 백업). `InGame.unity`는 10-30 한 번 지웠다가 KHD가 **던전 1로 복원**.
+- Start → Main 연결됨. Canvas Scaler = 1080×2340 Expand + **디자인 영역 `SafeArea/Stage`(높이 2340, 폭 1080~1316, 남는 쪽 검정)** — `HANDOFF.md` 3.2.
+- **던전 1 "입장하기" = `DungeonEntry`**(로딩 팝업 거침). **입장 횟수 하루 2회, 한국 00시(UTC+9) 충전**(`DungeonTickets`, 카드에 `n/2`, 0이면 막힘, 배너에 다음 충전까지 남은 시간). 결과 팝업 "한 번 더하기"(1회 사용) · "나가기"(→ Main). 위 합의안의 `DungeonRequest`는 **아직 없음** — InGame은 늘 일반 스테이지 기본값으로 시작.
+- 씬 이동은 `SceneLoader.Load(이름)`(로딩 팝업). 예외: `StartLoading`(Start → Main), InGame 안 코드(`ResultPopup`·`Benchmark`는 `SceneManager.LoadScene` 직접 — 로딩 팝업 없음). 인게임 설정 "로비로 돌아가기"는 Main(`SceneLoader`).
+- 하단바 세계수 → "아직 개발중인 기능입니다." 알림(`ComingSoonButton`). Android 뒤로가기 = 팝업 닫기 → 홈 → 종료 확인(InGame은 설정 팝업).
+- 뽑기 4종(수확기·방어구·펫·꼬마)은 구현됨: 뽑기 레벨·경험치 막대, **무료 11회(하루 1회, 한국 00시 — 광고 없음, 10-30)**·11회·35회(균사석) 소환(KHD 카드, 무료 전환은 LKH). 중복 처리 = **조각 → 합성 레벨업**(장비·꼬마 같은 방식, 꼬마는 레벨당 공격 +5% 임시값).
 - 편성 = 꼬마 칸 5 + 펫 칸 (3×2).
 - Main 구조·팝업 규칙은 `HANDOFF.md` 3.1.
 
 ### ❓ 미정
-- `WorldTree`를 Main 패널로 **흡수할지**, 당분간 별도 씬으로 둘지. 스킬 트리를 다시 쓸지(`Backup/SkillTree/`).
-- 던전 2~5 내용·해금 조건·입장권·보상.
+- 세계수를 다시 만들지, 만든다면 Main 패널로 흡수할지 별도 씬일지(`Backup/WorldTree/`). 스킬 트리를 다시 쓸지(`Backup/SkillTree/`).
+- 던전 2~5 내용·해금 조건·보상. (입장 횟수는 하루 2회로 결정·구현)
 
 ### 다음 작업 순서(제안)
 1. ~~Main 씬 기초 정리: Canvas Scaler 맞춤, SafeArea·TopBar·BottomBar 배치~~ ✅ (TopBar 대신 `WalletBar`+`OptionButton`)
 2. ~~빌드 설정에 `Main` 추가, Start → Main~~ ✅ 10-30
 3. ~~InGame 나가기/결과 → Main 복귀~~ ✅ 10-30 (KHD) / `DungeonRequest` 도입 ⬜
-4. ~~하단바 탭 전환 매니저~~ ✅ `TabGroup`(KHD) / WorldTree 패널 이식 ❓
+4. ~~하단바 탭 전환 매니저~~ ✅ `TabGroup`(KHD) / 세계수 ❓ (씬 제거, 개발중 알림)
+5. ~~던전 입장 횟수~~ ✅ 10-30 / ~~광고 뽑기~~ → 하루 1회 무료 뽑기 ✅ 10-30
+6. ~~해상도 대응·뒤로가기·대상 API 36~~ ✅ 10-30 / 실기기 확인·서명 키·AAB ⬜ (`HANDOFF.md` 8장)
 
 ---
 
@@ -63,7 +65,7 @@ Start(로딩) → Main(방치형, 상주)  ⇄  InGame(던전 전투)
 - 뽑기 종류: **무기 / 장신구 / 펫** (종류별 레벨·경험치 **독립**).
 - 뽑는 단위: **11뽑, 35뽑** (보너스 포함 구조로 보임: 10+1, 30+5 — 비용은 10회분·30회분으로 책정하는 안).
 - 뽑을 때마다 **경험치 상승 → 레벨업 → 레벨마다 높은 레어도 확률 증가**.
-- **매일 광고 시청 시 11뽑 무료**.
+- ~~매일 광고 시청 시 11뽑 무료~~ → **10-30: 광고 없이 하루 1회 11뽑 무료**(종류마다, 한국 00시).
 
 ### 설계 권고(합의 전)
 - 경험치는 **뽑은 개수 기준**(11뽑이면 +11)으로 준다. 횟수 기준이면 35뽑이 불리해진다.
@@ -78,7 +80,7 @@ Start(로딩) → Main(방치형, 상주)  ⇄  InGame(던전 전투)
 - 11뽑·35뽑 **비용과 재화** (기존 골드·균사석 재사용 vs 뽑기 전용 재화 추가 — `Wallet`/`Currency` 확장 필요)
 - 중복 뽑기 처리(개수 누적 → 레벨업 재료 등), 합성 규칙
 - 뽑기 레벨 상한과 레벨별 필요 경험치 곡선, 상한 도달 시 경험치 처리
-- 광고 뽑기 초기화 기준 시각(자정/오전 5시), 시간 조작 대응 수준, 광고 실패 시 지급 여부
+- ~~광고 뽑기 초기화 기준 시각~~ → 한국 00시로 결정(무료 뽑기·던전 입장 공통). 시간 조작 대응 수준은 미정(지금은 기기 시계의 UTC 기준)
 - 데이터 관리: 엑셀 테이블(`TableImporter`) vs ScriptableObject
 
 ### 기존 코드와 연결 지점
