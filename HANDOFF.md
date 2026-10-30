@@ -5,6 +5,8 @@
 >
 > **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 10-30 한 번 지웠다가 KHD(`3183125`)가 **던전 1로 되살렸습니다**(Main 던전 탭 → InGame → 결과 팝업 → Main, 4장). **`SkillTree` 씬은 제거**(`Backup/SkillTree/`에 백업, 5장). **`WorldTree` 씬도 10-30 늦게 제거**(`Backup/WorldTree/`에 백업, 하단바 세계수 = "아직 개발중인 기능입니다." 알림). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`·`밸런스설계/`를 보세요.
 
+> **2026-10-30 최적화·안정화 (KHD `de3432e`):** PlayerPrefs 캐시(`Equipment`·`Formation`), 저장 모으기(`SaveScheduler`), 전투 서브 캔버스, URP·Player 설정, 저장·시계·넘침 안정화. 요약은 8장, **자세한 인계·확인 방법·되돌리기는 `HANDOFF_OPTIMIZATION.md`**. 에디터·실기기 확인 전입니다.
+
 > **2026-10-30 해상도 대응:** 모든 씬의 UI는 `Canvas/SafeArea/Stage`(`StageFrame`) 아래에 있습니다. **높이 2340 고정, 폭 1080~1316 가변, 남는 공간은 검정.** 새 UI는 폭 1080에서 잘리지 않게 앵커로 맞추세요(3.2).
 
 > **2026-10-30 데이터 표 정리:** 새 통합 표는 `Assets/Data/Tables/GameBalance.xlsx`입니다(적·보스·꼬마·업그레이드·스테이지·리소스·`info`). 기존 엑셀 5개와 대응 `.bytes`는 각각 `Tables/Legacy/`로 이동했습니다. **이번 범위는 엑셀 정리 + Unity 임포트·검증까지이며, 방치형 전투·강화·편성의 하드코딩 수치를 새 표로 전환하지 않았습니다.** 자세한 내용은 6장과 엑셀 `info`.
@@ -420,7 +422,7 @@
 - **프리팹 Variant:** `InGameOptionPopup`은 `OptionPopup`의 Variant입니다. 원본에서 자식을 지우면 Variant에서 그 자식에 붙여 둔 것이 부모 밖으로 밀려납니다(10-30 "로비로 돌아가기"가 그랬음).
 - **MCP 입력 시험:** 에디터 창에 포커스가 없으면 `InputSystem.QueueStateEvent`로 넣은 키가 처리되지 않습니다. 뒤로가기는 `PopupGate.HandleBack()` → `BackButton.SceneHandler`를 직접 불러 확인했습니다.
 
-**최적화·안정화 (2026-10-30, 코드 컴파일만 확인 — 에디터·실기기 확인 필요)**
+**최적화·안정화 (2026-10-30 `de3432e`, 코드 컴파일만 확인 — 에디터·실기기 확인 필요. 자세히는 `HANDOFF_OPTIMIZATION.md`)**
 - **PlayerPrefs 읽기 제거:** 전투가 매 프레임(`FinalHp`·`FinalHpRegen`)·던질 때마다(`FinalAttack`) 장비 15개 × 3종 레벨을 PlayerPrefs에서 읽고 있었음(프레임당 약 70번 + 키 문자열 할당, 안드로이드에선 JNI 호출). `Equipment`·`Formation`을 메모리 캐시로 바꾸고 `Equipment.TotalPercent`는 레벨·장착이 바뀔 때만 다시 셈.
 - **저장 모으기 `SaveScheduler`:** 자주 바뀌는 값(전투 골드 1초마다 `Wallet`, 강화 꾹 누르기 `IdleProgress.TryUpgrade`, 마지막 접속 시각 `IdleAway.MarkSeen`, 배속·볼륨)은 `SaveScheduler.MarkDirty()`만 하고 5초마다·앱이 뒤로 갈 때(`OnApplicationPause`/`Focus`)·종료 때 한 번에 `PlayerPrefs.Save()`. 뽑기·합성·편성·스테이지처럼 드물고 중요한 쓰기는 그대로 바로 저장(밀린 값도 같이 저장됨). **새로 자주 쓰는 값은 `MarkDirty`를 쓰세요.**
 - **전투 서브 캔버스:** `IdleBattle`이 Awake에서 `IdleBattle`·`EnemyArea`·`GgomaArea`에 `Canvas`를 붙임(`IdleBattle`만 `GraphicRaycaster`). 전투가 매 프레임 움직여도 Main 캔버스의 강화 목록·하단바·재화 바는 다시 묶이지 않음. **에디터에서 확인할 것:** 숫자 팝업·타격 이펙트가 옵션 버튼·재화 바·강화 목록보다 위로 그려지지 않는지(중첩 캔버스 그리는 순서). 문제가 있으면 `AddSubCanvas` 세 줄을 지우면 예전과 같아짐. 숫자 팝업·타격 이펙트는 `canvasRenderer.SetAlpha`로 흐려짐(TMP color를 바꾸면 매 프레임 메시를 새로 만듦). 체력·전투력 글자는 값이 바뀔 때만.
