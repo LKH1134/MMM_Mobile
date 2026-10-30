@@ -66,6 +66,7 @@ namespace MoreMush.Mobile
         void OpenPicker(int slot)
         {
             targetSlot = slot;
+            PopupGate.Opened(this, ClosePicker);
             charPopup.SetActive(true);
             // 팝업은 Equit 안에 있어 뒤에 오는 강화 목록·전투 화면에 가려진다 → 자기 캔버스로 위에 올린다
             if (!charPopup.TryGetComponent<Canvas>(out var c))
@@ -83,6 +84,7 @@ namespace MoreMush.Mobile
         void ClosePicker()
         {
             targetSlot = -1;
+            PopupGate.Closed(this);
             if (charPopup != null) charPopup.SetActive(false);
         }
 

@@ -38,6 +38,7 @@ namespace MoreMush.Mobile
         {
             if (IsOpen) return;
             IsOpen = true;
+            PopupGate.Opened(this, Close);
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
             BringToFront();
@@ -49,6 +50,7 @@ namespace MoreMush.Mobile
         {
             if (!IsOpen) return;
             IsOpen = false;
+            PopupGate.Closed(this);
             Play(false);
             Closed?.Invoke();
         }

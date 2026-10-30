@@ -49,11 +49,15 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
-            worldTreeButton.onClick.AddListener(() => Go(worldTreeScene));
-            if (string.IsNullOrEmpty(stageScene)) stageButton.interactable = false;
-            else stageButton.onClick.AddListener(() => Go(stageScene));
+            // 하단바(편성·세계수·홈·던전·뽑기)는 MainTabButton·SceneButton이 맡는다. 아래 셋은 하단바 밖에 버튼을 둘 때만 넣는다
+            if (worldTreeButton != null) worldTreeButton.onClick.AddListener(() => Go(worldTreeScene));
+            if (stageButton != null)
+            {
+                if (string.IsNullOrEmpty(stageScene)) stageButton.interactable = false;
+                else stageButton.onClick.AddListener(() => Go(stageScene));
+            }
             questButton.onClick.AddListener(() => Show(questPopup));
-            indexButton.onClick.AddListener(() => Show(indexPopup));
+            if (indexButton != null) indexButton.onClick.AddListener(() => Show(indexPopup));
             workshopButton.onClick.AddListener(() => Show(workshopPopup));
             if (optionButton != null && optionPopup != null) optionButton.onClick.AddListener(() => Show(optionPopup));
 

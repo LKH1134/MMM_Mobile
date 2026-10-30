@@ -1460,7 +1460,7 @@ PrefabInstance:
     - target: {fileID: 4173925129980631864, guid: 85b605152807b7848bd4e145e149403f, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 1912433573789592034, guid: 5049dd357cc23d446afce057e7d4337f, type: 2}
+      objectReference: {fileID: 7334784593689550382, guid: 69d8084776a18a24cb98eae426723a81, type: 2}
     - target: {fileID: 7840192765900521850, guid: 85b605152807b7848bd4e145e149403f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2323,46 +2323,105 @@ PrefabInstance:
     - {fileID: 6808736416309680846, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1336164663637804623, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1213029494}
+    - targetCorrespondingSourceObject: {fileID: 3064542504954873991, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1213029493}
+    - targetCorrespondingSourceObject: {fileID: 6236583884251572459, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1213029492}
+    - targetCorrespondingSourceObject: {fileID: 3042094724799172111, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1213029491}
+    - targetCorrespondingSourceObject: {fileID: 6587327563840458424, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1682296031}
   m_SourcePrefab: {fileID: 100100000, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
---- !u!114 &1213029485 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1463127084442914652, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+--- !u!1 &1213029485 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6587327563840458424, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
   m_PrefabInstance: {fileID: 1213029484}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &1213029486 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1376669995390693769, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
   m_PrefabInstance: {fileID: 1213029484}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1213029487 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2773839414277164103, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+--- !u!1 &1213029487 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3042094724799172111, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
   m_PrefabInstance: {fileID: 1213029484}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
---- !u!114 &1213029488 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6846227546617043094, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+--- !u!1 &1213029488 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6236583884251572459, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
   m_PrefabInstance: {fileID: 1213029484}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+--- !u!1 &1213029489 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3064542504954873991, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+  m_PrefabInstance: {fileID: 1213029484}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1213029490 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1336164663637804623, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+  m_PrefabInstance: {fileID: 1213029484}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1213029491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213029487}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: ceb8140e8d2527149948da55aec54f8b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.MainTabButton
+  tab: 1
+--- !u!114 &1213029492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213029488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb8140e8d2527149948da55aec54f8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.MainTabButton
+  tab: -1
+--- !u!114 &1213029493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213029489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f02eb3de556274d459eb53b8573d6e4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.SceneButton
+  scene: WorldTree
+--- !u!114 &1213029494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213029490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb8140e8d2527149948da55aec54f8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.MainTabButton
+  tab: 0
 --- !u!1 &1215776140
 GameObject:
   m_ObjectHideFlags: 0
@@ -2702,6 +2761,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &1682296031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213029485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb8140e8d2527149948da55aec54f8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.MainTabButton
+  tab: 2
 --- !u!1 &1829540720
 GameObject:
   m_ObjectHideFlags: 0
@@ -4623,11 +4695,11 @@ MonoBehaviour:
   nextBranchButton: {fileID: 47814293}
   prevBranchLabel: {fileID: 1914752554}
   nextBranchLabel: {fileID: 301798091}
-  worldTreeButton: {fileID: 1213029488}
+  worldTreeButton: {fileID: 0}
   questButton: {fileID: 1900000039}
-  indexButton: {fileID: 1213029487}
+  indexButton: {fileID: 0}
   workshopButton: {fileID: 1900000049}
-  stageButton: {fileID: 1213029485}
+  stageButton: {fileID: 0}
   optionButton: {fileID: 826817808}
   optionPopup:
     prefab: {fileID: 5568184748944377759, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}

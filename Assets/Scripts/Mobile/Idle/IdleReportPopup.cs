@@ -40,7 +40,14 @@ namespace MoreMush.Mobile
             if (r.kills > 0) sb.Append("처치 ").Append(r.kills.ToString("N0")).Append("마리\n");
             if (r.stages > 0) sb.Append("스테이지 +").Append(r.stages).Append(" → ").Append(IdleProgress.Stage);
             body.text = sb.ToString().TrimEnd('\n');
+            PopupGate.Opened(this, Hide);
             gameObject.SetActive(true);
+        }
+
+        void Hide()
+        {
+            PopupGate.Closed(this);
+            gameObject.SetActive(false);
         }
 
         static string FormatTime(double seconds)
@@ -82,7 +89,7 @@ namespace MoreMush.Mobile
             okRt.pivot = new Vector2(0.5f, 0f);
             okRt.anchoredPosition = new Vector2(0f, 50f);
             okRt.sizeDelta = new Vector2(360f, 130f);
-            ok.gameObject.AddComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
+            ok.gameObject.AddComponent<Button>().onClick.AddListener(Hide);
             var okText = NewText("Text", ok.transform, 52f);
             okText.text = "확인";
             Stretch(okText.rectTransform);

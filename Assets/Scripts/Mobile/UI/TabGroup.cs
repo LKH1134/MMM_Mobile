@@ -23,6 +23,7 @@ namespace MoreMush.Mobile
         [SerializeField] bool allowNone = true;
         [SerializeField] int defaultIndex = -1;      // 처음 열 탭 (-1 = 없음, allowNone이 아니면 0으로 본다)
         [SerializeField] bool readPendingMainTab;    // Main 하단바: 다른 씬에서 요청한 탭(MainNavigation)으로 시작
+        [SerializeField] bool pagesArePopups;        // 페이지가 팝업이다 (편성 안 무기·방어구·펫): 다른 팝업과 한 번에 하나만. 아니면 탭을 바꿀 때 열린 팝업을 닫는다
         [SerializeField] Color selectedColor = new Color(1f, 0.85f, 0.45f, 1f);
 
         Color[] normalColors;
@@ -77,7 +78,14 @@ namespace MoreMush.Mobile
         public void Select(int index)
         {
             if (index < 0 && !allowNone) index = 0;
-            Current = index >= 0 && index < tabs.Length ? index : -1;
+            int next = index >= 0 && index < tabs.Length ? index : -1;
+            if (pagesArePopups)
+            {
+                if (next >= 0) PopupGate.Opened(this, () => Select(-1));
+                else PopupGate.Closed(this);
+            }
+            else if (next != Current) PopupGate.CloseAll();
+            Current = next;
             for (int i = 0; i < tabs.Length; i++)
             {
                 bool on = i == Current;
