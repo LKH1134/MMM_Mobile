@@ -1,5 +1,3 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace MoreMush.Mobile
 {
@@ -17,8 +15,7 @@ namespace MoreMush.Mobile
         public static void Open(int tab)
         {
             PendingTab = tab;
-            if (Application.CanStreamedLevelBeLoaded(MainScene)) SceneManager.LoadScene(MainScene);
-            else Debug.LogWarning($"[MainNavigation] 빌드 설정에 없는 씬: {MainScene}");
+            SceneLoader.Load(MainScene);
         }
 
         public static int TakePendingTab()

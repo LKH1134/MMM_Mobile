@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MoreMush.Mobile
@@ -13,10 +12,6 @@ namespace MoreMush.Mobile
 
         void Awake() => GetComponent<Button>().onClick.AddListener(Go);
 
-        public void Go()
-        {
-            if (Application.CanStreamedLevelBeLoaded(scene)) SceneManager.LoadScene(scene);
-            else Debug.LogWarning($"[SceneButton] 빌드 설정에 없는 씬: {scene}");
-        }
+        public void Go() => SceneLoader.Load(scene);
     }
 }

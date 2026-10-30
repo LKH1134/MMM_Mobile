@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MoreMush.Mobile
@@ -57,11 +56,7 @@ namespace MoreMush.Mobile
         }
 
         // Back 버튼 OnClick(인스펙터)에 연결돼 있다
-        public void GoBack()
-        {
-            if (Application.CanStreamedLevelBeLoaded(backScene)) SceneManager.LoadScene(backScene);
-            else Debug.LogWarning($"[WorldTreeScreen] 빌드 설정에 없는 씬: {backScene}");
-        }
+        public void GoBack() => SceneLoader.Load(backScene);
 
         public void SetGold(long value) => goldText.text = Wallet.Format(value);
         public void SetMycelite(long value) => myceliteText.text = Wallet.Format(value);

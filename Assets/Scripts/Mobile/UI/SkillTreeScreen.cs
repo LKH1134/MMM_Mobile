@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MoreMush.Mobile
@@ -168,10 +167,6 @@ namespace MoreMush.Mobile
             if (optionPopup != null) optionPopup.Close();
         }
 
-        static void Go(string scene)
-        {
-            if (Application.CanStreamedLevelBeLoaded(scene)) SceneManager.LoadScene(scene);
-            else Debug.LogWarning($"[SkillTreeScreen] 빌드 설정에 없는 씬: {scene}");
-        }
+        static void Go(string scene) => SceneLoader.Load(scene);
     }
 }

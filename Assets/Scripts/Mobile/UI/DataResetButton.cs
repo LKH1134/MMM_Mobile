@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MoreMush.Mobile
@@ -28,8 +27,7 @@ namespace MoreMush.Mobile
             PlayerPrefs.DeleteAll();
             PlayerPrefs.Save();
             Time.timeScale = 1f;
-            if (Application.CanStreamedLevelBeLoaded(startScene)) SceneManager.LoadScene(startScene);
-            else Debug.LogWarning($"[DataResetButton] 빌드 설정에 없는 씬: {startScene}");
+            SceneLoader.Load(startScene);
         }
     }
 }
