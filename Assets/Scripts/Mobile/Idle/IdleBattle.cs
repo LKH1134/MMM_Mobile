@@ -296,8 +296,9 @@ namespace MoreMush.Mobile
                     nextWaveIn = waveDelay * 2f;
                     wave = 0;
                     partyHp = partyMaxHp;
+                    RefreshHud();
                 }
-                RefreshHud();
+                else RefreshBossBars();
                 return;
             }
 
@@ -343,9 +344,16 @@ namespace MoreMush.Mobile
             if (max > partyMaxHp) partyHp += max - partyMaxHp;
             partyMaxHp = max;
 
+            // 적 공격력은 스테이지에만 달렸다 — 스테이지가 바뀔 때만 다시 셈한다
+            if (attackStage != stage)
+            {
+                attackStage = stage;
+                enemyAttack = IdleProgress.EnemyAttack(stage);
+                bossAttack = IdleProgress.BossAttack(stage);
+            }
             double enemyDps = 0;
             foreach (var e in enemies)
-                if (!e.dead && e.age > enemyAttackDelay) enemyDps += e.boss ? IdleProgress.BossAttack(stage) : IdleProgress.EnemyAttack(stage);
+                if (!e.dead && e.age > enemyAttackDelay) enemyDps += e.boss ? bossAttack : enemyAttack;
             double hurt = enemyDps * dt;
             partyHp = System.Math.Min(partyMaxHp, partyHp + IdleProgress.FinalHpRegen * dt - hurt);
 
@@ -365,6 +373,9 @@ namespace MoreMush.Mobile
             if (partyHp <= 0) Defeat();
             RefreshHp(dt);
         }
+
+        int attackStage = -1;
+        double enemyAttack, bossAttack;
 
         // 패배: 적을 거두고(보상 없음) 체력을 채운 뒤 같은 스테이지 1웨이브부터
         void Defeat()
@@ -752,9 +763,8 @@ namespace MoreMush.Mobile
             {
                 waveText.text = "보스 등장!";
                 waveText.color = new Color(1f, 0.6f, 0.45f);
-                barFill.anchorMax = new Vector2(Mathf.Clamp01((float)(boss.hp / boss.maxHp)), 1f);
-                timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime), 1f);
-                timerText.text = Mathf.CeilToInt(bossTimeLeft) + "초";
+                shownBossSec = -1;
+                RefreshBossBars();
             }
             else
             {
@@ -764,6 +774,20 @@ namespace MoreMush.Mobile
                 barFill.anchorMax = new Vector2(waveTotal <= 0 ? 0f : Mathf.Clamp01((float)waveKilled / waveTotal), 1f);
             }
         }
+
+        // 보스전 중 매 프레임: 막대만 움직이고, 남은 초 글자는 초가 바뀔 때만 새로 쓴다 (매 프레임 문자열을 만들지 않게)
+        void RefreshBossBars()
+        {
+            if (stageText == null || boss == null) return;
+            barFill.anchorMax = new Vector2(Mathf.Clamp01((float)(boss.hp / boss.maxHp)), 1f);
+            timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime), 1f);
+            int sec = Mathf.CeilToInt(bossTimeLeft);
+            if (sec == shownBossSec) return;
+            shownBossSec = sec;
+            timerText.text = sec + "초";
+        }
+
+        int shownBossSec = -1;
 
         // ── 만들기 도우미 ──
 

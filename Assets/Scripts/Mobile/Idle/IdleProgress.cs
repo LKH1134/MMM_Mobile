@@ -46,11 +46,29 @@ namespace MoreMush.Mobile
 
         public static event System.Action Changed;
 
+        // Defs는 IdleStat 순서대로 적혀 있다 — 번호로 바로 꺼내고, 순서가 어긋나면 찾아서 쓴다
         public static Def Get(IdleStat stat)
         {
+            int i = (int)stat;
+            if (i >= 0 && i < Defs.Length && Defs[i].stat == stat) return Defs[i];
             foreach (var d in Defs) if (d.stat == stat) return d;
             return Defs[0];
         }
+
+        // 강화 레벨은 전투 중 매 프레임 여러 번 읽는다 → PlayerPrefs(안드로이드에서 느림)를 처음 한 번만 읽고 메모리에 둔다.
+        // 쓰기는 TryUpgrade만 한다. PlayerPrefs를 밖에서 지웠으면 ReloadLevels로 다시 읽게 한다
+        static int[] levels;
+        static readonly string[] LevelKeys = BuildLevelKeys();
+
+        static string[] BuildLevelKeys()
+        {
+            var keys = new string[System.Enum.GetValues(typeof(IdleStat)).Length];
+            for (int i = 0; i < keys.Length; i++) keys[i] = "Idle.Lv." + (IdleStat)i;
+            return keys;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        public static void ReloadLevels() => levels = null;
 
         public static int Stage
         {
@@ -58,7 +76,15 @@ namespace MoreMush.Mobile
             set { PlayerPrefs.SetInt("Idle.Stage", Mathf.Max(1, value)); PlayerPrefs.Save(); Changed?.Invoke(); }
         }
 
-        public static int Level(IdleStat stat) => Mathf.Clamp(PlayerPrefs.GetInt("Idle.Lv." + stat, 0), 0, Get(stat).maxLv);
+        public static int Level(IdleStat stat)
+        {
+            if (levels == null)
+            {
+                levels = new int[LevelKeys.Length];
+                for (int i = 0; i < levels.Length; i++) levels[i] = PlayerPrefs.GetInt(LevelKeys[i], 0);
+            }
+            return Mathf.Clamp(levels[(int)stat], 0, Get(stat).maxLv);
+        }
 
         public static bool Unlocked(IdleStat stat)
         {
@@ -105,7 +131,9 @@ namespace MoreMush.Mobile
         {
             if (!Unlocked(stat) || IsMax(stat) || IsCapped(stat)) return false;
             if (!Wallet.TrySpend(Currency.Gold, Cost(stat))) return false;
-            PlayerPrefs.SetInt("Idle.Lv." + stat, Level(stat) + 1);
+            int next = Level(stat) + 1;
+            levels[(int)stat] = next;
+            PlayerPrefs.SetInt(LevelKeys[(int)stat], next);
             PlayerPrefs.Save();
             Changed?.Invoke();
             return true;
@@ -229,8 +257,9 @@ namespace MoreMush.Mobile
         static void ResetAll()
         {
             PlayerPrefs.DeleteKey("Idle.Stage");
-            foreach (var d in Defs) PlayerPrefs.DeleteKey("Idle.Lv." + d.stat);
+            foreach (var key in LevelKeys) PlayerPrefs.DeleteKey(key);
             PlayerPrefs.Save();
+            ReloadLevels();
             Changed?.Invoke();
         }
 #endif
