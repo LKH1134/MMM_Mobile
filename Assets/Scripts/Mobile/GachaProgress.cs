@@ -6,7 +6,7 @@ namespace MoreMush.Mobile
 {
     public enum GachaKind { Weapon, Accessory, Pet, Character }   // Weapon·Accessory(방어구)·Pet = 장비 (Equipment), Character = 꼬마 (Formation)
 
-    // 뽑기 종류별 레벨·경험치·보유 수와 광고 뽑기 사용 기록. PlayerPrefs에 저장한다 (세이브 구조가 생기면 옮긴다).
+    // 뽑기 종류별 레벨·경험치·보유 수와 무료 뽑기 사용 기록. PlayerPrefs에 저장한다 (세이브 구조가 생기면 옮긴다).
     // 경험치는 뽑은 개수만큼 오른다 (11뽑이면 +11). 레벨이 오를수록 높은 등급 확률이 커진다.
     // 결과 생성(Roll)과 저장(Apply)을 나눠 두었다 — 나중에 서버 검증으로 옮기기 쉽게
     // 등급 수·확률·경험치 곡선은 임시값이다 (기획 확정 전)
@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
         static string LevelKey(GachaKind k) => $"Gacha.{k}.Level";
         static string ExpKey(GachaKind k) => $"Gacha.{k}.Exp";
         static string OwnedKey(GachaKind k, int grade) => $"Gacha.{k}.Owned.{grade}";
-        static string AdDayKey(GachaKind k) => $"Gacha.{k}.AdDay";
+        static string FreeDayKey(GachaKind k) => $"Gacha.{k}.AdDay";   // 예전 광고 뽑기 키 그대로 (오늘 이미 쓴 기록 유지)
 
         public static int Level(GachaKind k) => Mathf.Clamp(PlayerPrefs.GetInt(LevelKey(k), 1), 1, MaxLevel);
         public static int Exp(GachaKind k) => Mathf.Max(0, PlayerPrefs.GetInt(ExpKey(k), 0));
@@ -48,12 +48,12 @@ namespace MoreMush.Mobile
             return new[] { 100f - legend - epic - rare - uncommon, uncommon, rare, epic, legend };
         }
 
-        // 광고 뽑기: 하루 한 번 (기기 시계 기준 날짜가 바뀌면 다시)
-        static string Today => DateTime.Now.ToString("yyyyMMdd");
-        public static bool AdAvailable(GachaKind k) => PlayerPrefs.GetString(AdDayKey(k), "") != Today;
-        public static void MarkAdUsed(GachaKind k)
+        // 무료 뽑기: 종류마다 하루 한 번. 던전 입장 횟수와 같이 한국 시각(UTC+9) 00시에 다시 생긴다
+        static string Today => DungeonTickets.KstNow.ToString("yyyyMMdd");
+        public static bool FreeAvailable(GachaKind k) => PlayerPrefs.GetString(FreeDayKey(k), "") != Today;
+        public static void MarkFreeUsed(GachaKind k)
         {
-            PlayerPrefs.SetString(AdDayKey(k), Today);
+            PlayerPrefs.SetString(FreeDayKey(k), Today);
             PlayerPrefs.Save();
             Changed?.Invoke();
         }

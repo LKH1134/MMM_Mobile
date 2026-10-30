@@ -6,7 +6,7 @@ namespace MoreMush.Mobile
 {
     // 뽑기 카드 오른쪽 열 꾸미기 (참고: 레전드 오브 슬라임 장비 소환 칸).
     //   맨 위 = 뽑기 레벨 "LV n" + 경험치 막대 "exp/다음",
-    //   그 아래 = 광고 소환(초록, 넓게) · 재화 소환 11회/35회(보라, 반씩) — 버튼마다 "n회 소환" 한 줄 + 아래 줄(무료/재화 아이콘·가격).
+    //   그 아래 = 무료 소환(초록, 넓게, 하루 한 번) · 재화 소환 11회/35회(보라, 반씩) — 버튼마다 "n회 소환" 한 줄 + 아래 줄(무료/재화 아이콘·가격).
     // GachaPanel이 Awake에서 부른다. 프리팹(Gacha_Panel1~4)의 버튼을 그대로 쓰고 자리·색·글자만 코드로 바꾼다
     public static class GachaCardView
     {
@@ -15,22 +15,22 @@ namespace MoreMush.Mobile
 
         const string BarBack = "Art/Dream/UI/progress_back";
         const string BarFill = "Art/Dream/UI/progress_fill";
-        // 버튼 그림: 광고 = 초록 버튼 그대로, 재화 = 크림 버튼을 보라로 물들임
-        public const string AdSprite = "Art/Dream/UI/btn_go";
+        // 버튼 그림: 무료 = 초록 버튼 그대로, 재화 = 크림 버튼을 보라로 물들임
+        public const string FreeSprite = "Art/Dream/UI/btn_go";
         public const string CoinSprite = "Art/Dream/UI/Window/btn_cream";
-        public static readonly Color AdColor = Color.white;
+        public static readonly Color FreeColor = Color.white;
         public static readonly Color CoinColor = new Color(0.62f, 0.45f, 0.85f);
         static readonly Color32 TextOutline = new Color32(40, 28, 20, 255);
 
         // 오른쪽 열 (카드 오른쪽 끝 기준, 버튼 앵커는 프리팹 그대로 오른쪽 가운데)
         const float ColumnX = -276f, ColumnWidth = 474f;
         const float ExpY = 102f, ExpHeight = 46f;
-        const float AdY = 22f, AdHeight = 92f;
+        const float FreeY = 22f, FreeHeight = 92f;
         const float CoinY = -110f, CoinHeight = 150f, CoinWidth = 232f, CoinGap = 10f;
 
-        public static void Layout(Button ad, Button coin11, Button coin35)
+        public static void Layout(Button free, Button coin11, Button coin35)
         {
-            Place(ad, new Vector2(ColumnX, AdY), new Vector2(ColumnWidth, AdHeight));
+            Place(free, new Vector2(ColumnX, FreeY), new Vector2(ColumnWidth, FreeHeight));
             float half = (CoinWidth + CoinGap) * 0.5f;
             Place(coin11, new Vector2(ColumnX - half, CoinY), new Vector2(CoinWidth, CoinHeight));
             Place(coin35, new Vector2(ColumnX + half, CoinY), new Vector2(CoinWidth, CoinHeight));
