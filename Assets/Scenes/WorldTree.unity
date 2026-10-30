@@ -809,9 +809,6 @@ MonoBehaviour:
   optionPopup:
     prefab: {fileID: 5568184748944377759, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
   menus:
-  - button: {fileID: 1679042791}
-    popup:
-      prefab: {fileID: 2188284286884072998, guid: e976e54d91f47954a82ee043f662dfde, type: 3}
   - button: {fileID: 323268330}
     popup:
       prefab: {fileID: 2188284286884072998, guid: 1579bb22a80bda04db54e1af9b3855cf, type: 3}
@@ -824,9 +821,6 @@ MonoBehaviour:
   - button: {fileID: 1589089731}
     popup:
       prefab: {fileID: 3950159655243416996, guid: 3a3339dc1fbfad647a1690e3183b3af4, type: 3}
-  - button: {fileID: 1375059125372797817}
-    popup:
-      prefab: {fileID: 576154472304968870, guid: 818dafe1a976dd442b0addeb3149aa8e, type: 3}
   backScene: SkillTree
   basketButton: {fileID: 627711773}
   toastPrefab: {fileID: 56380357808796695, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
@@ -2501,17 +2495,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &1679042791 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6846227546617043094, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
-  m_PrefabInstance: {fileID: 1375059125372797816}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1375059125372797819}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &1739563264
 GameObject:
   m_ObjectHideFlags: 0
@@ -3100,27 +3083,16 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1336164663637804623, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1375059125372797825}
-    - targetCorrespondingSourceObject: {fileID: 3042094724799172111, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1375059125372797824}
     - targetCorrespondingSourceObject: {fileID: 6236583884251572459, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1375059125372797823}
+    - targetCorrespondingSourceObject: {fileID: 3042094724799172111, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1375059125372797824}
     - targetCorrespondingSourceObject: {fileID: 6587327563840458424, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1375059125372797822}
   m_SourcePrefab: {fileID: 100100000, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
---- !u!114 &1375059125372797817 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2773839414277164103, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
-  m_PrefabInstance: {fileID: 1375059125372797816}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &1375059125372797818 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6587327563840458424, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}

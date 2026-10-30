@@ -23,7 +23,7 @@ namespace MoreMush.Mobile
 
         [SerializeField] Button optionButton;
         [SerializeField] PopupSlot optionPopup;   // 프리팹. 처음 열 때 이 캔버스 아래에 만든다
-        [SerializeField] Menu[] menus;            // 성장·꼬마·꾸미기·제작소
+        [SerializeField] Menu[] menus;            // 꼬마·꾸미기·제작소·의뢰. 하단바의 홈·던전 버튼은 MainTabButton으로 씬 이동만 한다 (여기 넣지 않는다)
         [SerializeField] string backScene = "SkillTree";
 
         [SerializeField] Button basketButton;
