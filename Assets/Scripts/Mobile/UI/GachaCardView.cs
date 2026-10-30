@@ -15,8 +15,12 @@ namespace MoreMush.Mobile
 
         const string BarBack = "Art/Dream/UI/progress_back";
         const string BarFill = "Art/Dream/UI/progress_fill";
-        public static readonly Color AdColor = new Color(0.33f, 0.66f, 0.32f);
-        public static readonly Color CoinColor = new Color(0.47f, 0.32f, 0.68f);
+        // 버튼 그림: 광고 = 초록 버튼 그대로, 재화 = 크림 버튼을 보라로 물들임
+        public const string AdSprite = "Art/Dream/UI/btn_go";
+        public const string CoinSprite = "Art/Dream/UI/Window/btn_cream";
+        public static readonly Color AdColor = Color.white;
+        public static readonly Color CoinColor = new Color(0.62f, 0.45f, 0.85f);
+        static readonly Color32 TextOutline = new Color32(40, 28, 20, 255);
 
         // 오른쪽 열 (카드 오른쪽 끝 기준, 버튼 앵커는 프리팹 그대로 오른쪽 가운데)
         const float ColumnX = -276f, ColumnWidth = 474f;
@@ -90,11 +94,21 @@ namespace MoreMush.Mobile
 
         // 버튼 색과 두 줄 글자. costIcon이 있으면 아래 줄 앞에 재화 아이콘을 붙인다.
         // 프리팹 버튼의 원래 글자(label)는 위 줄로 쓴다
-        public static ButtonText Style(Button b, TMP_Text label, Color color, Sprite costIcon, TMP_FontAsset font)
+        public static ButtonText Style(Button b, TMP_Text label, string sprite, Color color, Sprite costIcon, TMP_FontAsset font)
         {
             var text = new ButtonText();
             if (b == null) return text;
-            if (b.image != null) b.image.color = color;
+            if (b.image != null)
+            {
+                var sp = Resources.Load<Sprite>(sprite);
+                if (sp != null)
+                {
+                    b.image.sprite = sp;
+                    b.image.type = Image.Type.Sliced;
+                    b.image.pixelsPerUnitMultiplier = 1.6f;     // 버튼이 작아 테두리를 줄인다
+                }
+                b.image.color = color;
+            }
             var rt = (RectTransform)b.transform;
 
             text.title = label != null ? label : NewText("Title", rt, font, 32f, Color.white);
@@ -104,6 +118,7 @@ namespace MoreMush.Mobile
             text.title.fontStyle = FontStyles.Bold;
             text.title.enableAutoSizing = false;
             text.title.alignment = TextAlignmentOptions.Center;
+            Outline(text.title);
             var trt = text.title.rectTransform;
             trt.anchorMin = new Vector2(0f, 0.5f);
             trt.anchorMax = Vector2.one;
@@ -130,7 +145,15 @@ namespace MoreMush.Mobile
                 le.preferredWidth = le.preferredHeight = 40f;
             }
             text.sub = NewText("Value", sub, font, 30f, new Color(1f, 0.95f, 0.75f));
+            Outline(text.sub);
             return text;
+        }
+
+        // 밝은 버튼 그림 위에서도 흰 글자가 읽히게 진한 갈색 외곽선
+        static void Outline(TMP_Text t)
+        {
+            t.outlineWidth = 0.2f;
+            t.outlineColor = TextOutline;
         }
 
         static Image NewImage(string name, Transform parent, string sprite, Color color)

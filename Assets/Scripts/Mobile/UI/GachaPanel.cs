@@ -60,9 +60,9 @@ namespace MoreMush.Mobile
             GachaCardView.Layout(adButton, coinButton11, coinButton35);
             expRow = GachaCardView.BuildExp((RectTransform)transform, font);
             var costIcon = Resources.Load<Sprite>(currency == Currency.Mycelite ? GemIcon : GoldIcon);
-            adText = GachaCardView.Style(adButton, adLabel, GachaCardView.AdColor, null, font);
-            coin11Text = GachaCardView.Style(coinButton11, coinLabel11, GachaCardView.CoinColor, costIcon, font);
-            coin35Text = GachaCardView.Style(coinButton35, coinLabel35, GachaCardView.CoinColor, costIcon, font);
+            adText = GachaCardView.Style(adButton, adLabel, GachaCardView.AdSprite, GachaCardView.AdColor, null, font);
+            coin11Text = GachaCardView.Style(coinButton11, coinLabel11, GachaCardView.CoinSprite, GachaCardView.CoinColor, costIcon, font);
+            coin35Text = GachaCardView.Style(coinButton35, coinLabel35, GachaCardView.CoinSprite, GachaCardView.CoinColor, costIcon, font);
         }
 
         const string GemIcon = "Art/Dream/Icons/gem";
@@ -89,7 +89,7 @@ namespace MoreMush.Mobile
 
         const string PreviewCharacter = "star";
 
-        // 맨 위 띠(Name 이미지)를 꽉 채우는 글자. 글꼴은 이 패널의 다른 글자에서 가져온다
+        // 왼쪽 위 리본(Name 이미지)을 꽉 채우는 글자. 글꼴은 이 패널의 다른 글자에서 가져온다
         TMP_Text CreateTitle(Transform bar)
         {
             if (bar == null) return null;
@@ -102,7 +102,9 @@ namespace MoreMush.Mobile
             rt.offsetMin = new Vector2(20f, 2f);
             rt.offsetMax = new Vector2(-20f, -2f);
             if (label != null) t.font = label.font;
-            t.color = new Color(0.36f, 0.24f, 0.14f);
+            t.color = Color.white;              // Name 띠는 카드 그림 위 반투명 어두운 리본
+            t.outlineWidth = 0.2f;
+            t.outlineColor = new Color32(40, 28, 20, 255);
             t.fontStyle = FontStyles.Bold;
             t.alignment = TextAlignmentOptions.Center;
             t.enableAutoSizing = true;
