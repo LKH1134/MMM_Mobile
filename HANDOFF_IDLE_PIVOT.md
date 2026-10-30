@@ -1,6 +1,6 @@
 # HANDOFF — 방치형 전환 · 뽑기 · 서버/보안 방침
 
-> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치 `a61e7f0`: Main 방치형 구현, InGame = 던전 1로 복원, SkillTree 제거)
+> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치 `cd69bd5`: Main 방치형 구현, InGame = 던전 1로 복원, SkillTree 제거, 꼬마 강화·편성 펫 칸)
 > 이 문서는 **기획 논의와 결정 사항**을 모은 것이다. 구현된 Main 구조는 `HANDOFF.md` 3.1, 작업 기록은 `AGENT_WORKLOG.md`를 본다.
 > 표시: ✅ 확정 · 🟡 방향만 있음 · ❓ 미정
 
@@ -25,12 +25,14 @@ Start(로딩) → Main(방치형, 상주)  ⇄  InGame(던전 전투)
 - 던전 종류: 일일 던전(일반 스테이지), 주간 던전(보스전).
 - InGame 결과 팝업의 "돌아가기"는 Main으로, "재도전"만 InGame을 다시 로드한다.
 
-### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치 `a61e7f0`)
+### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치 `cd69bd5`)
 - 빌드 씬: `Start`, `Main`, `WorldTree`, `InGame`. **`SkillTree`는 10-30 제거**(KHD, `Backup/SkillTree/`에 백업). `InGame.unity`는 10-30 한 번 지웠다가 KHD가 **던전 1로 복원**.
 - Start → Main 연결됨. Main Canvas Scaler = Scale With Screen Size 1080×2340, Match 0.5.
 - **던전 1 "입장하기" = `SceneButton("InGame")`**(기본 해금, 로딩 팝업 거침). 결과 팝업 "한 번 더하기"(InGame 다시) · "나가기"(→ Main). 위 합의안의 `DungeonRequest`는 **아직 없음** — InGame은 늘 일반 스테이지 기본값으로 시작.
 - 씬 이동은 `SceneLoader.Load(이름)`(로딩 팝업). 예외: `StartLoading`(Start → Main), InGame 안 코드(`ResultPopup`·`InGameOption`·`Benchmark`는 `SceneManager.LoadScene` 직접 — 로딩 팝업 없음).
 - 세계수 뒤로가기 → Main. 하단바 세계수 → WorldTree (스킬트리 경유 없음).
+- 뽑기 4종(수확기·방어구·펫·꼬마)은 구현됨: 뽑기 레벨·경험치 막대, 광고/11회/35회 소환(KHD). 중복 처리 = **조각 → 합성 레벨업**(장비·꼬마 같은 방식, 꼬마는 레벨당 공격 +5% 임시값).
+- 편성 = 꼬마 칸 5 + 펫 칸 (3×2).
 - Main 구조·팝업 규칙은 `HANDOFF.md` 3.1.
 
 ### ❓ 미정

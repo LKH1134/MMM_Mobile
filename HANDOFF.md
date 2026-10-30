@@ -1,6 +1,6 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
-> 작성 2026-10-28 · **갱신 2026-10-30** · 기준 브랜치 `InGame` (`a61e7f0` = KHD `3183125` 머지까지)
+> 작성 2026-10-28 · **갱신 2026-10-30** · 기준 브랜치 `InGame` (`cd69bd5` = KHD `dc7de93` 머지까지)
 > itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
 >
 > **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 10-30 한 번 지웠다가 KHD(`3183125`)가 **던전 1로 되살렸습니다**(Main 던전 탭 → InGame → 결과 팝업 → Main, 4장). **`SkillTree` 씬은 제거**(`Backup/SkillTree/`에 백업, 5장). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`·`밸런스설계/`를 보세요.
@@ -71,6 +71,13 @@
 | `d1d8b1e`·`c74f65d` | 10-30 | 간판(`header_plaque`) 나뭇잎 제거·수정 |
 | `3183125` | 10-30 | **KHD:** 성장 곡선 재설계(골드·강화 비용 지수 항, 치명타 0.1%/Lv, 공속 상한 제거), 강화 2종(상급 공격력·일반 적 피해량)과 단계 제한, **던전 1 → InGame 연결·InGame 씬 복원**, InGame 결과 팝업 간소화·첫 입장 튜토리얼, 뽑기 결과 연출, **절전 모드**, `PopupLayer`, `TabGroup` 탭별 `hide`, 편성·던전·뽑기 패널을 화면 위까지, 설정 창 정리, 세계수 뒤로가기 → Main, **SkillTree 씬·스크립트 제거**(`Backup/SkillTree/`), 골드 획득량 강화 제거, `밸런스설계/` 폴더 |
 | `a61e7f0` | 10-30 | KHD → InGame 머지 (충돌 없음) |
+| `bdc30df` | 10-30 | HANDOFF 정리 (KHD 머지 반영) |
+| `4a783a7` | 10-30 | **KHD:** 방치 전투 최적화 — `Wallet` 잔액·`IdleProgress` 강화 레벨을 메모리에 둠(`Wallet.Reload`·`IdleProgress.ReloadLevels`), 적 공격력은 스테이지 바뀔 때만 계산, 보스 HUD 초 글자는 초가 바뀔 때만 |
+| `b647911` | 10-30 | **KHD:** **꼬마 강화(합성)** — 레벨·조각(장비와 같은 방식), 레벨마다 공격 배율 +5%, 꼬마 고르기 아래 정보 칸 `CharacterDetail`(편성·합성·일괄 합성), 예전 보유 장수 세이브 옮김 |
+| `034c20f` | 10-30 | **KHD:** 뽑기 카드 오른쪽 열 개편 `GachaCardView` — 뽑기 레벨·경험치 막대, 광고 소환(초록) · 11회/35회(보라, 재화 아이콘·가격) |
+| `a902a76` | 10-30 | **KHD:** 타격 이펙트 `HitEffects` (MoreMustMush `FX/hit_0~4`, `Resources/Art/Dream/FX`) |
+| `dc7de93` | 10-30 | **KHD:** 편성 3×2(꼬마 5 + **펫 칸**), 하단 꼬마/펫 탭(`Down`) 삭제, 꼬마 고르기 X 닫기 버튼 |
+| `cd69bd5` | 10-30 | KHD → InGame 머지 (충돌 없음) |
 
 ### 2026-10-26 ~ 10-28 (`LKH` 브랜치, 판 플레이 시절)
 
@@ -124,7 +131,8 @@
 - **꼬마 배치:** `GgomaArea`(232×362) 안 `Ggoma1~5` = 편성 칸 1~5. 앞줄(x +58) 1·2·3, 뒷줄(x −58) 4·5 지그재그, 모두 가운데 앵커 100×100 (10-30 정리).
 - **전투(`IdleBattle`):** 웨이브 `IdleProgress.WavesPerStage` + 보스(제한 시간). 적 처치 골드는 1초마다 모아 `Wallet`에, 보스 처치 = 균사석 `BossMycelite` + 골드 `BossGold`(일반 20마리분) + 다음 스테이지. 꼬마 무리 체력이 0이면 같은 스테이지 1웨이브부터. 수치는 `BALANCE_IDLE.md`.
 - **하단 탭:** 탭이 열리면 `UpgradePanel`은 숨김(`TabGroup.homeOnly`). **10-30 KHD 이후 편성(`Equit`, y 233~2340)·던전·뽑기(y 200~2340) 패널은 하단바 위부터 화면 맨 위까지 덮습니다**(전투는 탭이 열린 동안 가려짐). 던전·뽑기는 `ScrollRect`(Viewport/Content). 탭별로 열린 동안 끌 것은 `TabGroup.Tab.hide`(지금 Main 씬에선 비어 있음).
-- **편성(`Equit`):** `GGoma`(꼬마 칸 5 + 자동 편성 + 꼬마 판 위에 붙은 장착 장비 칸 `EquippedGearView`), `Char`(꼬마 고르기 — 목록 위쪽을 누르면 닫힘), `Wepon`·`Amor`·`Pet`(장비 팝업, `EquipmentPanel`). 장비 탭은 `TabGroup.pagesArePopups`라 다른 팝업과 한 번에 하나만.
+- **편성(`Equit`):** `GGoma`(칸 3×2 = 꼬마 칸 5 + 6번째 **펫 칸**(`Middle/Pet`, 누르면 펫 창) + 자동 편성 + 꼬마 판 위에 붙은 장착 장비 칸 `EquippedGearView`), `Char`(꼬마 고르기 — 목록 위쪽(`Outside`) 또는 오른쪽 위 X(`Out`, 코드 생성)로 닫힘), `Wepon`·`Amor`·`Pet`(장비 팝업, `EquipmentPanel`). 장비 탭은 `TabGroup.pagesArePopups`라 다른 팝업과 한 번에 하나만. 하단 꼬마/펫 탭(`Down`)은 10-30 KHD가 삭제.
+- **꼬마 강화(KHD 10-30):** 처음 얻으면 Lv.1, 또 얻으면 조각, 조각 (Lv+1)개로 +1레벨(최대 100, `Equipment.CopiesToNext`와 같음). 공격 배율 = 1레벨 배율 × (1 + 0.05 × (Lv−1)) — 5%는 임시값. 꼬마 고르기에서 꼬마를 누르면 **선택만** 되고 아래 정보 칸 `CharacterDetail`(그림·등급·Lv·조각 막대·배율→다음)의 **편성**으로 칸에 놓음, **합성**·**일괄 합성**으로 레벨업. 미보유도 정보는 보임(편성·합성 막음). 첫 칸 X는 바로 편성 해제.
 - **던전:** 목록 "던전 1~5". **던전 1은 기본 해금**(덮개 꺼짐, 입장하기 = `SceneButton("InGame")`), 2~5는 "해금되지 않음" 덮개(`LockOverlay`). 입장권·해금 조건은 아직 없음.
 - **뽑기:** `GachaPanel` 4종(수확기·방어구·펫·꼬마, 패널 맨 위 띠에 이름·왼쪽에 임시 대표 그림). 결과는 `GachaResultPopup`(칸이 하나씩 튀어나옴, 등급 색, NEW!!, 누르면 건너뛰기).
 - **팝업:** `PopupGate` — 새 팝업이 열리면 열려 있던 것을 닫음(`UiPopup`·꼬마 고르기·장비 탭·방치 정산). 하단 탭을 바꾸면 모두 닫힘. 그리는 층은 **`PopupLayer.Raise(go, offset)`**(KHD 10-30) — 자기 `Canvas`를 붙여 부모 캔버스 + offset에 그리고 입력도 먼저 받음: 편성 안 팝업 +10(`Panel`), `UiPopup`·뽑기 결과 +100(`Popup`), 토스트 +200(`Toast`, 입력 통과). 그래서 Dim을 누르면 팝업만 닫힘.
@@ -327,7 +335,7 @@
 | 프리팹 | 용도 | 비고 |
 |---|---|---|
 | `OptionPopup` | Main·세계수 설정 | 데이터 초기화 버튼 (`DataResetButton`). Main은 씬에 미리 둠(`SafeArea/OptionPopup`, 우상단 `OptionButton`). 10-30 KHD 정리: BGM·SFX는 글자만, 창 아래 X(닫기), 안내 문구·불러오기·저장·계속하기·버전 삭제. 게임 종료·도움말·언어·BGM/SFX 슬라이더는 **연결 안 됨** |
-| `Main/GGoma`·`Char`·`Wepon`·`Amor`·`Pet` | 편성·꼬마 고르기·장비 | 3.1. `Char` 아래 버튼 줄(`Panel`: Button 두 개 + 닫기)은 **꺼 둠** — KHD 원안은 장비 창처럼 "꼬마 소환 · 일괄 합성"으로 보임(기록 없음, 꼬마 레벨·조각 데이터가 먼저 필요) |
+| `Main/GGoma`·`Char`·`Wepon`·`Amor`·`Pet` | 편성·꼬마 고르기·장비 | 3.1. `Char` 아래 버튼 줄(`Panel`: Button 두 개 + 닫기)은 **꺼 둠** — 합성·일괄 합성은 KHD가 코드로 만드는 정보 칸 `CharacterDetail`로 대신함(10-30). 소환 버튼은 없음 |
 | `Main/DungeonUI`·`GachaUI` | 던전 목록·뽑기 | `ScrollRect`(Viewport/Content). 던전 1 입장하기 → InGame, 2~5는 잠김 |
 | `GachaResultPopup` (코드) | 뽑기 결과 연출 | `PopupLayer.Popup` 층 |
 | `InGameOptionPopup` | InGame 옵션 | `OptionPopup`의 변형. BGM/SFX, 세계수로(`SceneManager` 직접), 데이터 초기화 |
@@ -348,7 +356,7 @@
 
 **메뉴:** `MoreMush/Data/Reimport Tables` · `MoreMush/Debug/Go To Next Boss Stage` · `MoreMush/Debug/Reset Stage` · `MoreMush/Debug/Run Benchmark` · `MoreMush/Debug/Open Benchmark Folder`
 **PlayerPrefs 키:** `Skill.Level.<index>`, `Stage.Current`, `Stage.FarmLeft`, `Stage.LastNormalScore`, `Stage.LastNormalGold`, `Stage.Cleared`, `Wallet.Gold`, `Wallet.Mycelite`, `Wallet.TestGrant`, `Wallet.TestReclaimed`, `InGame.SpeedIndex`, `Option.BgmVolume`, `Option.SfxVolume`
-방치형: `Idle.Stage`, `Idle.Lv.<stat>`, `Idle.GoldPerSec`, `Idle.LastSeen`, `Formation.*`·`Formation.Owned.*`, `Gacha.*`, 장비 `Weapon.*`·`Armor.*`·`Pet.*`(`.Level.<i>`·`.Copies.<i>`·`.Equipped`). 메뉴 `MoreMush/방치형 진행 초기화`.
+방치형: `Idle.Stage`, `Idle.Lv.<stat>`, `Idle.GoldPerSec`, `Idle.LastSeen`, `Formation.<칸>`·`Formation.Level.<id>`·`Formation.Copies.<id>`·`Formation.MigratedLevel`(예전 `Formation.Owned.<id>`는 한 번 옮기고 지움), `Gacha.*`, 장비 `Weapon.*`·`Armor.*`·`Pet.*`(`.Level.<i>`·`.Copies.<i>`·`.Equipped`). 메뉴 `MoreMush/방치형 진행 초기화`.
 
 **밸런스 측정기 (`BalanceBot`, InGame 씬 플레이 모드에서 MCP `execute_code`로)**
 - `RunCampaigns(seeds, skill, incomeMul, probeBoss, schedulePath, outPrefix, maxRounds, bossDamageMul)` → `Temp/<prefix><seed>.csv`(판마다 한 줄) + `_buys.csv`. 문서 사람 모델은 `(…, 1.0f, 0.6f, false, null, "Temp/bb_s", 250, 0.234f)`.
@@ -378,6 +386,7 @@
 - **Awake 순서:** `HarvestGame.Awake`가 `HarvestField.Awake`보다 먼저 `Configure`를 부를 수 있습니다. 필드가 Awake에서 준비하는 값은 처음 쓸 때 준비되게 하세요(`SaveBarBase` 참고).
 
 **2026-10-30 작업에서 알게 된 것**
+- **잔액·강화 레벨은 메모리 캐시(KHD `4a783a7`):** `Wallet.Gold/Mycelite`와 `IdleProgress.Level`은 처음 한 번만 PlayerPrefs를 읽습니다. **값은 꼭 `Wallet`·`IdleProgress`를 거쳐 쓰고**, PlayerPrefs를 직접 지우거나 고쳤으면 `Wallet.Reload()`·`IdleProgress.ReloadLevels()`를 부르세요(데이터 초기화 버튼은 부름, 플레이 시작 때 자동). 꼬마 레벨(`Formation.Level`)은 아직 캐시 없음 — 전투 타격마다 PlayerPrefs를 읽음.
 - **머지 뒤 새 스크립트가 컴파일에서 빠짐:** KHD 머지 직후 Unity가 새 .cs 5개를 에셋 DB엔 등록하고 컴파일 대상에선 빼서 "Missing script"·"type not found"가 났습니다. 다시 임포트로는 안 되고, 에디터에서 **파일 이름을 바꿨다 되돌리면**(`AssetDatabase.RenameAsset`) 들어갑니다. `CompilationPipeline.GetAssemblies()`의 `sourceFiles`로 확인.
 - **TMP 색을 코드로 바꾼 프리팹:** `LoadPrefabContents`에서 `TMP_Text.color`만 바꾸고 저장하면 `m_fontColor32`가 옛 값으로 남아, 씬을 저장할 때마다 글자 색 덮어쓰기가 수십 줄 생깁니다. 프리팹을 고칠 땐 `SerializedObject`로 `m_fontColor32.rgba`(= A<<24|B<<16|G<<8|R)도 맞추세요(편성 프리팹 5개는 10-30 맞춤).
 - **MCP로 플레이 확인:** 에디터가 뒤에 있으면 프레임이 안 넘어가 애니메이션·코루틴이 멈춥니다. `EditorApplication.isPaused = true` 후 `EditorApplication.Step()`을 반복하면 한 프레임씩 진행됩니다(이때 콘솔의 `JobTempAlloc` 경고는 무시). 스크린샷은 `manage_camera screenshot`(include_image=false로 파일 저장 → 잘라서 보기)이 안정적이고, `ScreenCapture.CaptureScreenshotAsTexture`는 빈 화면이 나왔습니다. 꺼진 오브젝트에선 코루틴이 안 돌므로 `SetActive(true)` 먼저.
@@ -392,7 +401,7 @@
 ### 방치형 (2026-10-30 기준, 우선)
 1. **던전 다듬기:** 던전 1은 InGame으로 연결됨(KHD). 남은 것: 던전 2~5 내용·해금 조건, 입장권(목록의 "2/2"), 보상 규칙, `DungeonRequest`로 던전 종류·스테이지 넘기기(지금은 늘 기본값)
 2. **InGame ↔ Main 이동에 로딩 팝업:** `ResultPopup.Retry/GoMain`·`InGameOption`·`Benchmark`가 `SceneManager.LoadScene`을 직접 부름 → `SceneLoader.Load`로
-3. **꼬마 고르기 아래 버튼 줄:** "꼬마 소환 · 일괄 합성"으로 쓸지 KHD와 확인. 쓰려면 꼬마 레벨·조각 저장부터(지금은 보유 여부만)
+3. **꼬마 강화 다듬기:** 레벨당 +5%는 임시값 → 밸런스 곡선에 맞춰 정하기. `Formation.Level` 캐시(전투 타격마다 PlayerPrefs 읽음). 꺼 둔 `Char` 아래 버튼 줄은 지울지 결정
 4. **도감 팝업을 여는 버튼** 다시 두기 (지금 어디서도 안 열림)
 5. 옵션 팝업 기능 연결: 게임 종료·도움말·언어·BGM/SFX
 6. 세계수를 Main 패널로 흡수할지 (`HANDOFF_IDLE_PIVOT.md` ❓). 스킬 트리를 다시 쓸지(`Backup/SkillTree/`)
