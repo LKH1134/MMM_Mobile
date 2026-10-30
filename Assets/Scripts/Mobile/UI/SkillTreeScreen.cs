@@ -46,12 +46,13 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_Text myceliteText;       // 지갑 균사석
 
         [SerializeField] string worldTreeScene = "WorldTree";
-        [SerializeField] string stageScene = "InGame";
+        [SerializeField] string stageScene = "";      // 비우면 스테이지 버튼을 막는다 (기존 InGame 씬은 안 씀)
 
         void Awake()
         {
             worldTreeButton.onClick.AddListener(() => Go(worldTreeScene));
-            stageButton.onClick.AddListener(() => Go(stageScene));
+            if (string.IsNullOrEmpty(stageScene)) stageButton.interactable = false;
+            else stageButton.onClick.AddListener(() => Go(stageScene));
             questButton.onClick.AddListener(() => Show(questPopup));
             indexButton.onClick.AddListener(() => Show(indexPopup));
             workshopButton.onClick.AddListener(() => Show(workshopPopup));
