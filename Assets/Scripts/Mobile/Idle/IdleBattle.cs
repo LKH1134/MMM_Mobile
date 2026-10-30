@@ -89,12 +89,14 @@ namespace MoreMush.Mobile
         readonly List<CanvasGroup> views = new List<CanvasGroup>();
         bool atHome = true;
         IdleReportPopup reportPopup;
+        HitEffects hitFx;           // 타격 이펙트 (MoreMustMush FX/hit 프레임)
         float markSeenIn;
         const float MarkSeenInterval = 5f;      // 앱이 갑자기 꺼져도 이만큼 이내 시각부터 앱 밖 보상을 셈한다
 
         void Awake()
         {
             if (effectLayer == null) effectLayer = (RectTransform)transform;
+            hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
             enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
             var bosses = new List<Sprite>(Resources.LoadAll<Sprite>(bossFolder));
@@ -252,6 +254,7 @@ namespace MoreMush.Mobile
             UpdateShots(dt);
             UpdateEnemies(dt);
             UpdateParty(dt);
+            hitFx.Tick(dt);
             UpdatePopups(dt);
             UpdateFlow(dt);
 
@@ -296,8 +299,9 @@ namespace MoreMush.Mobile
                     nextWaveIn = waveDelay * 2f;
                     wave = 0;
                     partyHp = partyMaxHp;
+                    RefreshHud();
                 }
-                RefreshHud();
+                else RefreshBossBars();
                 return;
             }
 
@@ -343,9 +347,16 @@ namespace MoreMush.Mobile
             if (max > partyMaxHp) partyHp += max - partyMaxHp;
             partyMaxHp = max;
 
+            // 적 공격력은 스테이지에만 달렸다 — 스테이지가 바뀔 때만 다시 셈한다
+            if (attackStage != stage)
+            {
+                attackStage = stage;
+                enemyAttack = IdleProgress.EnemyAttack(stage);
+                bossAttack = IdleProgress.BossAttack(stage);
+            }
             double enemyDps = 0;
             foreach (var e in enemies)
-                if (!e.dead && e.age > enemyAttackDelay) enemyDps += e.boss ? IdleProgress.BossAttack(stage) : IdleProgress.EnemyAttack(stage);
+                if (!e.dead && e.age > enemyAttackDelay) enemyDps += e.boss ? bossAttack : enemyAttack;
             double hurt = enemyDps * dt;
             partyHp = System.Math.Min(partyMaxHp, partyHp + IdleProgress.FinalHpRegen * dt - hurt);
 
@@ -365,6 +376,9 @@ namespace MoreMush.Mobile
             if (partyHp <= 0) Defeat();
             RefreshHp(dt);
         }
+
+        int attackStage = -1;
+        double enemyAttack, bossAttack;
 
         // 패배: 적을 거두고(보상 없음) 체력을 채운 뒤 같은 스테이지 1웨이브부터
         void Defeat()
@@ -548,6 +562,7 @@ namespace MoreMush.Mobile
             if (e.dead) return;
             e.hp -= dmg;
             e.flash = 1f;
+            hitFx.Play(ToLayer(e.rt.position), Mathf.Min(e.rt.sizeDelta.x, enemySize * 2f), crit);   // 보스는 화면을 덮지 않게 일반 적 2배까지
             ShowText(e.rt.position + (Vector3)(Random.insideUnitCircle * 20f),
                 IdleProgress.FormatNumber(dmg) + (crit ? "!" : ""),
                 crit ? new Color(1f, 0.55f, 0.15f) : Color.white, crit ? 46f : 34f, 0.6f);
@@ -752,9 +767,8 @@ namespace MoreMush.Mobile
             {
                 waveText.text = "보스 등장!";
                 waveText.color = new Color(1f, 0.6f, 0.45f);
-                barFill.anchorMax = new Vector2(Mathf.Clamp01((float)(boss.hp / boss.maxHp)), 1f);
-                timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime), 1f);
-                timerText.text = Mathf.CeilToInt(bossTimeLeft) + "초";
+                shownBossSec = -1;
+                RefreshBossBars();
             }
             else
             {
@@ -764,6 +778,20 @@ namespace MoreMush.Mobile
                 barFill.anchorMax = new Vector2(waveTotal <= 0 ? 0f : Mathf.Clamp01((float)waveKilled / waveTotal), 1f);
             }
         }
+
+        // 보스전 중 매 프레임: 막대만 움직이고, 남은 초 글자는 초가 바뀔 때만 새로 쓴다 (매 프레임 문자열을 만들지 않게)
+        void RefreshBossBars()
+        {
+            if (stageText == null || boss == null) return;
+            barFill.anchorMax = new Vector2(Mathf.Clamp01((float)(boss.hp / boss.maxHp)), 1f);
+            timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime), 1f);
+            int sec = Mathf.CeilToInt(bossTimeLeft);
+            if (sec == shownBossSec) return;
+            shownBossSec = sec;
+            timerText.text = sec + "초";
+        }
+
+        int shownBossSec = -1;
 
         // ── 만들기 도우미 ──
 

@@ -26,6 +26,8 @@ namespace MoreMush.Mobile
         {
             PlayerPrefs.DeleteAll();
             PlayerPrefs.Save();
+            IdleProgress.ReloadLevels();   // 메모리에 둔 강화 레벨·잔액도 버린다
+            Wallet.Reload();
             Time.timeScale = 1f;
             SceneLoader.Load(startScene);
         }

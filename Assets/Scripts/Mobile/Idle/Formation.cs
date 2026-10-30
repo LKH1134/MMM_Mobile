@@ -3,7 +3,7 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 꼬마 편성: 칸 SlotCount개에 꼬마 id 하나씩(빈 칸 = ""). 칸 i = Main 전투의 Ggoma(i+1) 자리.
-    // 꼬마는 꼬마 뽑기(GachaKind.Character)로 얻는다. 기본 편성 5명(Defaults)은 처음부터 1장씩 가진다.
+    // 꼬마는 꼬마 뽑기(GachaKind.Character)로 얻는다. 기본 편성 5명(Defaults)은 처음부터 Lv.1로 가진다. 중복은 조각 → 합성으로 레벨업.
     // 가진 꼬마만 편성할 수 있고, 저장된 칸의 꼬마를 안 가졌으면 빈 칸으로 본다.
     // PlayerPrefs("Formation.<칸>", "Formation.Owned.<id>")에 저장한다 (세이브 구조가 생기면 옮긴다)
     public static class Formation
@@ -35,26 +35,110 @@ namespace MoreMush.Mobile
             return IsOwned(id) ? id : "";
         }
 
-        // 가진 장수 (기본 편성 꼬마는 처음부터 1장)
-        public static int OwnedCount(string id)
+        // ── 강화 (장비와 같은 방식): 처음 얻으면 Lv.1, 같은 꼬마를 또 얻으면 조각. 조각 CopiesToNext(Lv)개로 레벨 +1 (최대 MaxLevel).
+        // 레벨마다 공격 배율 +LevelBonus (1레벨 값 기준). PlayerPrefs("Formation.Level.<id>", "Formation.Copies.<id>")
+        public const int MaxLevel = 100;
+        public const double LevelBonus = 0.05;      // 임시값: 배율이 밸런스 곡선(배율 1.0 기준)을 크게 흔들지 않게 장비(20%)보다 낮게
+
+        // 꼬마 레벨 (0 = 아직 없음). 기본 편성 꼬마는 처음부터 Lv.1
+        public static int Level(string id)
         {
             if (System.Array.IndexOf(Ids, id) < 0) return 0;
-            return Mathf.Max(0, PlayerPrefs.GetInt("Formation.Owned." + id, System.Array.IndexOf(Defaults, id) >= 0 ? 1 : 0));
+            Migrate();
+            int start = System.Array.IndexOf(Defaults, id) >= 0 ? 1 : 0;
+            return Mathf.Clamp(PlayerPrefs.GetInt("Formation.Level." + id, start), 0, MaxLevel);
         }
 
-        public static bool IsOwned(string id) => OwnedCount(id) > 0;
+        public static bool IsOwned(string id) => Level(id) > 0;
 
-        // 꼬마 뽑기 결과를 더한다 (같은 꼬마를 또 뽑으면 장수만 는다)
+        // 레벨업에 쓸 조각 (같은 꼬마를 또 얻은 수)
+        public static int Copies(string id) => System.Array.IndexOf(Ids, id) < 0 ? 0 : Mathf.Max(0, PlayerPrefs.GetInt("Formation.Copies." + id, 0));
+
+        // 레벨 lv → lv+1에 드는 조각 수 (장비와 같음: Lv.1→2는 2개, 레벨마다 1개씩 늘어난다)
+        public static int CopiesToNext(int lv) => Equipment.CopiesToNext(lv);
+
+        public static bool CanMerge(string id)
+        {
+            int lv = Level(id);
+            return lv > 0 && lv < MaxLevel && Copies(id) >= CopiesToNext(lv);
+        }
+
+        // 조각으로 올릴 수 있는 만큼 레벨을 올린다. 오른 레벨 수
+        public static int Merge(string id)
+        {
+            int up = LevelUp(id);
+            if (up > 0) Save();
+            return up;
+        }
+
+        public static int MergeAll()
+        {
+            int up = 0;
+            foreach (var id in Ids) up += LevelUp(id);
+            if (up > 0) Save();
+            return up;
+        }
+
+        static int LevelUp(string id)
+        {
+            int lv = Level(id), copies = Copies(id), up = 0;
+            if (lv <= 0) return 0;
+            while (lv < MaxLevel && copies >= CopiesToNext(lv))
+            {
+                copies -= CopiesToNext(lv);
+                lv++;
+                up++;
+            }
+            if (up == 0) return 0;
+            PlayerPrefs.SetInt("Formation.Level." + id, lv);
+            PlayerPrefs.SetInt("Formation.Copies." + id, copies);
+            return up;
+        }
+
+        // 꼬마 뽑기 결과를 더한다 (처음 얻으면 Lv.1, 또 얻으면 조각)
         public static void AddOwned(System.Collections.Generic.IEnumerable<string> ids)
         {
             foreach (var id in ids)
             {
                 if (System.Array.IndexOf(Ids, id) < 0) continue;
-                PlayerPrefs.SetInt("Formation.Owned." + id, OwnedCount(id) + 1);
+                if (Level(id) == 0) PlayerPrefs.SetInt("Formation.Level." + id, 1);
+                else PlayerPrefs.SetInt("Formation.Copies." + id, Copies(id) + 1);
             }
+            Save();
+        }
+
+        static void Save()
+        {
             PlayerPrefs.Save();
             Changed?.Invoke();
         }
+
+        // 예전 세이브(가진 장수 "Formation.Owned.<id>")를 한 번 옮긴다: 1장은 Lv.1, 나머지는 조각
+        static bool migrated;
+
+        static void Migrate()
+        {
+            if (migrated) return;
+            migrated = true;
+            if (PlayerPrefs.GetInt("Formation.MigratedLevel", 0) == 1) return;
+            PlayerPrefs.SetInt("Formation.MigratedLevel", 1);
+            foreach (var id in Ids)
+            {
+                string ownedKey = "Formation.Owned." + id;
+                if (!PlayerPrefs.HasKey(ownedKey)) continue;
+                int owned = PlayerPrefs.GetInt(ownedKey, 0);
+                if (owned > 0)
+                {
+                    PlayerPrefs.SetInt("Formation.Level." + id, 1);
+                    PlayerPrefs.SetInt("Formation.Copies." + id, owned - 1);
+                }
+                PlayerPrefs.DeleteKey(ownedKey);
+            }
+            PlayerPrefs.Save();
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetMigrationFlag() => migrated = false;
 
         // 이 등급의 꼬마 id들 (꼬마 뽑기에서 등급을 정한 뒤 그 안에서 고른다)
         public static System.Collections.Generic.List<string> IdsOfGrade(int grade)
@@ -111,11 +195,13 @@ namespace MoreMush.Mobile
             Changed?.Invoke();
         }
 
-        // 빈 칸·모르는 id는 0 (던지지 않는다)
-        public static double AttackMultiplier(string id)
+        // 공격 배율 = 1레벨 배율 × (1 + LevelBonus × (Lv − 1)). 빈 칸·모르는 id는 0 (던지지 않는다), 안 가졌으면 1레벨 값
+        public static double AttackMultiplier(string id) => AttackMultiplierAt(id, Mathf.Max(1, Level(id)));
+
+        public static double AttackMultiplierAt(string id, int lv)
         {
             int i = System.Array.IndexOf(Ids, id);
-            return i >= 0 ? AttackMuls[i] : 0;
+            return i >= 0 ? AttackMuls[i] * (1 + LevelBonus * (Mathf.Max(1, lv) - 1)) : 0;
         }
 
         public static int Grade(string id)

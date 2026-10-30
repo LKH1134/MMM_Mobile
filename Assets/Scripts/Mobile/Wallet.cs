@@ -25,9 +25,17 @@ namespace MoreMush.Mobile
             Set(Currency.Mycelite, Mycelite - TestMycelite);   // 이미 써 버렸으면 0에서 멈춘다
         }
 
-        // 골드는 long이라 문자열로 저장한다 (PlayerPrefs에 long이 없다)
-        public static long Gold => long.TryParse(PlayerPrefs.GetString(GoldKey, "0"), out var v) ? v : 0;
-        public static long Mycelite => long.TryParse(PlayerPrefs.GetString(MyceliteKey, "0"), out var v) ? v : 0;
+        // 골드는 long이라 문자열로 저장한다 (PlayerPrefs에 long이 없다).
+        // 잔액은 화면마다 자주 읽으므로 처음 한 번만 읽어 메모리에 두고, 쓸 때 둘 다 고친다. PlayerPrefs를 밖에서 지웠으면 Reload
+        static long? gold, mycelite;
+
+        public static long Gold => gold ??= Load(GoldKey);
+        public static long Mycelite => mycelite ??= Load(MyceliteKey);
+
+        static long Load(string key) => long.TryParse(PlayerPrefs.GetString(key, "0"), out var v) ? v : 0;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        public static void Reload() => gold = mycelite = null;
 
         public static long Get(Currency currency) => currency == Currency.Mycelite ? Mycelite : Gold;
 
@@ -50,7 +58,10 @@ namespace MoreMush.Mobile
 
         static void Set(Currency currency, long value)
         {
-            PlayerPrefs.SetString(currency == Currency.Mycelite ? MyceliteKey : GoldKey, System.Math.Max(0, value).ToString());
+            value = System.Math.Max(0, value);
+            if (currency == Currency.Mycelite) mycelite = value;
+            else gold = value;
+            PlayerPrefs.SetString(currency == Currency.Mycelite ? MyceliteKey : GoldKey, value.ToString());
             PlayerPrefs.Save();
             Changed?.Invoke();
         }

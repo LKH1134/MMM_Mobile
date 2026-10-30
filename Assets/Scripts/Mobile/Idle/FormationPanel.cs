@@ -5,40 +5,39 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 편성 화면 (먼작귀 포켓식): 캐릭터 탭 → 꼬마 칸(Middle) → 칸을 누르면 꼬마 고르기 팝업(Char).
-    // 고른 꼬마를 누른 칸에 놓고, 이미 다른 칸에 있던 꼬마면 두 칸을 맞바꾼다(Formation.Place).
-    // 팝업 첫 칸은 X 표시 "편성 해제" 버튼이고, 그 칸에 이미 있는 꼬마를 다시 골라도 해제된다. 못 얻은 꼬마는 "미보유"로 막는다.
+    // 편성 화면 (먼작귀 포켓식): 칸 3×2(Middle) — 꼬마 칸 5개 + 6번째 펫 칸. 꼬마 칸을 누르면 꼬마 고르기 팝업(Char).
+    // 펫 칸은 장착한 펫을 보여 주고, 누르면 펫 창이 열린다 (Equit의 TabGroup이 펫 탭으로 쓴다).
+    // 팝업에서 꼬마를 누르면 고른 것으로 표시하고 아래 정보 칸(CharacterDetail)에 레벨·조각·배율을 보여 준다 (장비 화면과 같은 방식).
+    // 정보 칸의 "편성"으로 누른 칸에 놓고(이미 다른 칸에 있던 꼬마면 두 칸을 맞바꾼다, Formation.Place), "합성"·"일괄 합성"으로 레벨을 올린다.
+    // 팝업 첫 칸은 X 표시 "편성 해제" 버튼(바로 해제)이고, 그 칸에 이미 있는 꼬마를 골라 "편성 해제"를 눌러도 해제된다. 못 얻은 꼬마는 "미보유"로 보여 주고 편성은 막는다.
     // 칸 버튼은 씬에 있는 것을 쓰고(자식 Image = 그림, w = 이름, w (1) = 레벨), 팝업 버튼에는 그림·배치 표시를 코드로 붙인다
     public class FormationPanel : MonoBehaviour
     {
-        [SerializeField] Button characterTab;       // Down/Button (1) "캐릭터"
         [SerializeField] Button autoButton;         // "자동 편성" — 비우면 GGoma/Button을 찾아 쓴다
-        [SerializeField] GameObject middle;         // 꼬마 칸 묶음
         [SerializeField] Button[] slotButtons;      // Middle의 칸 버튼 (순서 = Formation 칸 = 전투 Ggoma1~5)
+        [SerializeField] Transform petSlot;         // 6번째 칸 (펫) — 비우면 Middle/Pet을 찾아 쓴다
         [SerializeField] GameObject charPopup;      // 꼬마 고르기 팝업
         [SerializeField] RectTransform charGrid;    // 팝업 안 꼬마 버튼들의 부모
         [SerializeField] Button closeButton;
         [SerializeField] TMP_FontAsset font;
-        [SerializeField] string clearIcon = "Art/Dream/UI/btn_close";   // 편성 해제 버튼 그림 (Resources 경로)
+        [SerializeField] string clearIcon = "Art/Dream/UI/btn_close";   // 편성 해제 버튼·팝업 닫기 버튼 그림 (Resources 경로)
         [SerializeField] int popupSortingOrder = 10; // 부모 캔버스보다 이만큼 위에 그린다 (전투 화면·강화 목록 위)
 
         class Pick { public Button button; public Image bg, icon; public TMP_Text name, badge; public string id; }
 
         readonly List<Pick> picks = new List<Pick>();
         int targetSlot = -1;
+        string selectedId;
+        CharacterDetail detail;
+        const float DetailHeight = 430f;    // 팝업 그리드 아래 빈 자리 (꼬마 칸은 위 세 줄만 쓴다)
 
         void Awake()
         {
-            if (characterTab != null) characterTab.onClick.AddListener(ShowMiddle);
-            if (autoButton == null && characterTab != null && characterTab.transform.parent != null)
-            {
-                // GGoma 프리팹 구조: GGoma/Down/Button (1) = 캐릭터 탭, GGoma/Button = 자동 편성
-                var ggoma = characterTab.transform.parent.parent;
-                var found = ggoma != null ? ggoma.Find("Button") : null;
-                if (found != null) autoButton = found.GetComponent<Button>();
-            }
+            // GGoma 프리팹 구조: GGoma/Button = 자동 편성, GGoma/Middle/Pet = 펫 칸
+            if (autoButton == null) autoButton = transform.Find("Button")?.GetComponent<Button>();
             if (autoButton != null) autoButton.onClick.AddListener(Formation.AutoArrange);
             else Debug.LogWarning("[FormationPanel] 자동 편성 버튼을 찾지 못함");
+            if (petSlot == null) petSlot = transform.Find("Middle/Pet");
             for (int i = 0; i < slotButtons.Length; i++)
             {
                 int slot = i;
@@ -46,22 +45,41 @@ namespace MoreMush.Mobile
             }
             if (closeButton != null) closeButton.onClick.AddListener(ClosePicker);
             BuildPicks();
+            CreateCloseButton();    // BuildPicks 뒤에: 그리드 안 버튼을 꼬마 칸으로 모으므로 먼저 만들면 칸으로 잡힌다
+            detail = CharacterDetail.Create(charGrid, font, DetailHeight);
+            detail.PlaceRequested += PlaceSelected;
             ClosePicker();      // 씬에서 켜 두었어도 시작할 때는 닫는다
         }
 
         void OnEnable()
         {
             Formation.Changed += Refresh;
+            Equipment.Pet.Changed += Refresh;
             Refresh();
         }
 
-        void OnDisable() => Formation.Changed -= Refresh;
-
-        void ShowMiddle()
+        void OnDisable()
         {
-            if (middle != null) middle.SetActive(true);
-            ClosePicker();
+            Formation.Changed -= Refresh;
+            Equipment.Pet.Changed -= Refresh;
         }
+
+        // 꼬마 고르기 창 오른쪽 위 모서리 X 버튼 (창 아래는 하단 바와 붙어 자리가 없다). 창이 화면 너비라 안쪽으로 들여 놓는다
+        void CreateCloseButton()
+        {
+            var img = new GameObject("Out", typeof(RectTransform), typeof(Image), typeof(Button)).GetComponent<Image>();
+            img.transform.SetParent(charGrid, false);
+            img.sprite = Resources.Load<Sprite>(clearIcon);
+            img.preserveAspect = true;
+            var rt = img.rectTransform;
+            rt.anchorMin = rt.anchorMax = Vector2.one;
+            rt.anchoredPosition = new Vector2(-CloseInset, -CloseInset);
+            rt.sizeDelta = new Vector2(CloseSize, CloseSize);
+            img.GetComponent<Button>().onClick.AddListener(ClosePicker);
+        }
+
+        const float CloseSize = 110f;
+        const float CloseInset = 50f;   // 버튼 가운데를 모서리에서 이만큼 안쪽으로
 
         void OpenPicker(int slot)
         {
@@ -70,7 +88,9 @@ namespace MoreMush.Mobile
             charPopup.SetActive(true);
             // 팝업은 Equit 안에 있어 뒤에 오는 강화 목록·전투 화면에 가려진다 → 자기 캔버스로 위에 올린다
             PopupLayer.Raise(charPopup, popupSortingOrder);
-            Refresh();
+            // 처음엔 그 칸의 꼬마를, 빈 칸이면 가진 꼬마 중 첫 번째를 고른 것으로 보여 준다
+            string current = Formation.Get(slot);
+            Select(!string.IsNullOrEmpty(current) ? current : FirstOwned());
         }
 
         void ClosePicker()
@@ -80,12 +100,34 @@ namespace MoreMush.Mobile
             if (charPopup != null) charPopup.SetActive(false);
         }
 
+        // 팝업 칸을 눌렀다: 편성 해제 칸은 바로 해제, 꼬마는 고른 것으로 표시만 한다
         void Choose(string id)
         {
             if (targetSlot < 0) return;
-            if (string.IsNullOrEmpty(id)) Formation.Clear(targetSlot);
-            else Formation.Place(targetSlot, id);
+            if (!string.IsNullOrEmpty(id)) { Select(id); return; }
+            Formation.Clear(targetSlot);
             ClosePicker();
+        }
+
+        void Select(string id)
+        {
+            selectedId = id;
+            if (detail != null) detail.Show(id, targetSlot >= 0 && Formation.Get(targetSlot) == id);
+            Refresh();
+        }
+
+        // 정보 칸의 "편성": 고르는 칸에 놓는다 (이미 그 칸에 있으면 Formation.Place가 해제한다)
+        void PlaceSelected(string id)
+        {
+            if (targetSlot < 0) return;
+            Formation.Place(targetSlot, id);
+            ClosePicker();
+        }
+
+        static string FirstOwned()
+        {
+            foreach (var id in Formation.Ids) if (Formation.IsOwned(id)) return id;
+            return Formation.Ids[0];
         }
 
         // 팝업의 버튼을 화면 순서(위→아래, 왼→오른)로 쓴다: 첫 칸 = 편성 해제, 다음부터 꼬마 수만큼, 나머지는 숨긴다
@@ -142,7 +184,7 @@ namespace MoreMush.Mobile
                 brt.anchorMin = brt.anchorMax = new Vector2(0f, 1f);
                 brt.pivot = new Vector2(0f, 1f);
                 brt.anchoredPosition = new Vector2(10f, -8f);
-                brt.sizeDelta = new Vector2(160f, 36f);
+                brt.sizeDelta = new Vector2(285f, 36f);   // "1번 배치 · 합성 가능"이 들어가게
                 p.badge.alignment = TextAlignmentOptions.TopLeft;
 
                 b.onClick.RemoveAllListeners();
@@ -163,8 +205,9 @@ namespace MoreMush.Mobile
                 var nameText = slot.Find("w")?.GetComponent<TMP_Text>();
                 if (nameText != null) { nameText.text = empty ? "꼬마 선택" : Formation.Name(id); if (font != null) nameText.font = font; }
                 var lvText = slot.Find("w (1)")?.GetComponent<TMP_Text>();
-                if (lvText != null) { lvText.text = empty ? "" : "Lv.1"; if (font != null) lvText.font = font; }
+                if (lvText != null) { lvText.text = empty ? "" : $"Lv.{Formation.Level(id)}"; if (font != null) lvText.font = font; }
             }
+            RefreshPetSlot();
 
             string current = targetSlot >= 0 ? Formation.Get(targetSlot) : null;
             foreach (var p in picks)
@@ -178,16 +221,34 @@ namespace MoreMush.Mobile
                     p.badge.text = "";
                     continue;
                 }
-                // 꼬마 뽑기로 아직 못 얻은 꼬마는 어둡게, 누를 수 없다
+                // 꼬마 뽑기로 아직 못 얻은 꼬마는 어둡게 (눌러서 정보는 볼 수 있다)
                 bool owned = Formation.IsOwned(p.id);
-                p.button.interactable = owned;
+                bool picked = p.id == selectedId;
                 if (p.icon != null) p.icon.color = owned ? Color.white : new Color(0.25f, 0.25f, 0.25f);
-                if (!owned) { p.badge.text = "미보유"; p.bg.color = new Color(0.6f, 0.6f, 0.6f); continue; }
+                int lv = Formation.Level(p.id);
+                p.name.text = owned ? $"{Formation.Name(p.id)} <size=80%>Lv.{lv}</size>" : Formation.Name(p.id);
+                if (!owned) { p.badge.text = "미보유"; p.bg.color = picked ? new Color(0.85f, 0.78f, 0.45f) : new Color(0.6f, 0.6f, 0.6f); continue; }
                 int at = Formation.SlotOf(p.id);
-                p.badge.text = at >= 0 ? $"{at + 1}번 배치" : "";
-                // 지금 고르는 칸에 있는 꼬마는 노랗게, 다른 칸에 있는 꼬마는 살짝 어둡게
-                p.bg.color = p.id == current ? new Color(1f, 0.9f, 0.45f) : at >= 0 ? new Color(0.85f, 0.85f, 0.85f) : Color.white;
+                // 합성할 수 있으면 배지에 같이 알린다
+                p.badge.text = (at >= 0 ? $"{at + 1}번 배치" : "") + (Formation.CanMerge(p.id) ? (at >= 0 ? " · " : "") + "<color=#9BE36B>합성 가능</color>" : "");
+                // 고른 꼬마는 노랗게, 다른 칸에 있는 꼬마는 살짝 어둡게
+                p.bg.color = picked ? new Color(1f, 0.9f, 0.45f) : at >= 0 && p.id != current ? new Color(0.85f, 0.85f, 0.85f) : Color.white;
             }
+        }
+
+        // 펫 칸: 꼬마 칸과 같은 구조 (Image = 그림, w = 이름, w (1) = 레벨). 장착한 펫이 없으면 "펫 선택"
+        void RefreshPetSlot()
+        {
+            if (petSlot == null) return;
+            var pet = Equipment.Pet;
+            int i = pet.Equipped;
+            bool empty = i < 0;
+            var img = petSlot.Find("Image")?.GetComponent<Image>();
+            if (img != null) { img.sprite = pet.Sprite(i); img.preserveAspect = true; img.color = empty ? Color.clear : Color.white; }
+            var nameText = petSlot.Find("w")?.GetComponent<TMP_Text>();
+            if (nameText != null) { nameText.text = empty ? "펫 선택" : pet.Names[i]; if (font != null) nameText.font = font; }
+            var lvText = petSlot.Find("w (1)")?.GetComponent<TMP_Text>();
+            if (lvText != null) { lvText.text = empty ? "" : $"Lv.{pet.Level(i)}"; if (font != null) lvText.font = font; }
         }
 
         TMP_Text NewText(string name, Transform parent, float size)
