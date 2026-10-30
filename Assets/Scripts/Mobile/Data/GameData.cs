@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    // 게임 데이터 표 모음. 처음 쓸 때 Resources/Tables/*.bytes(= Assets/Data/Tables/*.xlsx 복사본)를 읽어 파싱한다.
+    // 기존 스킬 트리/판 플레이용 데이터. 방치형 통합 표와 분리해 Legacy 복사본을 읽는다.
     // 사용: GameData.Mushrooms.Get(1001), GameData.Skills.All
-    // 엑셀을 고치면 에디터의 TableImporter가 복사본을 갱신하고 내용을 검사해 콘솔에 알린다
+    // Legacy는 자동 임포트에서 제외된다. 새 방치형 통합 표는 GameBalance.xlsx (임포트/검증만 연결).
     public static class GameData
     {
-        public const string ResourceFolder = "Tables";
+        public const string ResourceFolder = "Tables/Legacy";
 
         // 표 이름(= 엑셀 파일 이름 = 시트 이름)과 index 범위
         public static readonly DataTable<MushroomData> Mushrooms = new DataTable<MushroomData>("Mushroom", 1001, 1999);

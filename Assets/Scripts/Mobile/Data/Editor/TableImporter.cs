@@ -7,12 +7,13 @@ using UnityEngine;
 namespace MoreMush.Mobile.EditorTools
 {
     // Assets/Data/Tables/*.xlsx가 바뀌면 Resources/Tables/<이름>.bytes로 복사하고 내용을 검사해 콘솔에 알린다.
-    // 빌드에는 .bytes 복사본이 들어가고, 런타임의 GameData가 그걸 파싱한다 (Resources는 .xlsx를 그대로 못 읽는다).
+    // GameBalance 통합 표를 검증 후 복사한다. 실제 방치형 수치의 테이블 전환은 별도 작업이다.
+    // Legacy는 보관용이므로 자동 임포트 대상에서 제외한다. GameData는 보존한 Legacy bytes를 읽는다.
     // 엑셀이 열려 있을 때 생기는 잠금 파일(~$*.xlsx)은 무시한다
     class TableImporter : AssetPostprocessor
     {
         const string SourceFolder = "Assets/Data/Tables";
-        const string OutputFolder = "Assets/Resources/" + GameData.ResourceFolder;
+        const string OutputFolder = "Assets/Resources/Tables";
 
         static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moved, string[] movedFrom)
         {
@@ -29,7 +30,7 @@ namespace MoreMush.Mobile.EditorTools
         }
 
         static bool IsTable(string path) =>
-            path.StartsWith(SourceFolder + "/") && path.EndsWith(".xlsx", System.StringComparison.OrdinalIgnoreCase)
+            Path.GetDirectoryName(path)?.Replace('\\', '/') == SourceFolder && path.EndsWith(".xlsx", System.StringComparison.OrdinalIgnoreCase)
             && !Path.GetFileName(path).StartsWith("~$");
 
         static void Export(string path)
@@ -43,6 +44,18 @@ namespace MoreMush.Mobile.EditorTools
             }
 
             string name = Path.GetFileNameWithoutExtension(path);
+            var issues = new List<string>();
+            int rows = Validate(name, bytes, issues);
+            if (rows < 0)
+            {
+                Debug.LogWarning($"[TableImporter] {name}: 등록되지 않은 표라 내보내지 않았다");
+                return;
+            }
+            if (issues.Count > 0)
+            {
+                Debug.LogError($"[TableImporter] {name}: 문제 {issues.Count}개 — 기존 bytes 유지 (최대 30개 표시)\n" + string.Join("\n", issues.Take(30)));
+                return;
+            }
             Directory.CreateDirectory(OutputFolder);
             string output = OutputFolder + "/" + name + ".bytes";
             if (!File.Exists(output) || !File.ReadAllBytes(output).SequenceEqual(bytes))
@@ -51,11 +64,7 @@ namespace MoreMush.Mobile.EditorTools
                 AssetDatabase.ImportAsset(output);
             }
 
-            var issues = new List<string>();
-            int rows = Validate(name, bytes, issues);
-            if (rows < 0) Debug.LogWarning($"[TableImporter] {name}: GameData에 등록되지 않은 표다 (복사만 했다)");
-            else if (issues.Count == 0) Debug.Log($"[TableImporter] {name}: {rows}행 OK");
-            else Debug.LogWarning($"[TableImporter] {name}: {rows}행, 문제 {issues.Count}개\n" + string.Join("\n", issues));
+            Debug.Log($"[TableImporter] {name}: {rows}행 OK (6개 데이터 시트 + info, 게임 수치 적용은 별도)");
         }
 
         // 새 표를 추가하면 여기에도 한 줄 추가한다. 등록되지 않은 이름이면 -1
@@ -63,6 +72,7 @@ namespace MoreMush.Mobile.EditorTools
         {
             switch (name)
             {
+                case "GameBalance": return GameBalanceValidator.Validate(bytes, issues);
                 case "Mushroom": return Check(new DataTable<MushroomData>(name, GameData.Mushrooms.IndexMin, GameData.Mushrooms.IndexMax), bytes, issues);
                 case "Harvester": return Check(new DataTable<HarvesterData>(name, GameData.Harvesters.IndexMin, GameData.Harvesters.IndexMax), bytes, issues);
                 case "Skill": return Check(new DataTable<SkillData>(name, GameData.Skills.IndexMin, GameData.Skills.IndexMax), bytes, issues);

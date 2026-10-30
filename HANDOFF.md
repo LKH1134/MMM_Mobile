@@ -5,6 +5,8 @@
 >
 > **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 **씬 파일을 삭제**했습니다(코드·프리팹은 남음, 4장). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`를 보세요.
 
+> **2026-10-30 데이터 표 정리:** 새 통합 표는 `Assets/Data/Tables/GameBalance.xlsx`입니다(적·보스·꼬마·업그레이드·스테이지·리소스·`info`). 기존 엑셀 5개와 대응 `.bytes`는 각각 `Tables/Legacy/`로 이동했습니다. **이번 범위는 엑셀 정리 + Unity 임포트·검증까지이며, 방치형 전투·강화·편성의 하드코딩 수치를 새 표로 전환하지 않았습니다.** 자세한 내용은 6장과 엑셀 `info`.
+
 ---
 
 ## 1. 한눈에 보기
@@ -242,6 +244,18 @@
 ---
 
 ## 6. 데이터 표
+
+### 6.0 방치형 통합 표 (2026-10-30)
+
+- **원본:** `Assets/Data/Tables/GameBalance.xlsx` → 검증 통과 시 `Assets/Resources/Tables/GameBalance.bytes`로 복사. `MoreMush/Data/Reimport Tables` 또는 저장 후 자동 임포트.
+- **시트:** 적 10행, 보스 2행, 꼬마 9행, 업그레이드 7행, 스테이지 1~1000(1000행), 리소스 27행 = **1055행** + `info` 사용법/전체 컬럼 설명. 1행 영문 키, 2행 자료형, 3행 한글 설명/필터, 4행부터 데이터. `#` 컬럼은 미리보기.
+- **체력 계약:** 적/보스의 `hpCoefficient × 스테이지.stageCoefficient`. 초기 계수는 기존 1스테이지 기준으로 적 2, 보스 72. 스테이지 계수는 기존 `ExpectedHit(s)`를 소수 8자리로 저장. 기존 코드의 웨이브 체력 증가·보스 기대 공격 속도 보정은 이 새 모델에 없으므로 **실제 게임 적용 전에 밸런스 재측정 필요**.
+- **검증:** `Data/Editor/GameBalanceValidator.cs`가 필수 컬럼·자료형, ID/key 중복, 수치 범위, 해금 순환, 스테이지 연속 번호, 외래키, 실제 리소스를 검사. 오류가 있으면 기존 정상 bytes 유지. 검증기는 에디터 전용이라 `link.xml` 추가 불필요.
+- **적용 범위:** 사용자 확정 = 표 정리/임포트/검증만. `IdleProgress`·`Formation`·`IdleBattle`은 기존 코드 수치를 계속 사용. 보스 이름도 데이터만 준비했으며 화면 표시 연결은 추후.
+- **Legacy:** 아래에 설명하는 Mushroom·Harvester·Skill·Stage·Boss 엑셀은 `Assets/Data/Tables/Legacy/`, 복사본은 `Assets/Resources/Tables/Legacy/`. GUID/내용 유지. `GameData.ResourceFolder = "Tables/Legacy"`로 기존 스킬트리 로딩을 유지하며, Legacy 엑셀은 자동 재임포트에서 제외.
+- **확인:** Unity 임포트 1055행 문제 0, Sprite 27개 실재, Legacy 스킬 135/스테이지 50/보스 5 로딩, 원본/bytes 일치, 수식 캐시 2014개/시트 7개 렌더 확인, 잘못된 입력 10종 거부. 플레이 모드/PlayerPrefs/열린 Main 씬의 저장 전 변경은 건드리지 않음.
+
+**아래 표와 6.1~6.2는 Legacy 데이터 기록입니다.**
 
 엑셀(xlsx)로 관리하고 런타임에 파싱합니다.
 
