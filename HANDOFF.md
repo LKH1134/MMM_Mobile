@@ -1,7 +1,9 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
-> 작성 2026-10-28 · 기준 커밋 `ea9c2b2` (`LKH` 브랜치 = `origin/LKH`. `main`은 `b6a3536`에 있고 LKH가 11커밋 앞섬)
-> itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로 1080×1920)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
+> 작성 2026-10-28 · **갱신 2026-10-30** · 기준 브랜치 `InGame` (= `origin/InGame`, `50137ed` 이후 + 꼬마 배치 정리)
+> itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
+>
+> **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 **씬 파일을 삭제**했습니다(코드·프리팹은 남음, 4장). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`를 보세요.
 
 ---
 
@@ -9,6 +11,12 @@
 
 | 항목 | 상태 |
 |---|---|
+| **Main 방치형 전투** (꼬마 5칸이 수확기 투척, 웨이브 5 + 보스, 패배 시 같은 스테이지 처음부터) | ✅ 동작 (3.1) |
+| Main 강화 목록 (공격력·체력·재생·공격 속도·치명타) / 방치 정산 팝업 / 앱 밖 골드 | ✅ 동작 |
+| Main 하단 탭: 편성(꼬마 편성·장비) · 던전(목록만, 전부 잠김) · 뽑기 | ⚠️ 편성·뽑기 동작, 던전은 입장 없음 |
+| 재화: 웨이브 적 = 골드, 보스 = 균사석 + 골드 / Main 재화 바 상시 표시 | ✅ 2026-10-30 (테스트 균사석 50,000 지급 제거·회수) |
+| 씬 전환 로딩 팝업 (`SceneLoader`) / 팝업 하나만 (`PopupGate`) | ✅ 2026-10-30 |
+| ~~InGame 핵심 플레이~~ | 🗑️ **씬 삭제 (10-30)**. 아래 InGame 줄은 코드 기준 기록 |
 | InGame 핵심 플레이 (수확기·바·군락지·타이머·점수·콤보) | ✅ 동작 |
 | 배속 1/2/4, 결과·옵션 팝업 | ✅ 동작 |
 | 스킬 표 135노드 + 스킬 트리 화면 (가지별 페이지, 3칸 자동 배치, 세로 스크롤, 선 교차 0) | ✅ 동작 (2026-10-28 개편, 5장) |
@@ -28,13 +36,35 @@
 | 실기기 터치 테스트 | ⚠️ 안 함 (스킬 트리 스크롤·바 조작 모두 에디터에서만. 벤치마크만 Firebase 실기기에서 돌려 봄) |
 | 아트 | ⚠️ 임시. 등급·황금·버프·장치·보스는 색으로만 구분 |
 
-**환경:** Unity 6000.3.19f1 · URP · Input System (`InputSystemUIInputModule`) · TextMesh Pro · Unity MCP (`.mcp.json`, `http://localhost:8080/mcp`)
-**저장소:** `https://github.com/LKH1134/MMM_Mobile` (`main`, 작업 브랜치 `LKH`. 원격에 `Admob`·`UI_SafeArea` 브랜치도 있음 — 이 문서는 다루지 않음)
+**환경:** Unity 6000.3.19f1 · URP · Input System (`InputSystemUIInputModule`) · TextMesh Pro · Unity MCP (`.mcp.json`, `http://localhost:8080/mcp`) · 이미지 생성은 Codex CLI(`codex exec`, `image_generation` 기능)
+**저장소:** `https://github.com/LKH1134/MMM_Mobile` (`main`. 작업 브랜치: `InGame`(방치형 통합, 이 문서 기준) · `KHD`(장비·UI, 10-29까지 InGame에 머지됨) · `LKH`(10-28까지). 원격에 `Admob`·`UI_SafeArea` 브랜치도 있음 — 이 문서는 다루지 않음)
 **커밋 규칙:** `[태그] YYMMDD 설명` (예: `[ADD] 261026 스테이지·보스 표 및 보스 기믹`)
 
 ---
 
-## 2. 커밋 (지난 HANDOFF 갱신 `e3b1812`(10-26) 이후)
+## 2. 커밋
+
+### 2026-10-29 ~ 10-30 (`InGame` 브랜치, 방치형 전환)
+
+| 커밋 | 날짜 | 내용 |
+|---|---|---|
+| `e3f4710`·`35fbb31`·`8371051` | 10-29 | Main 방치형 전투·강화, 꼬마 편성·편성 해제 (LKH) |
+| `bcc39f5`~`13ecfcc` | 10-29 | KHD: UI 리워크(SafeArea·하단바·패널 프리팹), 하단 탭(`TabGroup`·`MainNavigation`·`MainTabButton`), **장비 초안**(`Equipment`·`EquipmentPanel`·`CombatPower`·`IdleAway`·`IdleReportPopup`) |
+| `90598e0` | 10-30 | KHD → InGame 머지 (폰트 아틀라스 충돌은 InGame 쪽 유지) |
+| `3c45137` | 10-30 | Start → **Main** 연결, 전투 배경 임시 이미지 |
+| `d762fb8` | 10-30 | Main 옵션 버튼 복구, **InGame 씬으로 가는 UI 연결 해제** |
+| `b2b2f54` | 10-30 | 옵션 팝업이 전투 뒤로 숨는 문제(`UiPopup`이 열릴 때 자기 캔버스로 맨 위) |
+| `dcd8d5a` | 10-30 | **씬 전환 로딩 팝업** `SceneLoader` |
+| `5e91ce7` | 10-30 | 세계수 홈·던전 버튼이 팝업을 잠깐 띄우던 문제 |
+| `34cb9c0` | 10-30 | 전투 레이어(꼬마·수확기·버섯)를 `SafeArea` 안 배경 바로 위로 (패널·팝업 위로 보이던 문제) |
+| `f0d8b0c` | 10-30 | 테스트 균사석 지급 제거·회수, **Main 재화 바(`WalletBar`) 상시 표시** |
+| `e7c6336` | 10-30 | 던전·뽑기 페이지를 전투 아래 영역(스크롤)으로, 탭이 열리면 강화 목록 숨김, **`PopupGate`(팝업 하나만)**, 스킬트리 하단바 연결, **`InGame.unity` 삭제·빌드 제외** |
+| `9e89056` | 10-30 | 던전 목록 "던전 1~5" + "해금되지 않음" 덮개 |
+| `7538439`~`260fb33` | 10-30 | 편성 화면: 장착 장비 아이콘(`EquippedGearView`), 임시 흰 박스 → 게임 UI 리소스, '동료'→'꼬마', 꼬마 이름 대조 띠, 장비 이름 겹침 |
+| `a009228`·`50a12da` | 10-30 | 꼬마 고르기 팝업 정리(위 빈 UI 삭제, 아래 버튼 줄 숨김, 하단바 위로), **하단바 나무 판 배경** |
+| `c3b9dc7`·`50137ed` | 10-30 | **Main 배경 한 장(`bg_main.png`, Codex 생성)**, 편성 프리팹 TMP 저장값 정리 |
+
+### 2026-10-26 ~ 10-28 (`LKH` 브랜치, 판 플레이 시절)
 
 그 전 커밋은 `git log`로 보세요.
 
@@ -65,14 +95,37 @@
 
 ## 3. 씬 흐름
 
-`Start`(로딩) → `WorldTree`(세계수) ↔ `SkillTree`(스킬트리) → `InGame`(판) → 결과 팝업 → 다음 판("다음 스테이지"·"보스 도전"·"다시 하기"·"재도전") / 파밍(보스 패배 때) / 스킬트리로
+빌드 씬: `Start` · `Main` · `SkillTree` · `WorldTree` (`InGame`은 10-30 삭제)
 
+`Start`(퍼센트 로딩, `StartLoading.nextScene = Main`) → **`Main`(방치형, 상주)** ⇄ `WorldTree`(세계수) ⇄ `SkillTree`(스킬트리)
+
+- 하단바는 세 씬 공통 프리팹(`BottomBar`)입니다: 편성 · 세계수 · 홈 · 던전 · 뽑기.
+  - Main: `TabGroup`(SafeArea)이 편성(`Equit`)·던전(`DungeonUI`)·뽑기(`GachaUI`) 페이지를 켜고 끕니다. 홈 = 아무 페이지도 없음.
+  - WorldTree·SkillTree: 편성·홈·던전·뽑기 = `MainTabButton`(Main으로 가서 그 탭을 엶, `MainNavigation`), 세계수 = `SceneButton("WorldTree")`.
+- 씬을 바꾸는 곳은 모두 `SceneLoader.Load(이름)`을 씁니다(가운데 나이테 아이콘이 도는 로딩 팝업, 최소 0.3초, 터치 막음). Start → Main만 `StartLoading`의 퍼센트 화면.
+- WorldTree 뒤로가기 → SkillTree. SkillTree의 스테이지 입장 버튼은 막아 둠(`stageScene` 비움 — InGame이 없음).
 - 데이터 초기화(어느 옵션 팝업에서든) → 저장값 전부 삭제 → `Start`.
-- SkillTree의 스테이지 버튼 위 글자는 지금 스테이지 이름(`숲 12`, 보스면 `달빛 밤 30 보스`, 파밍 중이면 `… 파밍 n`)입니다. InGame HUD 위 가운데에는 "스테이지 n"(보스 판이면 "· 보스").
+
+### 3.1 Main (방치형)
+
+**SafeArea 자식 순서 = 그리는 순서(뒤 → 앞):** `BG`(배경 한 장) · `GgomaArea` · `EnemyArea` · `IdleBattle`(전투 HUD·수확기·숫자) · `OptionButton` · `TopBar`(꺼짐) · `BottomBar` · `Equit`(편성) · `UpgradePanel`(강화 목록) · `DungeonUI` · `GachaUI` · `WalletBar`(골드·균사석) · `OptionPopup`
+
+- 전투 레이어는 **`SafeArea` 안, 배경 바로 위**여야 합니다. 캔버스 직속으로 두면 모든 패널·팝업 위로 올라옵니다(10-30 수정).
+- **배경:** `BG` 한 장(`Assets/Art/Generated/Backgrounds/bg_main.png`, 940×1672, Codex 생성)이 전투 들판부터 하단바 뒤까지 덮습니다. `AspectRatioFitter`(Envelope Parent)로 비율을 지키며 꽉 채움. 예전 전투 배경 `InGameBG`는 삭제.
+- **꼬마 배치:** `GgomaArea`(232×362) 안 `Ggoma1~5` = 편성 칸 1~5. 앞줄(x +58) 1·2·3, 뒷줄(x −58) 4·5 지그재그, 모두 가운데 앵커 100×100 (10-30 정리).
+- **전투(`IdleBattle`):** 웨이브 `IdleProgress.WavesPerStage` + 보스(제한 시간). 적 처치 골드는 1초마다 모아 `Wallet`에, 보스 처치 = 균사석 `BossMycelite` + 골드 `BossGold`(일반 20마리분) + 다음 스테이지. 꼬마 무리 체력이 0이면 같은 스테이지 1웨이브부터. 수치는 `BALANCE_IDLE.md`.
+- **하단 탭:** 탭이 열리면 `UpgradePanel`은 숨김(`TabGroup.homeOnly`). 던전·뽑기 페이지는 강화 목록 자리(전투 아래 ~ 하단바 위)에 `ScrollRect`로 들어감. 편성 위쪽은 투명해서 전투가 보임.
+- **편성(`Equit`):** `GGoma`(꼬마 칸 5 + 자동 편성 + 장착 장비 칸 `EquippedGearView`), `Char`(꼬마 고르기 — 목록 위쪽을 누르면 닫힘), `Wepon`·`Amor`·`Pet`(장비 팝업, `EquipmentPanel`). 장비 탭은 `TabGroup.pagesArePopups`라 다른 팝업과 한 번에 하나만.
+- **던전:** 목록 "던전 1~5", 전부 "해금되지 않음" 덮개(`LockOverlay`)로 막혀 있음. 입장 기능 없음.
+- **팝업:** `PopupGate` — 새 팝업이 열리면 열려 있던 것을 닫음(`UiPopup`·꼬마 고르기·장비 탭·방치 정산). 하단 탭을 바꾸면 모두 닫힘. `UiPopup`은 열릴 때 자기 `Canvas`(부모 + 100)를 붙여 전투 위에 뜨고 입력도 먼저 받음 → Dim을 누르면 팝업만 닫힘.
+- **재화:** `Wallet`(골드·균사석). `WalletBar`·세계수·스킬트리 모두 `Wallet` 값. 예전 테스트 지급(균사석 50,000, `Wallet.TestGrant`)은 받은 기기에서 한 번 회수(`Wallet.TestReclaimed`).
+- **방치 보상:** `IdleAway` — 탭을 연 동안·앱 밖 시간의 골드를 모아 홈으로 돌아오면 `IdleReportPopup`(오버레이 캔버스 30000).
 
 ---
 
-## 4. InGame
+## 4. InGame (🗑️ 씬 삭제됨 — 기록용)
+
+> 2026-10-30 `InGame.unity`를 지우고 빌드에서 뺐습니다(사용자 결정). 스크립트(`Assets/Scripts/Mobile/InGame/`)·`ResultPopup`·`InGameOptionPopup` 프리팹은 남아 있습니다. 던전으로 다시 쓸 계획(`HANDOFF_IDLE_PIVOT.md` 1장)이면 `git checkout 34cb9c0 -- Assets/Scenes/InGame.unity`로 되살리고 빌드 설정에 다시 넣으세요. 벤치마크·밸런스봇 메뉴는 씬이 없어 지금은 실패합니다. 아래는 씬이 있던 때의 규칙입니다.
 
 ### 4.1 판 규칙
 
@@ -250,14 +303,18 @@
 
 | 프리팹 | 용도 | 비고 |
 |---|---|---|
-| `OptionPopup` | 세계수·스킬트리 설정 | 데이터 초기화 버튼 (`DataResetButton`) |
+| `OptionPopup` | Main·세계수·스킬트리 설정 | 데이터 초기화 버튼 (`DataResetButton`). Main은 씬에 미리 둠(`SafeArea/OptionPopup`, 우상단 `OptionButton`). 벤치마크 버튼은 10-30 삭제. 게임 종료·도움말·저장·불러오기·언어·BGM/SFX 슬라이더는 **연결 안 됨** |
+| `Main/GGoma`·`Char`·`Wepon`·`Amor`·`Pet` | 편성·꼬마 고르기·장비 | 3.1. `Char` 아래 버튼 줄(`Panel`: Button 두 개 + 닫기)은 **꺼 둠** — KHD 원안은 장비 창처럼 "꼬마 소환 · 일괄 합성"으로 보임(기록 없음, 꼬마 레벨·조각 데이터가 먼저 필요) |
+| `Main/DungeonUI`·`GachaUI` | 던전 목록·뽑기 | `ScrollRect`(Viewport/Content). 던전 "입장하기" 5개는 연결 없음(잠김) |
 | `InGameOptionPopup` | InGame 옵션 | `OptionPopup`의 변형. BGM/SFX, 세계수로, 데이터 초기화 |
 | `ConfirmPopup` | 예/아니오 확인 | `Show(title, message, onYes)`. 다시 쓸 수 있음 |
 | `ResultPopup` | InGame 결과 | 골드(카운트업) · 점수 · 버섯, "보스 처치/실패", 첫 클리어 균사석 줄(`Mycelite`). 버튼: 다음 판(진행에 따라 "다음 스테이지"·"보스 도전"·"다시 하기") + 스킬트리로, 보스 패배 시 재도전·파밍(`FarmButton`)·스킬트리로 |
 | `WorldTree/Grow·Kid·Skin·CraftPopup` | WorldTree 시트 | "준비 중" |
 | `Toast` | 안내 문구 | 공용 |
 
-모든 팝업은 `PopupSlot`으로 들고 있다가 **처음 열 때 만듭니다**(씬에 미리 두지 않음). 확인 팝업은 캔버스 맨 위에 만들어 다른 팝업 위에 뜹니다.
+세계수·스킬트리 팝업은 `PopupSlot`으로 들고 있다가 **처음 열 때 만듭니다**(씬에 미리 두지 않음). Main의 팝업·패널은 씬/프리팹에 미리 있습니다. 확인 팝업은 캔버스 맨 위에 만들어 다른 팝업 위에 뜹니다. 정렬 순서: Main 캔버스 10000, 열린 `UiPopup` +100, 방치 정산 30000, 로딩 팝업 32000.
+
+**연결 안 된 UI (10-30 검사, 플레이 중 실제 리스너 기준):** 옵션 팝업(위 표), 세계수·스킬트리 의뢰 주간 "완료" 3개, 제작소(수확기 목록 9·슬롯 5·장착·레벨업·펼치기), 스킬트리 도감 카드 16·정렬, Main 던전 입장 5. **도감 팝업(`CollectPopup`)은 지금 여는 버튼이 없음**(세계수·스킬트리 하단바를 Main 이동으로 바꾸면서 빠짐).
 
 **데이터 초기화:** `PlayerPrefs.DeleteAll()` → `Time.timeScale = 1` → `Start` 씬. 스킬 레벨·스테이지·배속·볼륨까지 모두 지웁니다.
 
@@ -266,7 +323,8 @@
 ## 8. 개발용
 
 **메뉴:** `MoreMush/Data/Reimport Tables` · `MoreMush/Debug/Go To Next Boss Stage` · `MoreMush/Debug/Reset Stage` · `MoreMush/Debug/Run Benchmark` · `MoreMush/Debug/Open Benchmark Folder`
-**PlayerPrefs 키:** `Skill.Level.<index>`, `Stage.Current`, `Stage.FarmLeft`, `Stage.LastNormalScore`, `Stage.LastNormalGold`, `Stage.Cleared`, `Wallet.Gold`, `Wallet.Mycelite`, `InGame.SpeedIndex`, `Option.BgmVolume`, `Option.SfxVolume`
+**PlayerPrefs 키:** `Skill.Level.<index>`, `Stage.Current`, `Stage.FarmLeft`, `Stage.LastNormalScore`, `Stage.LastNormalGold`, `Stage.Cleared`, `Wallet.Gold`, `Wallet.Mycelite`, `Wallet.TestGrant`, `Wallet.TestReclaimed`, `InGame.SpeedIndex`, `Option.BgmVolume`, `Option.SfxVolume`
+방치형: `Idle.Stage`, `Idle.Lv.<stat>`, `Idle.GoldPerSec`, `Idle.LastSeen`, `Formation.*`·`Formation.Owned.*`, `Gacha.*`, 장비 `Weapon.*`·`Armor.*`·`Pet.*`(`.Level.<i>`·`.Copies.<i>`·`.Equipped`). 메뉴 `MoreMush/방치형 진행 초기화`.
 
 **밸런스 측정기 (`BalanceBot`, InGame 씬 플레이 모드에서 MCP `execute_code`로)**
 - `RunCampaigns(seeds, skill, incomeMul, probeBoss, schedulePath, outPrefix, maxRounds, bossDamageMul)` → `Temp/<prefix><seed>.csv`(판마다 한 줄) + `_buys.csv`. 문서 사람 모델은 `(…, 1.0f, 0.6f, false, null, "Temp/bb_s", 250, 0.234f)`.
@@ -295,10 +353,29 @@
 - **테스트 스킬:** 스킬을 많이 배워 두면 필드가 몇 초 만에 비고 보스도 순식간에 죽습니다.
 - **Awake 순서:** `HarvestGame.Awake`가 `HarvestField.Awake`보다 먼저 `Configure`를 부를 수 있습니다. 필드가 Awake에서 준비하는 값은 처음 쓸 때 준비되게 하세요(`SaveBarBase` 참고).
 
+**2026-10-30 작업에서 알게 된 것**
+- **머지 뒤 새 스크립트가 컴파일에서 빠짐:** KHD 머지 직후 Unity가 새 .cs 5개를 에셋 DB엔 등록하고 컴파일 대상에선 빼서 "Missing script"·"type not found"가 났습니다. 다시 임포트로는 안 되고, 에디터에서 **파일 이름을 바꿨다 되돌리면**(`AssetDatabase.RenameAsset`) 들어갑니다. `CompilationPipeline.GetAssemblies()`의 `sourceFiles`로 확인.
+- **TMP 색을 코드로 바꾼 프리팹:** `LoadPrefabContents`에서 `TMP_Text.color`만 바꾸고 저장하면 `m_fontColor32`가 옛 값으로 남아, 씬을 저장할 때마다 글자 색 덮어쓰기가 수십 줄 생깁니다. 프리팹을 고칠 땐 `SerializedObject`로 `m_fontColor32.rgba`(= A<<24|B<<16|G<<8|R)도 맞추세요(편성 프리팹 5개는 10-30 맞춤).
+- **MCP로 플레이 확인:** 에디터가 뒤에 있으면 프레임이 안 넘어가 애니메이션·코루틴이 멈춥니다. `EditorApplication.isPaused = true` 후 `EditorApplication.Step()`을 반복하면 한 프레임씩 진행됩니다(이때 콘솔의 `JobTempAlloc` 경고는 무시). 스크린샷은 `manage_camera screenshot`(include_image=false로 파일 저장 → 잘라서 보기)이 안정적이고, `ScreenCapture.CaptureScreenshotAsTexture`는 빈 화면이 나왔습니다. 꺼진 오브젝트에선 코루틴이 안 돌므로 `SetActive(true)` 먼저.
+- **MCP `execute_code`에서 `AssetDatabase.DeleteAsset`은 막혀 있음** → 파일 삭제는 `git rm` 후 리프레시.
+- **Codex로 그림 만들기:** `codex exec --skip-git-repo-check --sandbox workspace-write -i 참고.png - <<'EOF' … EOF` (프롬프트는 표준 입력으로 — `-i`가 뒤 인자를 이미지로 먹음). 결과는 `~/.codex/generated_images/`에도 남습니다. 자리를 맞춰야 하면 **색 상자 배치 안내 그림**을 두 번째 `-i`로 넘기면 잘 따릅니다(다만 톤이 바뀔 수 있어 10-30에는 이전 그림으로 되돌림).
+- **폰트 에셋 `LINESeedKR-Bd/Rg SDF.asset`:** Dynamic 아틀라스라 플레이할 때마다 글리프가 쌓여 "수정됨"으로 뜹니다. **커밋하지 마세요**(KHD 머지 때 이 파일로 충돌). 비운 상태가 `5b8f5b6`에 커밋돼 있음.
+
 ---
 
 ## 9. 다음 작업 후보
 
+### 방치형 (2026-10-30 기준, 우선)
+1. **던전:** 입장 방식 결정 — InGame 씬을 되살려 던전으로 쓸지(`HANDOFF_IDLE_PIVOT.md` 1장의 `DungeonRequest` 안), Main 안에서 새로 만들지. 해금 조건·입장권·보상 정하고 `DungeonUI`의 잠금 덮개를 풀기
+2. **꼬마 고르기 아래 버튼 줄:** "꼬마 소환 · 일괄 합성"으로 쓸지 KHD와 확인. 쓰려면 꼬마 레벨·조각 저장부터(지금은 보유 여부만)
+3. **도감 팝업을 여는 버튼** 다시 두기 (지금 어디서도 안 열림)
+4. 옵션 팝업 기능 연결: 게임 종료·도움말·저장/불러오기·언어·BGM/SFX
+5. 세계수·스킬트리를 Main 패널로 흡수할지 (`HANDOFF_IDLE_PIVOT.md` ❓)
+6. 뽑기 페이지 맨 위 검은 자리표시("New Text")·하단바 아이콘 크기(세계수=홈, 스킬트리=편성만 큼) 정리
+7. Main 배경 `bg_main.png`: 꼬마·적 자리가 길이 아니라 풀밭 — 꼬마 배치는 사용자가 조정함(10-30). 길 위로 그린 버전은 톤이 달라 되돌림
+8. 방치형 밸런스 실측 (`Tools/idle_balance_sim.py`, `BALANCE_IDLE.md`)
+
+### 판 플레이 시절 (InGame 씬이 돌아오면)
 1. **밸런스 다시 재기:** 일반 목표 삭제·해금 조건 변경(10-28) 뒤 50보스 시간·구매 일정을 `BalanceBot`으로 다시 측정 (6.2의 88.3분은 옛 규칙 기준). 90분 목표를 무엇으로 맞출지(판 시간·스테이지 수·보스 실패) 사용자 결정 필요
 2. **스킬 트리 배치를 `tier`로:** 사용자가 노드 배치를 바꾸려고 Skill.xlsx에 `tier`를 넣음(10-28). 어떻게 쓸지(티어 = 층? 한 티어 최대 10개라 3칸 한 줄엔 안 들어감)는 사용자와 정할 것. 손댈 곳은 `SkillTreeLayout.Build`의 층 정하기
 3. `SkillTreeZoom`: 트리 폭 = 화면 폭이 된 뒤 확대만 됨 — 둘지 지울지 사용자 결정

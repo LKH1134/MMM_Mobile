@@ -1,7 +1,7 @@
 # HANDOFF — 방치형 전환 · 뽑기 · 서버/보안 방침
 
-> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후)
-> 이 문서는 **기획 논의와 결정 사항**을 모은 것이다. 아직 구현은 없다. 기존 구조는 `HANDOFF.md`, 작업 기록은 `AGENT_WORKLOG.md`를 본다.
+> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치: Main 방치형 구현됨, InGame 씬 삭제)
+> 이 문서는 **기획 논의와 결정 사항**을 모은 것이다. 구현된 Main 구조는 `HANDOFF.md` 3.1, 작업 기록은 `AGENT_WORKLOG.md`를 본다.
 > 표시: ✅ 확정 · 🟡 방향만 있음 · ❓ 미정
 
 ---
@@ -25,19 +25,21 @@ Start(로딩) → Main(방치형, 상주)  ⇄  InGame(던전 전투)
 - 던전 종류: 일일 던전(일반 스테이지), 주간 던전(보스전).
 - InGame 결과 팝업의 "돌아가기"는 Main으로, "재도전"만 InGame을 다시 로드한다.
 
-### 현재 코드 상태 (2026-10-29 확인)
-- 빌드 씬: `Start`, `SkillTree`, `WorldTree`, `InGame`. **`Main.unity`는 빌드에 없고 git에도 없다(untracked)**.
-- `Main.unity`의 Canvas Scaler가 기본값(Constant Pixel Size, 800×600)이다. **InGame과 같게 맞춰야 한다**: Scale With Screen Size, Reference Resolution 1080×2340, Match 0.
-- `LoadScene` 호출 위치: `SceneButton`, `StartLoading`, `ResultPopup`, `InGameOption`, `SkillTreeScreen`, `WorldTreeScreen`, `Benchmark` (씬 이름 문자열).
+### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치)
+- 빌드 씬: `Start`, `Main`, `SkillTree`, `WorldTree`. **`InGame.unity`는 10-30 삭제**(사용자 결정, 코드·프리팹은 남음). 던전으로 다시 쓰려면 `git checkout 34cb9c0 -- Assets/Scenes/InGame.unity`.
+- Start → Main 연결됨. Main Canvas Scaler = Scale With Screen Size 1080×2340, Match 0.5.
+- 씬 이동은 모두 `SceneLoader.Load(이름)`(로딩 팝업). 예외: `StartLoading`(Start → Main), InGame 안 코드(`ResultPopup`·`InGameOption`·`Benchmark`).
+- InGame으로 가던 UI는 모두 끊음: 스킬트리 스테이지 입장(막음), 옵션 팝업 벤치마크 버튼(삭제), 하단바 뽑기 버튼의 `SceneButton("InGame")`(삭제).
+- Main 구조·팝업 규칙은 `HANDOFF.md` 3.1.
 
 ### ❓ 미정
 - `WorldTree`/`SkillTree`를 Main 패널로 **흡수할지**, 당분간 별도 씬으로 둘지. 두 씬이 크고(SkillTree 약 6천 줄) 머지 직후라 한 번에 옮기면 위험 → **먼저 Main 기초 + InGame 복귀 연결만 하고 흡수는 단계적으로** 권장.
 
 ### 다음 작업 순서(제안)
-1. Main 씬 기초 정리: Canvas Scaler 맞춤, SafeArea·TopBar·BottomBar 배치
-2. 빌드 설정에 `Main` 추가, Start → Main
-3. InGame 나가기/결과 → Main 복귀, `DungeonRequest` 도입
-4. 하단바 탭 전환 매니저, WorldTree/SkillTree 패널 이식
+1. ~~Main 씬 기초 정리: Canvas Scaler 맞춤, SafeArea·TopBar·BottomBar 배치~~ ✅ (TopBar 대신 `WalletBar`+`OptionButton`)
+2. ~~빌드 설정에 `Main` 추가, Start → Main~~ ✅ 10-30
+3. 던전 입장 방식 결정 (InGame 씬 삭제됨 → 되살려 `DungeonRequest`로 쓸지, 새로 만들지) ❓
+4. ~~하단바 탭 전환 매니저~~ ✅ `TabGroup`(KHD) / WorldTree·SkillTree 패널 이식 ❓
 
 ---
 
