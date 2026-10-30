@@ -2147,6 +2147,7 @@ GameObject:
   - component: {fileID: 254788266032327918}
   - component: {fileID: 2847527431263693809}
   - component: {fileID: 7953526673883670368}
+  - component: {fileID: 9091067323656916744}
   m_Layer: 0
   m_Name: Dungeon (2)
   m_TagString: Untagged
@@ -2216,6 +2217,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &9091067323656916744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2314781876008772721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fe4c2e866ceec8498ecc6afa4a96b2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.DungeonEntry
+  dungeon: 2
+  scene: 
+  enterButton: {fileID: 2944417771848495696}
+  countText: {fileID: 1663048338592556057}
 --- !u!1 &2338956507558707848
 GameObject:
   m_ObjectHideFlags: 0
@@ -2738,6 +2755,7 @@ GameObject:
   - component: {fileID: 7036710005474904577}
   - component: {fileID: 1553208460484768125}
   - component: {fileID: 5727810659933493854}
+  - component: {fileID: 6872403691579575422}
   m_Layer: 0
   m_Name: Dungeon (5)
   m_TagString: Untagged
@@ -2807,6 +2825,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6872403691579575422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2999240073359658165}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fe4c2e866ceec8498ecc6afa4a96b2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.DungeonEntry
+  dungeon: 5
+  scene: 
+  enterButton: {fileID: 4811999660112582188}
+  countText: {fileID: 999800637832403270}
 --- !u!1 &3024872801449893563
 GameObject:
   m_ObjectHideFlags: 0
@@ -4322,7 +4356,6 @@ GameObject:
   - component: {fileID: 6378084771887634105}
   - component: {fileID: 4865787855528593401}
   - component: {fileID: 1001045290172577656}
-  - component: {fileID: 725732146044007034}
   m_Layer: 0
   m_Name: Button
   m_TagString: Untagged
@@ -4432,19 +4465,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &725732146044007034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4953498769422787428}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f02eb3de556274d459eb53b8573d6e4b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.SceneButton
-  scene: InGame
 --- !u!1 &5230995362191015434
 GameObject:
   m_ObjectHideFlags: 0
@@ -4911,6 +4931,7 @@ GameObject:
   - component: {fileID: 8854448261870504544}
   - component: {fileID: 6374397691348660604}
   - component: {fileID: 1258548943085966620}
+  - component: {fileID: 7945842047526155891}
   m_Layer: 0
   m_Name: DungeonUI
   m_TagString: Untagged
@@ -5008,6 +5029,19 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7945842047526155891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5492469448133431089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546d532441fce9b439bc32dc614373ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.DungeonResetTimer
+  timeText: {fileID: 827062179473666137}
 --- !u!1 &5493642779263723206
 GameObject:
   m_ObjectHideFlags: 0
@@ -5293,6 +5327,7 @@ GameObject:
   - component: {fileID: 3867204155211959158}
   - component: {fileID: 3751440395543728137}
   - component: {fileID: 118495077040556188}
+  - component: {fileID: 9004426147815060299}
   m_Layer: 0
   m_Name: Dungeon
   m_TagString: Untagged
@@ -5362,6 +5397,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &9004426147815060299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5723041132214224260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fe4c2e866ceec8498ecc6afa4a96b2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.DungeonEntry
+  dungeon: 1
+  scene: InGame
+  enterButton: {fileID: 1001045290172577656}
+  countText: {fileID: 3387684389806107982}
 --- !u!1 &5769790874238572343
 GameObject:
   m_ObjectHideFlags: 0
@@ -5826,6 +5877,7 @@ GameObject:
   - component: {fileID: 2322559795066574026}
   - component: {fileID: 4809422889765226689}
   - component: {fileID: 8955458660402745139}
+  - component: {fileID: 4211096845773834508}
   m_Layer: 0
   m_Name: Dungeon (4)
   m_TagString: Untagged
@@ -5895,6 +5947,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4211096845773834508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6972723267132026264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fe4c2e866ceec8498ecc6afa4a96b2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.DungeonEntry
+  dungeon: 4
+  scene: 
+  enterButton: {fileID: 2498093587625697785}
+  countText: {fileID: 1316540262285472292}
 --- !u!1 &7009435219507947299
 GameObject:
   m_ObjectHideFlags: 0
@@ -6299,6 +6367,7 @@ GameObject:
   - component: {fileID: 6115529263832946897}
   - component: {fileID: 3550440639267043821}
   - component: {fileID: 7650328105714164517}
+  - component: {fileID: 4192364158890816472}
   m_Layer: 0
   m_Name: Dungeon (3)
   m_TagString: Untagged
@@ -6368,6 +6437,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4192364158890816472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8169814641695696331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fe4c2e866ceec8498ecc6afa4a96b2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.DungeonEntry
+  dungeon: 3
+  scene: 
+  enterButton: {fileID: 8756529494388150625}
+  countText: {fileID: 5764128785327249145}
 --- !u!1 &8357379905464529756
 GameObject:
   m_ObjectHideFlags: 0

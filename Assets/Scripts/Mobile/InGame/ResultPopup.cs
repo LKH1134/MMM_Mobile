@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // InGame 결과 팝업. 시간이 다 되면 HarvestGame이 열어 이번 판에 번 골드만 보여 준다.
-    // 버튼은 둘: "한 번 더하기"(이 씬을 다시 연다) · "나가기"(Main). 닫기 버튼·배경 눌러 닫기는 없다
+    // 버튼은 둘: "한 번 더하기"(입장 횟수를 하나 쓰고 이 씬을 다시 연다, 남은 횟수가 없으면 막힘) · "나가기"(Main). 닫기 버튼·배경 눌러 닫기는 없다
     [RequireComponent(typeof(UiPopup))]
     public class ResultPopup : MonoBehaviour
     {
@@ -16,6 +16,7 @@ namespace MoreMush.Mobile
         [SerializeField] Button mainButton;
         [SerializeField] string mainScene = MainNavigation.MainScene;
         [SerializeField] float countUpDuration = 0.8f;   // 번 골드가 0부터 올라가는 시간
+        [SerializeField] int dungeon = 1;                // 이 씬이 몇 번 던전인지 (입장 횟수, DungeonTickets)
 
         UiPopup popup;
         Coroutine countUp;
@@ -32,6 +33,7 @@ namespace MoreMush.Mobile
             // 꺼진 채로 만들어져 아직 Awake 전일 수 있다. Open이 켜면서 Awake가 돈다
             if (popup == null) popup = GetComponent<UiPopup>();
             popup.Open();
+            retryButton.interactable = DungeonTickets.CanEnter(dungeon);
             if (countUp != null) StopCoroutine(countUp);
             countUp = StartCoroutine(CountUp(earned));
         }
@@ -49,7 +51,12 @@ namespace MoreMush.Mobile
             countUp = null;
         }
 
-        void Retry() => SceneManager.LoadScene(gameObject.scene.name);
+        // 한 번 더하기도 던전 입장이라 입장 횟수를 하나 쓴다 (남은 횟수가 없으면 버튼을 막아 둔다, Show)
+        void Retry()
+        {
+            if (!DungeonTickets.TryUse(dungeon)) { retryButton.interactable = false; return; }
+            SceneManager.LoadScene(gameObject.scene.name);
+        }
 
         void GoMain()
         {
