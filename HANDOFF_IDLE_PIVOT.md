@@ -1,6 +1,6 @@
 # HANDOFF — 방치형 전환 · 뽑기 · 서버/보안 방침
 
-> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치: Main 방치형 구현됨, InGame 씬 삭제)
+> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치 `a61e7f0`: Main 방치형 구현, InGame = 던전 1로 복원, SkillTree 제거)
 > 이 문서는 **기획 논의와 결정 사항**을 모은 것이다. 구현된 Main 구조는 `HANDOFF.md` 3.1, 작업 기록은 `AGENT_WORKLOG.md`를 본다.
 > 표시: ✅ 확정 · 🟡 방향만 있음 · ❓ 미정
 
@@ -25,21 +25,23 @@ Start(로딩) → Main(방치형, 상주)  ⇄  InGame(던전 전투)
 - 던전 종류: 일일 던전(일반 스테이지), 주간 던전(보스전).
 - InGame 결과 팝업의 "돌아가기"는 Main으로, "재도전"만 InGame을 다시 로드한다.
 
-### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치)
-- 빌드 씬: `Start`, `Main`, `SkillTree`, `WorldTree`. **`InGame.unity`는 10-30 삭제**(사용자 결정, 코드·프리팹은 남음). 던전으로 다시 쓰려면 `git checkout 34cb9c0 -- Assets/Scenes/InGame.unity`.
+### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치 `a61e7f0`)
+- 빌드 씬: `Start`, `Main`, `WorldTree`, `InGame`. **`SkillTree`는 10-30 제거**(KHD, `Backup/SkillTree/`에 백업). `InGame.unity`는 10-30 한 번 지웠다가 KHD가 **던전 1로 복원**.
 - Start → Main 연결됨. Main Canvas Scaler = Scale With Screen Size 1080×2340, Match 0.5.
-- 씬 이동은 모두 `SceneLoader.Load(이름)`(로딩 팝업). 예외: `StartLoading`(Start → Main), InGame 안 코드(`ResultPopup`·`InGameOption`·`Benchmark`).
-- InGame으로 가던 UI는 모두 끊음: 스킬트리 스테이지 입장(막음), 옵션 팝업 벤치마크 버튼(삭제), 하단바 뽑기 버튼의 `SceneButton("InGame")`(삭제).
+- **던전 1 "입장하기" = `SceneButton("InGame")`**(기본 해금, 로딩 팝업 거침). 결과 팝업 "한 번 더하기"(InGame 다시) · "나가기"(→ Main). 위 합의안의 `DungeonRequest`는 **아직 없음** — InGame은 늘 일반 스테이지 기본값으로 시작.
+- 씬 이동은 `SceneLoader.Load(이름)`(로딩 팝업). 예외: `StartLoading`(Start → Main), InGame 안 코드(`ResultPopup`·`InGameOption`·`Benchmark`는 `SceneManager.LoadScene` 직접 — 로딩 팝업 없음).
+- 세계수 뒤로가기 → Main. 하단바 세계수 → WorldTree (스킬트리 경유 없음).
 - Main 구조·팝업 규칙은 `HANDOFF.md` 3.1.
 
 ### ❓ 미정
-- `WorldTree`/`SkillTree`를 Main 패널로 **흡수할지**, 당분간 별도 씬으로 둘지. 두 씬이 크고(SkillTree 약 6천 줄) 머지 직후라 한 번에 옮기면 위험 → **먼저 Main 기초 + InGame 복귀 연결만 하고 흡수는 단계적으로** 권장.
+- `WorldTree`를 Main 패널로 **흡수할지**, 당분간 별도 씬으로 둘지. 스킬 트리를 다시 쓸지(`Backup/SkillTree/`).
+- 던전 2~5 내용·해금 조건·입장권·보상.
 
 ### 다음 작업 순서(제안)
 1. ~~Main 씬 기초 정리: Canvas Scaler 맞춤, SafeArea·TopBar·BottomBar 배치~~ ✅ (TopBar 대신 `WalletBar`+`OptionButton`)
 2. ~~빌드 설정에 `Main` 추가, Start → Main~~ ✅ 10-30
-3. 던전 입장 방식 결정 (InGame 씬 삭제됨 → 되살려 `DungeonRequest`로 쓸지, 새로 만들지) ❓
-4. ~~하단바 탭 전환 매니저~~ ✅ `TabGroup`(KHD) / WorldTree·SkillTree 패널 이식 ❓
+3. ~~InGame 나가기/결과 → Main 복귀~~ ✅ 10-30 (KHD) / `DungeonRequest` 도입 ⬜
+4. ~~하단바 탭 전환 매니저~~ ✅ `TabGroup`(KHD) / WorldTree 패널 이식 ❓
 
 ---
 
