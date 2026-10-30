@@ -1182,6 +1182,7 @@ GameObject:
   - component: {fileID: 8767699740800803580}
   - component: {fileID: 4689655877111820325}
   - component: {fileID: 8263122910281248426}
+  - component: {fileID: 349498648528393014}
   m_Layer: 0
   m_Name: Middle
   m_TagString: Untagged
@@ -1253,6 +1254,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &349498648528393014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1133124958445710774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c21584793852724fbd2cc50f9a3a8f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.FitWidth
+  designWidth: 1316
 --- !u!1 &1429746629959237000
 GameObject:
   m_ObjectHideFlags: 0
@@ -4975,9 +4989,9 @@ RectTransform:
   - {fileID: 6015145463960629261}
   m_Father: {fileID: 2882621101859127182}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -547.41943, y: 373}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 110.58057, y: 373}
   m_SizeDelta: {x: 219.1611, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7475167267719816220

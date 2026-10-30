@@ -98,6 +98,8 @@ namespace MoreMush.Mobile
             }
         }
 
+        const float LockTextLeft = 330f;   // 잠금 문구 왼쪽 끝 (이름·값 글자 오른쪽)
+
         Row BuildRow(IdleProgress.Def d, float y)
         {
             var r = new Row { stat = d.stat };
@@ -153,7 +155,13 @@ namespace MoreMush.Mobile
             Stretch(cover.rectTransform);
             r.lockCover = cover.gameObject;
             r.lockText = NewText("Text", cover.rectTransform, 34f, TextAlignmentOptions.Center, Color.white);
+            // 왼쪽 이름·값(x 180~)과 겹치지 않게 그 오른쪽 자리에만 쓴다. 폭이 좁은 화면에서는 글자를 줄인다
             Stretch(r.lockText.rectTransform);
+            r.lockText.rectTransform.offsetMin = new Vector2(LockTextLeft, 0f);
+            r.lockText.rectTransform.offsetMax = new Vector2(-20f, 0f);
+            r.lockText.enableAutoSizing = true;
+            r.lockText.fontSizeMin = 22f;
+            r.lockText.fontSizeMax = 34f;
             if (d.unlockLv > 0) r.lockText.text = $"{IdleProgress.Get(d.unlockStat).name} Lv {d.unlockLv} 달성 시 잠금 해제";
             return r;
         }

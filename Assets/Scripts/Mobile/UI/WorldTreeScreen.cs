@@ -25,6 +25,7 @@ namespace MoreMush.Mobile
         [SerializeField] PopupSlot optionPopup;   // 프리팹. 처음 열 때 이 캔버스 아래에 만든다
         [SerializeField] Menu[] menus;            // 꼬마·꾸미기·제작소·의뢰. 하단바의 홈·던전 버튼은 MainTabButton으로 씬 이동만 한다 (여기 넣지 않는다)
         [SerializeField] string backScene = "Main";
+        [SerializeField] RectTransform popupRoot;   // 팝업을 만들 부모 = 디자인 영역(SafeArea/Stage). 비우면 이 캔버스
 
         [SerializeField] Button basketButton;
         [SerializeField] Toast toastPrefab;
@@ -35,11 +36,13 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
-            optionButton.onClick.AddListener(() => optionPopup.Get(transform).Toggle());
+            // 팝업은 디자인 영역 안에 만든다 → 노치·홈바에 걸리지 않고 화면 비율이 달라도 같은 크기
+            Transform root = popupRoot != null ? popupRoot : transform;
+            optionButton.onClick.AddListener(() => optionPopup.Get(root).Toggle());
             foreach (var menu in menus)
             {
                 var m = menu;
-                if (m.button != null) m.button.onClick.AddListener(() => m.popup.Get(transform).Toggle());
+                if (m.button != null) m.button.onClick.AddListener(() => m.popup.Get(root).Toggle());
             }
             if (basketButton != null) basketButton.onClick.AddListener(CollectBasket);
             Wallet.Changed += ShowWallet;
@@ -73,7 +76,7 @@ namespace MoreMush.Mobile
         public void ShowToast(string message)
         {
             if (toastPrefab == null) return;
-            if (toast == null) toast = Instantiate(toastPrefab, transform, false);
+            if (toast == null) toast = Instantiate(toastPrefab, popupRoot != null ? popupRoot : transform, false);
             toast.Show(message, toastDuration);
         }
 

@@ -79,7 +79,7 @@ namespace MoreMush.Mobile
         }
 
         const float CloseSize = 110f;
-        const float CloseInset = 50f;   // 버튼 가운데를 모서리에서 이만큼 안쪽으로
+        const float CloseInset = 64f;   // 버튼 가운데를 모서리에서 이만큼 안쪽으로 (버튼이 창 밖으로 나가지 않게: 반지름 55 + 여백)
 
         void OpenPicker(int slot)
         {

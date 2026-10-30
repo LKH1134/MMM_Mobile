@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
             canvas.sortingOrder = SortingOrder;
             var scaler = go.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            scaler.referenceResolution = new Vector2(StageFrame.MinWidth, StageFrame.DesignHeight);   // 씬 캔버스와 같은 기준 (크기가 화면마다 같게)
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             var popup = go.AddComponent<IdleReportPopup>();
             popup.font = font;

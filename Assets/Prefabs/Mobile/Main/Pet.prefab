@@ -5688,6 +5688,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4920776219341272592}
   - component: {fileID: 6100000000000000003}
+  - component: {fileID: 1067831906893293261}
   m_Layer: 0
   m_Name: Pet
   m_TagString: Untagged
@@ -5736,6 +5737,19 @@ MonoBehaviour:
   kind: 2
   font: {fileID: 11400000, guid: 455ca1920a5e574449a15e62373488ae, type: 2}
   toastPrefab: {fileID: 56380357808796695, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
+--- !u!114 &1067831906893293261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6766071756426672677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c21584793852724fbd2cc50f9a3a8f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.FitWidth
+  designWidth: 1316
 --- !u!1 &7450493472374268019
 GameObject:
   m_ObjectHideFlags: 0

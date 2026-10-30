@@ -6171,6 +6171,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5365102831108003843}
   - component: {fileID: 6100000000000000002}
+  - component: {fileID: 2295069228739243993}
   m_Layer: 0
   m_Name: Amor
   m_TagString: Untagged
@@ -6219,6 +6220,19 @@ MonoBehaviour:
   kind: 1
   font: {fileID: 11400000, guid: 455ca1920a5e574449a15e62373488ae, type: 2}
   toastPrefab: {fileID: 56380357808796695, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
+--- !u!114 &2295069228739243993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8198138063344411011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c21584793852724fbd2cc50f9a3a8f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.FitWidth
+  designWidth: 1316
 --- !u!1 &8666793236755068484
 GameObject:
   m_ObjectHideFlags: 0
