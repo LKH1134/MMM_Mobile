@@ -10,7 +10,8 @@ namespace MoreMush.Mobile
     // 뽑기 패널: 광고 뽑기(11회, 하루 한 번) · 재화 뽑기(11회) · 재화 뽑기(35회).
     // 11회·35회는 보너스 포함 (10+1, 30+5) — 비용은 10회분·30회분. 비용·재화는 임시값이다 (기획 확정 전)
     // kind = Character면 등급을 뽑은 뒤 그 등급의 꼬마로 바꿔 Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다.
-    // 뽑은 뒤에는 GachaResultPopup으로 무엇이 나왔는지 칸을 하나씩 띄워 보여 준다
+    // 뽑은 뒤에는 GachaResultPopup으로 무엇이 나왔는지 칸을 하나씩 띄워 보여 준다.
+    // 오른쪽 열은 GachaCardView로 꾸민다: 뽑기 레벨·경험치 막대 + 광고 소환(초록) · 재화 소환 11회/35회(보라, 재화 아이콘·가격)
     public class GachaPanel : MonoBehaviour
     {
         public const int Count11 = 11;
@@ -27,7 +28,7 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_Text adLabel;
         [SerializeField] TMP_Text coinLabel11;
         [SerializeField] TMP_Text coinLabel35;
-        [SerializeField] TMP_Text infoText;         // 레벨·경험치·마지막 결과 (없어도 된다)
+        [SerializeField] TMP_Text infoText;         // 예전 레벨·결과 글자 — 경험치 막대(GachaCardView)로 바꿔 숨긴다
         [SerializeField] TMP_Text titleText;        // 맨 위 띠의 뽑기 이름. 비우면 "Name" 띠 안에 만든다
         [SerializeField] Image previewFrame;        // 왼쪽 큰 칸 — 이 뽑기의 대표 그림(임시)을 안에 띄운다. 비우면 "Image" 칸을 쓴다
         [SerializeField] Toast toast;               // 안내 문구 (없어도 된다)
@@ -35,9 +36,10 @@ namespace MoreMush.Mobile
         [SerializeField] long cost11 = 100;
         [SerializeField] long cost35 = 300;
 
-        string lastResult = "";
         bool adPlaying;
         GachaResultPopup resultPopup;
+        GachaCardView.ExpRow expRow;
+        GachaCardView.ButtonText adText, coin11Text, coin35Text;
 
         void Awake()
         {
@@ -48,7 +50,23 @@ namespace MoreMush.Mobile
             if (titleText != null) titleText.text = Title(kind);
             if (previewFrame == null) previewFrame = transform.Find("Image")?.GetComponent<Image>();
             ShowPreview();
+            BuildRightColumn();
         }
+
+        void BuildRightColumn()
+        {
+            var font = titleText != null ? titleText.font : GetComponentInChildren<TMP_Text>(true)?.font;
+            if (infoText != null) infoText.gameObject.SetActive(false);
+            GachaCardView.Layout(adButton, coinButton11, coinButton35);
+            expRow = GachaCardView.BuildExp((RectTransform)transform, font);
+            var costIcon = Resources.Load<Sprite>(currency == Currency.Mycelite ? GemIcon : GoldIcon);
+            adText = GachaCardView.Style(adButton, adLabel, GachaCardView.AdColor, null, font);
+            coin11Text = GachaCardView.Style(coinButton11, coinLabel11, GachaCardView.CoinColor, costIcon, font);
+            coin35Text = GachaCardView.Style(coinButton35, coinLabel35, GachaCardView.CoinColor, costIcon, font);
+        }
+
+        const string GemIcon = "Art/Dream/Icons/gem";
+        const string GoldIcon = "Art/Dream/Icons/gold";
 
         // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 영웅 꼬마
         void ShowPreview()
@@ -156,7 +174,6 @@ namespace MoreMush.Mobile
                     entries.Add(new GachaResultPopup.Entry { icon = Formation.Icon(id), grade = Formation.Grade(id), isNew = !Formation.IsOwned(id) && seen.Add(id) });
                 GachaProgress.Apply(kind, result);
                 Formation.AddOwned(ids);
-                lastResult = FormatCharacters(count, ids);
                 ShowResult(entries);
             }
             else if (Equipment.Of(kind) is Equipment eq)
@@ -169,14 +186,12 @@ namespace MoreMush.Mobile
                     entries.Add(new GachaResultPopup.Entry { icon = eq.Sprite(i), grade = Equipment.Grade(i), isNew = !eq.IsOwned(i) && seen.Add(i) });
                 GachaProgress.Apply(kind, result);
                 eq.AddItems(items);
-                lastResult = FormatItems(eq, count, items);
                 ShowResult(entries);
             }
             else
             {
                 GachaProgress.Apply(kind, result);
-                lastResult = FormatResult(kind, count, result);
-                Notify(lastResult);
+                Notify(FormatResult(kind, count, result));
             }
             Refresh();
         }
@@ -217,39 +232,6 @@ namespace MoreMush.Mobile
             return sb.ToString();
         }
 
-        // 꼬마 뽑기 결과: 높은 등급부터 "이름 ×개수"
-        static string FormatCharacters(int count, List<string> ids)
-        {
-            var counts = new Dictionary<string, int>();
-            foreach (var id in ids) counts[id] = counts.TryGetValue(id, out var c) ? c + 1 : 1;
-            var order = new List<string>(counts.Keys);
-            order.Sort((a, b) => Formation.Grade(b).CompareTo(Formation.Grade(a)));
-            var sb = new StringBuilder($"{count}회 결과: ");
-            for (int i = 0; i < order.Count; i++)
-            {
-                if (i > 0) sb.Append(" / ");
-                sb.Append(Formation.Name(order[i])).Append(" ×").Append(counts[order[i]]);
-            }
-            return sb.ToString();
-        }
-
-        // 장비 뽑기 결과: 높은 장비부터 "이름 ×개수"
-        static string FormatItems(Equipment eq, int count, List<int> items)
-        {
-            var counts = new int[eq.Count];
-            foreach (int i in items) counts[i]++;
-            var sb = new StringBuilder($"{count}회 결과: ");
-            bool first = true;
-            for (int i = counts.Length - 1; i >= 0; i--)
-            {
-                if (counts[i] <= 0) continue;
-                if (!first) sb.Append(" / ");
-                sb.Append(eq.Names[i]).Append(" ×").Append(counts[i]);
-                first = false;
-            }
-            return sb.ToString();
-        }
-
         static string Title(GachaKind k) => k switch
         {
             GachaKind.Weapon => "수확기 뽑기",
@@ -264,21 +246,28 @@ namespace MoreMush.Mobile
             else Debug.Log($"[Gacha] {message}");
         }
 
+        static void SetButton(GachaCardView.ButtonText b, string title, string sub)
+        {
+            if (b == null) return;
+            if (b.title != null) b.title.text = title;
+            if (b.sub != null) b.sub.text = sub;
+        }
+
         void Refresh()
         {
-            if (adLabel != null) adLabel.text = GachaProgress.AdAvailable(kind) ? $"광고 뽑기 ({Count11}회)\n무료" : $"광고 뽑기 ({Count11}회)\n내일 다시";
-            if (coinLabel11 != null) coinLabel11.text = $"재화 뽑기 ({Count11}회)\n{Wallet.Format(cost11)}";
-            if (coinLabel35 != null) coinLabel35.text = $"재화 뽑기 ({Count35}회)\n{Wallet.Format(cost35)}";
+            bool ad = GachaProgress.AdAvailable(kind);
+            SetButton(adText, $"{Count11}회 소환", ad ? "광고 보고 무료" : "내일 다시");
+            SetButton(coin11Text, $"{Count11}회 소환", Wallet.Format(cost11));
+            SetButton(coin35Text, $"{Count35}회 소환", Wallet.Format(cost35));
 
-            if (adButton != null) adButton.interactable = GachaProgress.AdAvailable(kind);
+            if (adButton != null) adButton.interactable = ad;
             if (coinButton11 != null) coinButton11.interactable = Wallet.CanAfford(currency, cost11);
             if (coinButton35 != null) coinButton35.interactable = Wallet.CanAfford(currency, cost35);
 
-            if (infoText != null)
+            if (expRow != null)
             {
-                int level = GachaProgress.Level(kind), need = GachaProgress.ExpToNext(level);
-                string exp = need > 0 ? $"{GachaProgress.Exp(kind)}/{need}" : "MAX";
-                infoText.text = $"{Title(kind)} Lv.{level} ({exp})" + (lastResult.Length > 0 ? "\n" + lastResult : "");
+                int level = GachaProgress.Level(kind);
+                GachaCardView.SetExp(expRow, level, GachaProgress.Exp(kind), GachaProgress.ExpToNext(level));
             }
         }
     }
