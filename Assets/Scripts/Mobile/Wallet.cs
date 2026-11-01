@@ -42,7 +42,8 @@ namespace MoreMush.Mobile
         public static void Add(Currency currency, long amount)
         {
             if (amount <= 0) return;
-            Set(currency, Get(currency) + amount);
+            long have = Get(currency);
+            Set(currency, amount > long.MaxValue - have ? long.MaxValue : have + amount);   // 넘치면 음수 → 0이 되지 않게 최댓값에서 멈춘다
         }
 
         public static bool CanAfford(Currency currency, long price) => price <= 0 || Get(currency) >= price;
@@ -62,7 +63,7 @@ namespace MoreMush.Mobile
             if (currency == Currency.Mycelite) mycelite = value;
             else gold = value;
             PlayerPrefs.SetString(currency == Currency.Mycelite ? MyceliteKey : GoldKey, value.ToString());
-            PlayerPrefs.Save();
+            SaveScheduler.MarkDirty();      // 전투 골드는 1초마다 들어온다 — 파일 쓰기는 몇 초에 한 번 (SaveScheduler)
             Changed?.Invoke();
         }
 
@@ -70,11 +71,12 @@ namespace MoreMush.Mobile
         public static string Format(long value)
         {
             if (value < 100000) return value.ToString("N0");
-            string[] units = { "만", "억", "조", "경" };
             double v = value;
             int u = -1;
-            while (v >= 10000 && u < units.Length - 1) { v /= 10000; u++; }
-            return (v >= 100 ? v.ToString("0") : v.ToString("0.#")) + units[u];
+            while (v >= 10000 && u < Units.Length - 1) { v /= 10000; u++; }
+            return (v >= 100 ? v.ToString("0") : v.ToString("0.#")) + Units[u];
         }
+
+        static readonly string[] Units = { "만", "억", "조", "경" };
     }
 }

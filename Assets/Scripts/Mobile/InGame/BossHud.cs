@@ -25,6 +25,7 @@ namespace MoreMush.Mobile
         float shown, trailShown, trailWait;
         string bossName;
         int shownClones = -1;
+        int shownPercent = -1;
 
         void Awake() => Hide();
 
@@ -38,6 +39,7 @@ namespace MoreMush.Mobile
                 mainGone = false;
                 shown = trailShown = 1f;
                 shownClones = -1;
+                shownPercent = -1;
                 bossName = stats != null && stats.Boss != null && !string.IsNullOrEmpty(stats.Boss.name) ? stats.Boss.name : "보스";
             }
             if (stats == null || !stats.BossRound) { Hide(); return; }
@@ -71,7 +73,12 @@ namespace MoreMush.Mobile
 
             SetWidth(fill, shown);
             if (trail != null) SetWidth(trail, trailShown);
-            if (percentText != null) percentText.text = Mathf.CeilToInt(target * 100f) + "%";
+            int pct = Mathf.CeilToInt(target * 100f);
+            if (percentText != null && pct != shownPercent)
+            {
+                shownPercent = pct;     // 매 프레임 문자열을 만들지 않게 바뀔 때만
+                percentText.text = pct + "%";
+            }
             if (clones != shownClones)
             {
                 shownClones = clones;

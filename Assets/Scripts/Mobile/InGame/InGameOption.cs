@@ -28,7 +28,7 @@ namespace MoreMush.Mobile
         {
             if (slider == null) return;
             slider.SetValueWithoutNotify(PlayerPrefs.GetFloat(key, 1f));
-            slider.onValueChanged.AddListener(v => PlayerPrefs.SetFloat(key, v));
+            slider.onValueChanged.AddListener(v => { PlayerPrefs.SetFloat(key, v); SaveScheduler.MarkDirty(); });
         }
 
         public void GoLobby()

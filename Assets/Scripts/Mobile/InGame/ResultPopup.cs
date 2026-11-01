@@ -1,7 +1,6 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MoreMush.Mobile
@@ -52,16 +51,17 @@ namespace MoreMush.Mobile
         }
 
         // 한 번 더하기도 던전 입장이라 입장 횟수를 하나 쓴다 (남은 횟수가 없으면 버튼을 막아 둔다, Show)
+        // SceneLoader로 넘어간다 (로딩 팝업·터치 막기, 두 번 눌러도 한 번만 — 입장 횟수도 넘어갈 때만 쓴다)
         void Retry()
         {
-            if (!DungeonTickets.TryUse(dungeon)) { retryButton.interactable = false; return; }
-            SceneManager.LoadScene(gameObject.scene.name);
+            if (SceneLoader.IsLoading) return;
+            if (!DungeonTickets.CanEnter(dungeon)) { retryButton.interactable = false; return; }
+            if (SceneLoader.Load(gameObject.scene.name)) DungeonTickets.TryUse(dungeon);
         }
 
         void GoMain()
         {
-            if (Application.CanStreamedLevelBeLoaded(mainScene)) SceneManager.LoadScene(mainScene);
-            else Debug.LogWarning($"[ResultPopup] 빌드 설정에 없는 씬: {mainScene}");
+            if (!SceneLoader.Load(mainScene)) Debug.LogWarning($"[ResultPopup] 씬을 열 수 없음: {mainScene}");
         }
     }
 }

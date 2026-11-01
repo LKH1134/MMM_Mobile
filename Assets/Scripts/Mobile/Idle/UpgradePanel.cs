@@ -30,6 +30,8 @@ namespace MoreMush.Mobile
             public Image buttonImage;
             public GameObject lockCover, costRow;
             public TMP_Text buttonText;
+            public long nextCost;       // Refresh 때 셈해 둔 다음 레벨 비용
+            public bool buyable;        // 열렸고 최대·단계 제한이 아님
         }
 
         readonly List<Row> rows = new List<Row>();
@@ -44,14 +46,14 @@ namespace MoreMush.Mobile
 
         void OnEnable()
         {
-            Wallet.Changed += Refresh;
+            Wallet.Changed += RefreshAfford;    // 전투 골드로 1초마다 온다 — 살 수 있는지만 다시 본다
             IdleProgress.Changed += Refresh;
             Refresh();
         }
 
         void OnDisable()
         {
-            Wallet.Changed -= Refresh;
+            Wallet.Changed -= RefreshAfford;
             IdleProgress.Changed -= Refresh;
         }
 
@@ -169,7 +171,6 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             if (body == null || !body.gameObject.activeInHierarchy) return;
-            long gold = Wallet.Gold;
             foreach (var r in rows)
             {
                 int lv = IdleProgress.Level(r.stat);
@@ -177,6 +178,8 @@ namespace MoreMush.Mobile
                 bool max = IdleProgress.IsMax(r.stat);
                 bool capped = IdleProgress.IsCapped(r.stat);
                 long cost = IdleProgress.Cost(r.stat);
+                r.nextCost = cost;
+                r.buyable = unlocked && !max && !capped;
                 r.level.text = "LV " + lv;
                 r.value.text = IdleProgress.FormatValue(r.stat, IdleProgress.Value(r.stat));
                 r.lockCover.SetActive(!unlocked);
@@ -188,12 +191,31 @@ namespace MoreMush.Mobile
                 r.buttonText.rectTransform.sizeDelta = new Vector2(280f, capped ? 100f : 50f);
                 r.buttonText.rectTransform.anchoredPosition = new Vector2(0f, max || capped ? 0f : 24f);
                 r.cost.text = Wallet.Format(cost);
-                bool can = unlocked && !max && !capped && gold >= cost;
-                r.button.interactable = can;
-                r.buttonImage.color = can ? Color.white : new Color(0.6f, 0.6f, 0.6f);
-                r.cost.color = gold >= cost ? Color.white : new Color(1f, 0.55f, 0.5f);
+            }
+            RefreshAfford();
+        }
+
+        // 잔액만 바뀌었을 때: 버튼을 누를 수 있는지·비용 색만 (글자·배치는 그대로)
+        void RefreshAfford()
+        {
+            if (body == null || !body.gameObject.activeInHierarchy) return;
+            long gold = Wallet.Gold;
+            foreach (var r in rows)
+            {
+                bool enough = gold >= r.nextCost;
+                bool can = r.buyable && enough;
+                if (r.button.interactable != can)
+                {
+                    r.button.interactable = can;
+                    r.buttonImage.color = can ? Color.white : DisabledButton;
+                }
+                var costColor = enough ? Color.white : ShortCost;
+                if (r.cost.color != costColor) r.cost.color = costColor;
             }
         }
+
+        static readonly Color DisabledButton = new Color(0.6f, 0.6f, 0.6f);
+        static readonly Color ShortCost = new Color(1f, 0.55f, 0.5f);
 
         // ── 만들기 도우미 ──
 

@@ -29,9 +29,71 @@ namespace MoreMush.Mobile
 
         public static event System.Action Changed;
 
+        // 칸·레벨·조각은 전투 중 던질 때마다 읽는다 → PlayerPrefs(안드로이드에서 느림)를 처음 한 번만 읽고 메모리에 둔다.
+        // 쓸 때 둘 다 고친다. PlayerPrefs를 밖에서 지웠으면 Reload
+        static readonly string[] SlotKeys = BuildKeys(SlotCount, i => "Formation." + i);
+        static readonly string[] LevelKeys = BuildKeys(Ids.Length, i => "Formation.Level." + Ids[i]);
+        static readonly string[] CopiesKeys = BuildKeys(Ids.Length, i => "Formation.Copies." + Ids[i]);
+        static string[] slots;          // 저장된 칸 id (가졌는지는 Get이 본다). null = 아직 안 읽음
+        static int[] levels, copies;    // Ids 순서
+
+        static string[] BuildKeys(int n, System.Func<int, string> key)
+        {
+            var keys = new string[n];
+            for (int i = 0; i < n; i++) keys[i] = key(i);
+            return keys;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        public static void Reload()
+        {
+            slots = null;
+            levels = copies = null;
+            migrated = false;
+        }
+
+        static void EnsureLoaded()
+        {
+            if (slots != null) return;
+            Migrate();
+            var lv = new int[Ids.Length];
+            var cp = new int[Ids.Length];
+            for (int i = 0; i < Ids.Length; i++)
+            {
+                int start = System.Array.IndexOf(Defaults, Ids[i]) >= 0 ? 1 : 0;
+                lv[i] = Mathf.Clamp(PlayerPrefs.GetInt(LevelKeys[i], start), 0, MaxLevel);
+                cp[i] = Mathf.Max(0, PlayerPrefs.GetInt(CopiesKeys[i], 0));
+            }
+            var s = new string[SlotCount];
+            for (int i = 0; i < SlotCount; i++) s[i] = PlayerPrefs.GetString(SlotKeys[i], Defaults[i]);
+            levels = lv;
+            copies = cp;
+            slots = s;
+        }
+
+        static void SetSlot(int slot, string id)
+        {
+            slots[slot] = id;
+            PlayerPrefs.SetString(SlotKeys[slot], id);
+        }
+
+        static void SetLevel(int i, int lv)
+        {
+            levels[i] = Mathf.Clamp(lv, 0, MaxLevel);
+            PlayerPrefs.SetInt(LevelKeys[i], levels[i]);
+        }
+
+        static void SetCopies(int i, int n)
+        {
+            copies[i] = Mathf.Max(0, n);
+            PlayerPrefs.SetInt(CopiesKeys[i], copies[i]);
+        }
+
         public static string Get(int slot)
         {
-            string id = PlayerPrefs.GetString("Formation." + slot, Defaults[slot]);
+            if (slot < 0 || slot >= SlotCount) return "";
+            EnsureLoaded();
+            string id = slots[slot];
             return IsOwned(id) ? id : "";
         }
 
@@ -43,16 +105,22 @@ namespace MoreMush.Mobile
         // 꼬마 레벨 (0 = 아직 없음). 기본 편성 꼬마는 처음부터 Lv.1
         public static int Level(string id)
         {
-            if (System.Array.IndexOf(Ids, id) < 0) return 0;
-            Migrate();
-            int start = System.Array.IndexOf(Defaults, id) >= 0 ? 1 : 0;
-            return Mathf.Clamp(PlayerPrefs.GetInt("Formation.Level." + id, start), 0, MaxLevel);
+            int i = System.Array.IndexOf(Ids, id);
+            if (i < 0) return 0;
+            EnsureLoaded();
+            return levels[i];
         }
 
         public static bool IsOwned(string id) => Level(id) > 0;
 
         // 레벨업에 쓸 조각 (같은 꼬마를 또 얻은 수)
-        public static int Copies(string id) => System.Array.IndexOf(Ids, id) < 0 ? 0 : Mathf.Max(0, PlayerPrefs.GetInt("Formation.Copies." + id, 0));
+        public static int Copies(string id)
+        {
+            int i = System.Array.IndexOf(Ids, id);
+            if (i < 0) return 0;
+            EnsureLoaded();
+            return copies[i];
+        }
 
         // 레벨 lv → lv+1에 드는 조각 수 (장비와 같음: Lv.1→2는 2개, 레벨마다 1개씩 늘어난다)
         public static int CopiesToNext(int lv) => Equipment.CopiesToNext(lv);
@@ -81,28 +149,31 @@ namespace MoreMush.Mobile
 
         static int LevelUp(string id)
         {
-            int lv = Level(id), copies = Copies(id), up = 0;
+            int lv = Level(id), left = Copies(id), up = 0;
             if (lv <= 0) return 0;
-            while (lv < MaxLevel && copies >= CopiesToNext(lv))
+            while (lv < MaxLevel && left >= CopiesToNext(lv))
             {
-                copies -= CopiesToNext(lv);
+                left -= CopiesToNext(lv);
                 lv++;
                 up++;
             }
             if (up == 0) return 0;
-            PlayerPrefs.SetInt("Formation.Level." + id, lv);
-            PlayerPrefs.SetInt("Formation.Copies." + id, copies);
+            int i = System.Array.IndexOf(Ids, id);
+            SetLevel(i, lv);
+            SetCopies(i, left);
             return up;
         }
 
         // 꼬마 뽑기 결과를 더한다 (처음 얻으면 Lv.1, 또 얻으면 조각)
         public static void AddOwned(System.Collections.Generic.IEnumerable<string> ids)
         {
+            EnsureLoaded();
             foreach (var id in ids)
             {
-                if (System.Array.IndexOf(Ids, id) < 0) continue;
-                if (Level(id) == 0) PlayerPrefs.SetInt("Formation.Level." + id, 1);
-                else PlayerPrefs.SetInt("Formation.Copies." + id, Copies(id) + 1);
+                int i = System.Array.IndexOf(Ids, id);
+                if (i < 0) continue;
+                if (levels[i] == 0) SetLevel(i, 1);
+                else SetCopies(i, copies[i] + 1);
             }
             Save();
         }
@@ -113,7 +184,7 @@ namespace MoreMush.Mobile
             Changed?.Invoke();
         }
 
-        // 예전 세이브(가진 장수 "Formation.Owned.<id>")를 한 번 옮긴다: 1장은 Lv.1, 나머지는 조각
+        // 예전 세이브(가진 장수 "Formation.Owned.<id>")를 한 번 옮긴다: 1장은 Lv.1, 나머지는 조각 (처음 읽을 때 EnsureLoaded가 부른다)
         static bool migrated;
 
         static void Migrate()
@@ -122,23 +193,20 @@ namespace MoreMush.Mobile
             migrated = true;
             if (PlayerPrefs.GetInt("Formation.MigratedLevel", 0) == 1) return;
             PlayerPrefs.SetInt("Formation.MigratedLevel", 1);
-            foreach (var id in Ids)
+            for (int i = 0; i < Ids.Length; i++)
             {
-                string ownedKey = "Formation.Owned." + id;
+                string ownedKey = "Formation.Owned." + Ids[i];
                 if (!PlayerPrefs.HasKey(ownedKey)) continue;
                 int owned = PlayerPrefs.GetInt(ownedKey, 0);
                 if (owned > 0)
                 {
-                    PlayerPrefs.SetInt("Formation.Level." + id, 1);
-                    PlayerPrefs.SetInt("Formation.Copies." + id, owned - 1);
+                    PlayerPrefs.SetInt(LevelKeys[i], 1);
+                    PlayerPrefs.SetInt(CopiesKeys[i], owned - 1);
                 }
                 PlayerPrefs.DeleteKey(ownedKey);
             }
             PlayerPrefs.Save();
         }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetMigrationFlag() => migrated = false;
 
         // 이 등급의 꼬마 id들 (꼬마 뽑기에서 등급을 정한 뒤 그 안에서 고른다)
         public static System.Collections.Generic.List<string> IdsOfGrade(int grade)
@@ -161,12 +229,12 @@ namespace MoreMush.Mobile
         // 이미 그 칸에 있는 꼬마를 다시 고르면 편성 해제
         public static void Place(int slot, string id)
         {
-            if (!IsOwned(id)) return;
+            if (slot < 0 || slot >= SlotCount || !IsOwned(id)) return;
             string old = Get(slot);
             if (old == id) { Clear(slot); return; }
             int from = SlotOf(id);
-            if (from >= 0) PlayerPrefs.SetString("Formation." + from, old);
-            PlayerPrefs.SetString("Formation." + slot, id);
+            if (from >= 0) SetSlot(from, old);
+            SetSlot(slot, id);
             PlayerPrefs.Save();
             Changed?.Invoke();
         }
@@ -174,7 +242,7 @@ namespace MoreMush.Mobile
         public static void Clear(int slot)
         {
             if (IsEmpty(slot)) return;
-            PlayerPrefs.SetString("Formation." + slot, "");
+            SetSlot(slot, "");
             PlayerPrefs.Save();
             Changed?.Invoke();
         }
@@ -182,6 +250,7 @@ namespace MoreMush.Mobile
         // 자동 편성: 가진 꼬마 중 공격 배율이 높은 순(같으면 등급 높은 순, 그다음 목록 순)으로 SlotCount명을 1번 칸부터 놓는다
         public static void AutoArrange()
         {
+            EnsureLoaded();
             var order = new System.Collections.Generic.List<string>(Ids);
             order.RemoveAll(id => !IsOwned(id));
             order.Sort((a, b) =>
@@ -190,7 +259,7 @@ namespace MoreMush.Mobile
                 if (c == 0) c = Grade(b).CompareTo(Grade(a));
                 return c != 0 ? c : System.Array.IndexOf(Ids, a).CompareTo(System.Array.IndexOf(Ids, b));
             });
-            for (int i = 0; i < SlotCount; i++) PlayerPrefs.SetString("Formation." + i, i < order.Count ? order[i] : "");
+            for (int i = 0; i < SlotCount; i++) SetSlot(i, i < order.Count ? order[i] : "");
             PlayerPrefs.Save();
             Changed?.Invoke();
         }

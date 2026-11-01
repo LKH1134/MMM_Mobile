@@ -43,6 +43,7 @@ namespace MoreMush.Mobile
             rt.localEulerAngles = new Vector3(0f, 0f, Random.Range(0f, 360f));
             fx.img.sprite = frames[0];
             fx.img.color = crit ? CritColor : NormalColor;
+            fx.img.canvasRenderer.SetAlpha(1f);
             fx.t = 0f;
             fx.img.gameObject.SetActive(true);
             rt.SetAsLastSibling();
@@ -65,9 +66,8 @@ namespace MoreMush.Mobile
                 }
                 var sp = frames[Mathf.Min(FrameCount - 1, (int)(k * FrameCount))];
                 if (sp != null && fx.img.sprite != sp) fx.img.sprite = sp;
-                var c = fx.img.color;
-                c.a = k < 0.6f ? 1f : (1f - k) / 0.4f;
-                fx.img.color = c;
+                // 흐려지기는 CanvasRenderer 알파로 (color를 바꾸면 정점을 다시 만든다)
+                if (k >= 0.6f) fx.img.canvasRenderer.SetAlpha((1f - k) / 0.4f);
             }
         }
 

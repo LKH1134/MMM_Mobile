@@ -40,7 +40,7 @@ namespace MoreMush.Mobile
         public int HarvestCount { get; private set; }
         public bool Finished { get; private set; }
         public bool BossKilled { get; private set; }
-        public bool FarmRound => !Stats.BossRound && Stats.Stage != null && Stats.Stage.boss != 0;   // 보스 스테이지의 일반 판
+        public bool FarmRound => !Stats.BossRound && StageProgress.HasBoss(Stats.Stage);   // 보스 스테이지의 일반 판
         // 스테이지를 넘었는지: 보스 판은 처치, 일반 판은 늘 넘는다 (파밍 판은 넘는 판이 아니다)
         public bool StageCleared => Stats.BossRound ? BossKilled : !FarmRound;
         public int MyceliteEarned { get; private set; }   // 이번 판 첫 클리어 균사석 (측정기는 스스로 센다)
