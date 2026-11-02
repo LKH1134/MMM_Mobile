@@ -12,8 +12,10 @@ namespace MoreMush.Mobile
     // 등급 수·확률·경험치 곡선은 임시값이다 (기획 확정 전)
     public static class GachaProgress
     {
-        public const int MaxLevel = 10;
         public const int GradeCount = 5;
+
+        // 최고 레벨 = 뽑기 시트의 행 수. 레벨별 경험치와 등급 확률도 그 시트에서 읽는다
+        public static int MaxLevel => GameBalance.GachaLevels.Count;
         public static readonly string[] GradeNames = { "일반", "고급", "희귀", "영웅", "전설" };
 
         public static event Action Changed;
@@ -27,9 +29,9 @@ namespace MoreMush.Mobile
         public static int Exp(GachaKind k) => Mathf.Max(0, PlayerPrefs.GetInt(ExpKey(k), 0));
         public static int Owned(GachaKind k, int grade) => Mathf.Max(0, PlayerPrefs.GetInt(OwnedKey(k, grade), 0));
 
-        // 보유 효과(%) 1레벨 기준값 (등급별). 장비마다 단계·레벨을 반영한 값은 Equipment가 셈한다.
+        // 보유 효과(%) 1레벨 기준값 (등급별, 등급 시트 ownBase). 장비마다 단계·레벨을 반영한 값은 Equipment가 셈한다.
         // 무기·펫 = 공격력 %, 장신구(방어구) = 체력 % (IdleProgress가 쓴다)
-        public static readonly double[] OwnBase = { 2, 5, 15, 40, 100 };
+        public static double OwnBase(int grade) => GameBalance.Grades[Mathf.Clamp(grade, 0, GradeCount - 1)].ownBase;
 
         public static double OwnPercent(GachaKind k)
         {
@@ -38,14 +40,14 @@ namespace MoreMush.Mobile
         }
 
         // 다음 레벨까지 필요한 경험치. 최고 레벨이면 0
-        public static int ExpToNext(int level) => level >= MaxLevel ? 0 : 100 * level;
+        public static int ExpToNext(int level) => level >= MaxLevel ? 0 : GameBalance.GachaLevels[Mathf.Max(level, 1) - 1].expToNext;
 
-        // 레벨별 등급 확률(%). 합이 100. 레벨이 오를수록 일반이 줄고 높은 등급이 는다
+        // 레벨별 등급 확률(%). 합이 100. 레벨이 오를수록 일반이 줄고 높은 등급이 는다 (뽑기 시트)
         public static float[] Odds(int level)
         {
-            int step = Mathf.Clamp(level, 1, MaxLevel) - 1;
-            float legend = 0.5f + 0.5f * step, epic = 3f + 1.5f * step, rare = 12f + 2f * step, uncommon = 30f;
-            return new[] { 100f - legend - epic - rare - uncommon, uncommon, rare, epic, legend };
+            var rows = GameBalance.GachaLevels;
+            var r = rows[Mathf.Clamp(level, 1, rows.Count) - 1];
+            return new[] { (float)r.oddsNormal, (float)r.oddsUncommon, (float)r.oddsRare, (float)r.oddsEpic, (float)r.oddsLegend };
         }
 
         // 무료 뽑기: 종류마다 하루 한 번. 던전 입장 횟수와 같이 한국 시각(UTC+9) 00시에 다시 생긴다

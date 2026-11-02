@@ -9,8 +9,8 @@ namespace MoreMush.Mobile
     // 기대 성장 곡선대로 키우고 자동 편성하면 스테이지 1 ≈ 580, 100 ≈ 52만, 1,000 ≈ 1.2억 정도 (BALANCE_IDLE.md)
     public static class CombatPower
     {
-        public const double OffenseSeconds = 10;
-        public const double RegenSeconds = 30;
+        public static double OffenseSeconds => GameBalance.Const("powerOffenseSeconds");   // 상수 시트
+        public static double RegenSeconds => GameBalance.Const("powerRegenSeconds");
 
         public static double CritChance => System.Math.Min(1, IdleProgress.Value(IdleStat.CritChance));
         public static double CritDamage => IdleProgress.Value(IdleStat.CritDamage);

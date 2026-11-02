@@ -16,10 +16,28 @@ namespace MoreMush.Mobile
     public class Equipment
     {
         public const int SubPerGrade = 3;
-        public const int MaxLevel = 100;
-        public const double LevelBonus = 0.2;       // 레벨마다 효과 +20% (1레벨 값 기준)
-        public const double EquipRatio = 3;         // 장착 효과 = 보유 효과 × 이 배수
-        static readonly float[] SubWeights = { 0.6f, 0.3f, 0.1f };
+
+        // 수치는 상수 시트에서 읽는다 (처음 쓸 때). 이 클래스의 정적 필드는 리소스가 준비되기 전에도 만들어지므로 표를 바로 읽지 않는다
+        sealed class Config
+        {
+            public readonly int maxLevel = GameBalance.ConstInt("equipMaxLevel");
+            public readonly double levelBonus = GameBalance.Const("equipLevelBonus");     // 레벨마다 효과 +20% (1레벨 값 기준)
+            public readonly double equipRatio = GameBalance.Const("equipRatio");          // 장착 효과 = 보유 효과 × 이 배수
+            public readonly double topGradeMul = GameBalance.Const("equipTopGradeMul");   // 마지막 등급은 다음 등급이 없어 기본값 × 이 배수까지 잇는다
+            public readonly int copiesBase = GameBalance.ConstInt("copiesBase");
+            public readonly int copiesPerLevel = GameBalance.ConstInt("copiesPerLevel");
+            public readonly float[] subWeights =
+            {
+                (float)GameBalance.Const("equipSubWeight1"), (float)GameBalance.Const("equipSubWeight2"), (float)GameBalance.Const("equipSubWeight3"),
+            };
+        }
+
+        static Config config;
+        static Config Cfg => config ?? (config = new Config());
+
+        public static int MaxLevel => Cfg.maxLevel;
+        public static double LevelBonus => Cfg.levelBonus;
+        public static double EquipRatio => Cfg.equipRatio;
         static readonly string[] WeaponSprites = { "sam", "sam", "saw", "hs_gold", "hs_gold" };   // 등급별 수확기 그림
 
         public static readonly Equipment Weapon = new Equipment(GachaKind.Weapon, "Weapon", "무기", EquipStat.Attack,
@@ -99,6 +117,7 @@ namespace MoreMush.Mobile
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void ReloadAll()
         {
+            config = null;
             foreach (var e in All) e?.Reload();
         }
 
@@ -174,8 +193,8 @@ namespace MoreMush.Mobile
             return copies[i];
         }
 
-        // 레벨 lv → lv+1에 드는 조각 수 (임시: Lv.1→2는 2개, 레벨마다 1개씩 늘어난다)
-        public static int CopiesToNext(int lv) => lv + 1;
+        // 레벨 lv → lv+1에 드는 조각 수 (임시: Lv.1→2는 2개, 레벨마다 1개씩 늘어난다). 상수 시트 copiesBase + copiesPerLevel × lv
+        public static int CopiesToNext(int lv) => Cfg.copiesBase + Cfg.copiesPerLevel * lv;
 
         // 장착한 장비 번호 (-1 = 없음, 안 가진 장비면 없음으로 본다)
         public int Equipped
@@ -191,8 +210,8 @@ namespace MoreMush.Mobile
         public static double BaseOwnPercent(int i)
         {
             int g = Grade(i);
-            double from = GachaProgress.OwnBase[g];
-            double to = g + 1 < GachaProgress.OwnBase.Length ? GachaProgress.OwnBase[g + 1] : from * 2.5;
+            double from = GachaProgress.OwnBase(g);
+            double to = g + 1 < GachaProgress.GradeCount ? GachaProgress.OwnBase(g + 1) : from * Cfg.topGradeMul;
             return from * Math.Pow(to / from, Sub(i) / (double)SubPerGrade);
         }
 
@@ -241,13 +260,14 @@ namespace MoreMush.Mobile
 
         static int PickSub()
         {
+            var weights = Cfg.subWeights;
             float r = UnityEngine.Random.value, acc = 0f;
-            for (int s = 0; s < SubWeights.Length; s++)
+            for (int s = 0; s < weights.Length; s++)
             {
-                acc += SubWeights[s];
+                acc += weights[s];
                 if (r < acc) return s;
             }
-            return SubWeights.Length - 1;
+            return weights.Length - 1;
         }
 
         public void AddItems(IEnumerable<int> items)

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MoreMush.Mobile.EditorTools
 {
-    // 통합 표의 편집 계약. 런타임 수치 전환 없이, 에디터 임포트 단계에서 구조/참조를 검사한다.
+    // 통합 표의 편집 계약. 에디터 임포트 단계에서 구조·참조·수치 범위를 검사한다 (게임은 이 검사를 통과한 bytes만 읽는다, GameBalance).
     public static class GameBalanceValidator
     {
         public const string WorkbookName = "GameBalance";
@@ -19,6 +19,26 @@ namespace MoreMush.Mobile.EditorTools
             { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int" },
             { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double" },
             { "리소스", "index:int key:string type:string path:string" },
+            { "상수", "index:int key:string value:double" },
+            { "등급", "index:int key:string grade:int ownBase:double" },
+            { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
+        };
+
+        // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
+        static readonly (string key, double min, bool integer)[] RequiredConsts =
+        {
+            ("equipMaxLevel", 1, true), ("equipLevelBonus", 0, false), ("equipRatio", 0, false),
+            ("equipSubWeight1", 0, false), ("equipSubWeight2", 0, false), ("equipSubWeight3", 0, false), ("equipTopGradeMul", 0.001, false),
+            ("copiesBase", 0, true), ("copiesPerLevel", 0, true),
+            ("ggomaMaxLevel", 1, true), ("ggomaLevelBonus", 0, false), ("dungeonPerDay", 0, true),
+            ("offlineCapHours", 0, false), ("offlineMinSeconds", 0, false), ("powerOffenseSeconds", 0, false), ("powerRegenSeconds", 0, false),
+            ("levelsPerStage", 0, true), ("expSpeedPerStage", 0, false), ("expRegenRatio", 0, false), ("expCritChanceRatio", 0, false),
+            ("expCritDamageRatio", 0, false), ("expAdvancedAttackRatio", 0, false), ("expNormalDamageDivisor", 1, true),
+            ("expAttackMulPerStage", 0, false), ("expHpMulPerStage", 0, false),
+            ("enemyHpHits", 0, false), ("enemyHpWaveGrowth", 0, false), ("bossKillSeconds", 0, false),
+            ("enemyAtkHpRate", 0, false), ("enemyAtkRegenRate", 0, false), ("bossAtkHpRate", 0, false),
+            ("goldBase", 0, false), ("goldStep", 0.001, false), ("goldExp", 0, false), ("bossGoldMul", 0, true),
+            ("mycelBase", 0, true), ("mycelStageDiv", 1, true),
         };
 
         sealed class Row
@@ -88,6 +108,8 @@ namespace MoreMush.Mobile.EditorTools
                 if (slot >= 0 && !slots.Add(slot)) issues.Add(r.At("defaultSlot") + ": 기본 편성 칸이 겹친다");
                 if (slot >= 0 && r.Number("initialOwned") < 1) issues.Add(r.At("initialOwned") + ": 기본 편성 꼬마는 1장 이상 필요하다");
             }
+            for (int slot = 0; slot < Formation.SlotCount; slot++)
+                if (!slots.Contains(slot)) issues.Add($"[꼬마] 기본 편성 칸 {slot}에 꼬마가 없다 (defaultSlot 0~{Formation.SlotCount - 1}을 모두 채운다)");
 
             var stats = new HashSet<string>();
             var upgrades = tables["업그레이드"];
@@ -129,7 +151,68 @@ namespace MoreMush.Mobile.EditorTools
                 foreach (int id in ids) if (!enemies.ContainsKey(id)) issues.Add(r.At("enemyIds") + $": 적 {id}가 없다");
             }
             if (stages.Count > 0 && (stages.Min() != 1 || stages.Max() != stages.Count)) issues.Add("[스테이지] stage는 1부터 빠짐없이 이어져야 한다");
+
+            ValidateConsts(tables["상수"], issues);
+            ValidateGrades(tables["등급"], issues);
+            ValidateGachaLevels(tables["뽑기"], issues);
             return count;
+        }
+
+        static void ValidateConsts(List<Row> rows, List<string> issues)
+        {
+            var byKey = rows.ToDictionary(r => r.Text("key"));
+            var known = new HashSet<string>(RequiredConsts.Select(c => c.key));
+            foreach (var r in rows)
+                if (!known.Contains(r.Text("key"))) issues.Add(r.At("key") + $": 모르는 상수 '{r.Text("key")}' (게임이 읽지 않는다)");
+            foreach (var (key, min, integer) in RequiredConsts)
+            {
+                if (!byKey.TryGetValue(key, out var r)) { issues.Add($"[상수] '{key}' 행이 없다"); continue; }
+                double v = r.Number("value");
+                if (!(v >= min)) issues.Add(r.At("value") + $": {key}는 {min} 이상이어야 한다");
+                if (integer && v != Math.Floor(v)) issues.Add(r.At("value") + $": {key}는 정수여야 한다");
+            }
+            if (byKey.ContainsKey("equipSubWeight1") && byKey.ContainsKey("equipSubWeight2") && byKey.ContainsKey("equipSubWeight3"))
+            {
+                double sum = byKey["equipSubWeight1"].Number("value") + byKey["equipSubWeight2"].Number("value") + byKey["equipSubWeight3"].Number("value");
+                if (Math.Abs(sum - 1) > 1e-6) issues.Add($"[상수] equipSubWeight1~3의 합은 1이어야 한다 (지금 {sum})");
+            }
+            if (byKey.ContainsKey("copiesBase") && byKey.ContainsKey("copiesPerLevel")
+                && byKey["copiesBase"].Number("value") + byKey["copiesPerLevel"].Number("value") < 1)
+                issues.Add("[상수] copiesBase + copiesPerLevel은 1 이상이어야 한다 (Lv.1→2 조각이 0개가 되지 않게)");
+        }
+
+        static void ValidateGrades(List<Row> rows, List<string> issues)
+        {
+            var seen = new HashSet<int>();
+            foreach (var r in rows)
+            {
+                Between(r, "grade", 0, GachaProgress.GradeCount - 1, issues);
+                Positive(r, "ownBase", issues);
+                if (!seen.Add(r.Int("grade"))) issues.Add(r.At("grade") + ": 등급 번호가 겹친다");
+            }
+            if (seen.Count != GachaProgress.GradeCount) issues.Add($"[등급] 0~{GachaProgress.GradeCount - 1}등급이 하나씩 있어야 한다 (지금 {seen.Count}행)");
+        }
+
+        static void ValidateGachaLevels(List<Row> rows, List<string> issues)
+        {
+            var levels = new HashSet<int>();
+            string[] odds = { "oddsNormal", "oddsUncommon", "oddsRare", "oddsEpic", "oddsLegend" };
+            foreach (var r in rows)
+            {
+                foreach (string col in odds) Between(r, col, 0, 100, issues);
+                double sum = odds.Sum(r.Number);
+                if (Math.Abs(sum - 100) > 0.001) issues.Add(r.At("oddsNormal") + $": 확률 합이 100이어야 한다 (지금 {sum})");
+                Between(r, "expToNext", 0, int.MaxValue, issues);
+                if (!levels.Add(r.Int("level"))) issues.Add(r.At("level") + ": 뽑기 레벨이 겹친다");
+            }
+            if (levels.Count == 0) return;
+            if (levels.Min() != 1 || levels.Max() != levels.Count) issues.Add("[뽑기] level은 1부터 빠짐없이 이어져야 한다");
+            foreach (var r in rows)
+            {
+                bool last = r.Int("level") == levels.Count;
+                if (last && r.Int("expToNext") != 0) issues.Add(r.At("expToNext") + ": 최고 레벨은 0이어야 한다 (더 오르지 않는다)");
+                if (!last && r.Int("expToNext") <= 0) issues.Add(r.At("expToNext") + ": 0보다 커야 한다 (최고 레벨만 0)");
+            }
         }
 
         static List<Row> Read(string name, string schema, Dictionary<string, List<string[]>> sheets, List<string> issues)

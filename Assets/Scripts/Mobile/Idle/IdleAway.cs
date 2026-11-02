@@ -10,8 +10,8 @@ namespace MoreMush.Mobile
     // 초당 골드는 이번 실행에서 실제로 번 골드 ÷ 진행 시간 (RateMinSeconds 이상 쌓이면 저장해 다음 실행에 쓴다)
     public static class IdleAway
     {
-        public const double OfflineCapHours = 8;        // 앱 밖 보상 최대 시간 (임시값)
-        public const double OfflineMinSeconds = 60;     // 이보다 짧게 비우면 앱 밖 보상 없음
+        public static double OfflineCapHours => GameBalance.Const("offlineCapHours");        // 앱 밖 보상 최대 시간 (임시값, 상수 시트)
+        public static double OfflineMinSeconds => GameBalance.Const("offlineMinSeconds");    // 이보다 짧게 비우면 앱 밖 보상 없음 (상수 시트)
         const double RateMinSeconds = 30;
         const string RateKey = "Idle.GoldPerSec";
         const string LastSeenKey = "Idle.LastSeen";

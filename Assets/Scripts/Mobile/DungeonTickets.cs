@@ -7,7 +7,7 @@ namespace MoreMush.Mobile
     // 입장할 때 하나 쓴다. PlayerPrefs("Dungeon.<번호>.Day" = 마지막으로 쓴 한국 날짜, "Dungeon.<번호>.Used" = 그날 쓴 수)
     public static class DungeonTickets
     {
-        public const int PerDay = 2;
+        public static int PerDay => GameBalance.ConstInt("dungeonPerDay");     // 상수 시트
         static readonly TimeSpan Kst = TimeSpan.FromHours(9);
 
         public static event Action Changed;

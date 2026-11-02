@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // Main 씬 방치형 전투. 꼬마(GgomaArea의 칸마다 1명)가 알아서 수확기를 던지고, 적은 EnemyArea 안 아무 데나 웨이브로 나온다.
-    // 웨이브 IdleProgress.WavesPerStage개를 넘기면 보스 1마리 — 제한 시간 안에 잡으면 다음 스테이지, 못 잡으면 같은 스테이지 1웨이브부터.
+    // 웨이브 IdleProgress.WavesPerStage(stage)개를 넘기면 보스 1마리 — 제한 시간 안에 잡으면 다음 스테이지, 못 잡으면 같은 스테이지 1웨이브부터.
     // 살아 있는 적은 꼬마 무리(체력 하나를 같이 쓴다)를 초당 공격하고, 체력은 초마다 재생된다. 체력이 0이 되면 패배 — 같은 스테이지 1웨이브부터.
     // 체력은 스테이지를 넘기거나 패배·보스 실패 뒤에 가득 찬다.
     // 적·수확기·숫자 팝업은 전부 코드로 만들고 풀에 돌려 쓴다. 그림은 임시 리소스(Resources 경로)를 쓴다.
@@ -288,10 +288,10 @@ namespace MoreMush.Mobile
         {
             wave = w;
             waveKilled = 0;
-            if (wave > IdleProgress.WavesPerStage)
+            if (wave > IdleProgress.WavesPerStage(stage))
             {
                 waveTotal = 1;
-                bossTimeLeft = IdleProgress.BossTime;
+                bossTimeLeft = IdleProgress.BossTime(stage);
                 boss = Spawn(true, Vector2.zero);
             }
             else
@@ -803,8 +803,9 @@ namespace MoreMush.Mobile
             }
             else
             {
-                int w = Mathf.Clamp(wave, 1, IdleProgress.WavesPerStage);
-                waveText.text = $"웨이브 {w}/{IdleProgress.WavesPerStage}";
+                int waves = IdleProgress.WavesPerStage(stage);
+                int w = Mathf.Clamp(wave, 1, waves);
+                waveText.text = $"웨이브 {w}/{waves}";
                 waveText.color = Color.white;
                 barFill.anchorMax = new Vector2(waveTotal <= 0 ? 0f : Mathf.Clamp01((float)waveKilled / waveTotal), 1f);
             }
@@ -815,7 +816,7 @@ namespace MoreMush.Mobile
         {
             if (stageText == null || boss == null) return;
             barFill.anchorMax = new Vector2(Mathf.Clamp01((float)(boss.hp / boss.maxHp)), 1f);
-            timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime), 1f);
+            timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime(stage)), 1f);
             int sec = Mathf.CeilToInt(bossTimeLeft);
             if (sec == shownBossSec) return;
             shownBossSec = sec;
