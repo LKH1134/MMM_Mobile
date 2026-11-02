@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
         static GradeRow[] grades;
         static GachaLevelRow[] gachaLevels;
         static Dictionary<int, string> resources;
-        static Dictionary<int, int> dungeonUnlock;
+        static Dictionary<int, DungeonRow> dungeons;
         static QuestRow[] quests;
         static EnemyRow[] enemies;
         static TreeStageRow[] treeStages;
@@ -35,7 +35,7 @@ namespace MoreMush.Mobile
         static IdleBattleRow idleBattle;
         static HarvestSettingRow[] harvestSettings;
         static HarvestTierRow[] harvestTiers;
-        static DungeonRow[] dungeons;
+        static DungeonRow[] dungeonList;
 
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
@@ -56,7 +56,7 @@ namespace MoreMush.Mobile
             grades = null;
             gachaLevels = null;
             resources = null;
-            dungeonUnlock = null;
+            dungeons = null;
             quests = null;
             enemies = null;
             treeStages = null;
@@ -70,7 +70,7 @@ namespace MoreMush.Mobile
             idleBattle = null;
             harvestSettings = null;
             harvestTiers = null;
-            dungeons = null;
+            dungeonList = null;
         }
 
         // ── 읽기 ──
@@ -111,15 +111,7 @@ namespace MoreMush.Mobile
             return list.ToArray();
         }
 
-        public static IReadOnlyList<DungeonRow> Dungeons { get { Ensure(); return dungeons; } }
-
-        // 던전 번호의 행 (없으면 null)
-        public static DungeonRow Dungeon(int dungeon)
-        {
-            Ensure();
-            foreach (var d in dungeons) if (d.dungeon == dungeon) return d;
-            return null;
-        }
+        public static IReadOnlyList<DungeonRow> Dungeons { get { Ensure(); return dungeonList; } }
 
         // 스테이지 번호(1부터)의 행. 표 끝을 넘으면 마지막 행 (웨이브 수·적 수 같은 설정을 이어 쓴다). 표 안인지는 InTable로 본다
         public static StageRow Stage(int stage)
@@ -138,7 +130,14 @@ namespace MoreMush.Mobile
         public static int DungeonUnlockStage(int dungeon)
         {
             Ensure();
-            return dungeonUnlock.TryGetValue(dungeon, out int stage) ? stage : -1;
+            return dungeons.TryGetValue(dungeon, out var row) ? row.unlockStage : -1;
+        }
+
+        // 던전 번호의 행 (이름·씬·레벨 보상 열). 없으면 null
+        public static DungeonRow Dungeon(int dungeon)
+        {
+            Ensure();
+            return dungeons.TryGetValue(dungeon, out var row) ? row : null;
         }
 
         // 리소스.index → Resources 경로 (없으면 null)
@@ -185,7 +184,7 @@ namespace MoreMush.Mobile
             stages = ToSorted(Read(new DataTable<StageRow>(StageSheet, 5001, 6999), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
             var resourceRows = Read(new DataTable<ResourceRow>(ResourceSheet, 7001, 7999), sheets, issues);
             var dungeonRows = Read(new DataTable<DungeonRow>(DungeonSheet, 9101, 9199), sheets, issues);
-            dungeons = ToArray(dungeonRows);
+            dungeonList = ToArray(dungeonRows);
             quests = ToArray(Read(new DataTable<QuestRow>(QuestSheet, 9201, 9299), sheets, issues));
             enemies = ToArray(Read(new DataTable<EnemyRow>(EnemySheet, 1001, 1999), sheets, issues));
             treeStages = ToSorted(Read(new DataTable<TreeStageRow>(TreeSheet, 9301, 9399), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
@@ -208,8 +207,8 @@ namespace MoreMush.Mobile
             foreach (var row in constRows) consts[row.key] = row.value;
             resources = new Dictionary<int, string>();
             foreach (var row in resourceRows) resources[row.index] = row.path;
-            dungeonUnlock = new Dictionary<int, int>();
-            foreach (var row in dungeonRows) dungeonUnlock[row.dungeon] = row.unlockStage;
+            dungeons = new Dictionary<int, DungeonRow>();
+            foreach (var row in dungeonRows) dungeons[row.dungeon] = row;
 
             for (int i = 0; i < stages.Length; i++)
                 if (stages[i].stage != i + 1)
@@ -336,6 +335,11 @@ namespace MoreMush.Mobile
         public int unlockStage;    // 이 스테이지에 진입해야 열린다 (0 = 처음부터)
         public string scene;       // 입장 씬 (DungeonEntry가 읽는다). 미구현 던전은 빈 문자열
         public bool implemented;   // false면 입장 버튼을 막는다
+        public int baseStage;      // 레벨 1의 기준 스테이지 (레벨 L = baseStage + stageStep × (L − 1)). 방치 스테이지가 낮으면 소탕 (DungeonRewards)
+        public int stageStep;
+        public int rewardKills;    // 깨면 골드 = 기준 스테이지 적 처치 골드 × 이 값
+        public int rewardMyc;      // 깨면 균사석 = 이 값 × (1 + rewardGrowth × (L − 1))
+        public double rewardGrowth;
     }
 
     // 리소스: 리소스.index → Resources 경로

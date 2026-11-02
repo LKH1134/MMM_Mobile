@@ -3,10 +3,10 @@ import random, math, statistics
 import formulas as F
 import proposal as PR
 
-def sim(pulls, ratio, bonus, top, pity=0, seed=0):
+def sim(pulls, ratio, bonus, top, pity=0, seed=0, gacha=None):
     rng = random.Random(seed)
-    F.set_overrides({'ownBase': [2 * ratio ** g for g in range(5)], 'const': {'equipLevelBonus': bonus, 'equipTopGradeMul': top}})
-    odds = F.T.gacha
+    F.set_overrides({'ownBase': [2 * ratio ** g for g in range(5)], 'const': {'equipLevelBonus': bonus, 'equipTopGradeMul': top}, **({'gacha': gacha} if gacha else {})})
+    odds = F.OV.get('gacha', F.T.gacha)
     copies = [0] * 15; lvl = 1; exp = 0; since = 0
     for i in range(pulls):
         o = odds[min(lvl, len(odds)) - 1]['odds']
@@ -27,8 +27,10 @@ def sim(pulls, ratio, bonus, top, pity=0, seed=0):
             tot += v; best = max(best, v)
     return tot + best * 3
 
-for label, ratio, bonus, top, pity in [('v1 등급×10', 10, 0.01, 10, 0), ('등급×5', 5, 0.007, 5, 0), ('등급×10 + 천장 200', 10, 0.01, 10, 200), ('등급×5 + 천장 200', 5, 0.007, 5, 200)]:
-    for pulls in (200, 600):
-        xs = sorted(sim(pulls, ratio, bonus, top, pity, s) for s in range(400))
+CASES = [('v1 등급×10', 10, 0.01, 10, 0, None), ('v2 등급×5', 5, 0.007, 5, 0, None), ('등급×5 + 천장 200', 5, 0.007, 5, 200, None),
+         ('v3 등급×5 + 레벨 해금', 5, 0.006, 5, 0, PR.GACHA_V3)]
+for label, ratio, bonus, top, pity, gacha in CASES:
+    for pulls in (200, 600, 2000):
+        xs = sorted(sim(pulls, ratio, bonus, top, pity, s, gacha) for s in range(400))
         p10, p50, p90 = xs[40], xs[200], xs[360]
         print(f'{label:16s} {pulls:4d}뽑  중앙 {p50:10.0f}%  p10~p90 ×{p90 / p10:5.2f}  (p10 {p10:.0f}, p90 {p90:.0f})')

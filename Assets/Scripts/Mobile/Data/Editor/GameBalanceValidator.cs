@@ -22,7 +22,7 @@ namespace MoreMush.Mobile.EditorTools
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double" },
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
-            { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool" },
+            { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
             { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double bagKillsPerHour:double bagMycelitePerHour:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
             { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
@@ -60,6 +60,8 @@ namespace MoreMush.Mobile.EditorTools
             ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false), ("kidEvoLevelGradeMul", 0.001, false),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
             ("offlineGoldRate", 0, false),
+            ("dungeonSweepMul", 0, false),
+            ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
         };
 
         sealed class Row
@@ -363,6 +365,7 @@ namespace MoreMush.Mobile.EditorTools
             {
                 Between(r, "dungeon", 1, int.MaxValue, issues);
                 Between(r, "unlockStage", 0, int.MaxValue, issues);
+                foreach (var col in new[] { "baseStage", "stageStep", "rewardKills", "rewardMyc", "rewardGrowth" }) Between(r, col, 0, int.MaxValue, issues);
                 if (!seen.Add(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 던전 번호가 겹친다");
                 string scene = r.Text("scene");
                 bool implemented = IsTrue(r.Text("implemented"));

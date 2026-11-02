@@ -343,6 +343,7 @@ namespace MoreMush.Mobile
                 waveTotal = 1;
                 bossTimeLeft = IdleProgress.BossTime(stage);
                 boss = Spawn(true, Vector2.zero);
+                DailyQuests.Add(QuestKind.Stage);   // 보스 도전 — 벽에서 막혀도 하루 퀘스트는 깬다
             }
             else
             {
@@ -401,7 +402,6 @@ namespace MoreMush.Mobile
                 Wallet.Add(Currency.Mycelite, mycelite);
                 IdleAway.AddMycelite(mycelite);
                 IdleAway.AddStage();
-                DailyQuests.Add(QuestKind.Stage);
                 partyHp = partyMaxHp;
                 stage++;
                 IdleProgress.Stage = stage;

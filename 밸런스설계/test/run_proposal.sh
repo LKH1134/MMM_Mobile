@@ -9,6 +9,10 @@ jobs=()
 for sd in 1 2 3 4 5 6 7 8 9 10; do for nm in B C; do for sg in none light half heavy; do
   jobs+=("name=$nm seg=$sg seed=$sd table=$TBL maxDays=45 stuck=45 speedMax=0 bossquest=on tag=P_${nm}_${sg}_s$sd")
 done; done; done
+# verify#5 정책 민감도: 구매 정책 eff·cost (보통 구간 B·C), 시드 10
+for sd in 1 2 3 4 5 6 7 8 9 10; do for nm in B C; do for pol in eff cost; do
+  jobs+=("name=$nm seg=half seed=$sd policy=$pol table=$TBL maxDays=45 stuck=45 speedMax=0 bossquest=on tag=P_${nm}_half_${pol}_s$sd")
+done; done; done
 printf '%s\n' "${jobs[@]}" | xargs -P 8 -I{} bash -c 'a="{}"; t=$(echo "$a" | sed "s/.*tag=//"); timeout 900 dotnet bin/Release/net10.0/IdleSim.dll run $a > '"$OUT"'/r_$t.txt 2>&1'
 dotnet bin/Release/net10.0/IdleSim.dll nolevel stages=10 trials=300 table=$TBL > $OUT/nolevel_P.txt 2>&1
 dotnet bin/Release/net10.0/IdleSim.dll minlv stages=10 table=$TBL > $OUT/minlv_P.txt 2>&1

@@ -45,7 +45,9 @@ namespace MoreMush.Mobile
         // 스테이지를 넘었는지: 보스 판은 처치, 일반 판은 늘 넘는다 (파밍 판은 넘는 판이 아니다)
         public bool StageCleared => Stats.BossRound ? BossKilled : !FarmRound;
         public int MyceliteEarned { get; private set; }   // 이번 판 첫 클리어 균사석 (측정기는 스스로 센다)
-        public int StageNumber { get; private set; }
+        public int StageNumber { get; private set; }      // = 던전 1 레벨 (DungeonTickets.Level)
+        public long DungeonGold { get; private set; }     // 판 골드에 더해 주는 던전 레벨 보상 (DungeonRewards: 깨면 그 레벨, 못 깨면 소탕)
+        const int Dungeon = 1;
         public bool Simulating { get; set; }
         public bool FinalRush => Stats.FinalRushBonus > 0f && hud.TimerStarted && hud.Remaining <= Stats.FinalRushSeconds;
         public event System.Action<long> GameOver;   // 이번 판에 번 골드 (보상 포함)
@@ -75,6 +77,7 @@ namespace MoreMush.Mobile
             Finished = BossKilled = false;
             BonusGold = 0;
             MyceliteEarned = 0;
+            DungeonGold = 0;
             ReferenceScore = referenceScore;
             ReferenceGold = referenceGold;
             StageNumber = stageNumber;
@@ -163,6 +166,7 @@ namespace MoreMush.Mobile
                 Wallet.Add(Currency.Gold, TotalGold);
                 MyceliteEarned = StageProgress.FirstClearGem(Stats.Stage, Stats.Boss, StageCleared, StageProgress.Cleared);
                 if (MyceliteEarned > 0) Wallet.Add(Currency.Mycelite, MyceliteEarned);
+                DungeonGold = (StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber) : DungeonRewards.GrantSweep(Dungeon, StageNumber)).gold;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
             }
             GameOver?.Invoke(TotalGold);
@@ -173,7 +177,7 @@ namespace MoreMush.Mobile
         {
             yield return new WaitForSecondsRealtime(resultDelay);
             var popup = resultPopup.Get(hud.transform).GetComponent<ResultPopup>();
-            popup.Show(TotalGold, StageCleared);
+            popup.Show(IdleProgress.SaturatingAdd(TotalGold, DungeonGold), StageCleared);
         }
     }
 }

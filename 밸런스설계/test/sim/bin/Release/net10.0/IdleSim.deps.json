@@ -49,6 +49,22 @@
           }
         }
       },
+      "Unity.TextMeshPro/0.0.0.0": {
+        "runtime": {
+          "Unity.TextMeshPro.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "UnityEngine.UI/1.0.0.0": {
+        "runtime": {
+          "UnityEngine.UI.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "UnityEngine.UIModule/0.0.0.0": {
         "runtime": {
           "UnityEngine.UIModule.dll": {
@@ -62,6 +78,14 @@
           "UnityEngine.IMGUIModule.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "Unity.InputSystem/1.19.0.0": {
+        "runtime": {
+          "Unity.InputSystem.dll": {
+            "assemblyVersion": "1.19.0.0",
+            "fileVersion": "1.19.0.0"
           }
         }
       },
@@ -369,6 +393,30 @@
           }
         }
       },
+      "UnityEngine.TextCoreFontEngineModule/0.0.0.0": {
+        "runtime": {
+          "UnityEngine.TextCoreFontEngineModule.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "Unity.InternalAPIEngineBridge.004/0.0.0.0": {
+        "runtime": {
+          "Unity.InternalAPIEngineBridge.004.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "UnityEditor.UI/1.0.0.0": {
+        "runtime": {
+          "UnityEditor.UI.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "UnityEngine.HierarchyCoreModule/0.0.0.0": {
         "runtime": {
           "UnityEngine.HierarchyCoreModule.dll": {
@@ -380,14 +428,6 @@
       "UnityEngine.InputForUIModule/0.0.0.0": {
         "runtime": {
           "UnityEngine.InputForUIModule.dll": {
-            "assemblyVersion": "0.0.0.0",
-            "fileVersion": "0.0.0.0"
-          }
-        }
-      },
-      "UnityEngine.TextCoreFontEngineModule/0.0.0.0": {
-        "runtime": {
-          "UnityEngine.TextCoreFontEngineModule.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -421,12 +461,27 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Unity.TextMeshPro/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "UnityEngine.UI/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
     "UnityEngine.UIModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
     },
     "UnityEngine.IMGUIModule/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Unity.InputSystem/1.19.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
@@ -621,17 +676,27 @@
       "serviceable": false,
       "sha512": ""
     },
+    "UnityEngine.TextCoreFontEngineModule/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Unity.InternalAPIEngineBridge.004/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "UnityEditor.UI/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
     "UnityEngine.HierarchyCoreModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
     },
     "UnityEngine.InputForUIModule/0.0.0.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "UnityEngine.TextCoreFontEngineModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

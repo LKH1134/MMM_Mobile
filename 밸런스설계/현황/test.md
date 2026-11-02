@@ -18,3 +18,8 @@
 - [x] verify#3 → equip=game(처음 묶음만 자동 장착) Bhalf tbl 1000: 2.55일→3.30일(+29%) · 테스트.md §11-6 (14:36)
 - [ ] theory#1(manager 전달) → 표 사본 test/out/GameBalance_proposal.xlsx(test/make_proposal_xlsx.py), 시뮬 준비(seg=none|light|half|heavy, 던전 시트 모드, offlineGoldRate·adGachaPulls 상수, C5 보스도전 퀘스트), test/run_proposal.sh · aggregate_proposal.py · dll 재빌드 뒤 측정 (14:43)
 - [x] theory#1 → 수치안 v1 측정(무강화·minlv·구간 4종×B/C 45일 시드10·허들·재화·퀘스트 균사석·장비 분산) · 테스트.md §12 · out/summary_P.txt (14:46)
+
+## test: manager D5·D6 지표 추가 (20:13)
+- 시뮬(`test/sim/Driver.cs`, `Program.cs`)에 첫 7일 골드 출처 스냅샷, 던전·뽑기·퀘스트 첫 사용 시각, 첫 1시간(플레이) 강화 횟수를 기록하고 로그에 `첫7일 골드:`와 `첫사용(...)` 두 줄을 추가했다. 확인은 B half 시드 1·10일 단건 실행으로 했다. 지표가 붙는 로그는 이 수정 뒤에 돌린 것부터이고, v1 로그에는 없어서 해당 열이 "-"로 나온다.
+- `test/aggregate_proposal.py`에 "골드 출처 비중"(장기와 첫 7일)과 "첫날 지표"(24h 도달 스테이지, 첫날 최장 벽 플레이 분, 첫 사용, 첫 1시간 강화) 절을 추가했다. v1 로그로 장기 비중과 24h 스테이지·최장 벽은 이미 출력된다.
+- `test/sim/IdleSim.csproj`의 dll 참조를 `Temp/obj/...`에서 `Library/ScriptAssemblies/...`로 바꿨다. 이유는 Unity가 재컴파일하면서 Temp/obj의 dll이 없어졌기 때문이다.

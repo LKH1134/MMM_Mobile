@@ -1,9 +1,11 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
-> 작성 2026-10-28 · **갱신 2026-11-02** · 기준 브랜치 `LKH` (`43c2308`까지, KHD `3d4631c` 머지 포함)
+> 작성 2026-10-28 · **갱신 2026-11-03** · 기준 브랜치 `LKH` (KHD `66ed1e6` 방치 밸런스 v3 머지 포함)
 > itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
 >
 > **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 10-30 한 번 지웠다가 KHD(`3183125`)가 **던전 1로 되살렸습니다**(Main 던전 탭 → InGame → 결과 팝업 → Main, 4장). **`SkillTree` 씬은 제거**(`Backup/SkillTree/`에 백업, 5장). **`WorldTree` 씬도 10-30 늦게 제거**(`Backup/WorldTree/`에 백업, 하단바 세계수 = "아직 개발중인 기능입니다." 알림). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`·`밸런스설계/`를 보세요.
+
+> **2026-11-02 방치형 밸런스 v3 (KHD):** 스테이지 1~700 표·700 이후 지수 꼬리·Power 강화·퀘스트 35뽑·뽑기 등급 해금·던전 해금 5/25/150/250/400과 던전 1 레벨 보상·소탕을 적용했습니다. **11-03 LKH 브랜치에 머지**(표 병합 방식은 6.0). **인계는 `HANDOFF_BALANCE_V3.md`**, 기준·결정은 `밸런스설계/README.md`. 실측(test) 전입니다.
 
 > **2026-10-30 최적화·안정화 (KHD `de3432e`):** PlayerPrefs 캐시(`Equipment`·`Formation`), 저장 모으기(`SaveScheduler`), 전투 서브 캔버스, URP·Player 설정, 저장·시계·넘침 안정화. 요약은 8장, **자세한 인계·확인 방법·되돌리기는 `HANDOFF_OPTIMIZATION.md`**. 에디터·실기기 확인 전입니다.
 
@@ -23,7 +25,7 @@
 |---|---|
 | **Main 방치형 전투** (꼬마 5칸이 수확기 투척, 웨이브 5 + 보스, 패배 시 같은 스테이지 처음부터) | ✅ 동작 (3.1) |
 | Main 강화 목록 (공격력·체력·재생·공격 속도·치명타 + 상급 공격력·일반 적 피해량) / 방치 정산 팝업 / 앱 밖 골드 | ✅ 동작 (성장 곡선 10-30 재설계, `BALANCE_IDLE.md`) |
-| Main 하단 탭: 편성(꼬마 편성·장비) · 던전 · 뽑기(결과 연출 `GachaResultPopup`) | ✅ 동작. 던전은 **스테이지 진입으로 해금**(던전 시트: 1 = 5, 2 = 15, 3 = 30, 4 = 80, 5 = 150), 던전 1만 InGame 연결(**하루 2회·한국 00시 충전**), 2~5는 아직 씬 없음(던전 시트 `implemented`). 뽑기 버튼 셋은 **뽑기상품 시트**(종류마다 광고 1 · 재화 2, 가격·횟수·광고 하루 한도, 11-02) |
+| Main 하단 탭: 편성(꼬마 편성·장비) · 던전 · 뽑기(결과 연출 `GachaResultPopup`) | ✅ 동작. 던전은 **스테이지 진입으로 해금**(던전 시트: 1 = 5, 2 = 25, 3 = 150, 4 = 250, 5 = 400 — KHD v3), 레벨이 방치 스테이지보다 앞서면 소탕(`DungeonRewards`), 던전 1만 InGame 연결(**하루 2회·한국 00시 충전**), 2~5는 아직 씬 없음(던전 시트 `implemented`). 뽑기 버튼 셋은 **뽑기상품 시트**(종류마다 광고 1 · 재화 2, 가격·횟수·광고 하루 한도, 11-02. 광고 뽑기는 KHD v3대로 4회) |
 | 던전·뽑기 탭 그림 (배너·카드, Codex 생성) | ✅ 2026-10-30 (`Assets/Art/Generated/Dungeon`·`Gacha`) |
 | 해상도 대응 (`StageFrame`·`FitWidth`, 16:9~20:9·노치, 남는 쪽 검정) | ✅ 2026-10-30 에디터에서 측정 (3.2). 실기기 재확인 필요 |
 | Android 뒤로가기 (팝업 닫기 → 홈 → 종료 확인 / InGame = 설정) | ✅ 2026-10-30 로직 확인. 실제 키 입력은 실기기 확인 필요 |
@@ -76,6 +78,7 @@
 | `fadb928` | KHD 머지 (`3d4631c` 밸런스 중간저장. 검증기 충돌은 양쪽 합침, 엑셀은 KHD 쪽 + 세계수 시트 다시 생성) |
 | `a3e1463` | **세계수 밸런스 v3** (이론·검증 에이전트 3라운드), `밸런스설계/세계수/`, `.claude/agents/worldtree-*.md`, 코드 K1(★진화 필요 레벨 등급 배율)·K2(보스 균사석 배율 소수 확률)·보따리 long 넘침 방지 |
 | `46a23d9` | (Codex) 표에 구현 데이터 정의 추가 — `장비`·`뽑기상품`·`방치전투`·`수확전투`·`수확등급`, 던전 `name`·`scene`·`implemented`, 리소스 7225~7227. 검증해서 코드·씬과 차이 0 |
+| (11-03) | **KHD `66ed1e6` 머지** — 방치 밸런스 v3·던전 레벨 보상·소탕. 엑셀은 세 방향 병합(6.0 "KHD v3 머지"), `GameBalance.cs`·검증기 던전 열은 양쪽 합침 |
 | `43c2308` | **표 ↔ 게임 연동** (6.0) — `Equipment`·`GachaPanel`·`GachaProgress`(광고 하루 횟수)·`IdleBattle`·`InGame/HarvestTuning.cs`(신규)·`HarvestGame`·`HarvestField`·`FieldInput`·`DungeonEntry`. 상수 `adGachaPulls` 삭제 |
 
 ### 2026-10-29 ~ 10-30 (`InGame` 브랜치, 방치형 전환)
@@ -341,7 +344,8 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 ### 6.0 방치형 통합 표 (2026-10-30)
 
 - **원본:** `Assets/Data/Tables/GameBalance.xlsx` → 검증 통과 시 `Assets/Resources/Tables/GameBalance.bytes`로 복사. `MoreMush/Data/Reimport Tables` 또는 저장 후 자동 임포트.
-- **현재 규모 (2026-11-02):** `info` 포함 **23개 시트**, 데이터 **1358행**. 기존 18개 시트의 밸런스 값·수식 유지.
+- **KHD v3 머지 (2026-11-03):** 공통 조상 `3d4631c`·LKH·KHD 세 판을 시트·열·행(index) 단위로 비교해 합쳤다. KHD가 바꾼 시트(스테이지 1~700·업그레이드·등급·뽑기·퀘스트)는 KHD 값 그대로, 꼬마 `attackMultiplier`·던전 `unlockStage`·상수 값 변경도 KHD. 던전에는 LKH 열(`name`·`scene`·`implemented`) 뒤에 KHD 열(`baseStage`·`stageStep`·`rewardKills`·`rewardMyc`·`rewardGrowth`). **KHD 새 상수(`dungeonSweepMul`·`tail*` 6개)는 index 9066~9071** — KHD는 9046~을 썼으나 LKH 세계수 상수가 9046~9065라 옮김(게임·검증기는 key로 찾음). KHD가 4로 바꾼 `adGachaPulls`는 LKH가 지운 상수라 **뽑기상품 광고 행 `pullCount` = 4**(이름 "… 4회 (광고)")로 옮겼다. LKH 스테이지 시트 차이는 소수 반올림뿐이라 버림. 병합 뒤 검증기의 필수 열·자료형·상수 범위를 스크립트로 대조(문제 0). **Unity 검증기(Reimport Tables)는 아직 안 돌림**.
+- **현재 규모 (2026-11-02):** `info` 포함 **23개 시트**, 데이터 **1358행**(11-03 머지 뒤 스테이지 700행이라 약 1060행). 기존 18개 시트의 밸런스 값·수식 유지.
 - **세계수 시트 (11-02, `7cd69e6`·`a3e1463`):** `세계수`(단계 1~8: 진화 경험치·골드·균사석, 나이테 비용, 보따리 시간당, 공방 슬롯, 자리별 칸, 좋아하는 버섯) · `가호`(단계마다 효과 하나) · `꼬마진화`(★0~3: 균사석·필요 레벨·보따리 배율) · `호감도`(Lv1~10) · `장식`(24개: 주인 꼬마·등급·자리·효과) · `장식등급`(골드·균사석·시간). 기존 시트에 열 추가: `꼬마` favoriteIds·bonusEffect·bonusValue·evoStage, `적` value·requestCount, `상수` 세계수 상수 20개(`treeRingMax` … `bagCapHours`, `kidEvoLevelGradeMul`). index 대역 9301~(세계수)·9401~(가호)·9501~·9601~·9701~·9801~. 표에서 고칠 열 목록은 `밸런스설계/세계수/README.md` "범위". 1행 영문 키, 2행 자료형, 3행 한글 설명/필터, 4행부터 데이터. `#` 컬럼은 메모/미리보기.
 - **이번 추가 정의:** `장비` 45행(무기·방어구·펫 각 15종, 종류별 저장 인덱스 0~14 유지), `뽑기상품` 12행(4종류 × 재화 11/35회·광고 1종), `방치전투` 1행(편성 칸·챕터·전투 타이밍), `수확전투` 58행(던전 1의 RoundBase·필드·수확기·단일/군락 버섯·바·입력 수치), `수확등급` 3행(Normal/Epic/Unique 체력·점수 배율).
 - **추가 참조:** `던전`에 `name`·`scene`·`implemented`(던전 1만 InGame, 2~5는 빈 씬/미구현), `리소스`에 무기 그림 sam·saw·hs_gold(7225~7227). `info`에 컬럼별 설명·기준 코드/에셋·실제 적용 범위를 추가.
@@ -512,7 +516,8 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 ### 세계수·표 (2026-11-02 기준)
 1. **U1 결정 (사용자):** 세계수 전투 효과를 지금처럼 +2%로 둘지, KHD 방치 곡선에 세계수 효과를 넣고 키울지 (3.3). 정하면 `밸런스설계/세계수/` 흐름(이론 → 적용 → 검증)으로 다시 돌림
-2. **KHD 쪽 정리:** `adGachaPulls`를 지웠으므로 아직 이 상수를 읽는 스크립트 — `밸런스설계/test/sim/Driver.cs`·`test/make_proposal_xlsx.py`·`theory/progress.py`·`theory/proposal.py`·`verify/proposal_port.py`·`세계수/theory/idle_feed.py`·`세계수/verify/feed.py` — 는 뽑기상품 시트 광고 행 `pullCount`(지금 11)로 바꿔야 다시 돈다. 49일 뒤 보스 균사석 되먹임 폭주도 KHD 몫
+0. **KHD v3 머지 뒤 확인 (11-03):** Unity에서 `Reimport Tables`로 검증기 통과 확인, 컴파일 확인. **세계수 밸런스 v3는 KHD v2 방치 곡선 기준**이라 v3 곡선(스테이지 1~700·골드·앱 밖 0.5)에서 `worldtree-verify`로 다시 판정할 것(세계수 비용·보따리가 지금 스테이지 처치 골드를 따라감)
+2. **KHD 쪽 정리:** `adGachaPulls`를 지웠으므로(KHD v3의 `밸런스설계/tools/apply_v3.py`도 이 상수를 씀) 아직 이 상수를 읽는 스크립트 — `밸런스설계/test/sim/Driver.cs`·`test/make_proposal_xlsx.py`·`theory/progress.py`·`theory/proposal.py`·`verify/proposal_port.py`·`세계수/theory/idle_feed.py`·`세계수/verify/feed.py` — 는 뽑기상품 시트 광고 행 `pullCount`(지금 11)로 바꿔야 다시 돈다. 49일 뒤 보스 균사석 되먹임 폭주도 KHD 몫
 3. **세계수 실기기 확인:** 시트 팝업 스크롤·버튼 터치, 1080 폭에서 잘림, 장식 배치 그림 위치
 4. **세계수 아트:** 나무·장식은 PC판 그림 그대로, 시트 내용 UI는 코드로 만든 임시 모양
 5. 던전 2~5: 씬을 만들면 던전 시트 `scene`·`implemented`만 채우면 입장이 열리고, 수확전투 시트에 그 던전 번호로 행을 넣으면 `HarvestTuning`이 읽음
