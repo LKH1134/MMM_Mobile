@@ -13,9 +13,9 @@ namespace MoreMush.Mobile.EditorTools
         static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
         static readonly Dictionary<string, string> Schemas = new Dictionary<string, string>
         {
-            { "적", "index:int key:string hpCoefficient:double resourceId:int" },
+            { "적", "index:int key:string name:string hpCoefficient:double resourceId:int value:int requestCount:int" },
             { "보스", "index:int key:string name:string hpCoefficient:double resourceId:int" },
-            { "꼬마", "index:int key:string name:string grade:int attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int" },
+            { "꼬마", "index:int key:string name:string grade:int attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int favoriteIds:int[] bonusEffect:TreeEffect bonusValue:double evoStage:int" },
             { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int" },
             { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double" },
             { "리소스", "index:int key:string type:string path:string" },
@@ -24,6 +24,12 @@ namespace MoreMush.Mobile.EditorTools
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
             { "던전", "index:int key:string dungeon:int unlockStage:int" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
+            { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double bagKillsPerHour:double bagMycelitePerHour:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
+            { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
+            { "꼬마진화", "index:int key:string star:int mycelite:int needLevel:int bagMul:double" },
+            { "호감도", "index:int key:string level:int need:int bagBonus:double" },
+            { "장식", "index:int key:string name:string owner:string grade:int zone:TreeZone effect:TreeEffect value:double resourceId:int" },
+            { "장식등급", "index:int key:string name:string grade:int goldKills:int mycelite:int hours:double" },
         };
 
         // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
@@ -42,6 +48,11 @@ namespace MoreMush.Mobile.EditorTools
             ("goldBase", 0, false), ("goldStep", 0.001, false), ("goldExp", 0, false), ("bossGoldMul", 0, true),
             ("mycelBase", 0, true), ("mycelStageDiv", 1, true),
             ("adBoxIntervalHours", 0.001, false), ("adBoxStaySeconds", 1, false), ("adBoxGoldKills", 0, true), ("adBoxMyceliteBosses", 0, true),
+            ("treeRingMax", 1, true), ("treeRingGrowth", 1, false), ("treeRingBagBonus", 0, false), ("treeHarvestPerKill", 0, false),
+            ("tributePreferMul", 0, false), ("giftFavoriteMul", 0, false), ("giftMaxCount", 1, true),
+            ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
+            ("kidBagShare", 0, false), ("decoSetBagMul", 0, false), ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
+            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false),
         };
 
         sealed class Row
@@ -96,7 +107,7 @@ namespace MoreMush.Mobile.EditorTools
                 }
             }
 
-            foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드" })
+            foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드", "세계수", "장식" })
                 foreach (var r in tables[name]) Reference(r, "resourceId", resources, issues);
             foreach (var r in tables["적"].Concat(tables["보스"])) Positive(r, "hpCoefficient", issues);
 
@@ -160,7 +171,69 @@ namespace MoreMush.Mobile.EditorTools
             ValidateGachaLevels(tables["뽑기"], issues);
             ValidateDungeons(tables["던전"], issues);
             ValidateQuests(tables["퀘스트"], issues);
+            ValidateWorldTree(tables, enemies, issues);
             return count;
+        }
+
+        // 세계수: 단계는 1부터 이어지고, 가호는 있는 단계에만, 버섯·꼬마·등급 참조가 있어야 한다
+        static void ValidateWorldTree(Dictionary<string, List<Row>> tables, Dictionary<int, Row> enemies, List<string> issues)
+        {
+            foreach (var r in tables["적"]) { Between(r, "value", 0, int.MaxValue, issues); Between(r, "requestCount", 1, int.MaxValue, issues); }
+            foreach (var r in tables["꼬마"])
+            {
+                Between(r, "evoStage", 1, int.MaxValue, issues);
+                foreach (int id in r.Ids("favoriteIds")) if (!enemies.ContainsKey(id)) issues.Add(r.At("favoriteIds") + $": 적 {id}가 없다");
+            }
+
+            var stages = new HashSet<int>();
+            foreach (var r in tables["세계수"])
+            {
+                if (!stages.Add(r.Int("stage"))) issues.Add(r.At("stage") + ": 세계수 단계가 겹친다");
+                foreach (string col in new[] { "evoExp", "evoGoldKills", "evoMycelite", "ringKills", "bagKillsPerHour", "bagMycelitePerHour", "craftSlots", "rootSlots", "trunkSlots", "branchSlots", "crownSlots" })
+                    Between(r, col, 0, double.MaxValue, issues);
+                foreach (int id in r.Ids("preferIds")) if (!enemies.ContainsKey(id)) issues.Add(r.At("preferIds") + $": 적 {id}가 없다");
+            }
+            if (stages.Count == 0) issues.Add("[세계수] 행이 하나도 없다");
+            else if (stages.Min() != 1 || stages.Max() != stages.Count) issues.Add("[세계수] stage는 1부터 빠짐없이 이어져야 한다");
+            foreach (var r in tables["세계수"])
+                if (r.Int("stage") < stages.Count && r.Int("evoExp") <= 0) issues.Add(r.At("evoExp") + ": 마지막 단계가 아니면 0보다 커야 한다");
+            foreach (var r in tables["가호"])
+                if (!stages.Contains(r.Int("stage"))) issues.Add(r.At("stage") + ": 세계수 시트에 없는 단계다");
+
+            var stars = new HashSet<int>();
+            foreach (var r in tables["꼬마진화"])
+            {
+                if (!stars.Add(r.Int("star"))) issues.Add(r.At("star") + ": ★ 단계가 겹친다");
+                Between(r, "mycelite", 0, int.MaxValue, issues);
+                Between(r, "needLevel", 1, int.MaxValue, issues);
+                Positive(r, "bagMul", issues);
+            }
+            if (stars.Count == 0 || stars.Min() != 0 || stars.Max() != stars.Count - 1) issues.Add("[꼬마진화] star는 0부터 빠짐없이 이어져야 한다");
+
+            var levels = new HashSet<int>();
+            foreach (var r in tables["호감도"])
+            {
+                if (!levels.Add(r.Int("level"))) issues.Add(r.At("level") + ": 호감도 레벨이 겹친다");
+                Between(r, "need", 0, int.MaxValue, issues);
+            }
+            if (levels.Count == 0 || levels.Min() != 1 || levels.Max() != levels.Count) issues.Add("[호감도] level은 1부터 빠짐없이 이어져야 한다");
+            foreach (var r in tables["호감도"])
+                if (r.Int("level") < levels.Count && r.Int("need") <= 0) issues.Add(r.At("need") + ": 최고 레벨이 아니면 0보다 커야 한다");
+
+            var grades = new HashSet<int>();
+            foreach (var r in tables["장식등급"])
+            {
+                if (!grades.Add(r.Int("grade"))) issues.Add(r.At("grade") + ": 장식 등급이 겹친다");
+                Between(r, "goldKills", 0, int.MaxValue, issues);
+                Between(r, "mycelite", 0, int.MaxValue, issues);
+                Positive(r, "hours", issues);
+            }
+            var kids = new HashSet<string>(tables["꼬마"].Select(r => r.Text("key")));
+            foreach (var r in tables["장식"])
+            {
+                if (!kids.Contains(r.Text("owner"))) issues.Add(r.At("owner") + ": 꼬마 " + r.Text("owner") + "가 없다");
+                if (!grades.Contains(r.Int("grade"))) issues.Add(r.At("grade") + ": 장식등급 시트에 없는 등급이다");
+            }
         }
 
         static void ValidateConsts(List<Row> rows, List<string> issues)
@@ -294,6 +367,8 @@ namespace MoreMush.Mobile.EditorTools
             if (type == "int[]") return raw.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).All(s => int.TryParse(s.Trim(), out var n) && n > 0);
             if (type == "IdleStat") return Enum.TryParse<IdleStat>(raw, out var stat) && Enum.IsDefined(typeof(IdleStat), stat);
             if (type == "Currency") return Enum.TryParse<Currency>(raw, out var currency) && Enum.IsDefined(typeof(Currency), currency);
+            if (type == "TreeEffect") return Enum.TryParse<TreeEffect>(raw, out var effect) && Enum.IsDefined(typeof(TreeEffect), effect);
+            if (type == "TreeZone") return Enum.TryParse<TreeZone>(raw, out var zone) && Enum.IsDefined(typeof(TreeZone), zone);
             if (!double.TryParse(raw, NumberStyles.Float, Inv, out double d) || double.IsNaN(d) || double.IsInfinity(d)) return false;
             if (type == "int") return d == Math.Floor(d) && d >= int.MinValue && d <= int.MaxValue;
             if (type == "long") return d == Math.Floor(d) && d >= -9e18 && d <= 9e18;

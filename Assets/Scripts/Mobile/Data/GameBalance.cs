@@ -23,10 +23,19 @@ namespace MoreMush.Mobile
         static Dictionary<int, string> resources;
         static Dictionary<int, int> dungeonUnlock;
         static QuestRow[] quests;
+        static EnemyRow[] enemies;
+        static TreeStageRow[] treeStages;
+        static BlessRow[] blessings;
+        static KidStarRow[] kidStars;
+        static AffinityRow[] affinityLevels;
+        static DecoRow[] decos;
+        static DecoGradeRow[] decoGrades;
 
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
-            ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트";
+            ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트",
+            EnemySheet = "적", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", AffinitySheet = "호감도",
+            DecoSheet = "장식", DecoGradeSheet = "장식등급";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -42,6 +51,13 @@ namespace MoreMush.Mobile
             resources = null;
             dungeonUnlock = null;
             quests = null;
+            enemies = null;
+            treeStages = null;
+            blessings = null;
+            kidStars = null;
+            affinityLevels = null;
+            decos = null;
+            decoGrades = null;
         }
 
         // ── 읽기 ──
@@ -60,6 +76,13 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<GachaLevelRow> GachaLevels { get { Ensure(); return gachaLevels; } }
         public static int StageCount { get { Ensure(); return stages.Length; } }
         public static IReadOnlyList<QuestRow> Quests { get { Ensure(); return quests; } }
+        public static IReadOnlyList<EnemyRow> Enemies { get { Ensure(); return enemies; } }
+        public static IReadOnlyList<TreeStageRow> TreeStages { get { Ensure(); return treeStages; } }
+        public static IReadOnlyList<BlessRow> Blessings { get { Ensure(); return blessings; } }
+        public static IReadOnlyList<KidStarRow> KidStars { get { Ensure(); return kidStars; } }
+        public static IReadOnlyList<AffinityRow> AffinityLevels { get { Ensure(); return affinityLevels; } }
+        public static IReadOnlyList<DecoRow> Decos { get { Ensure(); return decos; } }
+        public static IReadOnlyList<DecoGradeRow> DecoGrades { get { Ensure(); return decoGrades; } }
 
         // 스테이지 번호(1부터)의 행. 표 끝을 넘으면 마지막 행 (웨이브 수·적 수 같은 설정을 이어 쓴다). 표 안인지는 InTable로 본다
         public static StageRow Stage(int stage)
@@ -126,6 +149,13 @@ namespace MoreMush.Mobile
             var resourceRows = Read(new DataTable<ResourceRow>(ResourceSheet, 7001, 7999), sheets, issues);
             var dungeonRows = Read(new DataTable<DungeonRow>(DungeonSheet, 9101, 9199), sheets, issues);
             quests = ToArray(Read(new DataTable<QuestRow>(QuestSheet, 9201, 9299), sheets, issues));
+            enemies = ToArray(Read(new DataTable<EnemyRow>(EnemySheet, 1001, 1999), sheets, issues));
+            treeStages = ToSorted(Read(new DataTable<TreeStageRow>(TreeSheet, 9301, 9399), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
+            blessings = ToSorted(Read(new DataTable<BlessRow>(BlessSheet, 9401, 9499), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
+            kidStars = ToSorted(Read(new DataTable<KidStarRow>(KidStarSheet, 9501, 9599), sheets, issues), (a, b) => a.star.CompareTo(b.star));
+            affinityLevels = ToSorted(Read(new DataTable<AffinityRow>(AffinitySheet, 9601, 9699), sheets, issues), (a, b) => a.level.CompareTo(b.level));
+            decos = ToArray(Read(new DataTable<DecoRow>(DecoSheet, 9701, 9799), sheets, issues));
+            decoGrades = ToSorted(Read(new DataTable<DecoGradeRow>(DecoGradeSheet, 9801, 9899), sheets, issues), (a, b) => a.grade.CompareTo(b.grade));
 
             foreach (var issue in issues)
                 if (!Ignorable(issue)) Debug.LogError("[GameBalance] " + issue);
@@ -142,6 +172,8 @@ namespace MoreMush.Mobile
                     throw new InvalidOperationException($"[GameBalance] 스테이지 시트가 1부터 이어지지 않는다 ({i + 1}번째 행 = stage {stages[i].stage})");
             if (upgrades.Length == 0 || mascots.Length == 0 || grades.Length == 0 || gachaLevels.Length == 0 || stages.Length == 0)
                 throw new InvalidOperationException("[GameBalance] 업그레이드·꼬마·등급·뽑기·스테이지 시트 중 비어 있는 것이 있다");
+            if (treeStages.Length == 0 || kidStars.Length == 0 || affinityLevels.Length == 0 || decoGrades.Length == 0)
+                throw new InvalidOperationException("[GameBalance] 세계수·꼬마진화·호감도·장식등급 시트 중 비어 있는 것이 있다");
             loaded = true;
         }
 
@@ -220,6 +252,10 @@ namespace MoreMush.Mobile
         public int initialOwned;   // 새 저장 데이터의 시작 레벨 (기본 편성 꼬마 = 1)
         public int defaultSlot;    // 0~4 = 기본 편성 칸, -1 = 미편성
         public int resourceId;
+        public int[] favoriteIds;  // 좋아하는 버섯 (적.index): 선물 호감도 배수, 부탁 버섯
+        public TreeEffect bonusEffect;   // 세계수 특기: 진화 ★(+장식 세트)마다 bonusValue씩
+        public double bonusValue;
+        public int evoStage;       // ★n 진화는 세계수 evoStage + n 단계부터
     }
 
     // 스테이지: 한 행 = 스테이지 하나 (1부터 이어진다)
@@ -257,5 +293,72 @@ namespace MoreMush.Mobile
     {
         public string type;
         public string path;
+    }
+
+    // 적: 일반 적 버섯 한 종. 처치하면 세계수 창고에 쌓인다 (WorldTree.AddHarvest)
+    public class EnemyRow : TableRow
+    {
+        public double hpCoefficient;   // 아직 게임이 읽지 않는다
+        public int resourceId;
+        public int value;          // 공물 경험치·선물 호감도 기본값 (1마리당)
+        public int requestCount;   // 꼬마 부탁 1건에 요구하는 수
+    }
+
+    // 세계수: 한 행 = 단계 하나 (1부터). 진화 비용은 "이 단계 → 다음 단계"
+    public class TreeStageRow : TableRow
+    {
+        public int stage;
+        public int evoExp, evoGoldKills, evoMycelite;
+        public double ringKills;           // 나이테 Lv1→2 골드 = 적 처치 골드 × 이 횟수 (Lv마다 treeRingGrowth배)
+        public double bagKillsPerHour, bagMycelitePerHour;
+        public int craftSlots;
+        public int rootSlots, trunkSlots, branchSlots, crownSlots;
+        public int[] preferIds;            // 공물로 좋아하는 버섯 (적.index)
+        public int resourceId;
+    }
+
+    // 가호: 세계수 단계에 도달하면 영구 적용
+    public class BlessRow : TableRow
+    {
+        public int stage;
+        public TreeEffect effect;
+        public double value;
+    }
+
+    // 꼬마진화: ★ 단계 (0 = 진화 전)
+    public class KidStarRow : TableRow
+    {
+        public int star;
+        public int mycelite;       // 이 ★로 진화하는 균사석
+        public int needLevel;      // 필요한 꼬마(뽑기) 레벨
+        public double bagMul;      // 보따리 기여 배율
+    }
+
+    // 호감도: 레벨 (1부터)
+    public class AffinityRow : TableRow
+    {
+        public int level;
+        public int need;           // 다음 레벨까지 (최고 레벨 0)
+        public double bagBonus;
+    }
+
+    // 장식: 공방에서 만들어 꾸미기 자리에 놓는다
+    public class DecoRow : TableRow
+    {
+        public string owner;       // 주인 꼬마 key
+        public int grade;          // 장식등급.grade
+        public TreeZone zone;
+        public TreeEffect effect;
+        public double value;
+        public int resourceId;
+    }
+
+    // 장식등급: 제작 비용·시간
+    public class DecoGradeRow : TableRow
+    {
+        public int grade;
+        public int goldKills;
+        public int mycelite;
+        public double hours;
     }
 }

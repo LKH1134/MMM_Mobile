@@ -384,12 +384,14 @@ namespace MoreMush.Mobile
             pendingGold = IdleProgress.SaturatingAdd(pendingGold, e.gold);     // 아주 높은 스테이지에서 넘쳐 음수가 되면 골드가 사라진다
             IdleAway.AddKill();
             DailyQuests.Add(QuestKind.Kill);
+            if (!e.boss && e.img.sprite != null) WorldTree.AddHarvest(e.img.sprite.name);     // 세계수 창고 버섯
             ShowText(e.rt.position, "+" + Wallet.Format(e.gold), new Color(1f, 0.85f, 0.25f), 34f, 0.8f);
             if (e.boss)
             {
                 boss = null;
-                Wallet.Add(Currency.Mycelite, IdleProgress.BossMycelite(stage));
-                IdleAway.AddMycelite(IdleProgress.BossMycelite(stage));
+                long mycelite = IdleProgress.ClampToLong(System.Math.Round(IdleProgress.BossMycelite(stage) * WorldTree.Mul(TreeEffect.BossMycelite)));
+                Wallet.Add(Currency.Mycelite, mycelite);
+                IdleAway.AddMycelite(mycelite);
                 IdleAway.AddStage();
                 DailyQuests.Add(QuestKind.Stage);
                 partyHp = partyMaxHp;
@@ -492,7 +494,7 @@ namespace MoreMush.Mobile
 
         void UpdateGgomas(float dt)
         {
-            float rate = (float)IdleProgress.Value(IdleStat.Speed);
+            float rate = (float)IdleProgress.FinalSpeed;
             foreach (var g in ggomas)
             {
                 // 숨쉬듯 살짝 위아래 + 던질 때 움찔
@@ -524,8 +526,8 @@ namespace MoreMush.Mobile
         void Throw(Ggoma g, Enemy target)
         {
             double dmg = IdleProgress.FinalAttack * Formation.AttackMultiplier(Formation.Get(g.slot));   // 꼬마마다 공격 배율
-            bool crit = Random.value < IdleProgress.Value(IdleStat.CritChance);
-            if (crit) dmg *= IdleProgress.Value(IdleStat.CritDamage);
+            bool crit = Random.value < IdleProgress.FinalCritChance;
+            if (crit) dmg *= IdleProgress.FinalCritDamage;
             if (!target.boss) dmg *= IdleProgress.Value(IdleStat.NormalEnemyDamage);   // 후반 강화: 보스가 아닌 적에게만
 
             var s = freeShots.Count > 0 ? freeShots.Pop() : NewShot();
@@ -586,7 +588,7 @@ namespace MoreMush.Mobile
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
             e.boss = isBoss;
             e.maxHp = e.hp = isBoss ? IdleProgress.BossHp(stage) : IdleProgress.EnemyHp(stage, wave);
-            e.gold = isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage);
+            e.gold = IdleProgress.ClampToLong((isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage)) * WorldTree.Mul(TreeEffect.KillGold), 1);
             e.incoming = 0;
             e.gen++;
             e.dead = false;
