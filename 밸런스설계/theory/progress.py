@@ -22,14 +22,15 @@ class Gear:
     def pull(self, kind, n):
         self.pulls[kind] += n
         if kind != 'Character':
-            odds = F.T.gacha[min(self.level[kind], len(F.T.gacha)) - 1]['odds']
+            tbl = F.OV.get('gacha', F.T.gacha)
+            odds = tbl[min(self.level[kind], len(tbl)) - 1]['odds']
             sub = [F.C('equipSubWeight1'), F.C('equipSubWeight2'), F.C('equipSubWeight3')]
             for g in range(5):
                 for k in range(3):
                     self.copies[kind][g * 3 + k] += n * odds[g] / 100 * sub[k]
         e = self.exp[kind] + n
         lv = self.level[kind]
-        rows = F.T.gacha
+        rows = F.OV.get('gacha', F.T.gacha)
         while lv < len(rows) and e >= rows[lv - 1]['exp']:
             e -= rows[lv - 1]['exp']
             lv += 1
@@ -122,8 +123,12 @@ class Sim:
         self.day_counters()
         self.adbox_elapsed = 0.0
         self.stuck = False
+        self.first = {}          # D6: 처음 쓴 달력 시각(초) — dungeon, gacha, quest
+        self.upg_1h = 0          # D6: 첫 1시간(플레이) 강화 횟수
+        self.claimed = set()
 
     def day_counters(self):
+        self.claimed = set()
         self.d_kills = self.d_stages = self.d_upg = self.d_pulls = self.d_ads = self.d_boss = 0
 
     def sync_gear(self):
@@ -141,6 +146,8 @@ class Sim:
             self.gold -= c
             self.p.lv[st] += 1
             n += 1
+            if self.active <= 3600:
+                self.upg_1h += 1
         self.d_upg += n
         return n
 
@@ -148,6 +155,7 @@ class Sim:
         kinds = Gear.KINDS
         while self.myc >= 100:
             k = kinds[sum(self.gear.pulls[x] for x in kinds) // 35 % 3]
+            self.first.setdefault('gacha', self.wall)
             if self.myc >= 300:
                 self.myc -= 300
                 self.gear.pull(k, 35)
@@ -239,6 +247,7 @@ class Sim:
         for _ in range(n):
             if not self.watch('box'):
                 continue
+            self.n_box = getattr(self, 'n_box', 0) + 1
             g = F.enemy_gold(self.stage) * F.C('adBoxGoldKills')
             m = F.boss_myc(self.stage) * F.C('adBoxMyceliteBosses')
             self.gold += g; self.src['adbox'] += g
@@ -250,14 +259,18 @@ class Sim:
         qm = F.OV.get('quest_myc')
         qt = F.OV.get('quest_target')
         res = []
+        qg = F.OV.get('quest_gold')      # D5: 퀘스트 골드 = 처치 골드(현재 스테이지) × goldKills (시트 열 그대로, 값만)
         for i, q in enumerate(F.T.quests):
             tgt = qt[i] if qt else q['target']
             ok = done[q['kind']] >= tgt
             res.append(ok)
-            if not ok:
+            if not ok or i in self.claimed:     # 하루 한 번 (접속마다 확인, 깬 접속에 받는다)
                 continue
-            self.gold += F.enemy_gold(self.stage) * q['goldKills']
-            self.src['quest'] += F.enemy_gold(self.stage) * q['goldKills']
+            self.claimed.add(i)
+            self.first.setdefault('quest', self.wall)
+            gk = qg[i] if qg else q['goldKills']
+            self.gold += F.enemy_gold(self.stage) * gk
+            self.src['quest'] += F.enemy_gold(self.stage) * gk
             m = qm[i] if qm else q['myc']
             self.myc += m
             self.myc_src['quest'] += m
@@ -265,23 +278,29 @@ class Sim:
 
     def run_days(self, days, stop_stage=None):
         self.quest_log = []
+        self.src_log = []
         for day in range(days):
             self.day_counters()
             n_free = int(round(4 * self.ads))     # 광고 뽑기 11회: 4종 중 n종 (공격 쪽부터)
             n_ad = int(F.OV.get('const', {}).get('adGachaPulls', 11))   # 광고 뽑기 1회 뽑기 수 (지금 11)
             for k in ['Weapon', 'Pet', 'Accessory', 'Character'][:n_free]:
+                self.first.setdefault('gacha', self.wall)
                 self.gear.pull(k, n_ad)
                 self.d_pulls += n_ad
                 self.d_ads += 1
             self.sync_gear()
-            if self.dungeon:
-                self.run_dungeons()
+            self.d_dun = {}
             for i, (mins, gap_h) in enumerate(self.sessions):
+                if self.dungeon:
+                    self.run_dungeons()      # 접속마다: 그날 남은 입장을 새로 열린 던전에도 (첫날 던전 맛보기, D6)
                 g = self.play(mins * 60)
+                if self.dungeon and getattr(self, 'dungeon_after_play', False):
+                    self.run_dungeons()      # v3d: 이번 접속에서 새로 연 던전도 바로 입장 (첫날 첫 접속에 던전 1)
                 self.adbox(mins * 60)
+                q = self.quests()
+                self.spend_myc()
                 if i == len(self.sessions) - 1:
-                    self.quest_log.append((day + 1, self.stage, self.quests()))
-                    self.spend_myc()
+                    self.quest_log.append((day + 1, self.stage, q))
                 # 앱 밖: 이번 접속의 초당 전투 골드 × min(비운 시간, 8시간), 정산 광고 2배
                 off = g / (mins * 60) * min(gap_h, F.C('offlineCapHours')) * 3600 * F.OV.get('const', {}).get('offlineGoldRate', 1.0)
                 self.gold += off; self.src['offline'] += off
@@ -289,6 +308,7 @@ class Sim:
                     self.gold += off; self.src['offline_ad'] += off
                 self.wall += gap_h * 3600
                 self.buy()
+            self.src_log.append(dict(self.src))      # 날마다 누적 골드 출처 (D8: 첫 30일 비중)
             if stop_stage and self.stage >= stop_stage:
                 break
         return self
@@ -300,7 +320,12 @@ class Sim:
         for dn, unlock in sorted(F.T.dungeon.items()):
             if self.stage < unlock or dn not in self.dungeon.KINDS:
                 continue
+            if dn in self.d_dun:
+                continue
+            self.d_dun[dn] = True
+            self.first.setdefault('dungeon', self.wall)
             n = free + sum(1 for _ in range(ad_max) if self.watch('dungeon%d' % dn))
+            self.n_dun = getattr(self, 'n_dun', 0) + n
             for _ in range(n):
                 lv = self.dlevel.get(dn, 1)
                 g, m, cleared = self.dungeon.run(dn, lv, self)

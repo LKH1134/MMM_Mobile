@@ -176,6 +176,7 @@ static class Program
             p.sessLenH = hours / sess;
             p.sessStartH = sess == 1 ? new[] { 20.0 } : sess == 2 ? new[] { 8.0, 20.0 } : new[] { 7.0, 13.0, 20.0 };
         }
+        { var asm = typeof(GameBalance).Assembly.Location; Console.WriteLine($"[dll] {asm} · {File.GetLastWriteTime(asm):yyyy-MM-dd HH:mm:ss}"); }
         Console.WriteLine("[조건] " + p + " policy=" + Player.Policy + " gacha=" + (Player.NoGacha ? "off" : "on") + " equip=" + (Player.EquipGame ? "game(처음 묶음만 자동 장착)" : "best") + " table=" + System.IO.Path.GetFileName(Arg(a, "table", TablePath)) + " const=" + Arg(a, "const", "-") + " dungeonKills/myc/grow=" + dk + "/" + dm + "/" + dg + " speedMaxLv=" + IdleProgress.Defs[(int)IdleStat.Speed].maxLv);
         var sw = Stopwatch.StartNew();
         var sc = new Scenario(p);
@@ -192,6 +193,8 @@ static class Program
             if (r.wallAtReach < 0) Console.WriteLine($"{m},미도달,,");
             else Console.WriteLine($"{m},{r.wallAtReach / 3600:F2},{r.wallAtReach / 86400:F2},{r.playAtReach / 3600:F2}");
         }
+        Console.WriteLine($"첫7일 골드: 전투={(sc.snap7 == null ? -1 : sc.snap7[0]):E3} 앱밖={(sc.snap7 == null ? -1 : sc.snap7[1]):E3} 퀘스트상자={(sc.snap7 == null ? -1 : sc.snap7[2]):E3} 던전={(sc.snap7 == null ? -1 : sc.snap7[3]):E3}");
+        Console.WriteLine($"첫사용(벽시계 분): 던전={(sc.firstDungeon < 0 ? -1 : sc.firstDungeon / 60):F1} 뽑기={(sc.firstPull < 0 ? -1 : sc.firstPull / 60):F1} 퀘스트={(sc.firstQuest < 0 ? -1 : sc.firstQuest / 60):F1} · 첫1시간 강화={sc.upg1h}");
         Console.WriteLine($"재화 합계: 처치골드={sc.totKillGold:E3} 앱밖={sc.totOfflineGold:E3} 퀘스트골드={sc.totQuestGold:E3} 상자골드={sc.totChestGold:E3} 던전골드={sc.totDungeonGold:E3} | 균사석 보스={sc.totBossMyc} 퀘스트={sc.totQuestMyc} 상자={sc.totChestMyc} 던전={sc.totDungeonMyc} | 광고 {sc.adViews}회(상자 {sc.chestCount}) 뽑기 {sc.P.pulls}회 · 일수 {sc.dayCount}");
         Console.WriteLine($"던전: 입장 {sc.dungeonRuns}회 (레벨 미달 실패 {sc.dungeonFails}회) · 퀘스트 균사석 합 {sc.totQuestMyc} · 하루 평균 {sc.totQuestMyc / Math.Max(1.0, sc.dayCount):F1}");
         Console.WriteLine($"최종 강화 Lv: {string.Join(",", sc.P.lv)} · 편성 {string.Join(",", sc.P.slotMul.Select(x => x.ToString("F2")))} · 장비% 무기={sc.P.eqPct[0]:F0} 방어구={sc.P.eqPct[1]:F0} 펫={sc.P.eqPct[2]:F0} · 뽑기 Lv {string.Join(",", sc.P.gLv)}");

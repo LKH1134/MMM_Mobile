@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IdleSim")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+347e36230ba07013f860014fbb9ab383dbb679d5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d4631c8b65caeb1358165d2d5f2e130b121710f")]
 [assembly: System.Reflection.AssemblyProductAttribute("IdleSim")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IdleSim")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

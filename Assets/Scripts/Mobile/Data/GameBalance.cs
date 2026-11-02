@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
         static GradeRow[] grades;
         static GachaLevelRow[] gachaLevels;
         static Dictionary<int, string> resources;
-        static Dictionary<int, int> dungeonUnlock;
+        static Dictionary<int, DungeonRow> dungeons;
         static QuestRow[] quests;
 
         // 표 이름(= 시트 이름)과 index 범위
@@ -40,7 +40,7 @@ namespace MoreMush.Mobile
             grades = null;
             gachaLevels = null;
             resources = null;
-            dungeonUnlock = null;
+            dungeons = null;
             quests = null;
         }
 
@@ -78,7 +78,14 @@ namespace MoreMush.Mobile
         public static int DungeonUnlockStage(int dungeon)
         {
             Ensure();
-            return dungeonUnlock.TryGetValue(dungeon, out int stage) ? stage : -1;
+            return dungeons.TryGetValue(dungeon, out var row) ? row.unlockStage : -1;
+        }
+
+        // 던전 번호의 행 (레벨 보상 열). 없으면 null
+        public static DungeonRow Dungeon(int dungeon)
+        {
+            Ensure();
+            return dungeons.TryGetValue(dungeon, out var row) ? row : null;
         }
 
         // 리소스.index → Resources 경로 (없으면 null)
@@ -134,8 +141,8 @@ namespace MoreMush.Mobile
             foreach (var row in constRows) consts[row.key] = row.value;
             resources = new Dictionary<int, string>();
             foreach (var row in resourceRows) resources[row.index] = row.path;
-            dungeonUnlock = new Dictionary<int, int>();
-            foreach (var row in dungeonRows) dungeonUnlock[row.dungeon] = row.unlockStage;
+            dungeons = new Dictionary<int, DungeonRow>();
+            foreach (var row in dungeonRows) dungeons[row.dungeon] = row;
 
             for (int i = 0; i < stages.Length; i++)
                 if (stages[i].stage != i + 1)
@@ -252,6 +259,11 @@ namespace MoreMush.Mobile
     {
         public int dungeon;        // 던전 카드 번호 (DungeonEntry.dungeon)
         public int unlockStage;    // 이 스테이지에 진입해야 열린다 (0 = 처음부터)
+        public int baseStage;      // 레벨 1의 기준 스테이지 (레벨 L = baseStage + stageStep × (L − 1)). 방치 스테이지가 낮으면 소탕 (DungeonRewards)
+        public int stageStep;
+        public int rewardKills;    // 깨면 골드 = 기준 스테이지 적 처치 골드 × 이 값
+        public int rewardMyc;      // 깨면 균사석 = 이 값 × (1 + rewardGrowth × (L − 1))
+        public double rewardGrowth;
     }
 
     // 리소스: 리소스.index → Resources 경로

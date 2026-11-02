@@ -138,7 +138,7 @@ namespace MoreMush.Mobile
             switch (Kind(i))
             {
                 case QuestKind.Kill: return $"몬스터 {n:N0}마리 처치";
-                case QuestKind.Stage: return $"스테이지 {n:N0}번 돌파";
+                case QuestKind.Stage: return $"보스 {n:N0}번 도전";
                 case QuestKind.Upgrade: return $"강화 {n:N0}회";
                 case QuestKind.Gacha: return $"뽑기 {n:N0}회";
                 default: return $"광고 {n:N0}회 시청";

@@ -66,6 +66,8 @@ sealed class Scenario
     readonly Dictionary<int, int[]> dToday = new Dictionary<int, int[]>();    // 던전별 오늘 [무료 사용, 광고 슬롯 결정]
     int dungAdSeen;
     public double totDungeonMycGain;
+    // D5·D6: 첫 7일 재화 출처 스냅샷, 첫 사용 시각(벽시계 초, -1=미사용), 첫 1시간(플레이) 강화 횟수
+    public double[] snap7; public double firstDungeon = -1, firstPull = -1, firstQuest = -1; public int upg1h;
     public int dungeonRuns, dungeonFails;
     double lastStageUpPlay;
 
@@ -96,6 +98,7 @@ sealed class Scenario
             qprog[i] = Math.Min(qrows[i].target, qprog[i] + amount);
             if (qprog[i] >= qrows[i].target)
             {
+                if (firstQuest < 0) firstQuest = wall;
                 qdone[i] = true;      // 수령 (게임에서는 수동 수령, 접속 중이므로 바로 받는다고 가정)
                 double g = (double)IdleProgress.EnemyGold(P.stage) * qrows[i].goldKills;
                 P.gold += g; totQuestGold += g;
@@ -152,7 +155,7 @@ sealed class Scenario
 
     void Pay()
     {
-        P.BuyUpgrades();
+        { int n = P.BuyUpgrades(); if (play < 3600) upg1h += n; }
         if (P.myc >= 100) P.SpendMycelite();
     }
 
@@ -193,6 +196,7 @@ sealed class Scenario
 
     void DoDungeon()
     {
+        if ((prm.dungeonSheet || prm.dungeonOn) && firstDungeon < 0) firstDungeon = wall;
         if (prm.dungeonSheet) { DoDungeonSheet(); return; }
         if (!prm.dungeonOn) return;
         int runs = prm.dungeonFree + (prm.ads ? prm.dungeonAd : 0);
@@ -265,6 +269,8 @@ sealed class Scenario
             {
                 B.Step();
                 wall += prm.dt; play += prm.dt; sessSec += prm.dt;
+                if (snap7 == null && wall >= 7 * 86400) snap7 = new[] { totKillGold, totOfflineGold, totQuestGold + totChestGold, totDungeonGold };
+                if (firstPull < 0 && P.pulls > 0) firstPull = wall;
                 homeAcc += prm.dt * prm.homeFraction;
                 if (prm.ads && homeAcc >= GameBalance.Const("adBoxIntervalHours") * 3600)
                 {

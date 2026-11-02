@@ -35,8 +35,8 @@ namespace MoreMush.Mobile
         }
 
         // 강화 8종은 업그레이드 시트에서 읽는다 (IdleStat 순서대로). 값 설명은 엑셀 info 시트와 GameBalance.cs.
-        // maxLevel은 비용이 long 한계(9e18)에 닿기 전으로 잡는다 (공격력·체력 Lv 45623, 체력 재생 Lv 28423, 공격 속도 Lv 8578에서 닿는다).
-        // 공격 속도는 최대치 없이 계속 오르고 지수 항(priceScale)으로만 늦춘다 (스테이지 1000 도달 70.4일, 밸런스설계/verify/plan_final.py)
+        // maxLevel은 비용이 long 한계(9e18)에 닿기 전으로 잡는다 (Power 3·가격 지수 3.5에서 공격력·체력 Lv 29973, 체력 재생 Lv 19473에 닿는다 → 29900 / 19400).
+        // 공격 속도는 Lv 275(3.00/s)에서 봉인한다 (밸런스설계/README.md 기준 5)
         static Def[] defs;
 
         public static Def[] Defs => defs ?? (defs = BuildDefs());
@@ -222,6 +222,12 @@ namespace MoreMush.Mobile
             public readonly long bossGoldMul = (long)GameBalance.Const("bossGoldMul");
             public readonly long mycelBase = (long)GameBalance.Const("mycelBase");
             public readonly int mycelStageDiv = GameBalance.ConstInt("mycelStageDiv");
+            // 표 끝을 넘은 스테이지: 마지막 일반 스테이지 값 × 성장^(s − 그 스테이지) (밸런스설계/이론.md 10.1 C9)
+            public readonly double tailEnemyHpGrowth = GameBalance.Const("tailEnemyHpGrowth");
+            public readonly double tailBossHpGrowth = GameBalance.Const("tailBossHpGrowth");
+            public readonly double tailAttackGrowth = GameBalance.Const("tailAttackGrowth");
+            public readonly double tailGoldGrowth = GameBalance.Const("tailGoldGrowth");
+            public readonly double tailWallMul = GameBalance.Const("tailWallMul");
         }
 
         static Curve curve;
@@ -293,26 +299,44 @@ namespace MoreMush.Mobile
 
         // 기대 성장이면 일반 적은 투척 2번, 보스는 18초(제한 30초)에 잡힌다. 일반 적은 일반 적 피해량까지 반영한다.
         // 스테이지 시트에 체력(enemyHp·bossHp, 0보다 큰 값)이 있으면 그 값 — 초반을 곡선에서 떼거나 챕터 보스 벽을 넣을 때
+        // 표 끝을 넘으면 마지막 일반 스테이지(표 끝이 챕터 보스면 그 앞) 값에서 일정한 비율로 늘린다 — 기대 곡선과 이어지지 않아도 체감이 끊기지 않게
         public static double EnemyHp(int stage, int wave)
         {
-            double first = GameBalance.InStageTable(stage) && GameBalance.Stage(stage).enemyHp > 0
-                ? GameBalance.Stage(stage).enemyHp
-                : ExpectedHit(stage) * Value(IdleStat.NormalEnemyDamage, ExpectedLevel(IdleStat.NormalEnemyDamage, stage)) * K.enemyHpHits;
+            double first;
+            if (GameBalance.InStageTable(stage) && GameBalance.Stage(stage).enemyHp > 0) first = GameBalance.Stage(stage).enemyHp;
+            else if (!GameBalance.InStageTable(stage) && TailRow.enemyHp > 0) first = TailRow.enemyHp * Tail(stage, K.tailEnemyHpGrowth);
+            else first = ExpectedHit(stage) * Value(IdleStat.NormalEnemyDamage, ExpectedLevel(IdleStat.NormalEnemyDamage, stage)) * K.enemyHpHits;
             return first * (1 + K.enemyHpWaveGrowth * (wave - 1));
         }
 
-        public static double BossHp(int stage) => GameBalance.InStageTable(stage) && GameBalance.Stage(stage).bossHp > 0
-            ? GameBalance.Stage(stage).bossHp
-            : ExpectedDps(stage) * K.bossKillSeconds;
+        public static double BossHp(int stage)
+        {
+            if (GameBalance.InStageTable(stage) && GameBalance.Stage(stage).bossHp > 0) return GameBalance.Stage(stage).bossHp;
+            if (!GameBalance.InStageTable(stage) && TailRow.bossHp > 0)
+                return TailRow.bossHp * Tail(stage, K.tailBossHpGrowth) * (stage % ChapterLength == 0 ? K.tailWallMul : 1);
+            return ExpectedDps(stage) * K.bossKillSeconds;
+        }
+
+        const int ChapterLength = 10;   // 10의 배수 스테이지 = 챕터 보스 (표에서는 체력 ×1.4)
+        static int TailStage => GameBalance.StageCount > 1 && GameBalance.StageCount % ChapterLength == 0 ? GameBalance.StageCount - 1 : GameBalance.StageCount;
+        static StageRow TailRow => GameBalance.Stage(TailStage);
+        static double Tail(int stage, double growth) => System.Math.Pow(growth, stage - TailStage);
 
         // 적 공격(초당 피해): 일반 적은 1마리씩, 보스는 혼자. 기대 성장이면 웨이브마다 체력이 조금씩 깎이고 보스에서 바닥 근처까지 간다.
         // 스테이지 시트에 있는 스테이지는 시트 값, 표 끝을 넘으면 기대 성장 곡선으로 계산한다 (골드·균사석도 같다)
-        public static double EnemyAttack(int stage) => GameBalance.InStageTable(stage)
-            ? GameBalance.Stage(stage).enemyAttack
-            : K.enemyAtkHpRate * ExpectedHp(stage) + K.enemyAtkRegenRate * ExpectedRegen(stage);
-        public static double BossAttack(int stage) => GameBalance.InStageTable(stage)
-            ? GameBalance.Stage(stage).bossAttack
-            : ExpectedRegen(stage) + K.bossAtkHpRate * ExpectedHp(stage);
+        public static double EnemyAttack(int stage)
+        {
+            if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).enemyAttack;
+            if (TailRow.enemyAttack > 0) return TailRow.enemyAttack * Tail(stage, K.tailAttackGrowth);
+            return K.enemyAtkHpRate * ExpectedHp(stage) + K.enemyAtkRegenRate * ExpectedRegen(stage);
+        }
+
+        public static double BossAttack(int stage)
+        {
+            if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).bossAttack;
+            if (TailRow.bossAttack > 0) return TailRow.bossAttack * Tail(stage, K.tailAttackGrowth);
+            return ExpectedRegen(stage) + K.bossAtkHpRate * ExpectedHp(stage);
+        }
 
         // 골드(생산량)는 스테이지의 거듭제곱으로 계속 오르고, 강화 비용(소모량)은 거듭제곱 × 지수(priceScale)라 더 빨리 오른다.
         // 그 차이 ≈ e^((s-1)/FarmScale)가 스테이지당 반복 판 수 → 누적 플레이 시간 대비 스테이지가 로그 곡선
@@ -324,6 +348,7 @@ namespace MoreMush.Mobile
         {
             if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).enemyGold;
             var k = K;
+            if (TailRow.enemyGold > 0) return ClampToLong(TailRow.enemyGold * Tail(stage, k.tailGoldGrowth), 1);
             return ClampToLong(System.Math.Round(k.goldBase * System.Math.Pow(1 + (stage - 1) / k.goldStep, k.goldExp)), 1);
         }
 
@@ -336,7 +361,12 @@ namespace MoreMush.Mobile
         }
 
         // 보스 처치 균사석 (뽑기 재화). 보스를 잡아야만 다음 스테이지로 가므로 스테이지마다 한 번
-        public static long BossMycelite(int stage) => GameBalance.InStageTable(stage) ? GameBalance.Stage(stage).bossMycelite : K.mycelBase + stage / System.Math.Max(1, K.mycelStageDiv);
+        public static long BossMycelite(int stage)
+        {
+            if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).bossMycelite;
+            if (TailRow.bossMycelite > 0) return TailRow.bossMycelite;     // 표 끝 뒤에도 표의 마지막 값 그대로 (v3 = 2)
+            return K.mycelBase + stage / System.Math.Max(1, K.mycelStageDiv);
+        }
 
         // 아주 높은 스테이지에서 long을 넘으면 (long) 변환이 기기마다 음수·최솟값이 된다 — 9e18에서 멈춘다. NaN은 min으로
         public const double MaxAmount = 9e18;

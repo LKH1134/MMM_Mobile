@@ -8,6 +8,7 @@ namespace MoreMush.Mobile
     // InGame 결과 팝업. 시간이 다 되면 HarvestGame이 열어 이번 판에 번 골드만 보여 준다.
     // 버튼은 둘: 왼쪽(입장 횟수를 하나 쓰고 이 씬을 다시 연다) · "나가기"(Main). 닫기 버튼·배경 눌러 닫기는 없다.
     //   레벨을 깼으면 왼쪽은 "다음 레벨 (레벨 n)" — 씬이 다시 열리면 StageProgress.Current(= 던전 레벨)가 이미 다음이다. 못 깼으면 "다시 도전".
+    //   다음 레벨이 방치 진행보다 앞서면 "소탕하기" — 씬을 열지 않고 소탕 골드를 이 창에 보여 준다 (DungeonRewards).
     //   입장 횟수를 다 썼으면 "광고 보고 도전 (n/2)" (광고 입장, DungeonTickets.AdPerDay), 그것도 없으면 막힌다.
     // "다음 레벨 자동 도전"(체크 상자, 기기에 저장): 켜져 있고, 레벨을 깼고, 입장 횟수가 남았으면 AutoNextSeconds초를 센 뒤 다음 레벨로 들어간다.
     //   광고 입장은 자동으로 하지 않는다. 버튼을 누르거나 체크를 끄면 카운트를 멈춘다. 체크 상자는 프리팹을 고치지 않게 처음 열 때 만든다
@@ -84,14 +85,18 @@ namespace MoreMush.Mobile
         {
             bool ticket = DungeonTickets.CanEnter(dungeon);
             bool byAd = DungeonTickets.CanEnterWithAd(dungeon);
-            retryButton.interactable = ticket || byAd;
+            bool capped = DungeonRewards.IsCapped(dungeon), blocked = capped && !DungeonRewards.CanSweep(dungeon);
+            retryButton.interactable = (ticket || byAd) && !blocked;
             if (retryLabel == null) return;
-            if (!ticket && byAd) retryLabel.text = $"광고 보고 도전 ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})";
+            string action = capped ? "소탕" : "도전";
+            if (blocked) retryLabel.text = $"스테이지 {DungeonRewards.Stage(dungeon, DungeonTickets.Level(dungeon))} 필요";
+            else if (!ticket && byAd) retryLabel.text = $"광고 보고 {action} ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})";
+            else if (capped) retryLabel.text = "소탕하기";
             else retryLabel.text = cleared ? $"다음 레벨 (레벨 {DungeonTickets.Level(dungeon)})" : "다시 도전";
         }
 
         // ── 다음 레벨 자동 도전 ──
-        bool CanAutoNext => AutoNext && cleared && DungeonTickets.CanEnter(dungeon);
+        bool CanAutoNext => AutoNext && cleared && DungeonTickets.CanEnter(dungeon) && !DungeonRewards.IsCapped(dungeon);
 
         void RestartAutoNext()
         {
@@ -192,6 +197,12 @@ namespace MoreMush.Mobile
             StopAutoNext();
             if (SceneLoader.IsLoading) return;
             string scene = gameObject.scene.name;
+            if (DungeonRewards.IsCapped(dungeon))
+            {
+                // 다음 레벨이 방치 진행보다 앞섰다: 소탕하고 이 창에 그 골드를 보여 준다
+                if (!DungeonRewards.TrySweep(dungeon, Swept) && retryLabel != null) retryLabel.text = "광고 준비 중…";
+                return;
+            }
             if (DungeonTickets.CanEnter(dungeon))
             {
                 if (SceneLoader.Load(scene)) DungeonTickets.TryUse(dungeon);
@@ -201,6 +212,14 @@ namespace MoreMush.Mobile
                 if (!DungeonEntry.EnterWithAd(dungeon, scene) && retryLabel != null) retryLabel.text = "광고 준비 중…";
             }
             else retryButton.interactable = false;
+        }
+
+        void Swept(long gold)
+        {
+            cleared = false;
+            RefreshButtons();
+            if (countUp != null) StopCoroutine(countUp);
+            countUp = StartCoroutine(CountUp(gold));
         }
 
         void GoMain()

@@ -22,7 +22,7 @@ namespace MoreMush.Mobile.EditorTools
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double" },
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
-            { "던전", "index:int key:string dungeon:int unlockStage:int" },
+            { "던전", "index:int key:string dungeon:int unlockStage:int baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
         };
 
@@ -44,6 +44,8 @@ namespace MoreMush.Mobile.EditorTools
             ("adBoxIntervalHours", 0.001, false), ("adBoxStaySeconds", 1, false), ("adBoxGoldKills", 0, true), ("adBoxMyceliteBosses", 0, true),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
             ("offlineGoldRate", 0, false), ("adGachaPulls", 1, true),
+            ("dungeonSweepMul", 0, false),
+            ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
         };
 
         sealed class Row
@@ -197,6 +199,7 @@ namespace MoreMush.Mobile.EditorTools
             {
                 Between(r, "dungeon", 1, int.MaxValue, issues);
                 Between(r, "unlockStage", 0, int.MaxValue, issues);
+                foreach (var col in new[] { "baseStage", "stageStep", "rewardKills", "rewardMyc", "rewardGrowth" }) Between(r, col, 0, int.MaxValue, issues);
                 if (!seen.Add(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 던전 번호가 겹친다");
             }
             if (seen.Count == 0) issues.Add("[던전] 행이 하나도 없다");

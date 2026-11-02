@@ -80,7 +80,7 @@ def stage_row(s):
 # ── 강화 ──
 def cost(stat, lv):
     u = U(stat)
-    c = u['price'] * (1 + lv / u['div']) ** u['exp']
+    c = u['price'] * (1 + lv / u['div']) ** u['exp'] * OV.get('cost_mul', 1.0)   # D5: 수입이 는 만큼 비용 baseCost × cost_mul
     if u['scale'] > 0:
         c *= math.exp(lv / u['scale'])
     return min(9e18, math.ceil(c))

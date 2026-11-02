@@ -32,11 +32,34 @@ def boss_test(s, p, hp_mul):
     return hurt < p.max_hp()
 
 
+# V4 (v3): 던전 레벨 상한 = 방치 진행. s_L이 지금 방치 스테이지보다 높으면 도전하지 않고
+#   마지막으로 깬 레벨(L−1)의 보상을 소탕으로 받는다 (레벨은 그대로). False면 v2처럼 무조건 도전.
+CAP_TO_IDLE = True
+SWEEP_MUL = 0.5      # D8: 소탕 = 깬 레벨 보상 × 0.5 (장기 던전 골드 비중 ≤ 50%)
+
+
+def reward(dn, lv):
+    d = DUNGEONS[dn]
+    s = ref_stage(dn, lv)
+    return F.enemy_gold(s) * d['rewardKills'], d['rewardMyc'] * (1 + d['rewardGrowth'] * (lv - 1))
+
+
 def run(dn, lv, sim):
     d = DUNGEONS[dn]
     s = ref_stage(dn, lv)
+    cnt = sim.__dict__.setdefault('dcount', {'try': 0, 'fail': 0, 'sweep': 0})
+    if CAP_TO_IDLE and s > sim.stage:
+        cnt['sweep'] += 1
+        if lv <= 1:
+            return 0.0, 0.0, False
+        g, m = reward(dn, lv - 1)
+        return g * SWEEP_MUL, m * SWEEP_MUL, False
+    cnt['try'] += 1
     if not boss_test(s, sim.p, d['hpMul']):
+        cnt['fail'] += 1
+        if CAP_TO_IDLE and lv > 1:      # 실패해도 소탕 보상 (헛입장 없음)
+            g, m = reward(dn, lv - 1)
+            return g * SWEEP_MUL, m * SWEEP_MUL, False
         return 0.0, 0.0, False
-    g = F.enemy_gold(s) * d['rewardKills']
-    m = d['rewardMyc'] * (1 + d['rewardGrowth'] * (lv - 1))
+    g, m = reward(dn, lv)
     return g, m, True

@@ -39,7 +39,7 @@ def ref_gear(day):
     for k in Gear.KINDS:
         left = per
         while left > 0:
-            c = min(left, 100)
+            c = min(left, 10)
             g.pull(k, c)
             left -= c
     r = (g.atk_pct(), g.hp_pct())
@@ -183,6 +183,82 @@ def calibrate_attack(rows):
         rows[s]['bossAtk'] *= k
 
 
+def smooth(rows):
+    """V1: 보통 스테이지끼리의 계단(기준 장비의 정수 뽑기·합성 레벨 계단)을 로그 이동 평균(창 ±smooth)으로 펴고,
+    s−1→s 비를 max_step 이하로 자른다(앞에서부터; 초반 곡선이 가파른 6~40도). 챕터 보스 배수는 뺀 뒤 처리하고 다시 곱한다"""
+    w = PARAMS.get('smooth', 0)
+    if not w:
+        return
+    cap = math.log(PARAMS.get('max_step', 1.14))
+    lo = PARAMS['early'] + 1
+    hi = max(rows)
+
+    def is_wall(s):
+        return s >= PARAMS['first_wall'] and s % PARAMS['wall_every'] == 0
+
+    for key in ('ehp', 'bhp', 'atk', 'bossAtk'):
+        logs = {}
+        for s in range(lo, hi + 1):
+            v = rows[s][key]
+            if key == 'bhp' and is_wall(s):
+                v /= PARAMS['wall_mul']
+            logs[s] = math.log(max(v, 1e-300))
+        sm = {}
+        for s in range(lo, hi + 1):
+            h = min(w, s - lo, hi - s)      # 끝에서도 대칭 창 (기울기 유지)
+            sm[s] = sum(logs[x] for x in range(s - h, s + h + 1)) / (2 * h + 1)
+        for s in range(lo + 1, hi + 1):
+            sm[s] = min(sm[s], sm[s - 1] + cap)
+        for s in range(lo, hi + 1):
+            v = math.exp(sm[s])
+            if key == 'bhp' and is_wall(s):
+                v *= PARAMS['wall_mul']
+            rows[s][key] = v
+
+
+TAIL_KEYS = ('ehp', 'bhp', 'atk', 'bossAtk', 'gold')
+
+
+def tail_growth(rows, end):
+    """D1: 표 끝(end) 뒤는 단순 지수, 필드마다 상수 g 하나.
+    v3b: g = 생성기가 목표 곡선(보통 1000 = 274일)의 기준 플레이어로 만든 행 (end−1) → 991의 기하 평균 비.
+    = 700→1000 구간 기준 플레이어 전투력·수입 성장률 (표에는 1~end만 남긴다)"""
+    a, b = end - 1, max(x for x in rows if x % 10 != 0 and x <= F.T.tableMax - 9)
+    return {k: (rows[b][k] / rows[a][k]) ** (1.0 / (b - a)) for k in TAIL_KEYS}
+
+
+def tail_row(rows, end, g, s):
+    """s > end: X(s) = X(end−1) × g_X^(s − (end−1)), 챕터 보스(s%10==0) 보스 체력 × wall_mul, 보스 균사석 고정"""
+    a = end - 1
+    r = dict(rows[a])
+    n = s - a
+    for k in TAIL_KEYS:
+        r[k] = rows[a][k] * g[k] ** n
+    if s % PARAMS['wall_every'] == 0:
+        r['bhp'] *= PARAMS['wall_mul']
+    r['bossGold'] = r['gold'] * 20
+    r['myc'] = PARAMS['myc_wall'] if s % PARAMS['wall_every'] == 0 else PARAMS['myc_normal']
+    return r
+
+
+def stage_fn(rows):
+    """표(1~end) + 지수 꼬리. rows에 '_end'가 없으면 표만"""
+    end = PARAMS.get('table_end')
+    if not end:
+        return lambda s: rows.get(s)
+    g = PARAMS.get('_tail') or tail_growth(rows, end)
+    PARAMS['_tail'] = g
+    cache = {}
+
+    def f(s):
+        if s <= end:
+            return rows.get(s)
+        if s not in cache:
+            cache[s] = tail_row(rows, end, g, s)
+        return cache[s]
+    return f
+
+
 def make_rows(params=None):
     if params:
         PARAMS.update(params)
@@ -200,7 +276,7 @@ def make_rows(params=None):
             base['atk'] = 0.55 + 0.03 * (s - 1)
             base['bossAtk'] = 2.0 + 0.1 * (s - 1)
             base['myc'] = PARAMS['myc_normal']
-            base['gold'] = max(1, round(base['gold'] * (1 + 1.5 * (s - 1)) ** PARAMS['gold_q']))
+            base['gold'] = max(1, round(base['gold'] * (1 + 1.5 * (s - 1)) ** PARAMS['gold_q'] * PARAMS.get('early_gold_mul', 1.0)))
             base['bossGold'] = base['gold'] * 20
             rows[s] = base
             continue
@@ -221,11 +297,17 @@ def make_rows(params=None):
     import formulas as F2
     F2.OV['stage_fn'] = lambda x: rows.get(x)      # 보정 시뮬이 새 행을 쓰게
     calibrate_attack(rows)
+    smooth(rows)
     # 골드 단조 보정
     for s in range(2, F.T.tableMax + 1):
         if rows[s]['gold'] <= rows[s - 1]['gold']:
             rows[s]['gold'] = rows[s - 1]['gold'] + 1
             rows[s]['bossGold'] = rows[s]['gold'] * 20
+    end = PARAMS.get('table_end')
+    if end:     # D1: 표는 1~end, 그 뒤는 stage_fn의 지수 꼬리 (g는 자르기 전 행으로)
+        PARAMS['_tail'] = tail_growth(rows, end)
+        for s in [x for x in rows if x > end]:
+            del rows[s]
     return rows
 
 
