@@ -30,6 +30,8 @@ namespace MoreMush.Mobile
             Wallet.Reload();
             Formation.Reload();
             Equipment.ReloadAll();
+            AdBox.ResetTimer();            // 광고 상자 쿨타임도 처음부터
+            DailyQuests.Reload();          // 일일 퀘스트 진행도도 처음부터
             Time.timeScale = 1f;
             SceneLoader.Load(startScene);
         }

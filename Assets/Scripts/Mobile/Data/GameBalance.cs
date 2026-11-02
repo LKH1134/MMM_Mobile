@@ -21,10 +21,12 @@ namespace MoreMush.Mobile
         static GradeRow[] grades;
         static GachaLevelRow[] gachaLevels;
         static Dictionary<int, string> resources;
+        static Dictionary<int, int> dungeonUnlock;
+        static QuestRow[] quests;
 
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
-            ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기";
+            ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -37,6 +39,8 @@ namespace MoreMush.Mobile
             grades = null;
             gachaLevels = null;
             resources = null;
+            dungeonUnlock = null;
+            quests = null;
         }
 
         // ── 읽기 ──
@@ -54,6 +58,7 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<GradeRow> Grades { get { Ensure(); return grades; } }
         public static IReadOnlyList<GachaLevelRow> GachaLevels { get { Ensure(); return gachaLevels; } }
         public static int StageCount { get { Ensure(); return stages.Length; } }
+        public static IReadOnlyList<QuestRow> Quests { get { Ensure(); return quests; } }
 
         // 스테이지 번호(1부터)의 행. 표 끝을 넘으면 마지막 행 (웨이브 수·적 수 같은 설정을 이어 쓴다). 표 안인지는 InTable로 본다
         public static StageRow Stage(int stage)
@@ -66,6 +71,13 @@ namespace MoreMush.Mobile
         {
             Ensure();
             return stage >= 1 && stage <= stages.Length;
+        }
+
+        // 던전 번호 → 해금에 진입해야 하는 스테이지 (던전 시트). 행이 없으면 -1 (열리지 않는다)
+        public static int DungeonUnlockStage(int dungeon)
+        {
+            Ensure();
+            return dungeonUnlock.TryGetValue(dungeon, out int stage) ? stage : -1;
         }
 
         // 리소스.index → Resources 경로 (없으면 null)
@@ -101,6 +113,8 @@ namespace MoreMush.Mobile
             mascots = ToArray(Read(new DataTable<MascotRow>(MascotSheet, 3001, 3999), sheets, issues));
             stages = ToSorted(Read(new DataTable<StageRow>(StageSheet, 5001, 6999), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
             var resourceRows = Read(new DataTable<ResourceRow>(ResourceSheet, 7001, 7999), sheets, issues);
+            var dungeonRows = Read(new DataTable<DungeonRow>(DungeonSheet, 9101, 9199), sheets, issues);
+            quests = ToArray(Read(new DataTable<QuestRow>(QuestSheet, 9201, 9299), sheets, issues));
 
             foreach (var issue in issues)
                 if (!Ignorable(issue)) Debug.LogError("[GameBalance] " + issue);
@@ -109,6 +123,8 @@ namespace MoreMush.Mobile
             foreach (var row in constRows) consts[row.key] = row.value;
             resources = new Dictionary<int, string>();
             foreach (var row in resourceRows) resources[row.index] = row.path;
+            dungeonUnlock = new Dictionary<int, int>();
+            foreach (var row in dungeonRows) dungeonUnlock[row.dungeon] = row.unlockStage;
 
             for (int i = 0; i < stages.Length; i++)
                 if (stages[i].stage != i + 1)
@@ -207,6 +223,22 @@ namespace MoreMush.Mobile
         public int enemyCountBase, enemyCountPerWave, enemyCountPerStage, enemyCountMax;
         public long enemyGold, bossGold, bossMycelite;
         public double enemyAttack, bossAttack;
+    }
+
+    // 퀘스트: 일일 퀘스트 한 줄. kind = QuestKind 이름(대소문자 무시)
+    public class QuestRow : TableRow
+    {
+        public string kind;
+        public int target;         // 목표 횟수
+        public int goldKills;      // 보상 골드 = 지금 스테이지 적 처치 골드 × 이 횟수
+        public int mycelite;       // 보상 균사석 (고정)
+    }
+
+    // 던전: 던전 번호별 해금 조건
+    public class DungeonRow : TableRow
+    {
+        public int dungeon;        // 던전 카드 번호 (DungeonEntry.dungeon)
+        public int unlockStage;    // 이 스테이지에 진입해야 열린다 (0 = 처음부터)
     }
 
     // 리소스: 리소스.index → Resources 경로

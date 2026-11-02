@@ -22,6 +22,8 @@ namespace MoreMush.Mobile.EditorTools
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double" },
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
+            { "던전", "index:int key:string dungeon:int unlockStage:int" },
+            { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
         };
 
         // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
@@ -39,6 +41,7 @@ namespace MoreMush.Mobile.EditorTools
             ("enemyAtkHpRate", 0, false), ("enemyAtkRegenRate", 0, false), ("bossAtkHpRate", 0, false),
             ("goldBase", 0, false), ("goldStep", 0.001, false), ("goldExp", 0, false), ("bossGoldMul", 0, true),
             ("mycelBase", 0, true), ("mycelStageDiv", 1, true),
+            ("adBoxIntervalHours", 0.001, false), ("adBoxStaySeconds", 1, false), ("adBoxGoldKills", 0, true), ("adBoxMyceliteBosses", 0, true),
         };
 
         sealed class Row
@@ -155,6 +158,8 @@ namespace MoreMush.Mobile.EditorTools
             ValidateConsts(tables["상수"], issues);
             ValidateGrades(tables["등급"], issues);
             ValidateGachaLevels(tables["뽑기"], issues);
+            ValidateDungeons(tables["던전"], issues);
+            ValidateQuests(tables["퀘스트"], issues);
             return count;
         }
 
@@ -179,6 +184,31 @@ namespace MoreMush.Mobile.EditorTools
             if (byKey.ContainsKey("copiesBase") && byKey.ContainsKey("copiesPerLevel")
                 && byKey["copiesBase"].Number("value") + byKey["copiesPerLevel"].Number("value") < 1)
                 issues.Add("[상수] copiesBase + copiesPerLevel은 1 이상이어야 한다 (Lv.1→2 조각이 0개가 되지 않게)");
+        }
+
+        static void ValidateDungeons(List<Row> rows, List<string> issues)
+        {
+            var seen = new HashSet<int>();
+            foreach (var r in rows)
+            {
+                Between(r, "dungeon", 1, int.MaxValue, issues);
+                Between(r, "unlockStage", 0, int.MaxValue, issues);
+                if (!seen.Add(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 던전 번호가 겹친다");
+            }
+            if (seen.Count == 0) issues.Add("[던전] 행이 하나도 없다");
+        }
+
+        static void ValidateQuests(List<Row> rows, List<string> issues)
+        {
+            foreach (var r in rows)
+            {
+                if (!Enum.TryParse<QuestKind>(r.Text("kind"), true, out _))
+                    issues.Add(r.At("kind") + $": 모르는 종류 '{r.Text("kind")}' ({string.Join("/", Enum.GetNames(typeof(QuestKind)))} 중 하나)");
+                Between(r, "target", 1, int.MaxValue, issues);
+                Between(r, "goldKills", 0, int.MaxValue, issues);
+                Between(r, "mycelite", 0, int.MaxValue, issues);
+            }
+            if (rows.Count == 0) issues.Add("[퀘스트] 행이 하나도 없다");
         }
 
         static void ValidateGrades(List<Row> rows, List<string> issues)

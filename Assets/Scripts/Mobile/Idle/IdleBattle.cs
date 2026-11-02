@@ -80,9 +80,21 @@ namespace MoreMush.Mobile
         float hurtShowIn, hurtFlash, hpTextIn;
 
         // HUD
-        TMP_Text stageText, waveText, timerText, hpText, powerText, statsText;
+        TMP_Text stageText, timerText, hpText, powerText, statsText;
         RectTransform barFill, timerRoot, timerFill, hpFill;
+        Image barFillImage, bossMark;
+        readonly List<RectTransform> ticks = new List<RectTransform>();     // 진행 막대의 웨이브 구분 눈금
+        int shownTickWaves = -1;
         GameObject statsPanel;
+
+        // 스테이지 배너: "<챕터 이름> 챕터-번호". 챕터 이름은 임시 한 가지 (기획 확정 후 표로)
+        const int StagesPerChapter = 10;
+        const string ChapterName = "늑대의 밤";
+        const string MapIcon = "Art/Dream/Icons/quest";                 // 임시 그림
+        const string PowerIcon = "Art/Dream/UI/Window/ic_mallet";       // 임시 그림
+        const float PowerPillY = -967f;     // 강화 목록(UpgradePanel) 위쪽 가장자리 — 전투 화면과 강화 목록 사이
+        static readonly Color NormalFill = new Color(0.2f, 0.85f, 0.8f);
+        static readonly Color BossFill = new Color(0.95f, 0.35f, 0.35f);
         float powerRefreshIn;
 
         // 홈 밖에서는 숨긴 채 진행
@@ -338,6 +350,7 @@ namespace MoreMush.Mobile
             waveKilled++;
             pendingGold += e.gold;
             IdleAway.AddKill();
+            DailyQuests.Add(QuestKind.Kill);
             ShowText(e.rt.position, "+" + Wallet.Format(e.gold), new Color(1f, 0.85f, 0.25f), 34f, 0.8f);
             if (e.boss)
             {
@@ -345,6 +358,7 @@ namespace MoreMush.Mobile
                 Wallet.Add(Currency.Mycelite, IdleProgress.BossMycelite(stage));
                 IdleAway.AddMycelite(IdleProgress.BossMycelite(stage));
                 IdleAway.AddStage();
+                DailyQuests.Add(QuestKind.Stage);
                 partyHp = partyMaxHp;
                 stage++;
                 IdleProgress.Stage = stage;
@@ -716,51 +730,72 @@ namespace MoreMush.Mobile
             root.anchoredPosition = new Vector2(0f, hudTop);
             root.sizeDelta = new Vector2(560f, 170f);
 
-            stageText = MakeText("Stage", root, 52f);
-            Place(stageText.rectTransform, new Vector2(0f, 0f), new Vector2(560f, 64f));
-            waveText = MakeText("Wave", root, 34f);
-            Place(waveText.rectTransform, new Vector2(0f, -62f), new Vector2(560f, 44f));
-            barFill = MakeBar("Bar", root, new Vector2(0f, -112f), new Vector2(460f, 22f), new Color(0.4f, 0.85f, 0.45f));
+            // 스테이지 배너: 지도 아이콘 + "챕터 이름 1-6"
+            var banner = MakeImage("Banner", root, white, new Vector2(560f, 84f));
+            banner.preserveAspect = false;
+            banner.color = new Color(0.36f, 0.42f, 0.56f, 0.92f);
+            Place(banner.rectTransform, Vector2.zero, new Vector2(560f, 84f));
+            var map = MakeImage("Map", banner.rectTransform, Resources.Load<Sprite>(MapIcon), new Vector2(64f, 64f));
+            Place(map.rectTransform, new Vector2(-230f, -10f), new Vector2(64f, 64f));
+            stageText = MakeText("Stage", banner.rectTransform, 46f);
+            Place(stageText.rectTransform, new Vector2(30f, -14f), new Vector2(440f, 56f));
+
+            // 진행 막대 (웨이브 눈금 + 끝에 보스 표시). 보스전에는 보스 체력을 보여 준다
+            barFill = MakeBar("Bar", root, new Vector2(-30f, -98f), new Vector2(430f, 26f), NormalFill);
+            barFillImage = barFill.GetComponent<Image>();
+            barFill.parent.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.9f);
+            bossMark = MakeImage("BossMark", root, white, new Vector2(56f, 56f));
+            bossMark.preserveAspect = false;
+            Place(bossMark.rectTransform, new Vector2(250f, -84f), new Vector2(56f, 56f));
+            var bossLabel = MakeText("Text", bossMark.rectTransform, 22f);
+            var blrt = bossLabel.rectTransform;
+            blrt.anchorMin = Vector2.zero;
+            blrt.anchorMax = Vector2.one;
+            blrt.offsetMin = blrt.offsetMax = Vector2.zero;
+            bossLabel.text = "BOSS";
 
             timerRoot = new GameObject("BossTime", typeof(RectTransform)).GetComponent<RectTransform>();
             timerRoot.SetParent(root, false);
-            Place(timerRoot, new Vector2(0f, -142f), new Vector2(460f, 40f));
+            Place(timerRoot, new Vector2(0f, -140f), new Vector2(460f, 40f));
             timerFill = MakeBar("Bar", timerRoot, Vector2.zero, new Vector2(360f, 14f), new Color(0.35f, 0.75f, 1f));
             timerFill.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(-40f, -12f);
             timerText = MakeText("Sec", timerRoot, 30f);
             Place(timerText.rectTransform, new Vector2(190f, 0f), new Vector2(100f, 40f));
 
-            // 꼬마 무리 체력 막대 (보스 시간 아래)
-            hpFill = MakeBar("Hp", root, new Vector2(0f, -192f), new Vector2(460f, 30f), new Color(0.35f, 0.85f, 0.4f));
-            hpText = MakeText("HpText", hpFill.parent, 24f);
+            // 꼬마 무리 체력 막대: 전투 화면 왼쪽 위
+            hpFill = MakeBar("Hp", root, new Vector2(-270f, -262f), new Vector2(390f, 44f), new Color(0.35f, 0.85f, 0.4f));
+            hpText = MakeText("HpText", hpFill.parent, 28f);
             var hpTextRt = hpText.rectTransform;
             hpTextRt.anchorMin = Vector2.zero;
             hpTextRt.anchorMax = Vector2.one;
             hpTextRt.offsetMin = hpTextRt.offsetMax = Vector2.zero;
 
-            // 전투력 (체력 막대 아래). 누르면 세부 통계 창을 열고 닫는다
-            var power = MakeImage("Power", root, white, new Vector2(460f, 46f));
+            // 전투 화면 왼쪽 아이콘 열: 일일 퀘스트 (배너 왼쪽)
+            QuestButton.Create(effectLayer, new Vector2(-445f, hudTop - 20f), 100f, font);
+
+            // 전투력: 전투 화면과 강화 목록 사이 가운데. 누르면 세부 통계 창을 열고 닫는다
+            var power = MakeImage("Power", effectLayer, white, new Vector2(300f, 84f));
             power.preserveAspect = false;
-            power.color = new Color(0f, 0f, 0f, 0.45f);
+            power.color = new Color(0.1f, 0.08f, 0.14f, 0.92f);
             power.raycastTarget = true;
-            Place(power.rectTransform, new Vector2(0f, -232f), new Vector2(460f, 46f));
+            Place(power.rectTransform, new Vector2(0f, PowerPillY + 42f), new Vector2(300f, 84f));
             power.gameObject.AddComponent<Button>().onClick.AddListener(() =>
             {
                 statsPanel.SetActive(!statsPanel.activeSelf);
                 RefreshPower();
             });
-            powerText = MakeText("Text", power.rectTransform, 30f);
-            var prt = powerText.rectTransform;
-            prt.anchorMin = Vector2.zero;
-            prt.anchorMax = Vector2.one;
-            prt.offsetMin = prt.offsetMax = Vector2.zero;
-            powerText.color = new Color(1f, 0.85f, 0.35f);
+            var powerIcon = MakeImage("Icon", power.rectTransform, Resources.Load<Sprite>(PowerIcon), new Vector2(64f, 64f));
+            Place(powerIcon.rectTransform, new Vector2(-100f, -10f), new Vector2(64f, 64f));
+            powerText = MakeText("Text", power.rectTransform, 44f);
+            Place(powerText.rectTransform, new Vector2(30f, -14f), new Vector2(200f, 56f));
+            powerText.color = new Color(1f, 0.9f, 0.5f);
 
-            var panel = MakeImage("Stats", root, white, new Vector2(620f, 330f));
+            // 세부 통계 창: 전투력 위
+            var panel = MakeImage("Stats", effectLayer, white, new Vector2(620f, 330f));
             panel.preserveAspect = false;
             panel.color = new Color(0.08f, 0.06f, 0.05f, 0.82f);
             panel.raycastTarget = true;
-            Place(panel.rectTransform, new Vector2(0f, -286f), new Vector2(620f, 330f));
+            Place(panel.rectTransform, new Vector2(0f, PowerPillY + 42f + 330f), new Vector2(620f, 330f));
             panel.gameObject.AddComponent<Button>().onClick.AddListener(() => statsPanel.SetActive(false));   // 창을 눌러도 닫힌다
             statsPanel = panel.gameObject;
             statsText = MakeText("Text", panel.rectTransform, 26f);
@@ -774,6 +809,35 @@ namespace MoreMush.Mobile
             RefreshPower();
         }
 
+        static string StageLabel(int stage)
+        {
+            int s = Mathf.Max(1, stage) - 1;
+            return $"<color=#BA8CF2>{ChapterName}</color> {s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}";
+        }
+
+        // 진행 막대에 웨이브 사이 눈금을 (waves - 1)개 둔다
+        void ShowTicks(int waves)
+        {
+            if (waves == shownTickWaves) return;
+            shownTickWaves = waves;
+            var track = (RectTransform)barFill.parent;
+            for (int i = 0; i < waves - 1; i++)
+            {
+                if (i >= ticks.Count)
+                {
+                    var tick = MakeImage("Tick", track, white, new Vector2(6f, track.sizeDelta.y + 8f));
+                    tick.preserveAspect = false;
+                    tick.color = new Color(0.15f, 0.12f, 0.2f);
+                    var trt = tick.rectTransform;
+                    trt.anchorMin = trt.anchorMax = new Vector2(0f, 0.5f);
+                    ticks.Add(trt);
+                }
+                ticks[i].gameObject.SetActive(true);
+                ticks[i].anchoredPosition = new Vector2(track.sizeDelta.x * (i + 1) / waves, 0f);
+            }
+            for (int i = Mathf.Max(0, waves - 1); i < ticks.Count; i++) ticks[i].gameObject.SetActive(false);
+        }
+
         void RefreshPower()
         {
             if (powerText == null) return;
@@ -781,7 +845,7 @@ namespace MoreMush.Mobile
             if (total != shownPower)
             {
                 shownPower = total;
-                powerText.text = "전투력 " + CombatPower.Format(total);
+                powerText.text = CombatPower.Format(total);
             }
             if (statsPanel.activeSelf) statsText.text = CombatPower.Describe();
         }
@@ -791,13 +855,14 @@ namespace MoreMush.Mobile
         void RefreshHud()
         {
             if (stageText == null) return;
-            stageText.text = $"스테이지 {stage}";
+            stageText.text = StageLabel(stage);
             bool isBoss = boss != null && !boss.dead;
             timerRoot.gameObject.SetActive(isBoss);
+            barFillImage.color = isBoss ? BossFill : NormalFill;
+            bossMark.color = isBoss ? BossFill : new Color(0.55f, 0.2f, 0.25f);
             if (isBoss)
             {
-                waveText.text = "보스 등장!";
-                waveText.color = new Color(1f, 0.6f, 0.45f);
+                ShowTicks(1);
                 shownBossSec = -1;
                 RefreshBossBars();
             }
@@ -805,9 +870,9 @@ namespace MoreMush.Mobile
             {
                 int waves = IdleProgress.WavesPerStage(stage);
                 int w = Mathf.Clamp(wave, 1, waves);
-                waveText.text = $"웨이브 {w}/{waves}";
-                waveText.color = Color.white;
-                barFill.anchorMax = new Vector2(waveTotal <= 0 ? 0f : Mathf.Clamp01((float)waveKilled / waveTotal), 1f);
+                ShowTicks(waves);
+                float inWave = waveTotal <= 0 ? 0f : Mathf.Clamp01((float)waveKilled / waveTotal);
+                barFill.anchorMax = new Vector2(Mathf.Clamp01((w - 1 + inWave) / waves), 1f);
             }
         }
 

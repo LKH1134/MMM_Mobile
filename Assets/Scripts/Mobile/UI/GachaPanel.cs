@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 뽑기 패널: 무료 뽑기(11회, 하루 한 번 — 한국 00시에 다시) · 재화 뽑기(11회) · 재화 뽑기(35회).
+    // 뽑기 패널: 광고 뽑기(11회, 광고를 끝까지 보면, 하루 한 번 — 한국 00시에 다시) · 재화 뽑기(11회) · 재화 뽑기(35회).
     // 11회·35회는 보너스 포함 (10+1, 30+5) — 비용은 10회분·30회분. 비용·재화는 임시값이다 (기획 확정 전)
     // kind = Character면 등급을 뽑은 뒤 그 등급의 꼬마로 바꿔 Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다.
     // 뽑은 뒤에는 GachaResultPopup으로 무엇이 나왔는지 칸을 하나씩 띄워 보여 준다.
@@ -20,7 +20,7 @@ namespace MoreMush.Mobile
 
         [SerializeField] GachaKind kind = GachaKind.Weapon;
         [FormerlySerializedAs("adButton")]
-        [SerializeField] Button freeButton;         // 무료 뽑기(11회, 하루 한 번)
+        [SerializeField] Button freeButton;         // 광고 뽑기(11회, 광고를 보면 하루 한 번)
         [SerializeField] Button coinButton11;       // 재화 뽑기(11회)
         [SerializeField] Button coinButton35;       // 재화 뽑기(35회)
         [FormerlySerializedAs("adLabel")]
@@ -36,6 +36,7 @@ namespace MoreMush.Mobile
         [SerializeField] long cost35 = 300;
 
         GachaResultPopup resultPopup;
+        bool adBusy;            // 광고를 띄우는 중 (연타 방지). 광고가 닫히거나 실패하면 풀린다
         GachaCardView.ExpRow expRow;
         GachaCardView.ButtonText freeText, coin11Text, coin35Text;
 
@@ -117,6 +118,9 @@ namespace MoreMush.Mobile
         {
             Wallet.Changed += Refresh;
             GachaProgress.Changed += Refresh;
+            AdService.Status += OnAdStatus;
+            AdService.Initialize();
+            if (GachaProgress.FreeAvailable(kind)) AdService.Prepare();     // 누를 때 광고가 준비돼 있게
             Refresh();
         }
 
@@ -124,13 +128,33 @@ namespace MoreMush.Mobile
         {
             Wallet.Changed -= Refresh;
             GachaProgress.Changed -= Refresh;
+            AdService.Status -= OnAdStatus;
+        }
+
+        void OnAdStatus(string message)
+        {
+            adBusy = false;
+            Refresh();
         }
 
         void OnFreeClicked()
         {
-            if (!GachaProgress.FreeAvailable(kind)) { Notify("오늘의 무료 뽑기를 이미 사용했습니다"); return; }
-            GachaProgress.MarkFreeUsed(kind);
-            DoRoll(Count11);
+            if (!GachaProgress.FreeAvailable(kind)) { Notify("오늘의 광고 뽑기를 이미 사용했습니다"); return; }
+            if (adBusy) return;
+            adBusy = true;
+            // 광고를 끝까지 봐야 소환한다. 보상 콜백은 한 번만 불린다 (그 안에서만 사용 처리·소환)
+            bool started = AdService.ShowRewarded(() =>
+            {
+                adBusy = false;
+                if (this == null || !GachaProgress.FreeAvailable(kind)) return;
+                GachaProgress.MarkFreeUsed(kind);
+                DoRoll(Count11);
+            });
+            if (!started)
+            {
+                adBusy = false;
+                Notify("광고를 불러오는 중입니다. 잠시 후 다시 눌러 주세요");
+            }
         }
 
         void PayAndRoll(int count, long cost)
@@ -142,6 +166,7 @@ namespace MoreMush.Mobile
         void DoRoll(int count)
         {
             var result = GachaProgress.Roll(kind, count);
+            DailyQuests.Add(QuestKind.Gacha, count);
             if (kind == GachaKind.Character)
             {
                 var ids = GachaProgress.PickCharacters(result);
@@ -234,11 +259,11 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             bool free = GachaProgress.FreeAvailable(kind);
-            SetButton(freeText, $"{Count11}회 소환", free ? "오늘 무료" : "내일 다시");
+            SetButton(freeText, $"{Count11}회 소환", free ? "광고 시청" : "내일 다시");
             SetButton(coin11Text, $"{Count11}회 소환", Wallet.Format(cost11));
             SetButton(coin35Text, $"{Count35}회 소환", Wallet.Format(cost35));
 
-            if (freeButton != null) freeButton.interactable = free;
+            if (freeButton != null) freeButton.interactable = free && !adBusy;
             if (coinButton11 != null) coinButton11.interactable = Wallet.CanAfford(currency, cost11);
             if (coinButton35 != null) coinButton35.interactable = Wallet.CanAfford(currency, cost35);
 
