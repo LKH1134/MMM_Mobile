@@ -1,6 +1,6 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
-> 작성 2026-10-28 · **갱신 2026-10-30** · 기준 브랜치 `InGame` (`dabec53`까지)
+> 작성 2026-10-28 · **갱신 2026-10-30** · 기준 브랜치 `InGame` (`34bd391`까지)
 > itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
 >
 > **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 10-30 한 번 지웠다가 KHD(`3183125`)가 **던전 1로 되살렸습니다**(Main 던전 탭 → InGame → 결과 팝업 → Main, 4장). **`SkillTree` 씬은 제거**(`Backup/SkillTree/`에 백업, 5장). **`WorldTree` 씬도 10-30 늦게 제거**(`Backup/WorldTree/`에 백업, 하단바 세계수 = "아직 개발중인 기능입니다." 알림). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`·`밸런스설계/`를 보세요.
@@ -23,7 +23,7 @@
 | 던전·뽑기 탭 그림 (배너·카드, Codex 생성) | ✅ 2026-10-30 (`Assets/Art/Generated/Dungeon`·`Gacha`) |
 | 해상도 대응 (`StageFrame`·`FitWidth`, 16:9~20:9·노치, 남는 쪽 검정) | ✅ 2026-10-30 에디터에서 측정 (3.2). 실기기 재확인 필요 |
 | Android 뒤로가기 (팝업 닫기 → 홈 → 종료 확인 / InGame = 설정) | ✅ 2026-10-30 로직 확인. 실제 키 입력은 실기기 확인 필요 |
-| Google Play 대상 API 36 / 세로 고정 | ✅ 2026-10-30 (8장 "출시 준비"). 서명 키·AAB는 아직 |
+| Google Play 대상 API 36 / 세로 고정 / 업로드 키 서명 AAB | ✅ 2026-10-30 (8장 "출시 준비"). `Builds/Android/moremustmush-0.1.0-1.aab` 빌드·검증, Play Console 업로드는 아직 |
 | 재화: 웨이브 적 = 골드, 보스 = 균사석 + 골드 / Main 재화 바 상시 표시 | ✅ 2026-10-30 (테스트 균사석 50,000 지급 제거·회수) |
 | 씬 전환 로딩 팝업 (`SceneLoader`) / 팝업 하나만 (`PopupGate`) / 팝업 층 (`PopupLayer`) | ✅ 2026-10-30 |
 | 절전 모드 (`PowerSaveMode`, Main에서 3분 무입력 → 검은 덮개·10fps) | ✅ 2026-10-30 (KHD) |
@@ -98,6 +98,8 @@
 | `b7e2863` | 10-30 | **대상 API 36 고정·세로 고정**, 안 쓰는 리소스 삭제(폰트 4종이 WorldTree의 낡은 머티리얼 오버라이드 때문에 빌드에 끌려 들어가던 것 등), 텍스처 크기·압축 정리 |
 | `72c6a1d` | 10-30 | 설정 도움말 버튼 제거, **세계수 탭 = "개발중" 알림**(`ComingSoonButton`), **WorldTree 씬 제거**(`Backup/WorldTree/`), 인게임 "로비로 돌아가기" → Main |
 | `dabec53` | 10-30 | **Android 뒤로가기**(`BackButton`·`MainBackHandler`) |
+| `a0ab49c` | 10-30 | HANDOFF 정리 |
+| `34bd391` | 10-30 | `.gitignore`에 `*.keystore`·`*.jks` (서명 키 커밋 금지). 키 설정 자체는 커밋하지 않음 |
 
 ### 2026-10-26 ~ 10-28 (`LKH` 브랜치, 판 플레이 시절)
 
@@ -444,7 +446,14 @@
 **출시 준비 (Google Play, 2026-10-30 검증)**
 - **대상 API 36 고정**(`AndroidTargetSdkVersion: 36`, 2026-08-31부터 새 앱·업데이트 필수, 연장 시 11-01까지). Automatic이면 SDK 36이 없는 PC에서 내려가므로 고정함. 최소 25, IL2CPP + ARM64, 16KB 페이지는 Unity 6000.3 기본 지원, 런처 액티비티 `exported="true"`, 권한·서드파티 SDK 없음.
 - 화면 **세로 고정**(자동 회전 끔). API 36에선 큰 화면(sw ≥ 600dp)에서 방향 고정이 무시되지만 Stage 구조로 잘리지 않음.
-- **남은 것:** 서명 키(keystore, 지금 디버그 서명), **AAB 빌드**(Build App Bundle), 실제 빌드 후 최종 매니페스트 확인(targetSdk·exported·16KB), Play Console 개인정보처리방침·데이터 보안 양식.
+- **업로드 키 (10-30 생성, LKH PC):** Unity Keystore Manager로 만든 `C:/Users/user/Desktop/key/user.keystore`, Alias `moremustmush`, RSA 2048, 유효 2076-10-17까지, 인증서 `CN=soomyouth, O=soomyouth, C=KR`, SHA-256 `F5:27:28:D8:67:19:C2:3F:A4:B0:8A:9B:9D:5A:B0:5D:FA:3A:65:3B:FA:B4:C2:BF:B6:D8:A3:96:58:94:31:10`. 인증서 서명이 SHA1withRSA(Unity 기본, keytool이 weak 표시)지만 업로드 키로는 문제없음(Play App Signing이 앱 서명 키로 다시 서명).
+  - **키 파일·비밀번호는 저장소에 없음**(`.gitignore`로 막음). 잃어버리면 Play Console에서 업로드 키 재설정 요청 필요 → 키 파일과 비밀번호 두 개는 LKH가 따로 백업.
+  - **키 설정(Custom Keystore·경로·Alias)은 커밋하지 않는다.** `ProjectSettings.asset`에 바탕화면 경로가 들어가면 다른 PC 빌드가 깨짐. 출시 빌드 때만 Player Settings › Publishing Settings에서 켜고 비밀번호 두 개 입력(비밀번호는 Unity가 파일에 안 남김, 에디터를 열 때마다 다시 입력) → 빌드 후 그 세 줄은 되돌리거나 커밋에서 뺀다.
+- **AAB 빌드 (10-30):** `Builds/Android/moremustmush-0.1.0-1.aab` 46.1MB(네이티브 25.6 · assets 15.6 · dex 2.2MB), IL2CPP 첫 빌드 약 4분 30초. `Builds/`·`*.aab`는 git 제외. 같은 폴더의 `*_BurstDebugInformation_DoNotShip`은 올리지 말 것.
+  - 확인한 것(빌드된 매니페스트·번들): targetSdk 36 / compileSdk 36 / minSdk 25, `com.soomyouth.moremustmush` 0.1.0(versionCode 1), portrait, 런처 `exported="true"`(+ TEST_LOOP 필터), arm64-v8a만, 네이티브 라이브러리 6개 모두 **16KB 정렬**(0x4000), 권한 INTERNET뿐, 업로드 키 서명.
+  - 빌드 방법: Build Profiles에서 Android · "Build App Bundle (Google Play)" 켜고 Build. 또는 `BuildPipeline.BuildPlayer`(MCP로는 `EditorApplication.delayCall` 안에서 돌려야 시간 초과로 끊기지 않음).
+- **스토어 업로드:** Play Console에는 **AAB만** 올린다(키 파일은 올리지 않음). 새 앱은 Play App Signing 기본 사용 → 첫 AAB의 키가 업로드 키로 등록. **업데이트마다 versionCode +1**(지금 1), 같은 업로드 키로 서명. 처음엔 "내부 테스트" 트랙 권장.
+- **남은 것:** Play Console 앱 만들기·첫 업로드(내부 테스트), 개인정보처리방침 URL·데이터 보안 양식, 실기기 확인(노치·20:9·뒤로가기).
 - **리소스 정리(`b7e2863`):** 빌드 씬 + Resources 의존성 기준으로 안 쓰는 것 삭제, 텍스처는 보이는 크기에 맞춤(그림 위주 ASTC 6×6, 꼬마 아이콘 256, 할아버지 보스 512, 로고 1024). 일부러 남긴 것: `CollectPopup`·`ConfirmPopup`, `GameBalance.bytes`·엑셀, `link.xml`, TMP 셰이더.
 
 ---
@@ -452,7 +461,7 @@
 ## 9. 다음 작업 후보
 
 ### 방치형 (2026-10-30 기준, 우선)
-0. **실기기 확인 + 출시 준비:** 해상도(노치·20:9)·뒤로가기 키를 실기기에서 확인, 서명 키·AAB 빌드 (8장 "출시 준비")
+0. **실기기 확인 + 스토어 업로드:** 해상도(노치·20:9)·뒤로가기 키를 실기기에서 확인, 서명된 AAB를 Play Console 내부 테스트에 올리기, 개인정보처리방침·데이터 보안 양식 (8장 "출시 준비" — 서명 키·AAB는 10-30 완료)
 1. **던전 다듬기:** 던전 1은 InGame으로 연결, 입장 횟수(하루 2회) 완료. 남은 것: 던전 2~5 내용·해금 조건, 보상 규칙, `DungeonRequest`로 던전 종류·스테이지 넘기기(지금은 늘 기본값)
 2. **InGame ↔ Main 이동에 로딩 팝업:** `Benchmark`만 남음 (`InGameOption`·`ResultPopup`은 10-30 완료)
 3. **꼬마 강화 다듬기:** 레벨당 +5%는 임시값 → 밸런스 곡선에 맞춰 정하기. 꺼 둔 `Char` 아래 버튼 줄은 지울지 결정 (`Formation` 캐시는 10-30 완료)
