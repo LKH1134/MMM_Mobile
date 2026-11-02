@@ -38,7 +38,7 @@
 | 보스 HUD (이름 + 본체 체력 바) | ✅ 2026-10-28 |
 | 성능 벤치마크 (FPS·CPU·GPU·메모리) + Firebase Test Lab Game Loop | ✅ 2026-10-28 (8장) |
 | 데이터 초기화 | 🗑️ 10-30 설정 팝업에서 버튼 제거 (`DataResetButton` 스크립트만 남음) |
-| ~~WorldTree 씬~~ | 🗑️ **10-30 제거** — `Backup/WorldTree/`(README에 되살리는 법). 하단바 세계수 = `ComingSoonButton` 알림 |
+| WorldTree 씬 | ♻️ 10-30 제거 → **11-02 LKH에서 복원**(`Assets/`로 되돌리고 `Backup/WorldTree/` 삭제). 하단바 세계수 = `SceneButton`(WorldTree). 성장 단계 = `WorldTreeGrowth`·`WorldTreeView`(조건 미정) |
 | 지갑 (골드·균사석 저장, Main 재화 바 표시) | ✅ 동작 |
 | 스킬 가격 (배우기 때 차감) | ✅ 동작 |
 | 밸런스 (가격·스테이지 보상·보스 체력) | ⚠️ M2(10-27)에서 50보스 88.3분까지 맞췄으나, 그 측정은 일반 스테이지 목표가 있던 규칙 기준 — 목표 삭제·해금 조건 변경(10-28) 뒤 다시 재야 함 (6.2) |
