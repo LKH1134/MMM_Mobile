@@ -172,7 +172,7 @@ namespace MoreMush.Mobile
         {
             yield return new WaitForSecondsRealtime(resultDelay);
             var popup = resultPopup.Get(hud.transform).GetComponent<ResultPopup>();
-            popup.Show(TotalGold);
+            popup.Show(TotalGold, StageCleared);
         }
     }
 }

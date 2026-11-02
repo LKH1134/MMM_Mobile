@@ -69,16 +69,34 @@ namespace MoreMush.Mobile
             Changed?.Invoke();
         }
 
-        // 화면 표시: 1,234 / 12.3만 / 4.5억 …
-        public static string Format(long value)
+        // 화면 표시 (방치형 알파벳 단위, 1,000마다 한 단위): 999 / 1.23a / 45.6b / 789c … z 다음은 aa, ab …
+        public static string Format(long value) => Format((double)value);
+
+        public static string Format(double value)
         {
-            if (value < 100000) return value.ToString("N0");
+            if (double.IsNaN(value)) return "0";
+            if (value < 0) return "-" + Format(-value);
+            if (value < UnitStep) return System.Math.Floor(value).ToString("0");
+            if (double.IsInfinity(value)) return "∞";
+            int unit = 0;
             double v = value;
-            int u = -1;
-            while (v >= 10000 && u < Units.Length - 1) { v /= 10000; u++; }
-            return (v >= 100 ? v.ToString("0") : v.ToString("0.#")) + Units[u];
+            while (v >= UnitStep) { v /= UnitStep; unit++; }
+            // 반올림하면 "1000a"가 되는 값은 다음 단위로 ("1a"가 아니라 "1b")
+            if (v >= UnitStep - 0.5) { v /= UnitStep; unit++; }
+            string digits = v >= 100 ? v.ToString("0") : v >= 10 ? v.ToString("0.#") : v.ToString("0.##");
+            return digits + UnitName(unit);
         }
 
-        static readonly string[] Units = { "만", "억", "조", "경" };
+        const double UnitStep = 1000;
+
+        // 1 → a, 26 → z, 27 → aa, 28 → ab … (몇 번째 단위인지, 1부터)
+        static string UnitName(int unit)
+        {
+            if (unit <= Letters) return ((char)('a' + unit - 1)).ToString();
+            int n = unit - Letters - 1;     // aa부터 0
+            return ((char)('a' + n / Letters % Letters)).ToString() + (char)('a' + n % Letters);
+        }
+
+        const int Letters = 26;
     }
 }

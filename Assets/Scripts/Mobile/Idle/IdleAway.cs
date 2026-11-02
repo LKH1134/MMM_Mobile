@@ -12,6 +12,7 @@ namespace MoreMush.Mobile
     {
         public static double OfflineCapHours => GameBalance.Const("offlineCapHours");        // 앱 밖 보상 최대 시간 (임시값, 상수 시트)
         public static double OfflineMinSeconds => GameBalance.Const("offlineMinSeconds");    // 이보다 짧게 비우면 앱 밖 보상 없음 (상수 시트)
+        public static double OfflineGoldRate => System.Math.Max(0, GameBalance.Const("offlineGoldRate"));   // 앱 밖 골드 = 접속 중 초당 골드 × 이 비율 (상수 시트)
         const double RateMinSeconds = 30;
         const string RateKey = "Idle.GoldPerSec";
         const string LastSeenKey = "Idle.LastSeen";
@@ -97,7 +98,7 @@ namespace MoreMush.Mobile
             MarkSeen();
             if (seconds < OfflineMinSeconds) return 0;      // 시계를 되돌린 경우(음수)도 여기서 걸러진다
             seconds = Math.Min(seconds, OfflineCapHours * 3600);
-            double raw = GoldPerSecond * seconds;
+            double raw = GoldPerSecond * seconds * OfflineGoldRate;
             if (double.IsNaN(raw) || raw < 1) return 0;
             long gold = (long)Math.Min(raw, 9e18);
             if (gold <= 0) return 0;

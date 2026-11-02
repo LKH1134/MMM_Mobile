@@ -1,0 +1,30 @@
+validator issues=7
+  [던전] 모르는 열 currency (메모 열은 #으로 시작)
+  [던전] 모르는 열 baseStage (메모 열은 #으로 시작)
+  [던전] 모르는 열 stageStep (메모 열은 #으로 시작)
+  [던전] 모르는 열 hpMul (메모 열은 #으로 시작)
+  [던전] 모르는 열 rewardKills (메모 열은 #으로 시작)
+  [던전] 모르는 열 rewardMyc (메모 열은 #으로 시작)
+  [던전] 모르는 열 rewardGrowth (메모 열은 #으로 시작)
+loader issues=7
+  [던전] 모르는 열 'currency' ? 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)
+  [던전] 모르는 열 'baseStage' ? 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)
+  [던전] 모르는 열 'stageStep' ? 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)
+  [던전] 모르는 열 'hpMul' ? 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)
+  [던전] 모르는 열 'rewardKills' ? 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)
+  [던전] 모르는 열 'rewardMyc' ? 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)
+  [던전] 모르는 열 'rewardGrowth' ? 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)
+[조건] name=C continuous=False quests=True ads=False offline=True sess=20h x 1h killedEachAway=True home=0.7 fps=60 dt=0.05 seed=3 maxDays=45 stuckDays=45 dungeon=True dungeonFlatMyc/day=0 구간=none 보스도전퀘스트=True 던전광고율=0 광고 시청률: 상자 0 정산2배 0 (번갈아, 누적 올림 규칙), 광고뽑기 종류 [], 던전광고 2/일 policy=bal gacha=on equip=best table=GameBalance_proposal.xlsx const=- dungeonKills/myc/grow=0/0/0 speedMaxLv=275
+[끝] maxDays · 최종 스테이지 280 · 벽시계 45.88일 · 플레이 46.0시간 · 실행 2.1s
+stage,wallHours,wallDays,playHours
+10,20.04,0.83,0.04
+50,44.24,1.84,1.24
+100,68.31,2.85,2.31
+200,236.14,9.84,9.14
+300,미도달,,
+400,미도달,,
+500,미도달,,
+1000,미도달,,
+재화 합계: 처치골드=8.044E+013 앱밖=4.640E+014 퀘스트골드=1.538E+013 상자골드=0.000E+000 던전골드=5.019E+014 | 균사석 보스=792 퀘스트=13800 상자=0 던전=1298 | 광고 0회(상자 0) 뽑기 1738회 · 일수 46
+던전: 입장 438회 (레벨 미달 실패 64회) · 퀘스트 균사석 합 13800 · 하루 평균 300.0
+최종 강화 Lv: 4395,4395,2637,275,879,627,169,6 · 편성 1.56,1.32,1.09,1.09,0.92 · 장비% 무기=210106 방어구=452252 펫=97545 · 뽑기 Lv 3,3,3,3

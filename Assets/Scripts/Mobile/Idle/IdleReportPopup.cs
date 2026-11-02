@@ -69,7 +69,7 @@ namespace MoreMush.Mobile
             doubleButton.interactable = false;      // 광고가 뜨기 전에 또 누르지 않게
             var watched = report;
             bool given = false;
-            bool started = AdService.ShowRewarded(() =>
+            bool started = AdService.ShowRewarded(AdPlacement.OfflineDouble, () =>
             {
                 if (given) return;
                 given = true;

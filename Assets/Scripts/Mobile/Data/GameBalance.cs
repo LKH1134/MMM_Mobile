@@ -201,7 +201,8 @@ namespace MoreMush.Mobile
     {
         public IdleStat stat;
         public double baseValue, perLevel;
-        public string valueMode;   // Add: base + perLevel × Lv / Multiply: base × (1 + perLevel × Lv)
+        public string valueMode;   // Add: base + perLevel × Lv / Multiply: base × (1 + perLevel × Lv) / Power: base × (1 + Lv / valueDivisor)^valueExponent
+        public double valueExponent, valueDivisor;   // Power에서만 쓴다 (다른 모드는 0)
         public long price;         // 비용 = price × (1 + Lv / priceDivisor)^priceExponent × e^(Lv / priceScale)
         public double priceExponent, priceDivisor, priceScale;
         public int maxLevel;
@@ -234,6 +235,7 @@ namespace MoreMush.Mobile
         public int enemyCountBase, enemyCountPerWave, enemyCountPerStage, enemyCountMax;
         public long enemyGold, bossGold, bossMycelite;
         public double enemyAttack, bossAttack;
+        public double enemyHp, bossHp;      // 1웨이브 일반 적 체력·보스 체력. 0이면 기대 성장 곡선으로 계산한다 (IdleProgress.EnemyHp/BossHp)
     }
 
     // 퀘스트: 일일 퀘스트 한 줄. kind = QuestKind 이름(대소문자 무시)

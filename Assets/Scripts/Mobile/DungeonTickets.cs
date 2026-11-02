@@ -5,6 +5,7 @@ namespace MoreMush.Mobile
 {
     // 던전 입장 횟수: 던전마다 하루 PerDay번. 한국 시각(UTC+9) 00시에 다시 채운다 (기기 시간대와 상관없이).
     // 해금: 던전 시트의 unlockStage에 진입해야 열린다 (IsUnlocked). 입장할 때 하나 쓴다. PlayerPrefs("Dungeon.<번호>.Day" = 마지막으로 쓴 한국 날짜, "Dungeon.<번호>.Used" = 그날 쓴 수)
+    // 입장 횟수를 다 쓰면 광고를 보고 하루 AdPerDay번 더 들어간다 ("Dungeon.<번호>.AdDay"·"AdUsed")
     public static class DungeonTickets
     {
         public static int PerDay => GameBalance.ConstInt("dungeonPerDay");     // 상수 시트
@@ -62,6 +63,35 @@ namespace MoreMush.Mobile
             Changed?.Invoke();
             return true;
         }
+
+        // ── 광고 입장: 입장 횟수를 다 쓴 뒤에만, 던전마다 하루 AdPerDay번 (같은 한국 날짜 기준) ──
+        public static int AdPerDay => GameBalance.ConstInt("dungeonAdPerDay");     // 상수 시트
+        static string AdDayKey(int dungeon) => $"Dungeon.{dungeon}.AdDay";
+        static string AdUsedKey(int dungeon) => $"Dungeon.{dungeon}.AdUsed";
+
+        public static int AdRemaining(int dungeon)
+        {
+            if (IsNewDay(PlayerPrefs.GetString(AdDayKey(dungeon), ""))) return AdPerDay;
+            return Mathf.Clamp(AdPerDay - PlayerPrefs.GetInt(AdUsedKey(dungeon), 0), 0, AdPerDay);
+        }
+
+        // 광고를 보고 들어갈 수 있다: 해금됐고, 입장 횟수는 0이고, 광고 입장이 남았다
+        public static bool CanEnterWithAd(int dungeon) => IsUnlocked(dungeon) && Remaining(dungeon) <= 0 && AdRemaining(dungeon) > 0;
+
+        // 광고를 끝까지 본 뒤 하나 쓴다 (보상 콜백에서만 부른다)
+        public static bool TryUseAd(int dungeon)
+        {
+            if (!CanEnterWithAd(dungeon)) return false;
+            int left = AdRemaining(dungeon);
+            if (IsNewDay(PlayerPrefs.GetString(AdDayKey(dungeon), ""))) PlayerPrefs.SetString(AdDayKey(dungeon), Today);
+            PlayerPrefs.SetInt(AdUsedKey(dungeon), AdPerDay - left + 1);
+            PlayerPrefs.Save();
+            Changed?.Invoke();
+            return true;
+        }
+
+        // 지금 이 던전의 레벨 (깨면 다음 레벨이 열린다). 던전 1 = 수확 판 스테이지(StageProgress), 나머지는 아직 내용이 없어 1
+        public static int Level(int dungeon) => dungeon == 1 ? StageProgress.Current : 1;
 
         // 화면이 켜진 채 00시를 넘기면 다시 그리게 한다 (DungeonResetTimer가 부른다)
         public static void NotifyNewDay() => Changed?.Invoke();

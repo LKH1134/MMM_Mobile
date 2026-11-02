@@ -95,7 +95,10 @@ namespace MoreMush.Mobile
 
         // onReward: 끝까지 시청해 보상을 받을 자격이 생겼을 때 한 번만 불린다. 보상 지급은 여기서만 한다.
         // 준비가 안 됐으면 false를 돌려주고 다음 광고를 불러 둔다
-        public static bool ShowRewarded(Action onReward)
+        public static bool ShowRewarded(Action onReward) => ShowRewarded(AdPlacement.Other, onReward);
+
+        // placement = 어느 배치의 광고인지 (끝까지 본 수를 배치별로 센다, AdStats)
+        public static bool ShowRewarded(string placement, Action onReward)
         {
             if (!IsReady)
             {
@@ -115,6 +118,8 @@ namespace MoreMush.Mobile
                 try { onReward?.Invoke(); }
                 catch (Exception e) { Debug.LogException(e); }
                 try { DailyQuests.Add(QuestKind.Ad); }
+                catch (Exception e) { Debug.LogException(e); }
+                try { AdStats.Record(placement); }
                 catch (Exception e) { Debug.LogException(e); }
                 Report("보상 지급");
             });
@@ -138,6 +143,98 @@ namespace MoreMush.Mobile
             {
                 try { handler(message); }
                 catch (Exception e) { Debug.LogException(e); }
+            }
+        }
+    }
+
+    // 광고 배치 이름 (AdStats 키·분석 이벤트 이름). 새 배치는 여기에 더한다
+    public static class AdPlacement
+    {
+        public const string AdBox = "adbox";            // 홈 화면 광고 상자
+        public const string OfflineDouble = "offline2x"; // 앱 밖 정산 2배
+        public const string Gacha = "gacha";            // 광고 뽑기
+        public const string Dungeon = "dungeon";        // 던전 광고 입장
+        public const string Other = "other";
+        public static readonly string[] All = { AdBox, OfflineDouble, Gacha, Dungeon, Other };
+    }
+
+    // 광고 시청 지표: 끝까지 본 광고 수를 배치별로 오늘(한국 날짜)·누적으로 센다. 밸런스(유저가 광고를 얼마나 보나)와 광고 BM 확인용.
+    // 분석 SDK를 붙이면 Watched 이벤트에서 보낸다 (지금은 기기 안에만 남는다). PlayerPrefs("AdStats.Day", "AdStats.Today.<배치>", "AdStats.Total.<배치>", "AdStats.Days" = 광고를 하나라도 본 날 수)
+    public static class AdStats
+    {
+        const string DayKey = "AdStats.Day";
+        const string DaysKey = "AdStats.Days";
+        static string TodayKey(string placement) => "AdStats.Today." + placement;
+        static string TotalKey(string placement) => "AdStats.Total." + placement;
+
+        // (배치, 그 배치의 오늘 시청 수)
+        public static event Action<string, int> Watched;
+
+        public static void Record(string placement)
+        {
+            if (string.IsNullOrEmpty(placement)) placement = AdPlacement.Other;
+            RollDay(true);
+            int today = PlayerPrefs.GetInt(TodayKey(placement), 0) + 1;
+            PlayerPrefs.SetInt(TodayKey(placement), today);
+            PlayerPrefs.SetInt(TotalKey(placement), PlayerPrefs.GetInt(TotalKey(placement), 0) + 1);
+            SaveScheduler.MarkDirty();
+            Watched?.Invoke(placement, today);
+        }
+
+        public static int Today(string placement)
+        {
+            RollDay(false);
+            return PlayerPrefs.GetInt(TodayKey(placement), 0);
+        }
+
+        public static int TodayAll
+        {
+            get
+            {
+                int sum = 0;
+                foreach (var p in AdPlacement.All) sum += Today(p);
+                return sum;
+            }
+        }
+
+        public static int Total(string placement) => PlayerPrefs.GetInt(TotalKey(placement), 0);
+
+        // 광고를 본 날 하루 평균 시청 수 (본 날이 없으면 0)
+        public static double PerWatchDay
+        {
+            get
+            {
+                int days = PlayerPrefs.GetInt(DaysKey, 0);
+                if (days <= 0) return 0;
+                long sum = 0;
+                foreach (var p in AdPlacement.All) sum += Total(p);
+                return (double)sum / days;
+            }
+        }
+
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("MoreMush/광고 시청 지표")]
+        static void Print()
+        {
+            var sb = new System.Text.StringBuilder("[AdStats] 배치: 오늘 / 누적\n");
+            foreach (var p in AdPlacement.All) sb.Append($"  {p}: {Today(p)} / {Total(p)}\n");
+            sb.Append($"  광고 본 날 {PlayerPrefs.GetInt(DaysKey, 0)}일, 그날 평균 {PerWatchDay:0.#}회");
+            Debug.Log(sb.ToString());
+        }
+#endif
+
+        // 날이 바뀌었으면 오늘 수를 비운다. watching이면 오늘을 광고 본 날로 센다 (하루 한 번)
+        static void RollDay(bool watching)
+        {
+            string stored = PlayerPrefs.GetString(DayKey, "");
+            bool newDay = DungeonTickets.IsNewDay(stored);
+            if (newDay)
+            {
+                if (!watching && stored.Length == 0) return;    // 아직 한 번도 안 봤다
+                foreach (var p in AdPlacement.All) PlayerPrefs.DeleteKey(TodayKey(p));
+                if (!watching) { PlayerPrefs.SetString(DayKey, ""); return; }
+                PlayerPrefs.SetString(DayKey, DungeonTickets.Today);
+                PlayerPrefs.SetInt(DaysKey, PlayerPrefs.GetInt(DaysKey, 0) + 1);
             }
         }
     }
