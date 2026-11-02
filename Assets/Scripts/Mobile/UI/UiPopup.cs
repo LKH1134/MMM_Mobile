@@ -68,15 +68,28 @@ namespace MoreMush.Mobile
         void Play(bool open)
         {
             if (anim != null) StopCoroutine(anim);
+            anim = null;
+            if (group == null) group = GetComponent<CanvasGroup>();    // 한 번도 켜진 적 없어 Awake 전이어도
+            if (!isActiveAndEnabled)
+            {
+                // 부모가 꺼져 있으면 코루틴을 못 돌린다(예외) — 애니메이션 없이 끝 상태로 바로 둔다
+                group.blocksRaycasts = open;
+                Apply(open ? 1f : 0f, HiddenOffset());
+                if (!open) gameObject.SetActive(false);
+                return;
+            }
             anim = StartCoroutine(Animate(open));
         }
+
+        float HiddenOffset() => sheet != null ? -(sheet.rect.height + overhang) : 0f;
 
         IEnumerator Animate(bool open)
         {
             group.blocksRaycasts = open;
-            // 레이아웃이 잡힌 뒤의 높이를 써야 시트가 정확히 화면 밖에서 출발한다
-            Canvas.ForceUpdateCanvases();
-            float hidden = sheet != null ? -(sheet.rect.height + overhang) : 0f;
+            // 레이아웃이 잡힌 뒤의 높이를 써야 시트가 정확히 화면 밖에서 출발한다 (열 때만 — 닫을 때는 이미 잡혀 있다.
+            // 모든 캔버스를 다시 그리는 무거운 호출이라 닫을 때까지 부르지 않는다)
+            if (open) Canvas.ForceUpdateCanvases();
+            float hidden = HiddenOffset();
 
             for (float t = 0f; t < duration; t += Time.unscaledDeltaTime)
             {

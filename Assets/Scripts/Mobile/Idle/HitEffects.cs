@@ -24,6 +24,8 @@ namespace MoreMush.Mobile
         readonly List<Fx> playing = new List<Fx>();
         readonly Stack<Fx> free = new Stack<Fx>();
 
+        public int Playing => playing.Count;
+
         public HitEffects(RectTransform layer)
         {
             this.layer = layer;

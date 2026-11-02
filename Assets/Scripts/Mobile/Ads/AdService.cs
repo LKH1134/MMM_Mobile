@@ -20,8 +20,14 @@ namespace MoreMush.Mobile
         // 구글 리워드 광고는 불러오고 약 1시간이 지나면 못 쓴다. 광고 상자는 한 시간 넘게 뒤에 뜨므로 오래된 광고는 버리고 새로 불러온다
         const float MaxAdAgeSeconds = 50f * 60f;
 
+        // 로드가 실패하면(오프라인·광고 없음) 바로 다시 요청하지 않고 15초 → 30초 → … 최대 5분 기다린다 (요청을 쏟으면 계정이 제한될 수 있다)
+        const float FirstRetrySeconds = 15f, MaxRetrySeconds = 300f;
+
         static bool initialized;
+        static bool sdkReady;       // MobileAds.Initialize 콜백이 온 뒤에만 불러온다 (그 전 요청은 첫 실행에서 실패한다)
         static bool loading;
+        static float retryDelay;
+        static float nextLoadAt;    // Time.realtimeSinceStartup
         static RewardedAd rewardedAd;
         static float loadedAt;      // Time.realtimeSinceStartup
 
@@ -56,6 +62,7 @@ namespace MoreMush.Mobile
             MobileAds.RaiseAdEventsOnUnityMainThread = true;
             MobileAds.Initialize(_ =>
             {
+                sdkReady = true;
                 Report("SDK 초기화 완료");
                 LoadRewarded();
             });
@@ -64,7 +71,8 @@ namespace MoreMush.Mobile
         public static void LoadRewarded()
         {
             DropDeadAd();
-            if (!initialized || loading || rewardedAd != null) return;
+            if (!sdkReady || loading || rewardedAd != null) return;
+            if (Time.realtimeSinceStartup < nextLoadAt) return;     // 실패 뒤 기다리는 중
             loading = true;
             Report("광고 불러오는 중...");
 
@@ -73,9 +81,12 @@ namespace MoreMush.Mobile
                 loading = false;
                 if (error != null || ad == null)
                 {
+                    retryDelay = retryDelay <= 0f ? FirstRetrySeconds : Mathf.Min(retryDelay * 2f, MaxRetrySeconds);
+                    nextLoadAt = Time.realtimeSinceStartup + retryDelay;
                     Report($"광고 로드 실패: {error?.GetMessage()}");
                     return;
                 }
+                retryDelay = 0f;
                 rewardedAd = ad;
                 loadedAt = Time.realtimeSinceStartup;
                 Report("광고 준비됨");
@@ -100,9 +111,12 @@ namespace MoreMush.Mobile
             ad.OnAdFullScreenContentFailed += error => Release(ad, $"광고 표시 실패: {error?.GetMessage()}");
             ad.Show(_ =>
             {
+                // 광고를 끝까지 본 사람의 보상이 다른 처리의 예외에 막히지 않게 보상을 먼저, 나머지는 따로 지킨다
+                try { onReward?.Invoke(); }
+                catch (Exception e) { Debug.LogException(e); }
+                try { DailyQuests.Add(QuestKind.Ad); }
+                catch (Exception e) { Debug.LogException(e); }
                 Report("보상 지급");
-                DailyQuests.Add(QuestKind.Ad);
-                onReward?.Invoke();
             });
             return true;
         }
@@ -114,10 +128,17 @@ namespace MoreMush.Mobile
             LoadRewarded();
         }
 
+        // 듣는 화면 하나가 예외를 던져도 다른 화면과 광고 흐름(다음 광고 불러오기 등)은 계속되게 하나씩 부른다
         static void Report(string message)
         {
             Debug.Log($"[AdService] {message}");
-            Status?.Invoke(message);
+            var handlers = Status;
+            if (handlers == null) return;
+            foreach (Action<string> handler in handlers.GetInvocationList())
+            {
+                try { handler(message); }
+                catch (Exception e) { Debug.LogException(e); }
+            }
         }
     }
 }

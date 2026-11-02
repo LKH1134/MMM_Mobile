@@ -32,7 +32,9 @@ namespace MoreMush.Mobile
         public static long Gold => gold ??= Load(GoldKey);
         public static long Mycelite => mycelite ??= Load(MyceliteKey);
 
-        static long Load(string key) => long.TryParse(PlayerPrefs.GetString(key, "0"), out var v) ? v : 0;
+        // 망가진 값·음수는 0으로 (잔액이 음수면 화면에 "-5"가 뜨고 계산이 꼬인다)
+        static long Load(string key) =>
+            long.TryParse(PlayerPrefs.GetString(key, "0"), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var v) ? System.Math.Max(0, v) : 0;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload() => gold = mycelite = null;
@@ -62,7 +64,7 @@ namespace MoreMush.Mobile
             value = System.Math.Max(0, value);
             if (currency == Currency.Mycelite) mycelite = value;
             else gold = value;
-            PlayerPrefs.SetString(currency == Currency.Mycelite ? MyceliteKey : GoldKey, value.ToString());
+            PlayerPrefs.SetString(currency == Currency.Mycelite ? MyceliteKey : GoldKey, value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             SaveScheduler.MarkDirty();      // 전투 골드는 1초마다 들어온다 — 파일 쓰기는 몇 초에 한 번 (SaveScheduler)
             Changed?.Invoke();
         }

@@ -107,6 +107,13 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
+            if (enemyArea == null)
+            {
+                // 적이 나올 자리가 없으면 매 프레임 NullReference가 난다 — 전투를 끄고 한 번만 알린다
+                Debug.LogError("[IdleBattle] enemyArea가 비어 있어 방치 전투를 끈다 (씬에서 EnemyArea를 연결한다)");
+                enabled = false;
+                return;
+            }
             if (effectLayer == null) effectLayer = (RectTransform)transform;
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
@@ -171,8 +178,8 @@ namespace MoreMush.Mobile
         {
             stage = IdleProgress.Stage;
             partyMaxHp = partyHp = IdleProgress.FinalHp;
-            StartWave(1);
 
+            // 앱 밖 보상·탭 연결은 첫 웨이브보다 먼저 한다 — 첫 웨이브에서 예외가 나도 보상과 홈/탭 전환은 살아 있게
             IdleAway.ApplyOffline();
             if (homeTabs != null)
             {
@@ -180,6 +187,8 @@ namespace MoreMush.Mobile
                 SetHome(homeTabs.Current < 0);
             }
             else SetHome(true);
+
+            StartWave(1);
         }
 
         void OnDestroy()
@@ -273,7 +282,29 @@ namespace MoreMush.Mobile
             }
         }
 
+        // 한 프레임에서 예외가 나도 다음 프레임은 다시 돈다. 계속 나면(표가 틀림 등) 로그가 쏟아져 기기가 버벅이므로
+        // 오류 점수가 MaxFrameErrors에 닿으면 전투를 멈춘다 (앱은 계속 쓸 수 있다). 점수는 예외마다 +1, 정상 프레임마다 조금씩 준다 —
+        // 한 프레임 걸러 나는 오류도 쌓이게
+        const float MaxFrameErrors = 30f, ErrorDecayPerFrame = 0.05f;
+        float frameErrors;
+
         void Update()
+        {
+            try
+            {
+                Tick();
+                if (frameErrors > 0f) frameErrors = Mathf.Max(0f, frameErrors - ErrorDecayPerFrame);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+                if (++frameErrors < MaxFrameErrors) return;
+                Debug.LogError("[IdleBattle] 매 프레임 예외가 나서 방치 전투를 멈춘다");
+                enabled = false;
+            }
+        }
+
+        void Tick()
         {
             float dt = Time.deltaTime;
             IdleAway.Tick(dt);
@@ -348,7 +379,7 @@ namespace MoreMush.Mobile
         void OnEnemyKilled(Enemy e)
         {
             waveKilled++;
-            pendingGold += e.gold;
+            pendingGold = IdleProgress.SaturatingAdd(pendingGold, e.gold);     // 아주 높은 스테이지에서 넘쳐 음수가 되면 골드가 사라진다
             IdleAway.AddKill();
             DailyQuests.Add(QuestKind.Kill);
             ShowText(e.rt.position, "+" + Wallet.Format(e.gold), new Color(1f, 0.85f, 0.25f), 34f, 0.8f);
@@ -600,13 +631,17 @@ namespace MoreMush.Mobile
             if (e.dead) return;
             e.hp -= dmg;
             e.flash = 1f;
-            hitFx.Play(ToLayer(e.rt.position), Mathf.Min(e.rt.sizeDelta.x, enemySize * 2f), crit);   // 보스는 화면을 덮지 않게 일반 적 2배까지
-            ShowText(e.rt.position + (Vector3)(Random.insideUnitCircle * 20f),
-                IdleProgress.FormatNumber(dmg) + (crit ? "!" : ""),
-                crit ? new Color(1f, 0.55f, 0.15f) : Color.white, crit ? 46f : 34f, 0.6f);
+            // 공격 속도가 높으면 초당 수십 번 맞는다 — 이펙트·숫자는 동시에 보이는 수를 묶어 둔다 (치명타는 조금 더 허용)
+            if (hitFx.Playing < MaxHitFx) hitFx.Play(ToLayer(e.rt.position), Mathf.Min(e.rt.sizeDelta.x, enemySize * 2f), crit);   // 보스는 화면을 덮지 않게 일반 적 2배까지
+            if (popups.Count < (crit ? MaxPopups + MaxPopups / 2 : MaxPopups))
+                ShowText(e.rt.position + (Vector3)(Random.insideUnitCircle * 20f),
+                    IdleProgress.FormatNumber(dmg) + (crit ? "!" : ""),
+                    crit ? new Color(1f, 0.55f, 0.15f) : Color.white, crit ? 46f : 34f, 0.6f);
             SetHp(e);
             if (e.hp <= 0) Kill(e, true);
         }
+
+        const int MaxHitFx = 16, MaxPopups = 24;
 
         void Kill(Enemy e, bool reward)
         {
@@ -880,7 +915,7 @@ namespace MoreMush.Mobile
         void RefreshBossBars()
         {
             if (stageText == null || boss == null) return;
-            barFill.anchorMax = new Vector2(Mathf.Clamp01((float)(boss.hp / boss.maxHp)), 1f);
+            barFill.anchorMax = new Vector2(boss.maxHp > 0 ? Mathf.Clamp01((float)(boss.hp / boss.maxHp)) : 0f, 1f);
             timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime(stage)), 1f);
             int sec = Mathf.CeilToInt(bossTimeLeft);
             if (sec == shownBossSec) return;

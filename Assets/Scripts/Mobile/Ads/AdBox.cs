@@ -86,21 +86,34 @@ namespace MoreMush.Mobile
         void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (mode != LoadSceneMode.Single) return;
+            popup?.Close();     // 창이 열린 채 씬이 바뀌면 PopupGate가 잡힌 채 남아 뒤로가기·다른 창이 막힌다
             inMain = scene.name == MainNavigation.MainScene;
             if (inMain) AdService.Initialize();         // 상자를 누를 때 광고가 준비돼 있게 Main에 들어오면 미리 불러 둔다
             if (!inMain) HideChest();
         }
 
+        // 표 값이 없거나 틀려도 상자가 프레임마다 뜨고 사라지며 광고를 계속 요청하지 않게 기본값·최소값을 둔다
+        const float DefaultIntervalSeconds = 3600f, MinIntervalSeconds = 60f, DefaultStaySeconds = 60f, MinStaySeconds = 5f;
+
         void Configure()
         {
             configured = true;
-            intervalSeconds = (float)(GameBalance.Const("adBoxIntervalHours") * 3600.0);
+            intervalSeconds = DefaultIntervalSeconds;
+            staySeconds = DefaultStaySeconds;
+            try
+            {
+                intervalSeconds = Mathf.Max(MinIntervalSeconds, (float)(GameBalance.Const("adBoxIntervalHours") * 3600.0));
+                staySeconds = Mathf.Max(MinStaySeconds, (float)GameBalance.Const("adBoxStaySeconds"));
+                goldKills = (long)GameBalance.Const("adBoxGoldKills");
+                myceliteBosses = (long)GameBalance.Const("adBoxMyceliteBosses");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+            }
 #if UNITY_EDITOR
             intervalSeconds = EditorIntervalSeconds;
 #endif
-            staySeconds = (float)GameBalance.Const("adBoxStaySeconds");
-            goldKills = (long)GameBalance.Const("adBoxGoldKills");
-            myceliteBosses = (long)GameBalance.Const("adBoxMyceliteBosses");
         }
 
         // 유저가 Main 홈 화면을 보고 있다: 탭·팝업이 없고, 절전·로딩·백그라운드가 아니다

@@ -41,6 +41,7 @@ namespace MoreMush.Mobile
             for (int i = 0; i < slotButtons.Length; i++)
             {
                 int slot = i;
+                if (slotButtons[i] == null) { Debug.LogWarning($"[FormationPanel] slotButtons[{i}]가 비어 있음"); continue; }
                 slotButtons[i].onClick.AddListener(() => OpenPicker(slot));
             }
             if (closeButton != null) closeButton.onClick.AddListener(ClosePicker);
@@ -83,6 +84,7 @@ namespace MoreMush.Mobile
 
         void OpenPicker(int slot)
         {
+            if (charPopup == null) return;      // 연결이 빠졌으면 열지 않는다 (게이트만 잡히고 창은 안 뜨는 상태가 되지 않게)
             targetSlot = slot;
             PopupGate.Opened(this, ClosePicker);
             charPopup.SetActive(true);
@@ -127,7 +129,7 @@ namespace MoreMush.Mobile
         static string FirstOwned()
         {
             foreach (var id in Formation.Ids) if (Formation.IsOwned(id)) return id;
-            return Formation.Ids[0];
+            return Formation.Ids.Length > 0 ? Formation.Ids[0] : null;
         }
 
         // 팝업의 버튼을 화면 순서(위→아래, 왼→오른)로 쓴다: 첫 칸 = 편성 해제, 다음부터 꼬마 수만큼, 나머지는 숨긴다

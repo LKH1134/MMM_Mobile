@@ -184,13 +184,29 @@ namespace MoreMush.Mobile
             Running = true;
         }
 
-        void Update() => Step(Time.deltaTime);
+        // 프레임이 튀면(4배속에서 멈칫하면 1초 넘게) 한 번에 너무 멀리 움직여 얇은 바·작은 버섯을 지나친다 — 잘게 나눠 진행한다
+        const float MaxStepSeconds = 0.1f;
+
+        void Update()
+        {
+            float dt = Time.deltaTime;
+            while (dt > 0f && Running)
+            {
+                float slice = Mathf.Min(dt, MaxStepSeconds);
+                Step(slice);
+                dt -= slice;
+            }
+        }
+
+        readonly List<Rect> barRects = new List<Rect>();   // 이번 Step의 바 자리 (부분 이동마다 GetWorldCorners를 다시 부르지 않게)
 
         // 한 프레임 진행. 테스트·빨리감기에서도 직접 부를 수 있다
         public void Step(float dt)
         {
             if (!Running || dt <= 0f) return;
 
+            barRects.Clear();
+            for (int b = 0; b < bars.Count; b++) barRects.Add(bars[b].GetRect(rect));
             Rect bounds = rect.rect;
             for (int i = harvesters.Count - 1; i >= 0; i--)
             {
@@ -300,6 +316,8 @@ namespace MoreMush.Mobile
         public void DespawnHarvester(Harvester h)
         {
             if (!harvesters.Remove(h)) return;
+            // 풀에서 다시 꺼냈을 때 장애물 "이미 안에 있음"으로 남아 처음 닿아도 효과가 안 나지 않게
+            for (int i = 0; i < obstacles.Count; i++) obstacles[i].inside.Remove(h);
             h.Pool.Release(h);
         }
 
@@ -360,9 +378,9 @@ namespace MoreMush.Mobile
                 }
                 else if (p.y + r > bounds.yMax) { p.y = bounds.yMax - r; v.y = -Mathf.Abs(v.y); }
 
-                for (int b = 0; b < bars.Count; b++)
+                for (int b = 0; b < barRects.Count; b++)
                 {
-                    if (!Bounce(ref p, ref v, r, bars[b].GetRect(rect))) continue;
+                    if (!Bounce(ref p, ref v, r, barRects[b])) continue;
                     BarHit?.Invoke(h);
                     // 유도: 바에 튕길 때마다 가장 가까운 군락지 쪽으로 (위로만)
                     if (h.Has(HarvesterBuff.Homing) && NearestColony(p, out var target))
@@ -736,6 +754,8 @@ namespace MoreMush.Mobile
         void Despawn(Mushroom m)
         {
             mushrooms.Remove(m);
+            // 풀에서 다른 버섯으로 다시 쓰일 때 "이미 닿아 있음"으로 남아 맞지 않는 일이 없게
+            for (int i = 0; i < harvesters.Count; i++) harvesters[i].Touching.Remove(m);
             m.Pool.Release(m);
         }
     }

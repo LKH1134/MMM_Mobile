@@ -29,12 +29,13 @@ namespace MoreMush.Mobile
 
         public RoundStats Stats { get; private set; }
         public RoundBase Base => roundBase;
-        public long Score => (long)score;
-        public long Yield => (long)yield;
+        // 무한 스테이지에서 점수가 long을 넘으면 (long) 변환이 음수가 돼 보상이 사라진다 — 9e18에서 멈춘다
+        public long Score => IdleProgress.ClampToLong(score);
+        public long Yield => IdleProgress.ClampToLong(yield);
         // 점수를 바꾼 골드 (보스를 못 잡았으면 failGold배)
-        public long Gold => (long)(score * Stats.GoldMul * (Stats.BossRound && Finished && !BossKilled && Stats.Boss.failGold > 0f ? Stats.Boss.failGold : 1f));
+        public long Gold => IdleProgress.ClampToLong(score * Stats.GoldMul * (Stats.BossRound && Finished && !BossKilled && Stats.Boss.failGold > 0f ? Stats.Boss.failGold : 1f));
         public long BonusGold { get; private set; }  // 보스 처치 보상 골드
-        public long TotalGold => Gold + BonusGold;
+        public long TotalGold => IdleProgress.SaturatingAdd(Gold, BonusGold);
         public long ReferenceScore { get; set; }     // 직전 일반 판 점수 (보스 타격 점수 기준)
         public long ReferenceGold { get; set; }      // 직전 일반 판 골드 (처치 보상 기준)
         public int HarvestCount { get; private set; }
@@ -145,7 +146,7 @@ namespace MoreMush.Mobile
             BossKilled = true;
             score += Stats.Boss.reward * Stats.ScoreMul * Stats.RewardRate;
             yield += Stats.Boss.drop * Stats.YieldMul(MushroomTier.Legendary) * Stats.RewardRate;
-            if (Finished) BonusGold = (long)(System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
+            if (Finished) BonusGold = IdleProgress.ClampToLong((double)System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
         }
 
         // 측정기가 시간 끝을 직접 부를 때도 쓴다
@@ -153,7 +154,7 @@ namespace MoreMush.Mobile
         {
             if (Finished) return;
             Finished = true;
-            if (BossKilled) BonusGold = (long)(System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
+            if (BossKilled) BonusGold = IdleProgress.ClampToLong((double)System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
             field.Stop();
             input.Interactable = false;
             if (!Simulating)

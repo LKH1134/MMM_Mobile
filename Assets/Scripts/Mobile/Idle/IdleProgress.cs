@@ -13,8 +13,9 @@ namespace MoreMush.Mobile
     public static class IdleProgress
     {
         // 이 수만큼 웨이브를 넘기면 보스 / 보스 제한 시간(초, 넘기면 같은 스테이지 1웨이브부터 다시) — 스테이지 시트 값
-        public static int WavesPerStage(int stage) => GameBalance.Stage(stage).wavesPerStage;
-        public static float BossTime(int stage) => (float)GameBalance.Stage(stage).bossTime;
+        // 0이면 진행 막대가 NaN이 되고 보스가 바로 실패한다 — 표가 틀려도 최소값을 둔다 (검증기는 양수만 통과시킨다)
+        public static int WavesPerStage(int stage) => Mathf.Max(1, GameBalance.Stage(stage).wavesPerStage);
+        public static float BossTime(int stage) => Mathf.Max(1f, (float)GameBalance.Stage(stage).bossTime);
 
         public class Def
         {
@@ -93,7 +94,7 @@ namespace MoreMush.Mobile
         public static int Stage
         {
             get => Mathf.Max(1, PlayerPrefs.GetInt("Idle.Stage", 1));
-            set { PlayerPrefs.SetInt("Idle.Stage", Mathf.Max(1, value)); PlayerPrefs.Save(); Changed?.Invoke(); }
+            set { PlayerPrefs.SetInt("Idle.Stage", Mathf.Max(1, value)); SaveScheduler.MarkDirty(); Changed?.Invoke(); }   // 초반엔 몇 초마다 오른다 — 파일 쓰기는 SaveScheduler가 모아서 (앱을 내릴 때도 저장)
         }
 
         public static int Level(IdleStat stat)
@@ -221,7 +222,19 @@ namespace MoreMush.Mobile
         static Curve curve;
         static Curve K => curve ?? (curve = new Curve());
 
+        // 해금 조건(unlockStat)을 따라 재귀한다. 표가 순환하면 스택이 넘쳐 앱이 죽으므로 깊이를 막는다 (검증기도 순환을 막는다)
+        const int MaxUnlockDepth = 8;
+        static int expectedDepth;   // 메인 스레드에서만 부른다
+
         public static int ExpectedLevel(IdleStat stat, int stage)
+        {
+            if (expectedDepth >= MaxUnlockDepth) return 0;
+            expectedDepth++;
+            try { return ExpectedLevelCore(stat, stage); }
+            finally { expectedDepth--; }
+        }
+
+        static int ExpectedLevelCore(IdleStat stat, int stage)
         {
             int s = Mathf.Max(0, stage - 1);
             var d = Get(stat);
@@ -234,7 +247,7 @@ namespace MoreMush.Mobile
                 case IdleStat.CritChance: return ExpectedCapped(stat, stage, k.critChanceRatio);
                 case IdleStat.CritDamage: return ExpectedCapped(stat, stage, k.critDamageRatio);
                 case IdleStat.AdvancedAttack: return ExpectedCapped(stat, stage, k.advancedAttackRatio);
-                case IdleStat.NormalEnemyDamage: return Mathf.Clamp((ExpectedLevel(d.unlockStat, stage) - d.unlockLv) / k.normalDamageDivisor, 0, d.maxLv);
+                case IdleStat.NormalEnemyDamage: return Mathf.Clamp((ExpectedLevel(d.unlockStat, stage) - d.unlockLv) / Mathf.Max(1, k.normalDamageDivisor), 0, d.maxLv);
             }
             return Mathf.Min(d.maxLv, k.levelsPerStage * s);
         }
@@ -245,6 +258,7 @@ namespace MoreMush.Mobile
             var d = Get(stat);
             int gate = ExpectedLevel(d.unlockStat, stage);
             if (gate < d.unlockLv) return 0;
+            if (d.capEvery <= 0) return ratio > 0 ? d.maxLv : 0;    // 단계 제한 없음 = 한도 무한 (나누기 0으로 NaN이 되지 않게)
             double cap = ((double)(gate - d.unlockLv) / d.capEvery + 1) * d.capStep;
             return (int)System.Math.Min(d.maxLv, cap * ratio);
         }
@@ -296,13 +310,30 @@ namespace MoreMush.Mobile
         {
             if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).enemyGold;
             var k = K;
-            return (long)System.Math.Max(1, System.Math.Round(k.goldBase * System.Math.Pow(1 + (stage - 1) / k.goldStep, k.goldExp)));
+            return ClampToLong(System.Math.Round(k.goldBase * System.Math.Pow(1 + (stage - 1) / k.goldStep, k.goldExp)), 1);
         }
 
-        public static long BossGold(int stage) => GameBalance.InStageTable(stage) ? GameBalance.Stage(stage).bossGold : EnemyGold(stage) * K.bossGoldMul;
+        public static long BossGold(int stage)
+        {
+            if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).bossGold;
+            long gold = EnemyGold(stage), mul = K.bossGoldMul;
+            if (mul <= 0) return 0;
+            return gold > (long)MaxAmount / mul ? (long)MaxAmount : gold * mul;     // 넘치면 9e18에서 멈춘다
+        }
 
         // 보스 처치 균사석 (뽑기 재화). 보스를 잡아야만 다음 스테이지로 가므로 스테이지마다 한 번
-        public static long BossMycelite(int stage) => GameBalance.InStageTable(stage) ? GameBalance.Stage(stage).bossMycelite : K.mycelBase + stage / K.mycelStageDiv;
+        public static long BossMycelite(int stage) => GameBalance.InStageTable(stage) ? GameBalance.Stage(stage).bossMycelite : K.mycelBase + stage / System.Math.Max(1, K.mycelStageDiv);
+
+        // 아주 높은 스테이지에서 long을 넘으면 (long) 변환이 기기마다 음수·최솟값이 된다 — 9e18에서 멈춘다. NaN은 min으로
+        public const double MaxAmount = 9e18;
+        public static long ClampToLong(double v, long min = 0)
+        {
+            if (double.IsNaN(v) || v <= min) return min;
+            return v >= MaxAmount ? (long)MaxAmount : (long)v;
+        }
+
+        // 넘치지 않는 덧셈 (음수는 더하지 않는다)
+        public static long SaturatingAdd(long a, long b) => b <= 0 ? a : a > long.MaxValue - b ? long.MaxValue : a + b;
 
         // 피해·체력 표시: Wallet과 같은 단위(만/억/조/경)
         public static string FormatNumber(double v)

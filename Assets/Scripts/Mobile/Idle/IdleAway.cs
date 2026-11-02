@@ -55,10 +55,10 @@ namespace MoreMush.Mobile
         {
             if (gold <= 0) return;
             sessionGold += gold;
-            if (current != null) current.gold += gold;
+            if (current != null) current.gold = IdleProgress.SaturatingAdd(current.gold, gold);     // 높은 스테이지에서 넘쳐 음수가 되지 않게
         }
 
-        public static void AddMycelite(long amount) { if (current != null) current.mycelite += amount; }
+        public static void AddMycelite(long amount) { if (current != null) current.mycelite = IdleProgress.SaturatingAdd(current.mycelite, amount); }
         public static void AddKill() { if (current != null) current.kills++; }
         public static void AddStage() { if (current != null) current.stages++; }
 
@@ -103,7 +103,7 @@ namespace MoreMush.Mobile
             if (gold <= 0) return 0;
             Wallet.Add(Currency.Gold, gold);
             Begin();
-            current.offlineGold += gold;
+            current.offlineGold = IdleProgress.SaturatingAdd(current.offlineGold, gold);
             current.offlineSeconds += seconds;
             return gold;
         }

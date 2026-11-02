@@ -31,7 +31,11 @@ namespace MoreMush.Mobile
 
         // 보유 효과(%) 1레벨 기준값 (등급별, 등급 시트 ownBase). 장비마다 단계·레벨을 반영한 값은 Equipment가 셈한다.
         // 무기·펫 = 공격력 %, 장신구(방어구) = 체력 % (IdleProgress가 쓴다)
-        public static double OwnBase(int grade) => GameBalance.Grades[Mathf.Clamp(grade, 0, GradeCount - 1)].ownBase;
+        public static double OwnBase(int grade)
+        {
+            var grades = GameBalance.Grades;    // 시트 행이 등급 수보다 적어도 넘지 않게 (검증기가 막지만 런타임에서도)
+            return grades[Mathf.Clamp(grade, 0, Mathf.Min(GradeCount, grades.Count) - 1)].ownBase;
+        }
 
         public static double OwnPercent(GachaKind k)
         {

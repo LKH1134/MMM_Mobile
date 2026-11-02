@@ -32,6 +32,7 @@ namespace MoreMush.Mobile
         public static void Reload()
         {
             loaded = false;
+            loadError = null;
             consts = null;
             upgrades = null;
             mascots = null;
@@ -87,9 +88,19 @@ namespace MoreMush.Mobile
             return resources.TryGetValue(id, out var path) ? path : null;
         }
 
+        // 읽기에 실패하면 그 오류를 기억해 둔다 — 매번 xlsx를 다시 풀면(매 프레임 호출) 기기가 멈춘 것처럼 된다. Reload로 다시 시도한다
+        static Exception loadError;
+
         static void Ensure()
         {
-            if (!loaded) Load();
+            if (loaded) return;
+            if (loadError != null) throw new InvalidOperationException("[GameBalance] 표를 읽지 못했다: " + loadError.Message, loadError);
+            try { Load(); }
+            catch (Exception e)
+            {
+                loadError = e;
+                throw;
+            }
         }
 
         // ── 읽는 곳 ──

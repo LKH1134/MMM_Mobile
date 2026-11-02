@@ -67,12 +67,17 @@ namespace MoreMush.Mobile
         {
             if (doubled || report == null) return;
             doubleButton.interactable = false;      // 광고가 뜨기 전에 또 누르지 않게
+            var watched = report;
+            bool given = false;
             bool started = AdService.ShowRewarded(() =>
             {
-                if (doubled || report == null) return;
+                if (given) return;
+                given = true;
+                // 보상부터 넣는다. 광고를 보는 사이 씬이 바뀌어 이 창이 사라졌어도 보상은 받는다
+                Wallet.Add(Currency.Gold, IdleProgress.SaturatingAdd(watched.gold, watched.offlineGold));
+                Wallet.Add(Currency.Mycelite, watched.mycelite);
+                if (this == null || report != watched) return;
                 doubled = true;
-                Wallet.Add(Currency.Gold, report.gold + report.offlineGold);
-                Wallet.Add(Currency.Mycelite, report.mycelite);
                 Render();
                 doubleButton.gameObject.SetActive(false);
             });

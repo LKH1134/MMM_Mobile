@@ -11,26 +11,37 @@ namespace MoreMush.Mobile
         public const string ResourceFolder = "Tables/Legacy";
 
         // 표 이름(= 엑셀 파일 이름 = 시트 이름)과 index 범위
-        public static readonly DataTable<MushroomData> Mushrooms = new DataTable<MushroomData>("Mushroom", 1001, 1999);
-        public static readonly DataTable<HarvesterData> Harvesters = new DataTable<HarvesterData>("Harvester", 2001, 2999);
-        public static readonly DataTable<SkillData> Skills = new DataTable<SkillData>("Skill", 3001, 3999);
-        public static readonly DataTable<StageData> Stages = new DataTable<StageData>("Stage", 5001, 5999);
-        public static readonly DataTable<BossData> Bosses = new DataTable<BossData>("Boss", 6001, 6999);
+        static readonly DataTable<MushroomData> mushrooms = new DataTable<MushroomData>("Mushroom", 1001, 1999);
+        static readonly DataTable<HarvesterData> harvesters = new DataTable<HarvesterData>("Harvester", 2001, 2999);
+        static readonly DataTable<SkillData> skills = new DataTable<SkillData>("Skill", 3001, 3999);
+        static readonly DataTable<StageData> stages = new DataTable<StageData>("Stage", 5001, 5999);
+        static readonly DataTable<BossData> bosses = new DataTable<BossData>("Boss", 6001, 6999);
+
+        // 처음 쓸 때 한 번 읽는다 (던전·스킬 같은 옛 코드만 쓴다 — 앱을 켤 때마다 xlsx 5개를 읽지 않게). 다시 읽고 싶으면 Reload
+        public static DataTable<MushroomData> Mushrooms { get { Ensure(); return mushrooms; } }
+        public static DataTable<HarvesterData> Harvesters { get { Ensure(); return harvesters; } }
+        public static DataTable<SkillData> Skills { get { Ensure(); return skills; } }
+        public static DataTable<StageData> Stages { get { Ensure(); return stages; } }
+        public static DataTable<BossData> Bosses { get { Ensure(); return bosses; } }
 
         public static bool Loaded { get; private set; }
 
-        // 씬 로드 전에 한 번 읽어 둔다. 다시 읽고 싶으면 Reload
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void AutoLoad() => Reload();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetLoaded() => Loaded = false;
+
+        static void Ensure()
+        {
+            if (!Loaded) Reload();
+        }
 
         public static void Reload()
         {
             var issues = new List<string>();
-            Load(Mushrooms, issues);
-            Load(Harvesters, issues);
-            Load(Skills, issues);
-            Load(Stages, issues);
-            Load(Bosses, issues);
+            Load(mushrooms, issues);
+            Load(harvesters, issues);
+            Load(skills, issues);
+            Load(stages, issues);
+            Load(bosses, issues);
             Loaded = true;
             foreach (var issue in issues) Debug.LogWarning("[GameData] " + issue);
         }
