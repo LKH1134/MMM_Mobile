@@ -121,7 +121,7 @@ namespace MoreMush.Mobile
             for (int c = 0; c < header.Length; c++)
             {
                 string name = header[c].Trim();
-                if (name.Length == 0 || name.StartsWith("#")) continue;
+                if (name.Length == 0 || name[0] == '#') continue;
                 if (!byName.TryGetValue(name, out var field))
                 {
                     issues.Add($"[{Name}] 모르는 열 '{name}' — 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)");

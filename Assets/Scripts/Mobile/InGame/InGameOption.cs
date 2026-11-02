@@ -34,7 +34,8 @@ namespace MoreMush.Mobile
         public void GoLobby()
         {
             PlayerPrefs.Save();
-            Time.timeScale = 1f;
+            // 배속은 여기서 풀지 않는다 — 풀면 읽는 동안 판이 계속 돌아 시간이 끝나거나 보스가 죽어 보상·진행이 처리된다.
+            // 씬이 바뀌면 StageHud.OnDestroy와 AppSettings가 1로 되돌린다 (로딩 화면은 실제 시간으로 돈다)
             SceneLoader.Load(lobbyScene);
         }
     }

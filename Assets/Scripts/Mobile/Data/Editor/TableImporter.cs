@@ -7,7 +7,7 @@ using UnityEngine;
 namespace MoreMush.Mobile.EditorTools
 {
     // Assets/Data/Tables/*.xlsx가 바뀌면 Resources/Tables/<이름>.bytes로 복사하고 내용을 검사해 콘솔에 알린다.
-    // GameBalance 통합 표를 검증 후 복사한다. 실제 방치형 수치의 테이블 전환은 별도 작업이다.
+    // GameBalance 통합 표를 검증 후 복사한다. 게임(GameBalance)은 이 bytes를 읽는다.
     // Legacy는 보관용이므로 자동 임포트 대상에서 제외한다. GameData는 보존한 Legacy bytes를 읽는다.
     // 엑셀이 열려 있을 때 생기는 잠금 파일(~$*.xlsx)은 무시한다
     class TableImporter : AssetPostprocessor
@@ -27,6 +27,7 @@ namespace MoreMush.Mobile.EditorTools
             if (!Directory.Exists(SourceFolder)) return;
             foreach (var path in Directory.GetFiles(SourceFolder, "*.xlsx").Select(p => p.Replace('\\', '/')).Where(IsTable)) Export(path);
             GameData.Reload();
+            GameBalance.Reload();
         }
 
         static bool IsTable(string path) =>
@@ -64,7 +65,7 @@ namespace MoreMush.Mobile.EditorTools
                 AssetDatabase.ImportAsset(output);
             }
 
-            Debug.Log($"[TableImporter] {name}: {rows}행 OK (6개 데이터 시트 + info, 게임 수치 적용은 별도)");
+            Debug.Log($"[TableImporter] {name}: {rows}행 OK");
         }
 
         // 새 표를 추가하면 여기에도 한 줄 추가한다. 등록되지 않은 이름이면 -1

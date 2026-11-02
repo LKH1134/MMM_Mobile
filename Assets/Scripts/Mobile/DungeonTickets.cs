@@ -4,16 +4,16 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 던전 입장 횟수: 던전마다 하루 PerDay번. 한국 시각(UTC+9) 00시에 다시 채운다 (기기 시간대와 상관없이).
-    // 입장할 때 하나 쓴다. PlayerPrefs("Dungeon.<번호>.Day" = 마지막으로 쓴 한국 날짜, "Dungeon.<번호>.Used" = 그날 쓴 수)
+    // 해금: 던전 시트의 unlockStage에 진입해야 열린다 (IsUnlocked). 입장할 때 하나 쓴다. PlayerPrefs("Dungeon.<번호>.Day" = 마지막으로 쓴 한국 날짜, "Dungeon.<번호>.Used" = 그날 쓴 수)
     public static class DungeonTickets
     {
-        public const int PerDay = 2;
+        public static int PerDay => GameBalance.ConstInt("dungeonPerDay");     // 상수 시트
         static readonly TimeSpan Kst = TimeSpan.FromHours(9);
 
         public static event Action Changed;
 
         public static DateTime KstNow => DateTime.UtcNow + Kst;
-        public static string Today => KstNow.ToString("yyyyMMdd");
+        public static string Today => KstNow.ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture);   // 기기 달력(불기·이슬람력)과 상관없이 서기
 
         // 저장된 날짜(yyyyMMdd)보다 오늘이 뒤면 새날. 기기 시계를 되돌렸다 맞추는 것으로는 다시 채워지지 않게 '다른 날'이 아니라 '뒤의 날'만 본다.
         // 저장된 날짜가 IdleAway.MaxClockSkew보다 더 앞서 있으면 한때 시계가 크게 틀렸던 것으로 보고 새날로 친다 (그 날짜까지 막히지 않게)
@@ -38,11 +38,22 @@ namespace MoreMush.Mobile
             return Mathf.Clamp(PerDay - PlayerPrefs.GetInt(UsedKey(dungeon), 0), 0, PerDay);
         }
 
-        public static bool CanEnter(int dungeon) => Remaining(dungeon) > 0;
+        // 해금에 진입해야 하는 스테이지 (던전 시트, 0 = 처음부터, 행이 없으면 -1)
+        public static int UnlockStage(int dungeon) => GameBalance.DungeonUnlockStage(dungeon);
+
+        // 지금 스테이지(싸우는 중)가 unlockStage 이상이면 열린다 — 그 스테이지에 진입하면 해금
+        public static bool IsUnlocked(int dungeon)
+        {
+            int need = UnlockStage(dungeon);
+            return need >= 0 && IdleProgress.Stage >= need;
+        }
+
+        public static bool CanEnter(int dungeon) => IsUnlocked(dungeon) && Remaining(dungeon) > 0;
 
         // 하나 쓴다. 남은 횟수가 없으면 false
         public static bool TryUse(int dungeon)
         {
+            if (!IsUnlocked(dungeon)) return false;
             int left = Remaining(dungeon);
             if (left <= 0) return false;
             if (IsNewDay(PlayerPrefs.GetString(DayKey(dungeon), ""))) PlayerPrefs.SetString(DayKey(dungeon), Today);   // 시계가 되돌아가 있으면 저장된 (더 뒤) 날짜를 그대로 둔다

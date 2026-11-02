@@ -10,8 +10,8 @@ namespace MoreMush.Mobile
     // 초당 골드는 이번 실행에서 실제로 번 골드 ÷ 진행 시간 (RateMinSeconds 이상 쌓이면 저장해 다음 실행에 쓴다)
     public static class IdleAway
     {
-        public const double OfflineCapHours = 8;        // 앱 밖 보상 최대 시간 (임시값)
-        public const double OfflineMinSeconds = 60;     // 이보다 짧게 비우면 앱 밖 보상 없음
+        public static double OfflineCapHours => GameBalance.Const("offlineCapHours");        // 앱 밖 보상 최대 시간 (임시값, 상수 시트)
+        public static double OfflineMinSeconds => GameBalance.Const("offlineMinSeconds");    // 이보다 짧게 비우면 앱 밖 보상 없음 (상수 시트)
         const double RateMinSeconds = 30;
         const string RateKey = "Idle.GoldPerSec";
         const string LastSeenKey = "Idle.LastSeen";
@@ -55,10 +55,10 @@ namespace MoreMush.Mobile
         {
             if (gold <= 0) return;
             sessionGold += gold;
-            if (current != null) current.gold += gold;
+            if (current != null) current.gold = IdleProgress.SaturatingAdd(current.gold, gold);     // 높은 스테이지에서 넘쳐 음수가 되지 않게
         }
 
-        public static void AddMycelite(long amount) { if (current != null) current.mycelite += amount; }
+        public static void AddMycelite(long amount) { if (current != null) current.mycelite = IdleProgress.SaturatingAdd(current.mycelite, amount); }
         public static void AddKill() { if (current != null) current.kills++; }
         public static void AddStage() { if (current != null) current.stages++; }
 
@@ -103,7 +103,7 @@ namespace MoreMush.Mobile
             if (gold <= 0) return 0;
             Wallet.Add(Currency.Gold, gold);
             Begin();
-            current.offlineGold += gold;
+            current.offlineGold = IdleProgress.SaturatingAdd(current.offlineGold, gold);
             current.offlineSeconds += seconds;
             return gold;
         }

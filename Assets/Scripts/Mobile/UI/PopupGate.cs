@@ -34,6 +34,9 @@ namespace MoreMush.Mobile
             return true;
         }
 
+        // 팝업이 하나라도 열려 있다 (씬이 바뀌어 사라진 팝업은 열린 것으로 보지 않는다)
+        public static bool IsOpen => owner != null;
+
         public static void CloseAll() => CloseCurrent();
 
         static void CloseCurrent()

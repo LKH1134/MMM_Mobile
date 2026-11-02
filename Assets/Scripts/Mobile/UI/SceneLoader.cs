@@ -89,6 +89,15 @@ namespace MoreMush.Mobile
 
             float shown = 0f;
             var op = SceneManager.LoadSceneAsync(scene);
+            if (op == null)
+            {
+                // 읽기를 시작하지 못했다 — loading이 true로 남으면 다음 씬 전환이 영영 막힌다
+                Debug.LogError($"[SceneLoader] 씬을 읽지 못함: {scene}");
+                yield return FadeTo(0f);
+                gameObject.SetActive(false);
+                loading = false;
+                yield break;
+            }
             while (!op.isDone)
             {
                 shown += Time.unscaledDeltaTime;

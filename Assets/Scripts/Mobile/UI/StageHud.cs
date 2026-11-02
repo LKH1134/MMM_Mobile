@@ -84,6 +84,9 @@ namespace MoreMush.Mobile
 
         void OpenOption() => optionPopup.Get(transform).Open();
 
+        // "한 번 더하기"로 같은 씬을 다시 읽으면 옛 HUD의 OnDestroy(1배속으로 되돌림)가 새 HUD의 Awake 뒤에 올 수 있다 — 한 번 더 건다
+        void Start() => ApplyTimeScale();
+
         void Update() => Tick(Time.deltaTime);
 
         // 측정기: 시간을 처음으로 되돌린다

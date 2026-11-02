@@ -12,8 +12,10 @@ namespace MoreMush.Mobile
     //   적은 "스테이지 s면 이만큼 키웠을 것"(기대 성장 곡선)에서 체력·공격력·골드를 계산한다 — 곡선만 고치면 적이 따라온다
     public static class IdleProgress
     {
-        public const int WavesPerStage = 5;     // 이 수만큼 웨이브를 넘기면 보스
-        public const float BossTime = 30f;      // 보스 제한 시간(초). 넘기면 같은 스테이지 1웨이브부터 다시
+        // 이 수만큼 웨이브를 넘기면 보스 / 보스 제한 시간(초, 넘기면 같은 스테이지 1웨이브부터 다시) — 스테이지 시트 값
+        // 0이면 진행 막대가 NaN이 되고 보스가 바로 실패한다 — 표가 틀려도 최소값을 둔다 (검증기는 양수만 통과시킨다)
+        public static int WavesPerStage(int stage) => Mathf.Max(1, GameBalance.Stage(stage).wavesPerStage);
+        public static float BossTime(int stage) => Mathf.Max(1f, (float)GameBalance.Stage(stage).bossTime);
 
         public class Def
         {
@@ -23,36 +25,55 @@ namespace MoreMush.Mobile
             public int maxLv;
             public double costBase, costExp;    // 비용 = costBase × (1 + Lv/10)^costExp × e^(Lv/costScale)
             public double costScale;            // 0 = 지수 항 없음. = FarmScale × (기대 레벨/스테이지) → 기대 레벨에서 e^((s-1)/FarmScale)
+            public double costDivisor;          // 비용 식의 (1 + Lv/costDivisor)
+            public bool multiply;               // true면 값 = baseValue × (1 + perLevel × Lv) (공격 속도)
             public IdleStat unlockStat;         // 이 강화가 unlockLv 이상이어야 열린다 (unlockLv 0 = 처음부터)
             public int unlockLv;
             public int capEvery, capStep;       // 단계 제한: 열린 뒤 unlockStat이 capEvery 오를 때마다 capStep레벨씩 더 올릴 수 있다 (0 = 제한 없음)
         }
 
-        public static readonly Def[] Defs =
+        // 강화 8종은 업그레이드 시트에서 읽는다 (IdleStat 순서대로). 값 설명은 엑셀 info 시트와 GameBalance.cs.
+        // maxLevel은 비용이 long 한계(9e18)에 닿기 전으로 잡는다 (공격력·체력 Lv 45623, 체력 재생 Lv 28423, 공격 속도 Lv 8578에서 닿는다).
+        // 공격 속도는 최대치 없이 계속 오르고 지수 항(priceScale)으로만 늦춘다 (스테이지 1000 도달 70.4일, 밸런스설계/verify/plan_final.py)
+        static Def[] defs;
+
+        public static Def[] Defs => defs ?? (defs = BuildDefs());
+
+        static Def[] BuildDefs()
         {
-            // maxLv 45000·28000·8500 = 비용이 long 한계(9e18)에 닿기 전 (공격력·체력 Lv 45623, 체력 재생 Lv 28423, 공격 속도 Lv 8578에서 닿는다).
-            // 공격 속도는 최대치 없이 계속 오르고 지수 항으로만 늦춘다 (costScale 600 → 스테이지 1000 도달 70.4일, 밸런스설계/verify/plan_final.py)
-            new Def { stat = IdleStat.Attack,     name = "공격력",      icon = "Art/Dream/Icons/hammer",   baseValue = 10,  perLevel = 2,      maxLv = 45000,  costBase = 10,  costExp = 2.5, costScale = 2250 },
-            new Def { stat = IdleStat.Hp,         name = "체력",        icon = "Art/Dream/Icons/mushtree", baseValue = 100, perLevel = 20,     maxLv = 45000,  costBase = 10,  costExp = 2.5, costScale = 2250 },
-            new Def { stat = IdleStat.HpRegen,    name = "체력 재생",    icon = "Art/Dream/Icons/t_forest", baseValue = 2,   perLevel = 0.4,    maxLv = 28000,  costBase = 15,  costExp = 2.5, costScale = 1350, unlockStat = IdleStat.Hp, unlockLv = 20 },
-            new Def { stat = IdleStat.Speed,      name = "공격 속도",    icon = "Art/Dream/Icons/clock",    baseValue = 0.8, perLevel = 0.01,   maxLv = 8500,   costBase = 300, costExp = 3.5, costScale = 600, unlockStat = IdleStat.Attack, unlockLv = 30 },
-            // 치명타: 공격력 Lv에 묶은 단계 제한 (공격력 100레벨마다 25레벨씩 — 레전드 오브 슬라임 치명타 피해 방식)
-            new Def { stat = IdleStat.CritChance, name = "치명타 확률",  icon = "Art/Dream/Icons/gem",      baseValue = 0,   perLevel = 0.001,  maxLv = 1000,   costBase = 30,  costExp = 2.5, costScale = 450, unlockStat = IdleStat.Attack, unlockLv = 100, capEvery = 100, capStep = 25 },
-            new Def { stat = IdleStat.CritDamage, name = "치명타 피해",  icon = "Art/Dream/Icons/f_beauty", baseValue = 1.5, perLevel = 0.004,  maxLv = 2500,   costBase = 30,  costExp = 2.5, costScale = 338, unlockStat = IdleStat.Attack, unlockLv = 300, capEvery = 100, capStep = 25 },
-            // 후반 강화: 공격력 Lv 3000(먼작귀 포켓의 "공격력 3000" 조건)에 열리고, 일반 적 피해량은 상급 공격력 Lv 150에 열린다 (레전드 오브 슬라임과 같은 150)
-            new Def { stat = IdleStat.AdvancedAttack,    name = "상급 공격력",   icon = "Art/Dream/Icons/book",  baseValue = 1, perLevel = 0.005, maxLv = 2000, costBase = 1e7, costExp = 1.5, costScale = 281, unlockStat = IdleStat.Attack, unlockLv = 3000, capEvery = 100, capStep = 25 },
-            new Def { stat = IdleStat.NormalEnemyDamage, name = "일반 적 피해량", icon = "Art/Dream/Icons/quest", baseValue = 1, perLevel = 0.01,  maxLv = 1000, costBase = 2e7, costExp = 1.5, costScale = 141, unlockStat = IdleStat.AdvancedAttack, unlockLv = 150 },
-        };
+            var rows = GameBalance.Upgrades;
+            var list = new Def[System.Enum.GetValues(typeof(IdleStat)).Length];
+            foreach (var r in rows)
+            {
+                int i = (int)r.stat;
+                if (i < 0 || i >= list.Length) continue;
+                list[i] = new Def
+                {
+                    stat = r.stat, name = r.name, icon = GameBalance.ResourcePath(r.resourceId),
+                    baseValue = r.baseValue, perLevel = r.perLevel, maxLv = r.maxLevel,
+                    costBase = r.price, costExp = r.priceExponent, costScale = r.priceScale, costDivisor = r.priceDivisor,
+                    multiply = r.valueMode == "Multiply",
+                    unlockStat = r.unlockStat, unlockLv = r.unlockLevel, capEvery = r.capEvery, capStep = r.capStep,
+                };
+            }
+            for (int i = 0; i < list.Length; i++)
+                if (list[i] == null) throw new System.InvalidOperationException($"[IdleProgress] 업그레이드 시트에 {(IdleStat)i} 행이 없다");
+            return list;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetTables() { defs = null; curve = null; }
 
         public static event System.Action Changed;
 
         // Defs는 IdleStat 순서대로 적혀 있다 — 번호로 바로 꺼내고, 순서가 어긋나면 찾아서 쓴다
         public static Def Get(IdleStat stat)
         {
+            var all = Defs;
             int i = (int)stat;
-            if (i >= 0 && i < Defs.Length && Defs[i].stat == stat) return Defs[i];
-            foreach (var d in Defs) if (d.stat == stat) return d;
-            return Defs[0];
+            if (i >= 0 && i < all.Length && all[i].stat == stat) return all[i];
+            foreach (var d in all) if (d.stat == stat) return d;
+            return all[0];
         }
 
         // 강화 레벨은 전투 중 매 프레임 여러 번 읽는다 → PlayerPrefs(안드로이드에서 느림)를 처음 한 번만 읽고 메모리에 둔다.
@@ -73,7 +94,7 @@ namespace MoreMush.Mobile
         public static int Stage
         {
             get => Mathf.Max(1, PlayerPrefs.GetInt("Idle.Stage", 1));
-            set { PlayerPrefs.SetInt("Idle.Stage", Mathf.Max(1, value)); PlayerPrefs.Save(); Changed?.Invoke(); }
+            set { PlayerPrefs.SetInt("Idle.Stage", Mathf.Max(1, value)); SaveScheduler.MarkDirty(); Changed?.Invoke(); }   // 초반엔 몇 초마다 오른다 — 파일 쓰기는 SaveScheduler가 모아서 (앱을 내릴 때도 저장)
         }
 
         public static int Level(IdleStat stat)
@@ -122,7 +143,7 @@ namespace MoreMush.Mobile
         public static long Cost(IdleStat stat, int lv)
         {
             var d = Get(stat);
-            double c = d.costBase * System.Math.Pow(1 + lv / 10.0, d.costExp);
+            double c = d.costBase * System.Math.Pow(1 + lv / d.costDivisor, d.costExp);
             if (d.costScale > 0) c *= System.Math.Exp(lv / d.costScale);
             return (long)System.Math.Min(9e18, System.Math.Ceiling(c));
         }
@@ -135,6 +156,7 @@ namespace MoreMush.Mobile
             levels[(int)stat] = next;
             PlayerPrefs.SetInt(LevelKeys[(int)stat], next);
             SaveScheduler.MarkDirty();      // 꾹 누르면 초당 수십 번 — 파일 쓰기는 SaveScheduler가 모아서
+            DailyQuests.Add(QuestKind.Upgrade);
             Changed?.Invoke();
             return true;
         }
@@ -146,7 +168,7 @@ namespace MoreMush.Mobile
         {
             var d = Get(stat);
             lv = Mathf.Clamp(lv, 0, d.maxLv);
-            return stat == IdleStat.Speed ? d.baseValue * (1 + d.perLevel * lv) : d.baseValue + d.perLevel * lv;
+            return d.multiply ? d.baseValue * (1 + d.perLevel * lv) : d.baseValue + d.perLevel * lv;
         }
 
         // 보유 효과까지 더한 실제 값: 무기·펫 → 공격력 %, 장신구 → 체력·체력 재생 %
@@ -171,23 +193,63 @@ namespace MoreMush.Mobile
         }
 
         // ── 기대 성장 곡선: 스테이지 s에 도착한 플레이어가 가졌을 것으로 보는 강화 레벨·보유 효과 ──
-        public const int LevelsPerStage = 15;   // 공격력·체력 기대 레벨 = 15 × (스테이지 - 1) (스테이지 1 = Lv 0, 스테이지 201 = Lv 3000). 예전 10에서 1.5배
+        // 곡선의 수치는 상수 시트에 있다 (levelsPerStage, exp*, enemy*, boss* …). 수식은 여기에 둔다
+        sealed class Curve
+        {
+            public readonly int levelsPerStage = GameBalance.ConstInt("levelsPerStage");   // 공격력·체력 기대 레벨 = 15 × (스테이지 - 1) (스테이지 1 = Lv 0, 스테이지 201 = Lv 3000)
+            public readonly double speedPerStage = GameBalance.Const("expSpeedPerStage");
+            public readonly double regenRatio = GameBalance.Const("expRegenRatio");
+            public readonly double critChanceRatio = GameBalance.Const("expCritChanceRatio");
+            public readonly double critDamageRatio = GameBalance.Const("expCritDamageRatio");
+            public readonly double advancedAttackRatio = GameBalance.Const("expAdvancedAttackRatio");
+            public readonly int normalDamageDivisor = GameBalance.ConstInt("expNormalDamageDivisor");
+            public readonly double attackMulPerStage = GameBalance.Const("expAttackMulPerStage");   // 무기+펫 보유 효과 (스테이지 1000 ≈ ×13)
+            public readonly double hpMulPerStage = GameBalance.Const("expHpMulPerStage");           // 장신구 보유 효과 (스테이지 1000 ≈ ×8)
+            public readonly double enemyHpHits = GameBalance.Const("enemyHpHits");
+            public readonly double enemyHpWaveGrowth = GameBalance.Const("enemyHpWaveGrowth");
+            public readonly double bossKillSeconds = GameBalance.Const("bossKillSeconds");
+            public readonly double enemyAtkHpRate = GameBalance.Const("enemyAtkHpRate");
+            public readonly double enemyAtkRegenRate = GameBalance.Const("enemyAtkRegenRate");
+            public readonly double bossAtkHpRate = GameBalance.Const("bossAtkHpRate");
+            public readonly double goldBase = GameBalance.Const("goldBase");
+            public readonly double goldStep = GameBalance.Const("goldStep");
+            public readonly double goldExp = GameBalance.Const("goldExp");
+            public readonly long bossGoldMul = (long)GameBalance.Const("bossGoldMul");
+            public readonly long mycelBase = (long)GameBalance.Const("mycelBase");
+            public readonly int mycelStageDiv = GameBalance.ConstInt("mycelStageDiv");
+        }
+
+        static Curve curve;
+        static Curve K => curve ?? (curve = new Curve());
+
+        // 해금 조건(unlockStat)을 따라 재귀한다. 표가 순환하면 스택이 넘쳐 앱이 죽으므로 깊이를 막는다 (검증기도 순환을 막는다)
+        const int MaxUnlockDepth = 8;
+        static int expectedDepth;   // 메인 스레드에서만 부른다
 
         public static int ExpectedLevel(IdleStat stat, int stage)
         {
+            if (expectedDepth >= MaxUnlockDepth) return 0;
+            expectedDepth++;
+            try { return ExpectedLevelCore(stat, stage); }
+            finally { expectedDepth--; }
+        }
+
+        static int ExpectedLevelCore(IdleStat stat, int stage)
+        {
             int s = Mathf.Max(0, stage - 1);
             var d = Get(stat);
+            var k = K;
             switch (stat)
             {
-                case IdleStat.Speed: return Mathf.Min(d.maxLv, (int)(1.5 * s));
-                case IdleStat.HpRegen: return Mathf.Min(d.maxLv, (int)(LevelsPerStage * s * 0.6));
+                case IdleStat.Speed: return Mathf.Min(d.maxLv, (int)(k.speedPerStage * s));
+                case IdleStat.HpRegen: return Mathf.Min(d.maxLv, (int)(k.levelsPerStage * s * k.regenRatio));
                 // 단계 제한이 있는 강화: 기대 기준 레벨에서 열린 한도의 일부만 찍었다고 본다
-                case IdleStat.CritChance: return ExpectedCapped(stat, stage, 0.8);
-                case IdleStat.CritDamage: return ExpectedCapped(stat, stage, 0.6);
-                case IdleStat.AdvancedAttack: return ExpectedCapped(stat, stage, 0.5);
-                case IdleStat.NormalEnemyDamage: return Mathf.Clamp((ExpectedLevel(d.unlockStat, stage) - d.unlockLv) / 2, 0, d.maxLv);
+                case IdleStat.CritChance: return ExpectedCapped(stat, stage, k.critChanceRatio);
+                case IdleStat.CritDamage: return ExpectedCapped(stat, stage, k.critDamageRatio);
+                case IdleStat.AdvancedAttack: return ExpectedCapped(stat, stage, k.advancedAttackRatio);
+                case IdleStat.NormalEnemyDamage: return Mathf.Clamp((ExpectedLevel(d.unlockStat, stage) - d.unlockLv) / Mathf.Max(1, k.normalDamageDivisor), 0, d.maxLv);
             }
-            return Mathf.Min(d.maxLv, LevelsPerStage * s);
+            return Mathf.Min(d.maxLv, k.levelsPerStage * s);
         }
 
         // 단계 제한 한도 × ratio. 한도는 계단(25레벨씩)이 아니라 이어진 값으로 본다 — 계단이면 그 스테이지만 골드가 튄다
@@ -196,12 +258,13 @@ namespace MoreMush.Mobile
             var d = Get(stat);
             int gate = ExpectedLevel(d.unlockStat, stage);
             if (gate < d.unlockLv) return 0;
+            if (d.capEvery <= 0) return ratio > 0 ? d.maxLv : 0;    // 단계 제한 없음 = 한도 무한 (나누기 0으로 NaN이 되지 않게)
             double cap = ((double)(gate - d.unlockLv) / d.capEvery + 1) * d.capStep;
             return (int)System.Math.Min(d.maxLv, cap * ratio);
         }
 
-        static double ExpectedAttackMultiplier(int s) => 1 + 0.012 * s;   // 무기+펫 보유 효과 (스테이지 1000 ≈ ×13)
-        static double ExpectedHpMultiplier(int s) => 1 + 0.007 * s;       // 장신구 보유 효과 (스테이지 1000 ≈ ×8)
+        static double ExpectedAttackMultiplier(int s) => 1 + K.attackMulPerStage * s;
+        static double ExpectedHpMultiplier(int s) => 1 + K.hpMulPerStage * s;
 
         static double ExpectedHit(int s)
         {
@@ -216,33 +279,61 @@ namespace MoreMush.Mobile
         static double ExpectedRegen(int s) => Value(IdleStat.HpRegen, ExpectedLevel(IdleStat.HpRegen, s)) * ExpectedHpMultiplier(s);
 
         // ── 적 (스테이지·웨이브 → 값) ──
-        // 웨이브당 적 수: 5에서 시작해 웨이브·스테이지가 오를수록 늘고 15에서 멈춘다
-        public static int EnemyCount(int stage, int wave) => Mathf.Clamp(5 + 2 * (wave - 1) + (stage - 1), 5, 15);
+        // 웨이브당 적 수: 시작값에서 웨이브·스테이지가 오를수록 늘고 상한에서 멈춘다 (스테이지 시트의 enemyCount* 열, 표 끝을 넘으면 마지막 행 설정)
+        public static int EnemyCount(int stage, int wave)
+        {
+            var r = GameBalance.Stage(stage);
+            return Mathf.Clamp(r.enemyCountBase + r.enemyCountPerWave * (wave - 1) + r.enemyCountPerStage * (stage - 1), r.enemyCountBase, r.enemyCountMax);
+        }
 
         // 기대 성장이면 일반 적은 투척 2번, 보스는 18초(제한 30초)에 잡힌다. 일반 적은 일반 적 피해량까지 반영한다
         public static double EnemyHp(int stage, int wave) => ExpectedHit(stage) * Value(IdleStat.NormalEnemyDamage, ExpectedLevel(IdleStat.NormalEnemyDamage, stage))
-            * 2.0 * (1 + 0.08 * (wave - 1));
-        public static double BossHp(int stage) => ExpectedDps(stage) * 18.0;
+            * K.enemyHpHits * (1 + K.enemyHpWaveGrowth * (wave - 1));
+        public static double BossHp(int stage) => ExpectedDps(stage) * K.bossKillSeconds;
 
-        // 적 공격(초당 피해): 일반 적은 1마리씩, 보스는 혼자. 기대 성장이면 웨이브마다 체력이 조금씩 깎이고 보스에서 바닥 근처까지 간다
-        public static double EnemyAttack(int stage) => 0.007 * ExpectedHp(stage) + 0.15 * ExpectedRegen(stage);
-        public static double BossAttack(int stage) => ExpectedRegen(stage) + 0.025 * ExpectedHp(stage);
+        // 적 공격(초당 피해): 일반 적은 1마리씩, 보스는 혼자. 기대 성장이면 웨이브마다 체력이 조금씩 깎이고 보스에서 바닥 근처까지 간다.
+        // 스테이지 시트에 있는 스테이지는 시트 값, 표 끝을 넘으면 기대 성장 곡선으로 계산한다 (골드·균사석도 같다)
+        public static double EnemyAttack(int stage) => GameBalance.InStageTable(stage)
+            ? GameBalance.Stage(stage).enemyAttack
+            : K.enemyAtkHpRate * ExpectedHp(stage) + K.enemyAtkRegenRate * ExpectedRegen(stage);
+        public static double BossAttack(int stage) => GameBalance.InStageTable(stage)
+            ? GameBalance.Stage(stage).bossAttack
+            : ExpectedRegen(stage) + K.bossAtkHpRate * ExpectedHp(stage);
 
-        // 골드(생산량)는 스테이지의 거듭제곱으로 계속 오르고, 강화 비용(소모량)은 거듭제곱 × 지수(costScale)라 더 빨리 오른다.
-        // 그 차이 ≈ FarmFactor(s) = e^((s-1)/FarmScale)가 스테이지당 반복 판 수 → 누적 플레이 시간 대비 스테이지가 로그 곡선
-        //   (밸런스설계/이론.md: 100스테이지 1.5시간 · 300 11시간 · 500 2.4일 · 1000 70일, 한 판 40초 가정). 전체 속도는 GoldBase로 조절한다
+        // 골드(생산량)는 스테이지의 거듭제곱으로 계속 오르고, 강화 비용(소모량)은 거듭제곱 × 지수(priceScale)라 더 빨리 오른다.
+        // 그 차이 ≈ e^((s-1)/FarmScale)가 스테이지당 반복 판 수 → 누적 플레이 시간 대비 스테이지가 로그 곡선
+        //   (밸런스설계/이론.md: 100스테이지 1.5시간 · 300 11시간 · 500 2.4일 · 1000 70일, 한 판 40초 가정). 전체 속도는 goldBase로 조절한다
         public const double FarmScale = 150;
         public static double FarmFactor(int stage) => System.Math.Exp((stage - 1) / FarmScale);
 
-        public const double GoldBase = 30, GoldStep = 1.5, GoldExp = 2.5;
+        public static long EnemyGold(int stage)
+        {
+            if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).enemyGold;
+            var k = K;
+            return ClampToLong(System.Math.Round(k.goldBase * System.Math.Pow(1 + (stage - 1) / k.goldStep, k.goldExp)), 1);
+        }
 
-        public static long EnemyGold(int stage) =>
-            (long)System.Math.Max(1, System.Math.Round(GoldBase * System.Math.Pow(1 + (stage - 1) / GoldStep, GoldExp)));
-
-        public static long BossGold(int stage) => EnemyGold(stage) * 20;
+        public static long BossGold(int stage)
+        {
+            if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).bossGold;
+            long gold = EnemyGold(stage), mul = K.bossGoldMul;
+            if (mul <= 0) return 0;
+            return gold > (long)MaxAmount / mul ? (long)MaxAmount : gold * mul;     // 넘치면 9e18에서 멈춘다
+        }
 
         // 보스 처치 균사석 (뽑기 재화). 보스를 잡아야만 다음 스테이지로 가므로 스테이지마다 한 번
-        public static long BossMycelite(int stage) => 5 + stage / 10;
+        public static long BossMycelite(int stage) => GameBalance.InStageTable(stage) ? GameBalance.Stage(stage).bossMycelite : K.mycelBase + stage / System.Math.Max(1, K.mycelStageDiv);
+
+        // 아주 높은 스테이지에서 long을 넘으면 (long) 변환이 기기마다 음수·최솟값이 된다 — 9e18에서 멈춘다. NaN은 min으로
+        public const double MaxAmount = 9e18;
+        public static long ClampToLong(double v, long min = 0)
+        {
+            if (double.IsNaN(v) || v <= min) return min;
+            return v >= MaxAmount ? (long)MaxAmount : (long)v;
+        }
+
+        // 넘치지 않는 덧셈 (음수는 더하지 않는다)
+        public static long SaturatingAdd(long a, long b) => b <= 0 ? a : a > long.MaxValue - b ? long.MaxValue : a + b;
 
         // 피해·체력 표시: Wallet과 같은 단위(만/억/조/경)
         public static string FormatNumber(double v)

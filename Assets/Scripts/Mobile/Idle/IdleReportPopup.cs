@@ -5,13 +5,17 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 방치 정산 팝업: 홈으로 돌아오면 비운 동안 번 골드·균사석·처치 수·넘긴 스테이지·앱 밖 보상을 보여 준다.
-    // 다른 UI 위에 오도록 자기 오버레이 캔버스를 코드로 만든다 (씬에 둘 것 없음). 확인을 누르면 닫힌다
+    // 다른 UI 위에 오도록 자기 오버레이 캔버스를 코드로 만든다 (씬에 둘 것 없음).
+    // 왼쪽 "확인"은 닫는다. 오른쪽 "광고 보고 2배 보상"은 리워드 광고를 끝까지 보면 방금 받은 골드·균사석을 한 번 더 준다 (이미 지갑에 들어 있으므로 같은 양을 더 넣는다)
     public class IdleReportPopup : MonoBehaviour
     {
         const int SortingOrder = 30000;
 
         TMP_Text body;
         TMP_FontAsset font;
+        Button doubleButton;
+        IdleAway.Report report;     // 지금 보이는 정산
+        bool doubled;               // 2배 보상을 이미 받았다
 
         public static IdleReportPopup Create(TMP_FontAsset font)
         {
@@ -32,21 +36,58 @@ namespace MoreMush.Mobile
 
         public void Show(IdleAway.Report r)
         {
-            var sb = new System.Text.StringBuilder();
-            sb.Append("자리를 비운 동안 ").Append(FormatTime(r.seconds + r.offlineSeconds)).Append("\n\n");
-            sb.Append("<color=#FFD54A>골드 +").Append(Wallet.Format(r.gold + r.offlineGold)).Append("</color>\n");
-            if (r.offlineGold > 0) sb.Append("<size=80%>(앱 밖 ").Append(FormatTime(r.offlineSeconds)).Append(" +").Append(Wallet.Format(r.offlineGold)).Append(")</size>\n");
-            if (r.mycelite > 0) sb.Append("<color=#8FE3FF>균사석 +").Append(Wallet.Format(r.mycelite)).Append("</color>\n");
-            if (r.kills > 0) sb.Append("처치 ").Append(r.kills.ToString("N0")).Append("마리\n");
-            if (r.stages > 0) sb.Append("스테이지 +").Append(r.stages).Append(" → ").Append(IdleProgress.Stage);
-            body.text = sb.ToString().TrimEnd('\n');
+            report = r;
+            doubled = false;
+            Render();
+            doubleButton.interactable = true;
+            doubleButton.gameObject.SetActive(r.gold + r.offlineGold + r.mycelite > 0);
+            AdService.Initialize();
+            AdService.Prepare();            // 누를 때 광고가 준비돼 있게
             PopupGate.Opened(this, Hide);
             gameObject.SetActive(true);
+        }
+
+        void Render()
+        {
+            var r = report;
+            long m = doubled ? 2 : 1;
+            var sb = new System.Text.StringBuilder();
+            sb.Append("자리를 비운 동안 ").Append(FormatTime(r.seconds + r.offlineSeconds)).Append("\n\n");
+            sb.Append("<color=#FFD54A>골드 +").Append(Wallet.Format((r.gold + r.offlineGold) * m)).Append("</color>\n");
+            if (r.offlineGold > 0) sb.Append("<size=80%>(앱 밖 ").Append(FormatTime(r.offlineSeconds)).Append(" +").Append(Wallet.Format(r.offlineGold * m)).Append(")</size>\n");
+            if (r.mycelite > 0) sb.Append("<color=#8FE3FF>균사석 +").Append(Wallet.Format(r.mycelite * m)).Append("</color>\n");
+            if (r.kills > 0) sb.Append("처치 ").Append(r.kills.ToString("N0")).Append("마리\n");
+            if (r.stages > 0) sb.Append("스테이지 +").Append(r.stages).Append(" → ").Append(IdleProgress.Stage).Append('\n');
+            if (doubled) sb.Append("<color=#7FD37F>광고 보상 2배 적용!</color>");
+            body.text = sb.ToString().TrimEnd('\n');
+        }
+
+        // 광고를 끝까지 보면 같은 양을 한 번 더 지갑에 넣고 화면도 2배로 바꾼다 (한 번만)
+        void WatchForDouble()
+        {
+            if (doubled || report == null) return;
+            doubleButton.interactable = false;      // 광고가 뜨기 전에 또 누르지 않게
+            var watched = report;
+            bool given = false;
+            bool started = AdService.ShowRewarded(() =>
+            {
+                if (given) return;
+                given = true;
+                // 보상부터 넣는다. 광고를 보는 사이 씬이 바뀌어 이 창이 사라졌어도 보상은 받는다
+                Wallet.Add(Currency.Gold, IdleProgress.SaturatingAdd(watched.gold, watched.offlineGold));
+                Wallet.Add(Currency.Mycelite, watched.mycelite);
+                if (this == null || report != watched) return;
+                doubled = true;
+                Render();
+                doubleButton.gameObject.SetActive(false);
+            });
+            if (!started) doubleButton.interactable = true;
         }
 
         void Hide()
         {
             PopupGate.Closed(this);
+            report = null;
             gameObject.SetActive(false);
         }
 
@@ -80,19 +121,30 @@ namespace MoreMush.Mobile
             Place(body.rectTransform, new Vector2(0f, -170f), new Vector2(740f, 420f));
             body.alignment = TextAlignmentOptions.Top;
 
-            var ok = NewImage("Ok", panel.transform, new Color(0.45f, 0.75f, 0.35f));
-            var okSprite = Resources.Load<Sprite>("Art/Dream/UI/btn_go");
-            if (okSprite != null) { ok.sprite = okSprite; ok.type = Image.Type.Sliced; ok.color = Color.white; }
-            ok.raycastTarget = true;
-            var okRt = ok.rectTransform;
-            okRt.anchorMin = okRt.anchorMax = new Vector2(0.5f, 0f);
-            okRt.pivot = new Vector2(0.5f, 0f);
-            okRt.anchoredPosition = new Vector2(0f, 50f);
-            okRt.sizeDelta = new Vector2(360f, 130f);
-            ok.gameObject.AddComponent<Button>().onClick.AddListener(Hide);
-            var okText = NewText("Text", ok.transform, 52f);
-            okText.text = "확인";
-            Stretch(okText.rectTransform);
+            // 왼쪽 = 확인(초록), 오른쪽 = 광고 보고 2배 보상(청록)
+            NewButton("Ok", panel.transform, "확인", 52f, Color.white, -190f).onClick.AddListener(Hide);
+            doubleButton = NewButton("DoubleAd", panel.transform, "광고 보고\n2배 보상", 40f, new Color(0.45f, 0.85f, 0.8f, 1f), 190f);
+            doubleButton.onClick.AddListener(WatchForDouble);
+        }
+
+        Button NewButton(string name, Transform parent, string label, float size, Color tint, float x)
+        {
+            var img = NewImage(name, parent, new Color(0.45f, 0.75f, 0.35f));
+            var sprite = Resources.Load<Sprite>("Art/Dream/UI/btn_go");
+            if (sprite != null) { img.sprite = sprite; img.type = Image.Type.Sliced; img.color = tint; }
+            img.raycastTarget = true;
+            var rt = img.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(x, 50f);
+            rt.sizeDelta = new Vector2(350f, 130f);
+            var button = img.gameObject.AddComponent<Button>();
+            button.targetGraphic = img;
+            var text = NewText("Text", img.transform, size);
+            text.text = label;
+            text.color = Color.white;
+            Stretch(text.rectTransform);
+            return button;
         }
 
         Image NewImage(string name, Transform parent, Color color)

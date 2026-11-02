@@ -133,3 +133,53 @@ Main 씬의 방치 전투(`IdleBattle`)는 앱이 켜져 있는 내내 돈다. �
    - `GachaPanel`이 1초마다 Refresh하는 것
 5. 절전 모드 중에도 전투 그림을 계속 움직인다. 카메라는 꺼지지만 캔버스 갱신은 남는다. `PowerSaveMode.Active`일 때 전투의 꾸밈 애니메이션을 건너뛰면 전지를 더 아낄 수 있다.
 6. 숫자 팝업에 폴백 폰트 글리프가 섞이면 `TMP_SubMeshUI`는 `SetAlpha`를 따르지 않아 흐려지지 않는다. 지금 폰트(LINESeedKR)로는 해당 없다.
+
+---
+
+## 7. 2차 안정화 (2026-11-02)
+
+영역별(방치 전투 · 던전 · UI/광고/퀘스트 · 데이터/저장) 코드 점검 뒤 실제 문제만 고쳤다. 정상 표 값에서는 수치가 바뀌지 않는다(비교 하네스 43,154건 중 다른 4건은 있을 수 없는 음수 스테이지 입력). 컴파일 오류 0, 경고는 광고 SDK 사용 중단 경고 1개(전부터). **에디터 플레이·실기기 확인은 아직 안 함.**
+
+### 7.1 앱이 죽거나 멈출 수 있던 것
+
+| 파일 | 고친 것 · 실패 시나리오 |
+|---|---|
+| `ProjectSettings.asset` | EDM이 만든 `Assets/Plugins/Android`의 gradle 템플릿 3개(main·properties·settings)를 쓰도록 플래그를 켬. 꺼져 있으면 `play-services-ads`가 빌드에서 빠져 광고 초기화 때 클래스가 없어 앱이 죽을 수 있다. **에디터를 저장하지 말고 껐다 켤 것**(1장과 같은 이유) |
+| `AppSettings.cs` | 문화권을 Invariant로 고정. 태국어 기기는 날짜를 불기(2569년)로 써서 하루 충전(무료 뽑기·던전)이 매번 다시 됐고, 독일어 기기는 소수점이 쉼표. Main을 읽으면 `Time.timeScale = 1` (던전 일시정지가 남아 전투가 멈춘 것처럼 보이지 않게) |
+| `IdleProgress.cs` | 해금 조건 재귀에 깊이 제한(표가 순환하면 스택 넘침 = 앱 종료). `capEvery` 0·나눗수 0 방어. 표 밖 골드는 9e18에서 멈춤(`ClampToLong`·`SaturatingAdd`) — 넘쳐 음수가 되면 골드가 사라졌다. 웨이브 수·보스 시간 최소값 |
+| `IdleBattle.cs` | `Update`를 try/catch로 감싸 한 프레임 예외가 전투를 끝내지 않게. 30프레임 연속이면 전투만 멈춤(로그 폭주로 기기가 버벅이는 것 방지). `enemyArea`가 비면 전투를 끔. `Start`에서 앱 밖 보상·탭 연결을 먼저(첫 웨이브 예외에도 살아 있게) |
+| `GameBalance.cs` | 표 읽기 실패를 기억 — 전엔 실패하면 호출할 때마다(매 프레임) xlsx를 다시 풀었다. `Reload()`로 다시 시도 |
+| `AdService.cs` | SDK 초기화 콜백 전에는 광고를 부르지 않음. 로드 실패 시 15초→최대 5분 대기(요청 폭주로 계정 제한 방지). 보상 콜백을 먼저 부르고 다른 처리 예외는 따로 막음. 상태 알림은 화면별로 예외를 막아 부름 |
+| `AdBox.cs` | 상수가 없거나 틀려도 기본값(1시간·60초)과 최소값(60초·5초) — 상자가 매 프레임 뜨고 광고를 계속 요청하던 경로를 막음. 씬이 바뀌면 열린 창을 닫음(PopupGate가 잡힌 채 남지 않게) |
+| `IdleReportPopup.cs` | 광고를 보는 사이 창이 사라져도 2배 보상은 지갑에 먼저 넣고, 창이 있을 때만 화면을 고침 |
+| `UiPopup.cs` · `SceneLoader.cs` | 부모가 꺼진 팝업을 닫을 때 코루틴 예외 대신 바로 닫힘. 씬 읽기 시작 실패 시 `loading`이 영영 true로 남아 씬 전환이 막히던 것 |
+| `StageHud.cs` · `InGameOption.cs` | "한 번 더하기"로 같은 씬을 다시 읽을 때 배속이 1배로 풀리던 것(`Start`에서 다시 걸기). 로비로 나가는 동안 판이 계속 돌아 보상·진행이 처리되던 것(배속 풀기 제거) |
+| `HarvestGame.cs` · `Mushroom.cs` | 무한 스테이지에서 점수·골드 long 넘침(보상 사라짐), 체력 int 넘침(기기에 따라 체력 1) |
+| `Wallet.cs` · `GachaProgress.cs` · `FormationPanel.cs` | 음수·망가진 잔액은 0. 등급 시트 행이 모자라도 범위 안. 씬 연결이 빠진 버튼·창 방어 |
+
+### 7.2 성능
+
+| 파일 | 내용 |
+|---|---|
+| `Data/XlsxReader.cs` | 칸마다 `GetElementsByTagName`(문서 변경 알림 목록 생성) 대신 자식을 직접 돎. 서식만 남은 먼 행(최대 104만)까지 빈 행을 만들지 않게 65,536행 제한. 결과는 예전과 칸 25,005개 모두 같고, 데스크톱 기준 117ms → 81ms |
+| `Data/GameData.cs` | 옛 표(xlsx 5개)를 앱 켤 때마다 읽지 않고 처음 쓸 때(던전·스킬) 읽음 |
+| `IdleBattle.cs` · `HitEffects.cs` | 공격 속도가 높을 때 타격 이펙트 16개·숫자 팝업 24개(치명타 36개)까지만 동시에 |
+| `IdleProgress.cs` | 스테이지가 오를 때마다 하던 `PlayerPrefs.Save()`(디스크 쓰기)를 `SaveScheduler.MarkDirty()`로 |
+| `UiPopup.cs` | 모든 캔버스를 다시 그리는 `Canvas.ForceUpdateCanvases()`를 열 때만 |
+| `HarvestField.cs` | 바 위치를 부분 이동마다가 아니라 Step마다 한 번 계산. 프레임이 튀면 0.1초씩 나눠 진행(얇은 바 통과 방지). 풀로 돌아간 수확기·버섯의 낡은 참조 정리 |
+| `BossHud.cs` · `BossGimmicks.cs` · `SkillEffects.cs` | 매 프레임 `IReadOnlyList` foreach(열거자 박싱) → for |
+
+### 7.3 이번에 손대지 않은 것
+
+- `Benchmark.StartFromCommandLine`은 출시 빌드에서도 돈다(인텐트 확인 JNI 2번). Firebase Test Lab 게임 루프에 쓰므로 두었다. 막으려면 `Debug.isDebugBuild`로 감싼다.
+- `Mushroom.Position`(네이티브 호출)을 충돌 계산마다 읽는다. 위치를 캐시하려면 모든 이동 지점을 고쳐야 해서 두었다.
+- 상수 key가 표에 없으면 `GameBalance.Const`는 예외를 던진다. 임포터 검증기(`RequiredConsts`)가 막으므로 두었다.
+- `MobileAds.RaiseAdEventsOnUnityMainThread` 사용 중단 경고. 아직 동작한다.
+- 광고 로드 실패 뒤 대기 중에는 스스로 다시 부르지 않는다. 광고 상자가 뜰 때·뽑기 창을 열 때·광고 버튼을 누를 때 대기 시간이 지났으면 다시 부른다(오프라인으로 켜면 최대 5분까지 광고 버튼이 "준비 중"일 수 있다).
+
+### 7.4 확인 방법 (추가)
+
+1. 에디터를 저장 없이 껐다 켜고 Project Settings > Player > Android > Publishing Settings에서 Custom Main Gradle Template·Gradle Properties·Gradle Settings가 켜져 있는지 본다. Android 빌드 후 실기기에서 광고 상자 → 광고 보기가 되는지 본다(테스트 광고).
+2. 기기 언어를 태국어로 바꾸고 무료 광고 뽑기·던전 입장을 쓴 뒤 앱을 다시 켜도 다시 채워지지 않아야 한다.
+3. 던전에서 4배속 → 옵션 → 로비로: Main 전투가 정상 속도로 돈다. 던전 결과에서 "한 번 더하기"를 눌러도 고른 배속이 유지된다.
+4. 비행기 모드로 켜고 광고 버튼을 여러 번 눌러도 로그에 "광고 불러오는 중"이 15초 안에 다시 찍히지 않는다.

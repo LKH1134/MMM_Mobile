@@ -3,37 +3,61 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 꼬마 편성: 칸 SlotCount개에 꼬마 id 하나씩(빈 칸 = ""). 칸 i = Main 전투의 Ggoma(i+1) 자리.
-    // 꼬마는 꼬마 뽑기(GachaKind.Character)로 얻는다. 기본 편성 5명(Defaults)은 처음부터 Lv.1로 가진다. 중복은 조각 → 합성으로 레벨업.
+    // 꼬마는 꼬마 뽑기(GachaKind.Character)로 얻는다. 기본 편성 5명(꼬마 시트 defaultSlot)은 처음부터 Lv.1로 가진다. 중복은 조각 → 합성으로 레벨업.
     // 가진 꼬마만 편성할 수 있고, 저장된 칸의 꼬마를 안 가졌으면 빈 칸으로 본다.
     // PlayerPrefs("Formation.<칸>", "Formation.Owned.<id>")에 저장한다 (세이브 구조가 생기면 옮긴다)
     public static class Formation
     {
         public const int SlotCount = 5;
-        public const string IconPath = "Art/Dream/Characters/Critters/Ggomas/icon_";   // 임시 그림
 
-        // 꼬마 8종 (이름은 MoreMustMush 꼬마 이름) + 보스 그림을 쓰는 캐릭터
-        public static readonly string[] Ids = { "leaf", "dew", "wind", "fire", "rock", "star", "coin", "chest", "beak" };
-        static readonly string[] Names = { "새싹 꼬마", "이슬 꼬마", "바람 꼬마", "불씨 꼬마", "조약돌 꼬마", "별똥 꼬마", "동전 꼬마", "꿀밤 꼬마", "부리 버섯" };
-
-        // 캐릭터 능력치 (임시값): 등급(GachaProgress.GradeNames 번호)과 공격 배율 — 이 꼬마가 던지는 수확기 피해 = 공격력 × 배율.
-        // 가장 강한 5명의 평균이 약 1.0이 되게 잡았다 (밸런스 곡선이 배율 1.0 기준) — 기본 편성은 약 0.88
-        static readonly int[] Grades = { 0, 0, 1, 2, 1, 3, 1, 2, 4 };
-        static readonly double[] AttackMuls = { 0.8, 0.8, 0.9, 1.0, 0.9, 1.1, 0.9, 1.0, 1.2 };
-
-        // IconPath + id가 아닌 곳에 그림이 있는 캐릭터 (Resources 경로)
-        static readonly System.Collections.Generic.Dictionary<string, string> IconOverrides = new System.Collections.Generic.Dictionary<string, string>
+        // 꼬마 9종 (이름·등급·공격 배율·시작 레벨·기본 편성·그림)은 꼬마 시트에서 읽는다. 순서 = 시트 순서.
+        // 공격 배율(임시값): 이 꼬마가 던지는 수확기 피해 = 공격력 × 배율. 가장 강한 5명의 평균이 약 1.0이 되게 잡았다 (밸런스 곡선이 배율 1.0 기준) — 기본 편성은 약 0.88
+        sealed class Table
         {
-            { "beak", "Art/Dream/Characters/Critters/Bosses/boss1" },
-        };
-        static readonly string[] Defaults = { "leaf", "dew", "fire", "rock", "coin" };
+            public readonly string[] ids, names, iconPaths, defaults, levelKeys, copiesKeys;
+            public readonly int[] grades, startLevels;
+            public readonly double[] attackMuls;
+            public readonly int maxLevel = GameBalance.ConstInt("ggomaMaxLevel");
+            public readonly double levelBonus = GameBalance.Const("ggomaLevelBonus");
+
+            public Table()
+            {
+                var rows = GameBalance.Mascots;
+                int n = rows.Count;
+                ids = new string[n];
+                names = new string[n];
+                iconPaths = new string[n];
+                grades = new int[n];
+                startLevels = new int[n];
+                attackMuls = new double[n];
+                defaults = new string[SlotCount];
+                for (int i = 0; i < SlotCount; i++) defaults[i] = "";
+                for (int i = 0; i < n; i++)
+                {
+                    var r = rows[i];
+                    ids[i] = r.key;
+                    names[i] = r.name;
+                    iconPaths[i] = GameBalance.ResourcePath(r.resourceId);
+                    grades[i] = r.grade;
+                    startLevels[i] = r.initialOwned;
+                    attackMuls[i] = r.attackMultiplier;
+                    if (r.defaultSlot >= 0 && r.defaultSlot < SlotCount) defaults[r.defaultSlot] = r.key;
+                }
+                levelKeys = BuildKeys(n, i => "Formation.Level." + ids[i]);
+                copiesKeys = BuildKeys(n, i => "Formation.Copies." + ids[i]);
+            }
+        }
+
+        static Table table;
+        static Table T => table ?? (table = new Table());
+
+        public static string[] Ids => T.ids;
 
         public static event System.Action Changed;
 
         // 칸·레벨·조각은 전투 중 던질 때마다 읽는다 → PlayerPrefs(안드로이드에서 느림)를 처음 한 번만 읽고 메모리에 둔다.
         // 쓸 때 둘 다 고친다. PlayerPrefs를 밖에서 지웠으면 Reload
         static readonly string[] SlotKeys = BuildKeys(SlotCount, i => "Formation." + i);
-        static readonly string[] LevelKeys = BuildKeys(Ids.Length, i => "Formation.Level." + Ids[i]);
-        static readonly string[] CopiesKeys = BuildKeys(Ids.Length, i => "Formation.Copies." + Ids[i]);
         static string[] slots;          // 저장된 칸 id (가졌는지는 Get이 본다). null = 아직 안 읽음
         static int[] levels, copies;    // Ids 순서
 
@@ -50,22 +74,23 @@ namespace MoreMush.Mobile
             slots = null;
             levels = copies = null;
             migrated = false;
+            table = null;       // 표는 처음 쓸 때 다시 만든다 (이 훅은 리소스가 준비되기 전에 돈다)
         }
 
         static void EnsureLoaded()
         {
             if (slots != null) return;
             Migrate();
-            var lv = new int[Ids.Length];
-            var cp = new int[Ids.Length];
-            for (int i = 0; i < Ids.Length; i++)
+            var t = T;
+            var lv = new int[t.ids.Length];
+            var cp = new int[t.ids.Length];
+            for (int i = 0; i < t.ids.Length; i++)
             {
-                int start = System.Array.IndexOf(Defaults, Ids[i]) >= 0 ? 1 : 0;
-                lv[i] = Mathf.Clamp(PlayerPrefs.GetInt(LevelKeys[i], start), 0, MaxLevel);
-                cp[i] = Mathf.Max(0, PlayerPrefs.GetInt(CopiesKeys[i], 0));
+                lv[i] = Mathf.Clamp(PlayerPrefs.GetInt(t.levelKeys[i], t.startLevels[i]), 0, MaxLevel);
+                cp[i] = Mathf.Max(0, PlayerPrefs.GetInt(t.copiesKeys[i], 0));
             }
             var s = new string[SlotCount];
-            for (int i = 0; i < SlotCount; i++) s[i] = PlayerPrefs.GetString(SlotKeys[i], Defaults[i]);
+            for (int i = 0; i < SlotCount; i++) s[i] = PlayerPrefs.GetString(SlotKeys[i], t.defaults[i]);
             levels = lv;
             copies = cp;
             slots = s;
@@ -80,13 +105,13 @@ namespace MoreMush.Mobile
         static void SetLevel(int i, int lv)
         {
             levels[i] = Mathf.Clamp(lv, 0, MaxLevel);
-            PlayerPrefs.SetInt(LevelKeys[i], levels[i]);
+            PlayerPrefs.SetInt(T.levelKeys[i], levels[i]);
         }
 
         static void SetCopies(int i, int n)
         {
             copies[i] = Mathf.Max(0, n);
-            PlayerPrefs.SetInt(CopiesKeys[i], copies[i]);
+            PlayerPrefs.SetInt(T.copiesKeys[i], copies[i]);
         }
 
         public static string Get(int slot)
@@ -99,8 +124,8 @@ namespace MoreMush.Mobile
 
         // ── 강화 (장비와 같은 방식): 처음 얻으면 Lv.1, 같은 꼬마를 또 얻으면 조각. 조각 CopiesToNext(Lv)개로 레벨 +1 (최대 MaxLevel).
         // 레벨마다 공격 배율 +LevelBonus (1레벨 값 기준). PlayerPrefs("Formation.Level.<id>", "Formation.Copies.<id>")
-        public const int MaxLevel = 100;
-        public const double LevelBonus = 0.05;      // 임시값: 배율이 밸런스 곡선(배율 1.0 기준)을 크게 흔들지 않게 장비(20%)보다 낮게
+        public static int MaxLevel => T.maxLevel;
+        public static double LevelBonus => T.levelBonus;      // 임시값: 배율이 밸런스 곡선(배율 1.0 기준)을 크게 흔들지 않게 장비(20%)보다 낮게. 상수 시트 ggomaLevelBonus
 
         // 꼬마 레벨 (0 = 아직 없음). 기본 편성 꼬마는 처음부터 Lv.1
         public static int Level(string id)
@@ -200,8 +225,8 @@ namespace MoreMush.Mobile
                 int owned = PlayerPrefs.GetInt(ownedKey, 0);
                 if (owned > 0)
                 {
-                    PlayerPrefs.SetInt(LevelKeys[i], 1);
-                    PlayerPrefs.SetInt(CopiesKeys[i], owned - 1);
+                    PlayerPrefs.SetInt(T.levelKeys[i], 1);
+                    PlayerPrefs.SetInt(T.copiesKeys[i], owned - 1);
                 }
                 PlayerPrefs.DeleteKey(ownedKey);
             }
@@ -212,7 +237,8 @@ namespace MoreMush.Mobile
         public static System.Collections.Generic.List<string> IdsOfGrade(int grade)
         {
             var list = new System.Collections.Generic.List<string>();
-            for (int i = 0; i < Ids.Length; i++) if (Grades[i] == grade) list.Add(Ids[i]);
+            var t = T;
+            for (int i = 0; i < t.ids.Length; i++) if (t.grades[i] == grade) list.Add(t.ids[i]);
             return list;
         }
 
@@ -270,13 +296,13 @@ namespace MoreMush.Mobile
         public static double AttackMultiplierAt(string id, int lv)
         {
             int i = System.Array.IndexOf(Ids, id);
-            return i >= 0 ? AttackMuls[i] * (1 + LevelBonus * (Mathf.Max(1, lv) - 1)) : 0;
+            return i >= 0 ? T.attackMuls[i] * (1 + LevelBonus * (Mathf.Max(1, lv) - 1)) : 0;
         }
 
         public static int Grade(string id)
         {
             int i = System.Array.IndexOf(Ids, id);
-            return i >= 0 ? Grades[i] : 0;
+            return i >= 0 ? T.grades[i] : 0;
         }
 
         // 지금 편성된 꼬마들의 공격 배율 합 (전투력 계산용)
@@ -290,13 +316,15 @@ namespace MoreMush.Mobile
         public static string Name(string id)
         {
             int i = System.Array.IndexOf(Ids, id);
-            return i >= 0 ? Names[i] : id;
+            return i >= 0 ? T.names[i] : id;
         }
 
         public static Sprite Icon(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            return Resources.Load<Sprite>(IconOverrides.TryGetValue(id, out var path) ? path : IconPath + id);
+            int i = System.Array.IndexOf(Ids, id);
+            string path = i >= 0 ? T.iconPaths[i] : null;
+            return path != null ? Resources.Load<Sprite>(path) : null;
         }
     }
 }
