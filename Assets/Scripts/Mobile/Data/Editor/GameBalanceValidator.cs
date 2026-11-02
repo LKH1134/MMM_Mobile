@@ -22,7 +22,7 @@ namespace MoreMush.Mobile.EditorTools
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double" },
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
-            { "던전", "index:int key:string dungeon:int unlockStage:int" },
+            { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
             { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double bagKillsPerHour:double bagMycelitePerHour:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
             { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
@@ -30,6 +30,11 @@ namespace MoreMush.Mobile.EditorTools
             { "호감도", "index:int key:string level:int need:int bagBonus:double" },
             { "장식", "index:int key:string name:string owner:string grade:int zone:TreeZone effect:TreeEffect value:double resourceId:int" },
             { "장식등급", "index:int key:string name:string grade:int goldKills:int mycelite:int hours:double" },
+            { "장비", "index:int key:string name:string kind:GachaKind stat:EquipStat itemIndex:int grade:int sub:int resourceId:int" },
+            { "뽑기상품", "index:int key:string name:string kind:GachaKind pullCount:int price:long currency:Currency dailyLimit:int requiresAd:bool" },
+            { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int chapterName:string flightTime:double waveDelay:double enemyAttackDelay:double" },
+            { "수확전투", "index:int key:string dungeon:int scope:string field:string dataType:string value:double" },
+            { "수확등급", "index:int key:string tier:MushroomTier hpMultiplier:int scoreMultiplier:double" },
         };
 
         // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
@@ -109,7 +114,7 @@ namespace MoreMush.Mobile.EditorTools
                 }
             }
 
-            foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드", "세계수", "장식" })
+            foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드", "세계수", "장식", "장비" })
                 foreach (var r in tables[name]) Reference(r, "resourceId", resources, issues);
             foreach (var r in tables["적"].Concat(tables["보스"])) Positive(r, "hpCoefficient", issues);
 
@@ -176,8 +181,89 @@ namespace MoreMush.Mobile.EditorTools
             ValidateDungeons(tables["던전"], issues);
             ValidateQuests(tables["퀘스트"], issues);
             ValidateWorldTree(tables, enemies, issues);
+            ValidateImplementedDefinitions(tables, issues);
             return count;
         }
+
+        // 새 시트는 기존 코드/프리팹의 정의를 기록한다. 실제 전투·상품 로직의 데이터 전환은 별도 작업이다.
+        static void ValidateImplementedDefinitions(Dictionary<string, List<Row>> tables, List<string> issues)
+        {
+            var equipment = tables["장비"];
+            var items = new HashSet<string>();
+            foreach (var r in equipment)
+            {
+                string kind = r.Text("kind");
+                if (kind == nameof(GachaKind.Character)) issues.Add(r.At("kind") + ": 꼬마는 꼬마 시트에 정의한다");
+                string stat = kind == nameof(GachaKind.Accessory) ? nameof(EquipStat.Hp) : nameof(EquipStat.Attack);
+                if (r.Text("stat") != stat) issues.Add(r.At("stat") + $": 현재 {kind}의 능력치는 {stat}이다");
+                Between(r, "itemIndex", 0, GachaProgress.GradeCount * Equipment.SubPerGrade - 1, issues);
+                Between(r, "grade", 0, GachaProgress.GradeCount - 1, issues);
+                Between(r, "sub", 0, Equipment.SubPerGrade - 1, issues);
+                if (r.Int("itemIndex") != r.Int("grade") * Equipment.SubPerGrade + r.Int("sub")) issues.Add(r.At("itemIndex") + ": grade × 등급당 단계 수 + sub와 다르다");
+                if (!items.Add(kind + ":" + r.Int("itemIndex"))) issues.Add(r.At("itemIndex") + ": 같은 장비 종류의 저장 인덱스가 겹친다");
+            }
+            foreach (var kind in new[] { GachaKind.Weapon, GachaKind.Accessory, GachaKind.Pet })
+                for (int i = 0; i < GachaProgress.GradeCount * Equipment.SubPerGrade; i++)
+                    if (!items.Contains(kind + ":" + i)) issues.Add($"[장비] {kind} itemIndex {i}가 없다");
+
+            var products = new HashSet<string>();
+            foreach (var r in tables["뽑기상품"])
+            {
+                Positive(r, "pullCount", issues);
+                Between(r, "price", 0, 9e18, issues);
+                Between(r, "dailyLimit", 0, int.MaxValue, issues);
+                bool ad = IsTrue(r.Text("requiresAd"));
+                if (ad && (r.Number("price") != 0 || r.Int("dailyLimit") <= 0)) issues.Add(r.At("price") + ": 광고 상품은 가격 0과 양의 일일 제한이 필요하다");
+                if (!ad && r.Number("price") <= 0) issues.Add(r.At("price") + ": 유료 상품은 가격이 0보다 커야 한다");
+                if (!products.Add(r.Text("kind") + ":" + r.Text("pullCount") + ":" + ad)) issues.Add(r.At("kind") + ": 같은 종류/횟수/광고 여부의 상품이 겹친다");
+            }
+            foreach (GachaKind kind in Enum.GetValues(typeof(GachaKind)))
+                if (!tables["뽑기상품"].Any(r => r.Text("kind") == kind.ToString())) issues.Add($"[뽑기상품] {kind} 상품이 없다");
+
+            foreach (var r in tables["방치전투"])
+            {
+                Positive(r, "formationSlots", issues);
+                Positive(r, "stagesPerChapter", issues);
+                Positive(r, "flightTime", issues);
+                Between(r, "waveDelay", 0, double.MaxValue, issues);
+                Between(r, "enemyAttackDelay", 0, double.MaxValue, issues);
+            }
+
+            var dungeons = new HashSet<int>(tables["던전"].Where(r => IsTrue(r.Text("implemented"))).Select(r => r.Int("dungeon")));
+            var settings = new HashSet<string>();
+            foreach (var r in tables["수확전투"])
+            {
+                if (!dungeons.Contains(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 구현된 던전을 참조해야 한다");
+                string scope = r.Text("scope"), field = r.Text("field");
+                Type owner = scope == "RoundBase" ? typeof(RoundBase) : scope == "HarvestField" ? typeof(HarvestField)
+                    : scope == "Harvester" ? typeof(Harvester) : scope == "Cluster" || scope == "Single" ? typeof(Mushroom)
+                    : scope == "FieldInput" ? typeof(FieldInput) : null;
+                var member = owner?.GetField(field, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                string expected = member?.FieldType == typeof(int) ? "int" : member?.FieldType == typeof(long) ? "long" : member?.FieldType == typeof(float) ? "float" : member?.FieldType == typeof(bool) ? "bool" : null;
+                if (scope == "Bar" && (field == "width" || field == "height")) expected = "float";
+                if (expected == null) issues.Add(r.At("field") + ": 기록할 수 있는 수확 전투 수치 필드가 아니다");
+                else if (r.Text("dataType") != expected) issues.Add(r.At("dataType") + $": 실제 필드는 {expected}이다");
+                Between(r, "value", 0, double.MaxValue, issues);
+                if ((expected == "int" || expected == "long" || expected == "bool") && r.Number("value") != Math.Floor(r.Number("value"))) issues.Add(r.At("value") + ": 정수여야 한다");
+                if (expected == "bool") Between(r, "value", 0, 1, issues);
+                if (!settings.Add(r.Int("dungeon") + ":" + scope + "." + field)) issues.Add(r.At("field") + ": 같은 던전의 설정이 겹친다");
+            }
+            foreach (int dungeon in tables["수확전투"].Select(r => r.Int("dungeon")).Distinct())
+                foreach (var field in typeof(RoundBase).GetFields().Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float)))
+                    if (!settings.Contains(dungeon + ":RoundBase." + field.Name)) issues.Add($"[수확전투] 던전 {dungeon} RoundBase.{field.Name}가 없다");
+
+            var tiers = new HashSet<string>();
+            foreach (var r in tables["수확등급"])
+            {
+                Positive(r, "hpMultiplier", issues);
+                Positive(r, "scoreMultiplier", issues);
+                if (!tiers.Add(r.Text("tier"))) issues.Add(r.At("tier") + ": 등급이 겹친다");
+            }
+            foreach (var tier in new[] { MushroomTier.Normal, MushroomTier.Epic, MushroomTier.Unique })
+                if (!tiers.Contains(tier.ToString())) issues.Add($"[수확등급] {tier} 등급이 없다");
+        }
+
+        static bool IsTrue(string value) => value == "1" || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
 
         // 세계수: 단계는 1부터 이어지고, 가호는 있는 단계에만, 버섯·꼬마·등급 참조가 있어야 한다
         static void ValidateWorldTree(Dictionary<string, List<Row>> tables, Dictionary<int, Row> enemies, List<string> issues)
@@ -271,6 +357,11 @@ namespace MoreMush.Mobile.EditorTools
                 Between(r, "dungeon", 1, int.MaxValue, issues);
                 Between(r, "unlockStage", 0, int.MaxValue, issues);
                 if (!seen.Add(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 던전 번호가 겹친다");
+                string scene = r.Text("scene");
+                bool implemented = IsTrue(r.Text("implemented"));
+                if (implemented && (string.IsNullOrEmpty(scene) || !UnityEditor.EditorBuildSettings.scenes.Any(s => s.enabled && s.path == "Assets/Scenes/" + scene + ".unity")))
+                    issues.Add(r.At("scene") + ": 구현된 던전은 빌드 설정에 포함된 씬이 필요하다");
+                if (!implemented && !string.IsNullOrEmpty(scene)) issues.Add(r.At("scene") + ": 미구현 던전은 연결 씬을 비워 둔다");
             }
             if (seen.Count == 0) issues.Add("[던전] 행이 하나도 없다");
         }
@@ -355,7 +446,8 @@ namespace MoreMush.Mobile.EditorTools
                 {
                     string raw = columns.TryGetValue(col.Key, out int c) ? Cell(sheet[i], c) : "";
                     row.cells[col.Key] = raw;
-                    if (!Valid(raw, col.Value)) issues.Add(row.At(col.Key) + $": '{raw}'는 {col.Value} 값이 아니다");
+                    bool emptyScene = name == "던전" && col.Key == "scene" && raw.Length == 0;
+                    if (!emptyScene && !Valid(raw, col.Value)) issues.Add(row.At(col.Key) + $": '{raw}'는 {col.Value} 값이 아니다");
                 }
                 if (row.Int("index") <= 0 || !ids.Add(row.Int("index"))) issues.Add(row.At("index") + ": ID는 양의 정수이며 시트 내에서 고유해야 한다");
                 if (!keys.Add(row.Text("key"))) issues.Add(row.At("key") + ": 식별자가 겹친다");
@@ -373,6 +465,10 @@ namespace MoreMush.Mobile.EditorTools
             if (type == "Currency") return Enum.TryParse<Currency>(raw, out var currency) && Enum.IsDefined(typeof(Currency), currency);
             if (type == "TreeEffect") return Enum.TryParse<TreeEffect>(raw, out var effect) && Enum.IsDefined(typeof(TreeEffect), effect);
             if (type == "TreeZone") return Enum.TryParse<TreeZone>(raw, out var zone) && Enum.IsDefined(typeof(TreeZone), zone);
+            if (type == "GachaKind") return Enum.TryParse<GachaKind>(raw, out var kind) && Enum.IsDefined(typeof(GachaKind), kind);
+            if (type == "EquipStat") return Enum.TryParse<EquipStat>(raw, out var equip) && Enum.IsDefined(typeof(EquipStat), equip);
+            if (type == "MushroomTier") return Enum.TryParse<MushroomTier>(raw, out var tier) && Enum.IsDefined(typeof(MushroomTier), tier);
+            if (type == "bool") return bool.TryParse(raw, out _) || raw == "0" || raw == "1";
             if (!double.TryParse(raw, NumberStyles.Float, Inv, out double d) || double.IsNaN(d) || double.IsInfinity(d)) return false;
             if (type == "int") return d == Math.Floor(d) && d >= int.MinValue && d <= int.MaxValue;
             if (type == "long") return d == Math.Floor(d) && d >= -9e18 && d <= 9e18;

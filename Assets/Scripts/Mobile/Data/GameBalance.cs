@@ -288,6 +288,8 @@ namespace MoreMush.Mobile
     {
         public int dungeon;        // 던전 카드 번호 (DungeonEntry.dungeon)
         public int unlockStage;    // 이 스테이지에 진입해야 열린다 (0 = 처음부터)
+        public string scene;       // 구현 현황 기록: 실제 입장 씬. 미구현 던전은 빈 문자열
+        public bool implemented;   // 구현 현황 기록. 실제 입장 연결은 아직 DungeonEntry 프리팹이 기준
     }
 
     // 리소스: 리소스.index → Resources 경로
