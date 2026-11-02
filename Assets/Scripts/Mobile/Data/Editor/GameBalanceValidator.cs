@@ -52,7 +52,7 @@ namespace MoreMush.Mobile.EditorTools
             ("tributePreferMul", 0, false), ("giftFavoriteMul", 0, false), ("giftMaxCount", 1, true),
             ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
             ("kidBagShare", 0, false), ("decoSetBagMul", 0, false), ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
-            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false),
+            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false), ("kidEvoLevelGradeMul", 0.001, false),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
             ("offlineGoldRate", 0, false), ("adGachaPulls", 1, true),
         };

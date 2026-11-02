@@ -1,0 +1,3620 @@
+{
+"base": "live",
+"ads": 0.5,
+"sessions": [
+[
+30,
+4.0
+],
+[
+20,
+5.0
+],
+[
+40,
+15.0
+]
+],
+"days": [
+{
+"day": 1,
+"stage": 262,
+"eg": 12153920,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 5068,
+"bosses": 56,
+"stage0": 1,
+"stage": 33,
+"eg": 70714,
+"bmyc": 8
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 5092,
+"bosses": 67,
+"stage0": 33,
+"stage": 100,
+"eg": 1102321,
+"bmyc": 15
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 12312,
+"bosses": 162,
+"stage0": 100,
+"stage": 262,
+"eg": 12153920,
+"bmyc": 31
+}
+],
+"kills": 22472,
+"bosses": 285,
+"gold": {
+"battle": 86086345177.0,
+"offline": 1041209524031.0,
+"offline_ad": 43407750075.00001,
+"adbox": 0.0,
+"quest": 19446272000.0,
+"dungeon": 0.0
+},
+"gold_total": 1190149891283.0,
+"gold_kills": 97923.13025616427,
+"myc": {
+"boss": 4607.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 4616.0,
+"pulls": 528,
+"cc": 1.0,
+"cd": 6.0,
+"spd": 3.0
+},
+{
+"day": 2,
+"stage": 585,
+"eg": 90304700,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 8816,
+"bosses": 116,
+"stage0": 262,
+"stage": 378,
+"eg": 30342951,
+"bmyc": 42
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 5852,
+"bosses": 77,
+"stage0": 378,
+"stage": 455,
+"eg": 48207439,
+"bmyc": 50
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 9880,
+"bosses": 130,
+"stage0": 455,
+"stage": 585,
+"eg": 90304700,
+"bmyc": 63
+}
+],
+"kills": 24548,
+"bosses": 323,
+"gold": {
+"battle": 1344828491290.0,
+"offline": 16091172707585.0,
+"offline_ad": 11839608928760.0,
+"adbox": 18205770600.0,
+"quest": 144487520000.0,
+"dungeon": 0.0
+},
+"gold_total": 29438303418235.0,
+"gold_kills": 325988.60766089696,
+"myc": {
+"boss": 15133.0,
+"quest": 9.0,
+"adbox": 210.0,
+"dungeon": 0.0
+},
+"myc_total": 15352.0,
+"pulls": 1707,
+"cc": 1.0,
+"cd": 9.3,
+"spd": 3.0
+},
+{
+"day": 3,
+"stage": 831,
+"eg": 217044478,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 7448,
+"bosses": 98,
+"stage0": 585,
+"stage": 683,
+"eg": 132965633,
+"bmyc": 73
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3952,
+"bosses": 52,
+"stage0": 683,
+"stage": 735,
+"eg": 159716506,
+"bmyc": 78
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 7296,
+"bosses": 96,
+"stage0": 735,
+"stage": 831,
+"eg": 217044478,
+"bmyc": 88
+}
+],
+"kills": 18696,
+"bosses": 246,
+"gold": {
+"battle": 3457385612200.0,
+"offline": 39531413582055.0,
+"offline_ad": 10806663543075.0,
+"adbox": 130226686800.0,
+"quest": 347271164800.0,
+"dungeon": 0.0
+},
+"gold_total": 54272960588930.0,
+"gold_kills": 250054.55604786222,
+"myc": {
+"boss": 18523.0,
+"quest": 9.0,
+"adbox": 440.0,
+"dungeon": 0.0
+},
+"myc_total": 18972.0,
+"pulls": 2114,
+"cc": 1.0,
+"cd": 10.6,
+"spd": 3.0
+},
+{
+"day": 4,
+"stage": 1010,
+"eg": 353373438,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4940,
+"bosses": 65,
+"stage0": 831,
+"stage": 896,
+"eg": 261980425,
+"bmyc": 94
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3192,
+"bosses": 42,
+"stage0": 896,
+"stage": 938,
+"eg": 293750625,
+"bmyc": 98
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5472,
+"bosses": 72,
+"stage0": 938,
+"stage": 1010,
+"eg": 353373438,
+"bmyc": 106
+}
+],
+"kills": 13604,
+"bosses": 179,
+"gold": {
+"battle": 4787263468230.0,
+"offline": 54869523252530.0,
+"offline_ad": 38272781043380.0,
+"adbox": 212024062800.0,
+"quest": 565397500800.0,
+"dungeon": 0.0
+},
+"gold_total": 98706989327740.0,
+"gold_kills": 279327.69900985033,
+"myc": {
+"boss": 17282.0,
+"quest": 9.0,
+"adbox": 530.0,
+"dungeon": 0.0
+},
+"myc_total": 17821.0,
+"pulls": 1982,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 5,
+"stage": 1118,
+"eg": 455494438,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3952,
+"bosses": 52,
+"stage0": 1010,
+"stage": 1062,
+"eg": 400604159,
+"bmyc": 111
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2502,
+"bosses": 33,
+"stage0": 1062,
+"stage": 1089,
+"eg": 426541403,
+"bmyc": 113
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4754,
+"bosses": 63,
+"stage0": 1089,
+"stage": 1118,
+"eg": 455494438,
+"bmyc": 116
+}
+],
+"kills": 11208,
+"bosses": 148,
+"gold": {
+"battle": 5461590051635.0,
+"offline": 61858558005750.0,
+"offline_ad": 18769761171150.0,
+"adbox": 0.0,
+"quest": 728791100800.0,
+"dungeon": 0.0
+},
+"gold_total": 86818700329335.0,
+"gold_kills": 190603.2062884048,
+"myc": {
+"boss": 11978.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 11987.0,
+"pulls": 1342,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 6,
+"stage": 1166,
+"eg": 505946930,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3623,
+"bosses": 48,
+"stage0": 1118,
+"stage": 1141,
+"eg": 479272926,
+"bmyc": 119
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2337,
+"bosses": 31,
+"stage0": 1141,
+"stage": 1153,
+"eg": 491968282,
+"bmyc": 120
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4738,
+"bosses": 63,
+"stage0": 1153,
+"stage": 1166,
+"eg": 505946930,
+"bmyc": 121
+}
+],
+"kills": 10698,
+"bosses": 142,
+"gold": {
+"battle": 5683036577495.0,
+"offline": 64284125687320.0,
+"offline_ad": 45473518574620.0,
+"adbox": 287563755600.0,
+"quest": 809515088000.0,
+"dungeon": 0.0
+},
+"gold_total": 116537759683035.0,
+"gold_kills": 230335.93599043085,
+"myc": {
+"boss": 5698.0,
+"quest": 9.0,
+"adbox": 595.0,
+"dungeon": 0.0
+},
+"myc_total": 6302.0,
+"pulls": 719,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 7,
+"stage": 1217,
+"eg": 563074075,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3633,
+"bosses": 48,
+"stage0": 1166,
+"stage": 1199,
+"eg": 542492499,
+"bmyc": 124
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2329,
+"bosses": 31,
+"stage0": 1199,
+"stage": 1203,
+"eg": 547026472,
+"bmyc": 125
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4664,
+"bosses": 62,
+"stage0": 1203,
+"stage": 1217,
+"eg": 563074075,
+"bmyc": 126
+}
+],
+"kills": 10626,
+"bosses": 141,
+"gold": {
+"battle": 6328789675220.0,
+"offline": 70882648284025.0,
+"offline_ad": 19717817617425.0,
+"adbox": 337844445000.0,
+"quest": 900918520000.0,
+"dungeon": 0.0
+},
+"gold_total": 98168018541670.0,
+"gold_kills": 174342.99126925707,
+"myc": {
+"boss": 6306.0,
+"quest": 9.0,
+"adbox": 630.0,
+"dungeon": 0.0
+},
+"myc_total": 6945.0,
+"pulls": 785,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 8,
+"stage": 1244,
+"eg": 594812874,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3539,
+"bosses": 47,
+"stage0": 1217,
+"stage": 1231,
+"eg": 579400876,
+"bmyc": 128
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2332,
+"bosses": 31,
+"stage0": 1231,
+"stage": 1238,
+"eg": 587669477,
+"bmyc": 128
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4731,
+"bosses": 63,
+"stage0": 1238,
+"stage": 1244,
+"eg": 594812874,
+"bmyc": 129
+}
+],
+"kills": 10602,
+"bosses": 141,
+"gold": {
+"battle": 6516832044165.0,
+"offline": 73766536209980.0,
+"offline_ad": 52084645567280.0,
+"adbox": 356887724400.0,
+"quest": 951700598400.0,
+"dungeon": 0.0
+},
+"gold_total": 133676602144225.0,
+"gold_kills": 224737.2375202239,
+"myc": {
+"boss": 3444.0,
+"quest": 9.0,
+"adbox": 645.0,
+"dungeon": 0.0
+},
+"myc_total": 4098.0,
+"pulls": 477,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 9,
+"stage": 1314,
+"eg": 682016031,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3545,
+"bosses": 47,
+"stage0": 1244,
+"stage": 1264,
+"eg": 618999348,
+"bmyc": 131
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2404,
+"bosses": 32,
+"stage0": 1264,
+"stage": 1268,
+"eg": 623906178,
+"bmyc": 131
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4846,
+"bosses": 64,
+"stage0": 1268,
+"stage": 1314,
+"eg": 682016031,
+"bmyc": 136
+}
+],
+"kills": 10795,
+"bosses": 143,
+"gold": {
+"battle": 7721747792275.0,
+"offline": 87677916952400.0,
+"offline_ad": 23191818887100.0,
+"adbox": 0.0,
+"quest": 1091225649600.0,
+"dungeon": 0.0
+},
+"gold_total": 119682709281375.0,
+"gold_kills": 175483.71862446002,
+"myc": {
+"boss": 9268.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 9277.0,
+"pulls": 1045,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 10,
+"stage": 1361,
+"eg": 744624328,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3632,
+"bosses": 48,
+"stage0": 1314,
+"stage": 1346,
+"eg": 724284184,
+"bmyc": 139
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2410,
+"bosses": 32,
+"stage0": 1346,
+"stage": 1356,
+"eg": 737806713,
+"bmyc": 140
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4805,
+"bosses": 64,
+"stage0": 1356,
+"stage": 1361,
+"eg": 744624328,
+"bmyc": 141
+}
+],
+"kills": 10847,
+"bosses": 144,
+"gold": {
+"battle": 8558159016750.0,
+"offline": 96414273952565.0,
+"offline_ad": 67745971412240.0,
+"adbox": 434570510400.0,
+"quest": 1191398924800.0,
+"dungeon": 0.0
+},
+"gold_total": 174344373816755.0,
+"gold_kills": 234137.3592842846,
+"myc": {
+"boss": 6497.0,
+"quest": 9.0,
+"adbox": 695.0,
+"dungeon": 0.0
+},
+"myc_total": 7201.0,
+"pulls": 820,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 11,
+"stage": 1438,
+"eg": 854412853,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3713,
+"bosses": 49,
+"stage0": 1361,
+"stage": 1399,
+"eg": 797673867,
+"bmyc": 144
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2478,
+"bosses": 33,
+"stage0": 1399,
+"stage": 1402,
+"eg": 801955522,
+"bmyc": 145
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4911,
+"bosses": 65,
+"stage0": 1402,
+"stage": 1438,
+"eg": 854412853,
+"bmyc": 148
+}
+],
+"kills": 11102,
+"bosses": 147,
+"gold": {
+"battle": 10158572577980.0,
+"offline": 114244297808995.0,
+"offline_ad": 30482151651075.0,
+"adbox": 512647711800.0,
+"quest": 1367060564800.0,
+"dungeon": 0.0
+},
+"gold_total": 156764730314650.0,
+"gold_kills": 183476.55909461138,
+"myc": {
+"boss": 11123.0,
+"quest": 9.0,
+"adbox": 740.0,
+"dungeon": 0.0
+},
+"myc_total": 11872.0,
+"pulls": 1335,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 12,
+"stage": 1472,
+"eg": 905798017,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3694,
+"bosses": 49,
+"stage0": 1438,
+"stage": 1457,
+"eg": 882906097,
+"bmyc": 150
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2485,
+"bosses": 33,
+"stage0": 1457,
+"stage": 1467,
+"eg": 898128301,
+"bmyc": 151
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4880,
+"bosses": 65,
+"stage0": 1467,
+"stage": 1472,
+"eg": 905798017,
+"bmyc": 152
+}
+],
+"kills": 11059,
+"bosses": 147,
+"gold": {
+"battle": 10445033799535.0,
+"offline": 118311861618660.0,
+"offline_ad": 82393951109160.0,
+"adbox": 543478810200.0,
+"quest": 1449276827200.0,
+"dungeon": 0.0
+},
+"gold_total": 213143602164755.0,
+"gold_kills": 235310.2989457693,
+"myc": {
+"boss": 5100.0,
+"quest": 9.0,
+"adbox": 760.0,
+"dungeon": 0.0
+},
+"myc_total": 5869.0,
+"pulls": 675,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 13,
+"stage": 1560,
+"eg": 1047255234,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3776,
+"bosses": 50,
+"stage0": 1472,
+"stage": 1498,
+"eg": 946313368,
+"bmyc": 154
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2566,
+"bosses": 34,
+"stage0": 1498,
+"stage": 1514,
+"eg": 971776296,
+"bmyc": 156
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5071,
+"bosses": 67,
+"stage0": 1514,
+"stage": 1560,
+"eg": 1047255234,
+"bmyc": 161
+}
+],
+"kills": 11413,
+"bosses": 151,
+"gold": {
+"battle": 12813156705625.0,
+"offline": 146108722769850.0,
+"offline_ad": 41525782108650.0,
+"adbox": 0.0,
+"quest": 1675608374400.0,
+"dungeon": 0.0
+},
+"gold_total": 202123269958525.0,
+"gold_kills": 193002.87398566012,
+"myc": {
+"boss": 13736.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 13745.0,
+"pulls": 1529,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 14,
+"stage": 1589,
+"eg": 1096590395,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3761,
+"bosses": 50,
+"stage0": 1560,
+"stage": 1571,
+"eg": 1065808232,
+"bmyc": 162
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2489,
+"bosses": 33,
+"stage0": 1571,
+"stage": 1585,
+"eg": 1089704446,
+"bmyc": 163
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 4954,
+"bosses": 66,
+"stage0": 1585,
+"stage": 1589,
+"eg": 1096590395,
+"bmyc": 163
+}
+],
+"kills": 11204,
+"bosses": 149,
+"gold": {
+"battle": 12709779899145.0,
+"offline": 144599067827050.0,
+"offline_ad": 99822948201100.0,
+"adbox": 639484939200.0,
+"quest": 1754544632000.0,
+"dungeon": 0.0
+},
+"gold_total": 259525825498495.0,
+"gold_kills": 236666.14871133812,
+"myc": {
+"boss": 4697.0,
+"quest": 9.0,
+"adbox": 810.0,
+"dungeon": 0.0
+},
+"myc_total": 5516.0,
+"pulls": 633,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 15,
+"stage": 1674,
+"eg": 1249125248,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3952,
+"bosses": 52,
+"stage0": 1589,
+"stage": 1641,
+"eg": 1188489433,
+"bmyc": 169
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2557,
+"bosses": 34,
+"stage0": 1641,
+"stage": 1648,
+"eg": 1201200449,
+"bmyc": 169
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5201,
+"bosses": 69,
+"stage0": 1648,
+"stage": 1674,
+"eg": 1249125248,
+"bmyc": 172
+}
+],
+"kills": 11710,
+"bosses": 155,
+"gold": {
+"battle": 15906191423005.0,
+"offline": 177970957953325.0,
+"offline_ad": 48242426677425.0,
+"adbox": 749475148800.0,
+"quest": 1998600396800.0,
+"dungeon": 0.0
+},
+"gold_total": 244867651599355.0,
+"gold_kills": 196031.30429988314,
+"myc": {
+"boss": 14251.0,
+"quest": 9.0,
+"adbox": 860.0,
+"dungeon": 0.0
+},
+"myc_total": 15120.0,
+"pulls": 1687,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 16,
+"stage": 1720,
+"eg": 1336687231,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3845,
+"bosses": 51,
+"stage0": 1674,
+"stage": 1694,
+"eg": 1286758483,
+"bmyc": 174
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2566,
+"bosses": 34,
+"stage0": 1694,
+"stage": 1710,
+"eg": 1317348870,
+"bmyc": 176
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5185,
+"bosses": 69,
+"stage0": 1710,
+"stage": 1720,
+"eg": 1336687231,
+"bmyc": 177
+}
+],
+"kills": 11596,
+"bosses": 154,
+"gold": {
+"battle": 16329521016845.0,
+"offline": 185626719192090.0,
+"offline_ad": 129286192533540.0,
+"adbox": 802012338600.0,
+"quest": 2138699569600.0,
+"dungeon": 0.0
+},
+"gold_total": 334183144650675.0,
+"gold_kills": 250008.48134134305,
+"myc": {
+"boss": 8012.0,
+"quest": 9.0,
+"adbox": 885.0,
+"dungeon": 0.0
+},
+"myc_total": 8906.0,
+"pulls": 1005,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 17,
+"stage": 1786,
+"eg": 1468590310,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3949,
+"bosses": 52,
+"stage0": 1720,
+"stage": 1769,
+"eg": 1433902178,
+"bmyc": 181
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2553,
+"bosses": 34,
+"stage0": 1769,
+"stage": 1772,
+"eg": 1439987482,
+"bmyc": 182
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5264,
+"bosses": 70,
+"stage0": 1772,
+"stage": 1786,
+"eg": 1468590310,
+"bmyc": 183
+}
+],
+"kills": 11766,
+"bosses": 156,
+"gold": {
+"battle": 18623067899575.0,
+"offline": 207688569470680.0,
+"offline_ad": 56358161907600.0,
+"adbox": 0.0,
+"quest": 2349744496000.0,
+"dungeon": 0.0
+},
+"gold_total": 285019543773855.0,
+"gold_kills": 194076.96062890065,
+"myc": {
+"boss": 11868.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 11877.0,
+"pulls": 1331,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 18,
+"stage": 1858,
+"eg": 1621061609,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3842,
+"bosses": 51,
+"stage0": 1786,
+"stage": 1803,
+"eg": 1503777123,
+"bmyc": 185
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2660,
+"bosses": 35,
+"stage0": 1803,
+"stage": 1838,
+"eg": 1577800875,
+"bmyc": 188
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5195,
+"bosses": 69,
+"stage0": 1838,
+"stage": 1858,
+"eg": 1621061609,
+"bmyc": 190
+}
+],
+"kills": 11697,
+"bosses": 155,
+"gold": {
+"battle": 20342164423145.0,
+"offline": 234530702632275.0,
+"offline_ad": 157745455821300.0,
+"adbox": 902266273800.0,
+"quest": 2593698574400.0,
+"dungeon": 0.0
+},
+"gold_total": 416114287724920.0,
+"gold_kills": 256692.45722351814,
+"myc": {
+"boss": 13442.0,
+"quest": 9.0,
+"adbox": 925.0,
+"dungeon": 0.0
+},
+"myc_total": 14376.0,
+"pulls": 1612,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 19,
+"stage": 1922,
+"eg": 1764245337,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3936,
+"bosses": 52,
+"stage0": 1858,
+"stage": 1894,
+"eg": 1700707516,
+"bmyc": 194
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2636,
+"bosses": 35,
+"stage0": 1894,
+"stage": 1905,
+"eg": 1725502091,
+"bmyc": 195
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5192,
+"bosses": 69,
+"stage0": 1905,
+"stage": 1922,
+"eg": 1764245337,
+"bmyc": 197
+}
+],
+"kills": 11764,
+"bosses": 156,
+"gold": {
+"battle": 22302138676585.0,
+"offline": 251443816575185.0,
+"offline_ad": 73423529179125.0,
+"adbox": 1058547202200.0,
+"quest": 2822792539200.0,
+"dungeon": 0.0
+},
+"gold_total": 351050824172295.0,
+"gold_kills": 198980.72949946814,
+"myc": {
+"boss": 12384.0,
+"quest": 9.0,
+"adbox": 985.0,
+"dungeon": 0.0
+},
+"myc_total": 13378.0,
+"pulls": 1502,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 20,
+"stage": 1951,
+"eg": 1831531938,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3910,
+"bosses": 52,
+"stage0": 1922,
+"stage": 1932,
+"eg": 1787276988,
+"bmyc": 198
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2641,
+"bosses": 35,
+"stage0": 1932,
+"stage": 1948,
+"eg": 1824501112,
+"bmyc": 199
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5253,
+"bosses": 70,
+"stage0": 1948,
+"stage": 1951,
+"eg": 1831531938,
+"bmyc": 200
+}
+],
+"kills": 11804,
+"bosses": 157,
+"gold": {
+"battle": 22379055233790.0,
+"offline": 255314630164255.0,
+"offline_ad": 175169042061280.0,
+"adbox": 1098919162800.0,
+"quest": 2930451100800.0,
+"dungeon": 0.0
+},
+"gold_total": 456892097722925.0,
+"gold_kills": 249458.98471300642,
+"myc": {
+"boss": 5746.0,
+"quest": 9.0,
+"adbox": 1000.0,
+"dungeon": 0.0
+},
+"myc_total": 6755.0,
+"pulls": 765,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 21,
+"stage": 2006,
+"eg": 1963319668,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4012,
+"bosses": 53,
+"stage0": 1951,
+"stage": 1988,
+"eg": 1919583885,
+"bmyc": 203
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2632,
+"bosses": 35,
+"stage0": 1988,
+"stage": 1995,
+"eg": 1936522010,
+"bmyc": 204
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5261,
+"bosses": 70,
+"stage0": 1995,
+"stage": 2006,
+"eg": 1963319668,
+"bmyc": 205
+}
+],
+"kills": 11905,
+"bosses": 158,
+"gold": {
+"battle": 24960534081650.0,
+"offline": 280005822374175.0,
+"offline_ad": 80220630350175.0,
+"adbox": 0.0,
+"quest": 3141311468800.0,
+"dungeon": 0.0
+},
+"gold_total": 388328298274800.0,
+"gold_kills": 197791.68140783889,
+"myc": {
+"boss": 11130.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 11139.0,
+"pulls": 1258,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 22,
+"stage": 2053,
+"eg": 2080318710,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3988,
+"bosses": 53,
+"stage0": 2006,
+"stage": 2019,
+"eg": 1995274953,
+"bmyc": 206
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2715,
+"bosses": 36,
+"stage0": 2019,
+"stage": 2034,
+"eg": 2032531769,
+"bmyc": 208
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5269,
+"bosses": 70,
+"stage0": 2034,
+"stage": 2053,
+"eg": 2080318710,
+"bmyc": 210
+}
+],
+"kills": 11972,
+"bosses": 159,
+"gold": {
+"battle": 26145037333525.0,
+"offline": 298254044423910.0,
+"offline_ad": 207215575886160.0,
+"adbox": 1197164971800.0,
+"quest": 3328509936000.0,
+"dungeon": 0.0
+},
+"gold_total": 536140332551395.0,
+"gold_kills": 257720.28582649003,
+"myc": {
+"boss": 9750.0,
+"quest": 9.0,
+"adbox": 1030.0,
+"dungeon": 0.0
+},
+"myc_total": 10789.0,
+"pulls": 1224,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 23,
+"stage": 2117,
+"eg": 2246216715,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4083,
+"bosses": 54,
+"stage0": 2053,
+"stage": 2086,
+"eg": 2164906178,
+"bmyc": 213
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2649,
+"bosses": 35,
+"stage0": 2086,
+"stage": 2110,
+"eg": 2227698941,
+"bmyc": 216
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5257,
+"bosses": 70,
+"stage0": 2110,
+"stage": 2117,
+"eg": 2246216715,
+"bmyc": 216
+}
+],
+"kills": 11989,
+"bosses": 159,
+"gold": {
+"battle": 28941980844375.0,
+"offline": 327819823939355.0,
+"offline_ad": 102633517346475.0,
+"adbox": 1347730029000.0,
+"quest": 3593946744000.0,
+"dungeon": 0.0
+},
+"gold_total": 464336998903205.0,
+"gold_kills": 206719.59023473164,
+"myc": {
+"boss": 13632.0,
+"quest": 9.0,
+"adbox": 1080.0,
+"dungeon": 0.0
+},
+"myc_total": 14721.0,
+"pulls": 1661,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 24,
+"stage": 2155,
+"eg": 2348351893,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 3988,
+"bosses": 53,
+"stage0": 2117,
+"stage": 2130,
+"eg": 2280851200,
+"bmyc": 218
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2711,
+"bosses": 36,
+"stage0": 2130,
+"stage": 2141,
+"eg": 2310406001,
+"bmyc": 219
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5339,
+"bosses": 71,
+"stage0": 2141,
+"stage": 2155,
+"eg": 2348351893,
+"bmyc": 220
+}
+],
+"kills": 12038,
+"bosses": 160,
+"gold": {
+"battle": 29498887864025.0,
+"offline": 335639479958370.0,
+"offline_ad": 234696686413320.0,
+"adbox": 1409011135800.0,
+"quest": 3757363028800.0,
+"dungeon": 0.0
+},
+"gold_total": 605001428400315.0,
+"gold_kills": 257628.0966254298,
+"myc": {
+"boss": 8288.0,
+"quest": 9.0,
+"adbox": 1100.0,
+"dungeon": 0.0
+},
+"myc_total": 9397.0,
+"pulls": 1076,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 25,
+"stage": 2220,
+"eg": 2529414774,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4080,
+"bosses": 54,
+"stage0": 2155,
+"stage": 2185,
+"eg": 2430917019,
+"bmyc": 223
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2722,
+"bosses": 36,
+"stage0": 2185,
+"stage": 2207,
+"eg": 2492555790,
+"bmyc": 225
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5413,
+"bosses": 72,
+"stage0": 2207,
+"stage": 2220,
+"eg": 2529414774,
+"bmyc": 227
+}
+],
+"kills": 12215,
+"bosses": 162,
+"gold": {
+"battle": 33232847947590.0,
+"offline": 377344423395440.0,
+"offline_ad": 116386858032300.0,
+"adbox": 0.0,
+"quest": 4047063638400.0,
+"dungeon": 0.0
+},
+"gold_total": 531011193013730.0,
+"gold_kills": 209934.40793974345,
+"myc": {
+"boss": 14510.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 14519.0,
+"pulls": 1647,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 26,
+"stage": 2239,
+"eg": 2583870681,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4060,
+"bosses": 54,
+"stage0": 2220,
+"stage": 2230,
+"eg": 2557989020,
+"bmyc": 228
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2704,
+"bosses": 36,
+"stage0": 2230,
+"stage": 2234,
+"eg": 2569472681,
+"bmyc": 228
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5405,
+"bosses": 72,
+"stage0": 2234,
+"stage": 2239,
+"eg": 2583870681,
+"bmyc": 228
+}
+],
+"kills": 12169,
+"bosses": 162,
+"gold": {
+"battle": 32204097445715.0,
+"offline": 364444353862935.0,
+"offline_ad": 257338267350960.0,
+"adbox": 1534793412000.0,
+"quest": 4134193089600.0,
+"dungeon": 0.0
+},
+"gold_total": 659655705161210.0,
+"gold_kills": 255297.49225139723,
+"myc": {
+"boss": 4322.0,
+"quest": 9.0,
+"adbox": 1140.0,
+"dungeon": 0.0
+},
+"myc_total": 5471.0,
+"pulls": 647,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 27,
+"stage": 2301,
+"eg": 2766435539,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4102,
+"bosses": 54,
+"stage0": 2239,
+"stage": 2291,
+"eg": 2736483041,
+"bmyc": 234
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2702,
+"bosses": 36,
+"stage0": 2291,
+"stage": 2293,
+"eg": 2742457893,
+"bmyc": 234
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5408,
+"bosses": 72,
+"stage0": 2293,
+"stage": 2301,
+"eg": 2766435539,
+"bmyc": 235
+}
+],
+"kills": 12212,
+"bosses": 162,
+"gold": {
+"battle": 36418154457510.0,
+"offline": 405388963409685.0,
+"offline_ad": 112702246763925.0,
+"adbox": 1659861323400.0,
+"quest": 4426296862400.0,
+"dungeon": 0.0
+},
+"gold_total": 560595522816920.0,
+"gold_kills": 202641.8164869158,
+"myc": {
+"boss": 14353.0,
+"quest": 9.0,
+"adbox": 1175.0,
+"dungeon": 0.0
+},
+"myc_total": 15537.0,
+"pulls": 1773,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 28,
+"stage": 2353,
+"eg": 2925355251,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4093,
+"bosses": 54,
+"stage0": 2301,
+"stage": 2344,
+"eg": 2897468344,
+"bmyc": 239
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2706,
+"bosses": 36,
+"stage0": 2344,
+"stage": 2350,
+"eg": 2916041805,
+"bmyc": 240
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5328,
+"bosses": 71,
+"stage0": 2350,
+"stage": 2353,
+"eg": 2925355251,
+"bmyc": 240
+}
+],
+"kills": 12127,
+"bosses": 161,
+"gold": {
+"battle": 37919800197985.0,
+"offline": 423882886448240.0,
+"offline_ad": 300627002559140.0,
+"adbox": 1755213150600.0,
+"quest": 4680568401600.0,
+"dungeon": 0.0
+},
+"gold_total": 768865470757565.0,
+"gold_kills": 262828.0686575543,
+"myc": {
+"boss": 12335.0,
+"quest": 9.0,
+"adbox": 1200.0,
+"dungeon": 0.0
+},
+"myc_total": 13544.0,
+"pulls": 1564,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 29,
+"stage": 2390,
+"eg": 3041690190,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4159,
+"bosses": 55,
+"stage0": 2353,
+"stage": 2387,
+"eg": 3032156114,
+"bmyc": 243
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2775,
+"bosses": 37,
+"stage0": 2387,
+"stage": 2387,
+"eg": 3032156114,
+"bmyc": 243
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5478,
+"bosses": 73,
+"stage0": 2387,
+"stage": 2390,
+"eg": 3041690190,
+"bmyc": 244
+}
+],
+"kills": 12412,
+"bosses": 165,
+"gold": {
+"battle": 39627587241505.0,
+"offline": 443208403539130.0,
+"offline_ad": 126213498245250.0,
+"adbox": 0.0,
+"quest": 4866704304000.0,
+"dungeon": 0.0
+},
+"gold_total": 613916193329885.0,
+"gold_kills": 201833.89989822896,
+"myc": {
+"boss": 8940.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 8949.0,
+"pulls": 1031,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 30,
+"stage": 2423,
+"eg": 3147753150,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4138,
+"bosses": 55,
+"stage0": 2390,
+"stage": 2403,
+"eg": 3083212253,
+"bmyc": 245
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2792,
+"bosses": 37,
+"stage0": 2403,
+"stage": 2420,
+"eg": 3138020848,
+"bmyc": 247
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5478,
+"bosses": 73,
+"stage0": 2420,
+"stage": 2423,
+"eg": 3147753150,
+"bmyc": 247
+}
+],
+"kills": 12408,
+"bosses": 165,
+"gold": {
+"battle": 40636149591365.0,
+"offline": 462869024548810.0,
+"offline_ad": 316949086362460.0,
+"adbox": 1849927351800.0,
+"quest": 5036405040000.0,
+"dungeon": 0.0
+},
+"gold_total": 827340592894435.0,
+"gold_kills": 262835.2839213059,
+"myc": {
+"boss": 8091.0,
+"quest": 9.0,
+"adbox": 1225.0,
+"dungeon": 0.0
+},
+"myc_total": 9325.0,
+"pulls": 1083,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 31,
+"stage": 2502,
+"eg": 3410580640,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4166,
+"bosses": 55,
+"stage0": 2423,
+"stage": 2464,
+"eg": 3282578822,
+"bmyc": 251
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2855,
+"bosses": 38,
+"stage0": 2464,
+"stage": 2469,
+"eg": 3299253479,
+"bmyc": 251
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5658,
+"bosses": 75,
+"stage0": 2469,
+"stage": 2502,
+"eg": 3410580640,
+"bmyc": 255
+}
+],
+"kills": 12679,
+"bosses": 168,
+"gold": {
+"battle": 46934971531405.0,
+"offline": 528554691014515.0,
+"offline_ad": 145920653393775.0,
+"adbox": 2046348384000.0,
+"quest": 5456929024000.0,
+"dungeon": 0.0
+},
+"gold_total": 728913593347695.0,
+"gold_kills": 213721.26047947514,
+"myc": {
+"boss": 19809.0,
+"quest": 9.0,
+"adbox": 1275.0,
+"dungeon": 0.0
+},
+"myc_total": 21093.0,
+"pulls": 2431,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 32,
+"stage": 2542,
+"eg": 3548505732,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4151,
+"bosses": 55,
+"stage0": 2502,
+"stage": 2528,
+"eg": 3499858628,
+"bmyc": 257
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2779,
+"bosses": 37,
+"stage0": 2528,
+"stage": 2532,
+"eg": 3513716695,
+"bmyc": 258
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5485,
+"bosses": 73,
+"stage0": 2532,
+"stage": 2542,
+"eg": 3548505732,
+"bmyc": 259
+}
+],
+"kills": 12415,
+"bosses": 165,
+"gold": {
+"battle": 46290005362335.0,
+"offline": 520996931741680.0,
+"offline_ad": 370571398273180.0,
+"adbox": 2129103439200.0,
+"quest": 5677609171200.0,
+"dungeon": 0.0
+},
+"gold_total": 945665047987595.0,
+"gold_kills": 266496.69449867326,
+"myc": {
+"boss": 10268.0,
+"quest": 9.0,
+"adbox": 1295.0,
+"dungeon": 0.0
+},
+"myc_total": 11572.0,
+"pulls": 1352,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 33,
+"stage": 2578,
+"eg": 3675453617,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4148,
+"bosses": 55,
+"stage0": 2542,
+"stage": 2565,
+"eg": 3629302389,
+"bmyc": 261
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2779,
+"bosses": 37,
+"stage0": 2565,
+"stage": 2569,
+"eg": 3643465505,
+"bmyc": 261
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5559,
+"bosses": 74,
+"stage0": 2569,
+"stage": 2578,
+"eg": 3675453617,
+"bmyc": 262
+}
+],
+"kills": 12486,
+"bosses": 166,
+"gold": {
+"battle": 47991917271270.0,
+"offline": 540907015493480.0,
+"offline_ad": 155980939412100.0,
+"adbox": 0.0,
+"quest": 5880725787200.0,
+"dungeon": 0.0
+},
+"gold_total": 750760597964050.0,
+"gold_kills": 204263.3852027332,
+"myc": {
+"boss": 9378.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 9387.0,
+"pulls": 1100,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 34,
+"stage": 2596,
+"eg": 3739933882,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4128,
+"bosses": 55,
+"stage0": 2578,
+"stage": 2581,
+"eg": 3686153621,
+"bmyc": 263
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2788,
+"bosses": 37,
+"stage0": 2581,
+"stage": 2594,
+"eg": 3732736167,
+"bmyc": 264
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5552,
+"bosses": 74,
+"stage0": 2594,
+"stage": 2596,
+"eg": 3739933882,
+"bmyc": 264
+}
+],
+"kills": 12468,
+"bosses": 166,
+"gold": {
+"battle": 47625135169860.0,
+"offline": 543697066896460.0,
+"offline_ad": 374229452424460.0,
+"adbox": 2211692172600.0,
+"quest": 5983894211200.0,
+"dungeon": 0.0
+},
+"gold_total": 973747240874580.0,
+"gold_kills": 260364.82772092492,
+"myc": {
+"boss": 4738.0,
+"quest": 9.0,
+"adbox": 1315.0,
+"dungeon": 0.0
+},
+"myc_total": 6062.0,
+"pulls": 714,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 35,
+"stage": 2610,
+"eg": 3790551059,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4133,
+"bosses": 55,
+"stage0": 2596,
+"stage": 2604,
+"eg": 3768807986,
+"bmyc": 265
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2777,
+"bosses": 37,
+"stage0": 2604,
+"stage": 2606,
+"eg": 3776047339,
+"bmyc": 265
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5554,
+"bosses": 74,
+"stage0": 2606,
+"stage": 2610,
+"eg": 3790551059,
+"bmyc": 266
+}
+],
+"kills": 12464,
+"bosses": 166,
+"gold": {
+"battle": 48100716193785.0,
+"offline": 544539740755260.0,
+"offline_ad": 159395536826100.0,
+"adbox": 2274330635400.0,
+"quest": 6064881694400.0,
+"dungeon": 0.0
+},
+"gold_total": 760375206104945.0,
+"gold_kills": 200597.5369463939,
+"myc": {
+"boss": 3706.0,
+"quest": 9.0,
+"adbox": 1330.0,
+"dungeon": 0.0
+},
+"myc_total": 5045.0,
+"pulls": 609,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 36,
+"stage": 2654,
+"eg": 3952300263,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4299,
+"bosses": 57,
+"stage0": 2610,
+"stage": 2634,
+"eg": 3878275122,
+"bmyc": 268
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2856,
+"bosses": 38,
+"stage0": 2634,
+"stage": 2640,
+"eg": 3900394511,
+"bmyc": 269
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5639,
+"bosses": 75,
+"stage0": 2640,
+"stage": 2654,
+"eg": 3952300263,
+"bmyc": 270
+}
+],
+"kills": 12794,
+"bosses": 170,
+"gold": {
+"battle": 53204868522080.0,
+"offline": 599841672907595.0,
+"offline_ad": 426189470177720.0,
+"adbox": 2371380157800.0,
+"quest": 6323680420800.0,
+"dungeon": 0.0
+},
+"gold_total": 1087931072185995.0,
+"gold_kills": 275265.2885133275,
+"myc": {
+"boss": 11780.0,
+"quest": 9.0,
+"adbox": 1350.0,
+"dungeon": 0.0
+},
+"myc_total": 13139.0,
+"pulls": 1531,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 37,
+"stage": 2710,
+"eg": 4164056716,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4305,
+"bosses": 57,
+"stage0": 2654,
+"stage": 2684,
+"eg": 4064916490,
+"bmyc": 273
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2864,
+"bosses": 38,
+"stage0": 2684,
+"stage": 2698,
+"eg": 4118121569,
+"bmyc": 274
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5712,
+"bosses": 76,
+"stage0": 2698,
+"stage": 2710,
+"eg": 4164056716,
+"bmyc": 276
+}
+],
+"kills": 12881,
+"bosses": 171,
+"gold": {
+"battle": 57205788655295.0,
+"offline": 646433084454586.0,
+"offline_ad": 192776491760025.0,
+"adbox": 0.0,
+"quest": 6662490745600.0,
+"dungeon": 0.0
+},
+"gold_total": 903077855615506.0,
+"gold_kills": 216874.53298739027,
+"myc": {
+"boss": 15270.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 15279.0,
+"pulls": 1787,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 38,
+"stage": 2749,
+"eg": 4315463196,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4289,
+"bosses": 57,
+"stage0": 2710,
+"stage": 2724,
+"eg": 4218034598,
+"bmyc": 277
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2873,
+"bosses": 38,
+"stage0": 2724,
+"stage": 2747,
+"eg": 4307619753,
+"bmyc": 279
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5702,
+"bosses": 76,
+"stage0": 2747,
+"stage": 2749,
+"eg": 4315463196,
+"bmyc": 279
+}
+],
+"kills": 12864,
+"bosses": 171,
+"gold": {
+"battle": 58100172317410.0,
+"offline": 662971165399316.0,
+"offline_ad": 450632830293940.0,
+"adbox": 2530820758800.0,
+"quest": 6904741113600.0,
+"dungeon": 0.0
+},
+"gold_total": 1181139729883066.0,
+"gold_kills": 273699.40982879046,
+"myc": {
+"boss": 10821.0,
+"quest": 9.0,
+"adbox": 1385.0,
+"dungeon": 0.0
+},
+"myc_total": 12215.0,
+"pulls": 1434,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 39,
+"stage": 2783,
+"eg": 4450114355,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4300,
+"bosses": 57,
+"stage0": 2749,
+"stage": 2774,
+"eg": 4414229715,
+"bmyc": 282
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2852,
+"bosses": 38,
+"stage0": 2774,
+"stage": 2776,
+"eg": 4422189017,
+"bmyc": 282
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5707,
+"bosses": 76,
+"stage0": 2776,
+"stage": 2783,
+"eg": 4450114355,
+"bmyc": 283
+}
+],
+"kills": 12859,
+"bosses": 171,
+"gold": {
+"battle": 59712449145195.0,
+"offline": 671062648891000.0,
+"offline_ad": 191680401030300.0,
+"adbox": 2670068613000.0,
+"quest": 7120182968000.0,
+"dungeon": 0.0
+},
+"gold_total": 932245750647495.0,
+"gold_kills": 209488.04373983215,
+"myc": {
+"boss": 9558.0,
+"quest": 9.0,
+"adbox": 1415.0,
+"dungeon": 0.0
+},
+"myc_total": 10982.0,
+"pulls": 1296,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 40,
+"stage": 2813,
+"eg": 4570991417,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4298,
+"bosses": 57,
+"stage0": 2783,
+"stage": 2806,
+"eg": 4542612833,
+"bmyc": 285
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2855,
+"bosses": 38,
+"stage0": 2806,
+"stage": 2811,
+"eg": 4562872429,
+"bmyc": 286
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5702,
+"bosses": 76,
+"stage0": 2811,
+"stage": 2813,
+"eg": 4570991417,
+"bmyc": 286
+}
+],
+"kills": 12855,
+"bosses": 171,
+"gold": {
+"battle": 61094647298325.0,
+"offline": 687885396461780.0,
+"offline_ad": 486064932085580.0,
+"adbox": 2742594850200.0,
+"quest": 7313586267200.0,
+"dungeon": 0.0
+},
+"gold_total": 1245101156963085.0,
+"gold_kills": 272391.9262531149,
+"myc": {
+"boss": 8529.0,
+"quest": 9.0,
+"adbox": 1430.0,
+"dungeon": 0.0
+},
+"myc_total": 9968.0,
+"pulls": 1182,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 41,
+"stage": 2834,
+"eg": 4656764338,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4283,
+"bosses": 57,
+"stage0": 2813,
+"stage": 2821,
+"eg": 4603554019,
+"bmyc": 287
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2860,
+"bosses": 38,
+"stage0": 2821,
+"stage": 2831,
+"eg": 4644452461,
+"bmyc": 288
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5703,
+"bosses": 76,
+"stage0": 2831,
+"stage": 2834,
+"eg": 4656764338,
+"bmyc": 288
+}
+],
+"kills": 12846,
+"bosses": 171,
+"gold": {
+"battle": 61366731862295.0,
+"offline": 697225701483050.0,
+"offline_ad": 212162903389650.0,
+"adbox": 0.0,
+"quest": 7450822940800.0,
+"dungeon": 0.0
+},
+"gold_total": 978206159675795.0,
+"gold_kills": 210061.34059511323,
+"myc": {
+"boss": 6024.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 6033.0,
+"pulls": 718,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 42,
+"stage": 2847,
+"eg": 4710341981,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4278,
+"bosses": 57,
+"stage0": 2834,
+"stage": 2837,
+"eg": 4669095776,
+"bmyc": 288
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2932,
+"bosses": 39,
+"stage0": 2837,
+"stage": 2844,
+"eg": 4697945262,
+"bmyc": 289
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5778,
+"bosses": 77,
+"stage0": 2844,
+"stage": 2847,
+"eg": 4710341981,
+"bmyc": 289
+}
+],
+"kills": 12988,
+"bosses": 173,
+"gold": {
+"battle": 62108910106480.0,
+"offline": 707518874972990.0,
+"offline_ad": 491695370445140.0,
+"adbox": 2801457465600.0,
+"quest": 7536547169600.0,
+"dungeon": 0.0
+},
+"gold_total": 1271661160159810.0,
+"gold_kills": 269972.1517650483,
+"myc": {
+"boss": 3751.0,
+"quest": 9.0,
+"adbox": 1440.0,
+"dungeon": 0.0
+},
+"myc_total": 5200.0,
+"pulls": 626,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 43,
+"stage": 2866,
+"eg": 4789310260,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4358,
+"bosses": 58,
+"stage0": 2847,
+"stage": 2855,
+"eg": 4743495778,
+"bmyc": 290
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2928,
+"bosses": 39,
+"stage0": 2855,
+"stage": 2858,
+"eg": 4755964437,
+"bmyc": 290
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5783,
+"bosses": 77,
+"stage0": 2858,
+"stage": 2866,
+"eg": 4789310260,
+"bmyc": 291
+}
+],
+"kills": 13069,
+"bosses": 174,
+"gold": {
+"battle": 63940511108510.0,
+"offline": 724524548915200.0,
+"offline_ad": 212912765768400.0,
+"adbox": 2873586156000.0,
+"quest": 7662896416000.0,
+"dungeon": 0.0
+},
+"gold_total": 1011914308364110.0,
+"gold_kills": 211286.02104055585,
+"myc": {
+"boss": 5513.0,
+"quest": 9.0,
+"adbox": 1455.0,
+"dungeon": 0.0
+},
+"myc_total": 6977.0,
+"pulls": 836,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 44,
+"stage": 2891,
+"eg": 4894418472,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4437,
+"bosses": 59,
+"stage0": 2866,
+"stage": 2878,
+"eg": 4839591347,
+"bmyc": 292
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2937,
+"bosses": 39,
+"stage0": 2878,
+"stage": 2890,
+"eg": 4890187840,
+"bmyc": 294
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5851,
+"bosses": 78,
+"stage0": 2890,
+"stage": 2891,
+"eg": 4894418472,
+"bmyc": 294
+}
+],
+"kills": 13225,
+"bosses": 176,
+"gold": {
+"battle": 66704607067710.0,
+"offline": 756679394371194.0,
+"offline_ad": 524986823484520.0,
+"adbox": 2936651083200.0,
+"quest": 7831069555200.0,
+"dungeon": 0.0
+},
+"gold_total": 1359138545561824.0,
+"gold_kills": 277691.528286187,
+"myc": {
+"boss": 7308.0,
+"quest": 9.0,
+"adbox": 1470.0,
+"dungeon": 0.0
+},
+"myc_total": 8787.0,
+"pulls": 1046,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 45,
+"stage": 2940,
+"eg": 5104416060,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4431,
+"bosses": 59,
+"stage0": 2891,
+"stage": 2897,
+"eg": 4919848378,
+"bmyc": 294
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2927,
+"bosses": 39,
+"stage0": 2897,
+"stage": 2899,
+"eg": 4928342589,
+"bmyc": 294
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5891,
+"bosses": 78,
+"stage0": 2899,
+"stage": 2940,
+"eg": 5104416060,
+"bmyc": 299
+}
+],
+"kills": 13249,
+"bosses": 176,
+"gold": {
+"battle": 70649915847770.0,
+"offline": 802201018476594.0,
+"offline_ad": 219055177167975.0,
+"adbox": 0.0,
+"quest": 8167065696000.0,
+"dungeon": 0.0
+},
+"gold_total": 1100073177188339.0,
+"gold_kills": 215514.0106640012,
+"myc": {
+"boss": 14506.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 14515.0,
+"pulls": 1711,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 46,
+"stage": 2954,
+"eg": 5165389708,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4429,
+"bosses": 59,
+"stage0": 2940,
+"stage": 2944,
+"eg": 5121792782,
+"bmyc": 299
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2933,
+"bosses": 39,
+"stage0": 2944,
+"stage": 2952,
+"eg": 5156652582,
+"bmyc": 300
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5852,
+"bosses": 78,
+"stage0": 2952,
+"stage": 2954,
+"eg": 5165389708,
+"bmyc": 300
+}
+],
+"kills": 13214,
+"bosses": 176,
+"gold": {
+"battle": 69385810499710.0,
+"offline": 788031617576220.0,
+"offline_ad": 549631190487720.0,
+"adbox": 3073075669200.0,
+"quest": 8264623532800.0,
+"dungeon": 0.0
+},
+"gold_total": 1418386317765650.0,
+"gold_kills": 274594.2509563017,
+"myc": {
+"boss": 4190.0,
+"quest": 9.0,
+"adbox": 1495.0,
+"dungeon": 0.0
+},
+"myc_total": 5694.0,
+"pulls": 687,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 47,
+"stage": 2967,
+"eg": 5222397516,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4433,
+"bosses": 59,
+"stage0": 2954,
+"stage": 2962,
+"eg": 5200427002,
+"bmyc": 301
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2926,
+"bosses": 39,
+"stage0": 2962,
+"stage": 2963,
+"eg": 5204816659,
+"bmyc": 301
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5854,
+"bosses": 78,
+"stage0": 2963,
+"stage": 2967,
+"eg": 5222397516,
+"bmyc": 301
+}
+],
+"kills": 13213,
+"bosses": 176,
+"gold": {
+"battle": 70116443440430.0,
+"offline": 792084486868300.0,
+"offline_ad": 229916520650100.0,
+"adbox": 3133438509600.0,
+"quest": 8355836025600.0,
+"dungeon": 0.0
+},
+"gold_total": 1103606725494030.0,
+"gold_kills": 211321.8540168343,
+"myc": {
+"boss": 3907.0,
+"quest": 9.0,
+"adbox": 1505.0,
+"dungeon": 0.0
+},
+"myc_total": 5421.0,
+"pulls": 652,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 48,
+"stage": 2976,
+"eg": 5262084578,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4428,
+"bosses": 59,
+"stage0": 2967,
+"stage": 2970,
+"eg": 5235606508,
+"bmyc": 302
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2929,
+"bosses": 39,
+"stage0": 2970,
+"stage": 2974,
+"eg": 5253249650,
+"bmyc": 302
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5852,
+"bosses": 78,
+"stage0": 2974,
+"stage": 2976,
+"eg": 5262084578,
+"bmyc": 302
+}
+],
+"kills": 13209,
+"bosses": 176,
+"gold": {
+"battle": 70253428033365.0,
+"offline": 796469867855424.0,
+"offline_ad": 559742509435300.0,
+"adbox": 3157250746800.0,
+"quest": 8419335324800.0,
+"dungeon": 0.0
+},
+"gold_total": 1438042391395689.0,
+"gold_kills": 273283.7851766831,
+"myc": {
+"boss": 2715.0,
+"quest": 9.0,
+"adbox": 1510.0,
+"dungeon": 0.0
+},
+"myc_total": 4234.0,
+"pulls": 512,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 49,
+"stage": 3065,
+"eg": 5664302104,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4484,
+"bosses": 59,
+"stage0": 2976,
+"stage": 3035,
+"eg": 5526735750,
+"bmyc": 308
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2942,
+"bosses": 39,
+"stage0": 3035,
+"stage": 3052,
+"eg": 5604440833,
+"bmyc": 310
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5863,
+"bosses": 78,
+"stage0": 3052,
+"stage": 3065,
+"eg": 5664302104,
+"bmyc": 311
+}
+],
+"kills": 13289,
+"bosses": 176,
+"gold": {
+"battle": 83004886393895.0,
+"offline": 929876720047084.0,
+"offline_ad": 273479612555926.0,
+"adbox": 0.0,
+"quest": 9062883366400.0,
+"dungeon": 0.0
+},
+"gold_total": 1295424102363305.0,
+"gold_kills": 228699.68419384028,
+"myc": {
+"boss": 27283.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 27292.0,
+"pulls": 3203,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 50,
+"stage": 3182,
+"eg": 6220340205,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4433,
+"bosses": 59,
+"stage0": 3065,
+"stage": 3073,
+"eg": 5701329626,
+"bmyc": 312
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2956,
+"bosses": 39,
+"stage0": 3073,
+"stage": 3104,
+"eg": 5846181140,
+"bmyc": 315
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 5928,
+"bosses": 78,
+"stage0": 3104,
+"stage": 3182,
+"eg": 6220340205,
+"bmyc": 323
+}
+],
+"kills": 13317,
+"bosses": 176,
+"gold": {
+"battle": 91299811697980.0,
+"offline": 1052646881582892.0,
+"offline_ad": 745086832614340.0,
+"adbox": 3420797775600.0,
+"quest": 9952544328000.0,
+"dungeon": 0.0
+},
+"gold_total": 1902406867998812.0,
+"gold_kills": 305836.46638324216,
+"myc": {
+"boss": 37071.0,
+"quest": 9.0,
+"adbox": 1560.0,
+"dungeon": 0.0
+},
+"myc_total": 38640.0,
+"pulls": 4523,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 51,
+"stage": 3359,
+"eg": 7121635153,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4484,
+"bosses": 59,
+"stage0": 3182,
+"stage": 3241,
+"eg": 6512656490,
+"bmyc": 329
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 2964,
+"bosses": 39,
+"stage0": 3241,
+"stage": 3280,
+"eg": 6710319708,
+"bmyc": 333
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6004,
+"bosses": 79,
+"stage0": 3280,
+"stage": 3359,
+"eg": 7121635153,
+"bmyc": 340
+}
+],
+"kills": 13452,
+"bosses": 177,
+"gold": {
+"battle": 112027350760200.0,
+"offline": 1275117140596264.0,
+"offline_ad": 367276204837124.0,
+"adbox": 4272981091800.0,
+"quest": 11394616244800.0,
+"dungeon": 0.0
+},
+"gold_total": 1770088293530188.0,
+"gold_kills": 248550.82512680188,
+"myc": {
+"boss": 58684.0,
+"quest": 9.0,
+"adbox": 1700.0,
+"dungeon": 0.0
+},
+"myc_total": 60393.0,
+"pulls": 7032,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 52,
+"stage": 3537,
+"eg": 8102783376,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4484,
+"bosses": 59,
+"stage0": 3359,
+"stage": 3418,
+"eg": 7438443484,
+"bmyc": 346
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 3418,
+"stage": 3458,
+"eg": 7657950541,
+"bmyc": 350
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6004,
+"bosses": 79,
+"stage0": 3458,
+"stage": 3537,
+"eg": 8102783376,
+"bmyc": 358
+}
+],
+"kills": 13528,
+"bosses": 178,
+"gold": {
+"battle": 128568820327180.0,
+"offline": 1465697537995808.0,
+"offline_ad": 1035624889436560.0,
+"adbox": 4861670025600.0,
+"quest": 12964453401600.0,
+"dungeon": 0.0
+},
+"gold_total": 2647717371186748.0,
+"gold_kills": 326766.40215128317,
+"myc": {
+"boss": 62176.0,
+"quest": 9.0,
+"adbox": 1790.0,
+"dungeon": 0.0
+},
+"myc_total": 63975.0,
+"pulls": 7419,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 53,
+"stage": 3715,
+"eg": 9160860529,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4484,
+"bosses": 59,
+"stage0": 3537,
+"stage": 3596,
+"eg": 8444875838,
+"bmyc": 364
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 3596,
+"stage": 3636,
+"eg": 8681646273,
+"bmyc": 368
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6004,
+"bosses": 79,
+"stage0": 3636,
+"stage": 3715,
+"eg": 9160860529,
+"bmyc": 376
+}
+],
+"kills": 13528,
+"bosses": 178,
+"gold": {
+"battle": 145804088972400.0,
+"offline": 1661814365180908.0,
+"offline_ad": 487918534150950.0,
+"adbox": 0.0,
+"quest": 14657376846400.0,
+"dungeon": 0.0
+},
+"gold_total": 2310194365150658.0,
+"gold_kills": 252180.93407681637,
+"myc": {
+"boss": 65344.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 65353.0,
+"pulls": 7572,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 54,
+"stage": 3893,
+"eg": 10297778702,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4484,
+"bosses": 59,
+"stage0": 3715,
+"stage": 3774,
+"eg": 9528876129,
+"bmyc": 382
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 3774,
+"stage": 3814,
+"eg": 9783340188,
+"bmyc": 386
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6004,
+"bosses": 79,
+"stage0": 3814,
+"stage": 3893,
+"eg": 10297778702,
+"bmyc": 394
+}
+],
+"kills": 13528,
+"bosses": 178,
+"gold": {
+"battle": 164356367897310.0,
+"offline": 1872890185226120.0,
+"offline_ad": 1322692426275020.0,
+"adbox": 5717325677400.0,
+"quest": 16476445923200.0,
+"dungeon": 0.0
+},
+"gold_total": 3382132750999050.0,
+"gold_kills": 328433.23292062816,
+"myc": {
+"boss": 68512.0,
+"quest": 9.0,
+"adbox": 1910.0,
+"dungeon": 0.0
+},
+"myc_total": 70431.0,
+"pulls": 8134,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 55,
+"stage": 4071,
+"eg": 11515404684,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4484,
+"bosses": 59,
+"stage0": 3893,
+"stage": 3952,
+"eg": 10692341068,
+"bmyc": 400
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 3952,
+"stage": 3992,
+"eg": 10964918780,
+"bmyc": 404
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6004,
+"bosses": 79,
+"stage0": 3992,
+"stage": 4071,
+"eg": 11515404684,
+"bmyc": 412
+}
+],
+"kills": 13528,
+"bosses": 178,
+"gold": {
+"battle": 184257605078650.0,
+"offline": 2099287240506100.0,
+"offline_ad": 617018150754600.0,
+"adbox": 6909242810400.0,
+"quest": 18424647494400.0,
+"dungeon": 0.0
+},
+"gold_total": 2925896886644150.0,
+"gold_kills": 254085.4591684057,
+"myc": {
+"boss": 71680.0,
+"quest": 9.0,
+"adbox": 2060.0,
+"dungeon": 0.0
+},
+"myc_total": 73749.0,
+"pulls": 8510,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 56,
+"stage": 4249,
+"eg": 12815563033,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4484,
+"bosses": 59,
+"stage0": 4071,
+"stage": 4130,
+"eg": 11937123123,
+"bmyc": 418
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 4130,
+"stage": 4170,
+"eg": 12228224993,
+"bmyc": 422
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6004,
+"bosses": 79,
+"stage0": 4170,
+"stage": 4249,
+"eg": 12815563033,
+"bmyc": 429
+}
+],
+"kills": 13528,
+"bosses": 178,
+"gold": {
+"battle": 205539008769010.0,
+"offline": 2341359400163624.0,
+"offline_ad": 1652874365313900.0,
+"adbox": 7689337819800.0,
+"quest": 20504900852800.0,
+"dungeon": 0.0
+},
+"gold_total": 4227967012919134.0,
+"gold_kills": 329908.79932720424,
+"myc": {
+"boss": 74849.0,
+"quest": 9.0,
+"adbox": 2145.0,
+"dungeon": 0.0
+},
+"myc_total": 77003.0,
+"pulls": 8862,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 57,
+"stage": 4429,
+"eg": 14216080438,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4560,
+"bosses": 60,
+"stage0": 4249,
+"stage": 4309,
+"eg": 13272731829,
+"bmyc": 435
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 4309,
+"stage": 4349,
+"eg": 13582866900,
+"bmyc": 439
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6080,
+"bosses": 80,
+"stage0": 4349,
+"stage": 4429,
+"eg": 14216080438,
+"bmyc": 447
+}
+],
+"kills": 13680,
+"bosses": 180,
+"gold": {
+"battle": 230929865860175.0,
+"offline": 2626885591279852.0,
+"offline_ad": 765143189966250.0,
+"adbox": 0.0,
+"quest": 22745728700800.0,
+"dungeon": 0.0
+},
+"gold_total": 3645704375807077.0,
+"gold_kills": 256449.3350826858,
+"myc": {
+"boss": 78912.0,
+"quest": 9.0,
+"adbox": 0.0,
+"dungeon": 0.0
+},
+"myc_total": 78921.0,
+"pulls": 9061,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 58,
+"stage": 4609,
+"eg": 15704628064,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4560,
+"bosses": 60,
+"stage0": 4429,
+"stage": 4489,
+"eg": 14702393657,
+"bmyc": 453
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 4489,
+"stage": 4529,
+"eg": 15032069224,
+"bmyc": 457
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6080,
+"bosses": 80,
+"stage0": 4529,
+"stage": 4609,
+"eg": 15704628064,
+"bmyc": 465
+}
+],
+"kills": 13680,
+"bosses": 180,
+"gold": {
+"battle": 255624641426660.0,
+"offline": 2907371429556568.0,
+"offline_ad": 2060194953666720.0,
+"adbox": 8821436194200.0,
+"quest": 25127404902400.0,
+"dungeon": 0.0
+},
+"gold_total": 5257139865746548.0,
+"gold_kills": 334750.99469547987,
+"myc": {
+"boss": 82152.0,
+"quest": 9.0,
+"adbox": 2265.0,
+"dungeon": 0.0
+},
+"myc_total": 84426.0,
+"pulls": 9682,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 59,
+"stage": 4789,
+"eg": 17282976963,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4560,
+"bosses": 60,
+"stage0": 4609,
+"stage": 4669,
+"eg": 16220679991,
+"bmyc": 471
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 4669,
+"stage": 4709,
+"eg": 16570290038,
+"bmyc": 475
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6080,
+"bosses": 80,
+"stage0": 4709,
+"stage": 4789,
+"eg": 17282976963,
+"bmyc": 483
+}
+],
+"kills": 13680,
+"bosses": 180,
+"gold": {
+"battle": 281839842429840.0,
+"offline": 3205101125096488.0,
+"offline_ad": 934272314795024.0,
+"adbox": 10369786177800.0,
+"quest": 27652763140800.0,
+"dungeon": 0.0
+},
+"gold_total": 4459235831639952.0,
+"gold_kills": 258013.17916389287,
+"myc": {
+"boss": 85392.0,
+"quest": 9.0,
+"adbox": 2415.0,
+"dungeon": 0.0
+},
+"myc_total": 87816.0,
+"pulls": 10056,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+},
+{
+"day": 60,
+"stage": 4970,
+"eg": 18962399952,
+"sessions": [
+{
+"mins": 30,
+"gap": 4.0,
+"kills": 4560,
+"bosses": 60,
+"stage0": 4789,
+"stage": 4849,
+"eg": 17829350236,
+"bmyc": 489
+},
+{
+"mins": 20,
+"gap": 5.0,
+"kills": 3040,
+"bosses": 40,
+"stage0": 4849,
+"stage": 4889,
+"eg": 18199281110,
+"bmyc": 493
+},
+{
+"mins": 40,
+"gap": 15.0,
+"kills": 6156,
+"bosses": 81,
+"stage0": 4889,
+"stage": 4970,
+"eg": 18962399952,
+"bmyc": 502
+}
+],
+"kills": 13756,
+"bosses": 181,
+"gold": {
+"battle": 311405981704630.0,
+"offline": 3542020597608464.0,
+"offline_ad": 2515489817579940.0,
+"adbox": 11377439971200.0,
+"quest": 30339839923200.0,
+"dungeon": 0.0
+},
+"gold_total": 6410633676787434.0,
+"gold_kills": 338070.79763188376,
+"myc": {
+"boss": 89133.0,
+"quest": 9.0,
+"adbox": 2510.0,
+"dungeon": 0.0
+},
+"myc_total": 91652.0,
+"pulls": 10487,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0
+}
+]
+}

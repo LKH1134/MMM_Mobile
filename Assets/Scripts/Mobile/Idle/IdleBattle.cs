@@ -389,7 +389,10 @@ namespace MoreMush.Mobile
             if (e.boss)
             {
                 boss = null;
-                long mycelite = IdleProgress.ClampToLong(System.Math.Round(IdleProgress.BossMycelite(stage) * WorldTree.Mul(TreeEffect.BossMycelite)));
+                // 세계수 보스 균사석 배율: 소수 부분은 확률로 (보스 균사석이 작아도 효과가 기대값으로 남게)
+                double myceliteRaw = IdleProgress.BossMycelite(stage) * WorldTree.Mul(TreeEffect.BossMycelite);
+                long mycelite = IdleProgress.ClampToLong(System.Math.Floor(myceliteRaw));
+                if (Random.value < myceliteRaw - System.Math.Floor(myceliteRaw)) mycelite++;
                 Wallet.Add(Currency.Mycelite, mycelite);
                 IdleAway.AddMycelite(mycelite);
                 IdleAway.AddStage();

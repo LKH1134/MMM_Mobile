@@ -78,8 +78,8 @@ namespace MoreMush.Mobile
         public static double BagMycelitePerHour => CurrentRow.bagMycelitePerHour * BagMultiplier * Mul(TreeEffect.BagMycelite);
         public static double BagCapSeconds => (GameBalance.Const("bagCapHours") + Bonus(TreeEffect.BagHours)) * 3600.0;
 
-        public static long BagGold { get { SettleBag(); return (long)Math.Floor(D.bagGold); } }
-        public static long BagMycelite { get { SettleBag(); return (long)Math.Floor(D.bagMycelite); } }
+        public static long BagGold { get { SettleBag(); return IdleProgress.ClampToLong(Math.Floor(D.bagGold)); } }
+        public static long BagMycelite { get { SettleBag(); return IdleProgress.ClampToLong(Math.Floor(D.bagMycelite)); } }
         public static double BagSeconds { get { SettleBag(); return D.bagSeconds; } }
         public static bool BagFull => BagSeconds >= BagCapSeconds - 0.5;
         public static bool CanClaimBag => BagGold >= 1 || BagMycelite >= 1;
@@ -108,7 +108,7 @@ namespace MoreMush.Mobile
         {
             SettleBag();
             var d = D;
-            long gold = (long)Math.Floor(d.bagGold), mycelite = (long)Math.Floor(d.bagMycelite);
+            long gold = IdleProgress.ClampToLong(Math.Floor(d.bagGold)), mycelite = IdleProgress.ClampToLong(Math.Floor(d.bagMycelite));
             if (gold < 1 && mycelite < 1) return (0, 0);
             d.bagGold -= gold;
             d.bagMycelite -= mycelite;
