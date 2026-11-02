@@ -96,6 +96,14 @@ namespace MoreMush.Mobile
         void Awake()
         {
             if (effectLayer == null) effectLayer = (RectTransform)transform;
+
+            // 전투 그림은 매 프레임 움직인다 → 따로 캔버스를 둬서 같은 캔버스의 Main UI(강화 목록·하단바·재화 바…)가
+            // 프레임마다 다시 묶이지 않게 한다. HUD의 전투력 버튼 때문에 이 오브젝트만 입력(GraphicRaycaster)을 받는다.
+            // 아래에서 글자·그림을 만들기 전에 붙인다 — 만든 뒤에 붙이면 그 전에 만든 HUD 글자가 새 캔버스에서 빠져 안 보이는 일이 있었다
+            AddSubCanvas(transform, true);
+            AddSubCanvas(enemyArea, false);
+            if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddSubCanvas(ggomaSlots[0].parent, false);
+
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
             enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
@@ -138,12 +146,6 @@ namespace MoreMush.Mobile
             AddView(transform);
             AddView(enemyArea);
             if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddView(ggomaSlots[0].parent);
-
-            // 전투 그림은 매 프레임 움직인다 → 따로 캔버스를 둬서 같은 캔버스의 Main UI(강화 목록·하단바·재화 바…)가
-            // 프레임마다 다시 묶이지 않게 한다. HUD의 전투력 버튼 때문에 이 오브젝트만 입력(GraphicRaycaster)을 받는다
-            AddSubCanvas(transform, true);
-            AddSubCanvas(enemyArea, false);
-            if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddSubCanvas(ggomaSlots[0].parent, false);
         }
 
         static void AddSubCanvas(Transform t, bool raycast)
