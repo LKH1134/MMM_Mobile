@@ -22,11 +22,13 @@ namespace MoreMush.Mobile
             public IdleStat stat;
             public string name, icon;           // icon: Resources 경로 (임시 그림)
             public double baseValue, perLevel;  // 값 = baseValue + perLevel × Lv (공격 속도만 baseValue × (1 + perLevel × Lv))
+            public double valueExponent, valueDivisor;   // power면 값 = baseValue × (1 + Lv / valueDivisor)^valueExponent (레벨당 오르는 양이 레벨과 함께 커진다)
             public int maxLv;
             public double costBase, costExp;    // 비용 = costBase × (1 + Lv/10)^costExp × e^(Lv/costScale)
             public double costScale;            // 0 = 지수 항 없음. = FarmScale × (기대 레벨/스테이지) → 기대 레벨에서 e^((s-1)/FarmScale)
             public double costDivisor;          // 비용 식의 (1 + Lv/costDivisor)
             public bool multiply;               // true면 값 = baseValue × (1 + perLevel × Lv) (공격 속도)
+            public bool power;                  // true면 값 = baseValue × (1 + Lv / valueDivisor)^valueExponent
             public IdleStat unlockStat;         // 이 강화가 unlockLv 이상이어야 열린다 (unlockLv 0 = 처음부터)
             public int unlockLv;
             public int capEvery, capStep;       // 단계 제한: 열린 뒤 unlockStat이 capEvery 오를 때마다 capStep레벨씩 더 올릴 수 있다 (0 = 제한 없음)
@@ -53,6 +55,8 @@ namespace MoreMush.Mobile
                     baseValue = r.baseValue, perLevel = r.perLevel, maxLv = r.maxLevel,
                     costBase = r.price, costExp = r.priceExponent, costScale = r.priceScale, costDivisor = r.priceDivisor,
                     multiply = r.valueMode == "Multiply",
+                    power = r.valueMode == "Power" && r.valueDivisor > 0,
+                    valueExponent = r.valueExponent, valueDivisor = r.valueDivisor,
                     unlockStat = r.unlockStat, unlockLv = r.unlockLevel, capEvery = r.capEvery, capStep = r.capStep,
                 };
             }
@@ -168,6 +172,7 @@ namespace MoreMush.Mobile
         {
             var d = Get(stat);
             lv = Mathf.Clamp(lv, 0, d.maxLv);
+            if (d.power) return d.baseValue * System.Math.Pow(1 + lv / d.valueDivisor, d.valueExponent);
             return d.multiply ? d.baseValue * (1 + d.perLevel * lv) : d.baseValue + d.perLevel * lv;
         }
 
@@ -290,10 +295,19 @@ namespace MoreMush.Mobile
             return Mathf.Clamp(r.enemyCountBase + r.enemyCountPerWave * (wave - 1) + r.enemyCountPerStage * (stage - 1), r.enemyCountBase, r.enemyCountMax);
         }
 
-        // 기대 성장이면 일반 적은 투척 2번, 보스는 18초(제한 30초)에 잡힌다. 일반 적은 일반 적 피해량까지 반영한다
-        public static double EnemyHp(int stage, int wave) => ExpectedHit(stage) * Value(IdleStat.NormalEnemyDamage, ExpectedLevel(IdleStat.NormalEnemyDamage, stage))
-            * K.enemyHpHits * (1 + K.enemyHpWaveGrowth * (wave - 1));
-        public static double BossHp(int stage) => ExpectedDps(stage) * K.bossKillSeconds;
+        // 기대 성장이면 일반 적은 투척 2번, 보스는 18초(제한 30초)에 잡힌다. 일반 적은 일반 적 피해량까지 반영한다.
+        // 스테이지 시트에 체력(enemyHp·bossHp, 0보다 큰 값)이 있으면 그 값 — 초반을 곡선에서 떼거나 챕터 보스 벽을 넣을 때
+        public static double EnemyHp(int stage, int wave)
+        {
+            double first = GameBalance.InStageTable(stage) && GameBalance.Stage(stage).enemyHp > 0
+                ? GameBalance.Stage(stage).enemyHp
+                : ExpectedHit(stage) * Value(IdleStat.NormalEnemyDamage, ExpectedLevel(IdleStat.NormalEnemyDamage, stage)) * K.enemyHpHits;
+            return first * (1 + K.enemyHpWaveGrowth * (wave - 1));
+        }
+
+        public static double BossHp(int stage) => GameBalance.InStageTable(stage) && GameBalance.Stage(stage).bossHp > 0
+            ? GameBalance.Stage(stage).bossHp
+            : ExpectedDps(stage) * K.bossKillSeconds;
 
         // 적 공격(초당 피해): 일반 적은 1마리씩, 보스는 혼자. 기대 성장이면 웨이브마다 체력이 조금씩 깎이고 보스에서 바닥 근처까지 간다.
         // 스테이지 시트에 있는 스테이지는 시트 값, 표 끝을 넘으면 기대 성장 곡선으로 계산한다 (골드·균사석도 같다)
@@ -344,7 +358,7 @@ namespace MoreMush.Mobile
         {
             if (v < 1) return v.ToString("0.#");
             if (v < 100) return v.ToString("0.#");
-            return Wallet.Format((long)System.Math.Min(v, 9e18));
+            return Wallet.Format(v);
         }
 
 #if UNITY_EDITOR

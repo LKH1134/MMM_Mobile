@@ -126,7 +126,7 @@ namespace MoreMush.Mobile
         public void SetScore(long value)
         {
             score = value;
-            earnedGoldText.text = score.ToString("N0");
+            earnedGoldText.text = Wallet.Format(score);
         }
 
         public void SetStage(int stage, bool boss)

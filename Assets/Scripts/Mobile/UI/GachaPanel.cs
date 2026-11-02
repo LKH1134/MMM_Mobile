@@ -16,6 +16,7 @@ namespace MoreMush.Mobile
     public class GachaPanel : MonoBehaviour
     {
         public const int Count11 = 11;
+        static int AdPulls => Mathf.Max(1, GameBalance.ConstInt("adGachaPulls"));     // 광고 뽑기 한 번에 나오는 수 (상수 시트, 유료 11·35회와 따로)
         public const int Count35 = 35;
 
         [SerializeField] GachaKind kind = GachaKind.Weapon;
@@ -143,12 +144,12 @@ namespace MoreMush.Mobile
             if (adBusy) return;
             adBusy = true;
             // 광고를 끝까지 봐야 소환한다. 보상 콜백은 한 번만 불린다 (그 안에서만 사용 처리·소환)
-            bool started = AdService.ShowRewarded(() =>
+            bool started = AdService.ShowRewarded(AdPlacement.Gacha, () =>
             {
                 adBusy = false;
                 if (this == null || !GachaProgress.FreeAvailable(kind)) return;
                 GachaProgress.MarkFreeUsed(kind);
-                DoRoll(Count11);
+                DoRoll(AdPulls);
             });
             if (!started)
             {
@@ -259,7 +260,7 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             bool free = GachaProgress.FreeAvailable(kind);
-            SetButton(freeText, $"{Count11}회 소환", free ? "광고 시청" : "내일 다시");
+            SetButton(freeText, $"{AdPulls}회 소환", free ? "광고 시청" : "내일 다시");
             SetButton(coin11Text, $"{Count11}회 소환", Wallet.Format(cost11));
             SetButton(coin35Text, $"{Count35}회 소환", Wallet.Format(cost35));
 

@@ -1,229 +1,301 @@
 # -*- coding: utf-8 -*-
-"""verify: IdleProgress.cs 독립 포팅 (2026-10-30, 원본 Assets/Scripts/Mobile/Idle/IdleProgress.cs 직접 읽고 새로 작성).
+"""verify 독립 포팅 (2026-11-02): 방치형 공식·표를 C# 원본에서 직접 옮긴다. test/theory 코드는 보지 않았다.
 
-C# 동작 맞춤:
-  - int / int      → 0쪽 버림 (cs_div)          예: NormalEnemyDamage (gate - 150) / 2 가 음수일 때
-  - (int)double    → 0쪽 버림 (int())
-  - (long)Math.Min(9e18, Math.Ceiling(..))     → Cost
-  - Math.Round     → 은행가 반올림(MidpointRounding.ToEven) = 파이썬 round(float)
-  - Mathf.Clamp/Min/Max(int) → 정수 그대로
-  - Formation.SlotCount = 5 (Formation.cs:11)
-한계: Math.Pow 와 math.pow 는 둘 다 C 런타임 pow 지만 플랫폼에 따라 마지막 비트가 다를 수 있음 → Ceiling 경계에서 1 차이 가능.
-
-사용: python port.py [최대스테이지=1000]  → verify/port_current.csv, 화면에 감소 지점·원인 분해
+출처 (파일:줄, Assets/Scripts/Mobile/ 기준)
+- 표: Assets/Data/Tables/GameBalance.xlsx (= Resources/Tables/GameBalance.bytes, md5 같음 확인 11:21)
+- 강화 값/비용: Idle/IdleProgress.cs:143-149 Cost, :167-172 Value, :121-128 CapLevel, :110-114 Unlocked
+- 기대 곡선: IdleProgress.cs:229-279 (ExpectedLevel/ExpectedCapped/ExpectedHit/Dps/Hp/Regen)
+- 적: IdleProgress.cs:283-301 (EnemyCount/EnemyHp/BossHp/EnemyAttack/BossAttack), :309-325 (골드·균사석)
+- 표 밖 행: Data/GameBalance.cs:65-75 (Stage = 마지막 행으로 clamp, InStageTable)
+- 편성: Idle/Formation.cs:11 (SlotCount 5), :294-300 (AttackMultiplier), 표 '꼬마' defaultSlot/initialOwned
+- 뽑기 가격: UI/GachaPanel.cs:35-36 기본값 100/300, Prefabs/Mobile/Gacha_Panel/Gacha_Panel1.prefab cost11 100 cost35 300 currency 1(균사석),
+  Prefabs/Mobile/Main/GachaUI.prefab 덮어쓰기는 kind만 (cost 덮어쓰기 없음), Main.unity에 cost 덮어쓰기 0건
+- 퀘스트: Quest/DailyQuests.cs:83-88 (골드 = EnemyGold(지금 스테이지)×goldKills), :128-129, 표 '퀘스트'
 """
-import csv
 import math
 import os
-import sys
+import openpyxl
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+XLSX = os.path.join(ROOT, 'Assets', 'Data', 'Tables', 'GameBalance.xlsx')
 
-# ── IdleProgress.cs:32-44 Defs ── (unlockStat 미지정 = enum 기본값 Attack)
-STATS = ["Attack", "Hp", "HpRegen", "Speed", "CritChance", "CritDamage", "AdvancedAttack", "NormalEnemyDamage"]
-DEFS = {
-    "Attack":            dict(base=10,  per=2,     maxLv=100000, cb=10,  ce=2.5, us="Attack", ul=0,    ce_=0,   cs=0),
-    "Hp":                dict(base=100, per=20,    maxLv=100000, cb=10,  ce=2.5, us="Attack", ul=0,    ce_=0,   cs=0),
-    "HpRegen":           dict(base=2,   per=0.4,   maxLv=100000, cb=15,  ce=2.5, us="Hp",     ul=20,   ce_=0,   cs=0),
-    "Speed":             dict(base=0.8, per=0.01,  maxLv=150,    cb=300, ce=3.5, us="Attack", ul=30,   ce_=0,   cs=0),
-    "CritChance":        dict(base=0,   per=0.001, maxLv=1000,   cb=30,  ce=2.5, us="Attack", ul=100,  ce_=100, cs=25),
-    "CritDamage":        dict(base=1.5, per=0.004, maxLv=2500,   cb=30,  ce=2.5, us="Attack", ul=300,  ce_=100, cs=25),
-    "AdvancedAttack":    dict(base=1,   per=0.005, maxLv=2000,   cb=1e7, ce=1.5, us="Attack", ul=3000, ce_=100, cs=25),
-    "NormalEnemyDamage": dict(base=1,   per=0.01,  maxLv=1000,   cb=2e7, ce=1.5, us="AdvancedAttack", ul=150, ce_=0, cs=0),
-}
-WAVES_PER_STAGE = 5        # :16
-LEVELS_PER_STAGE = 15      # :143
-FARM_SCALE = 150.0         # :204
-SLOT_COUNT = 5             # Formation.cs:11
-BOSS_UNITS = 20            # :215, BossGold = EnemyGold × 20 (:224)
-LONG_CAP = 9e18
-RUN_SECONDS = 40.0         # 한 판 40초 가정 (과제 조건)
+STATS = ['Attack', 'Hp', 'HpRegen', 'Speed', 'CritChance', 'CritDamage', 'AdvancedAttack', 'NormalEnemyDamage']
+SLOT_COUNT = 5  # Formation.cs:11
 
 
-def cs_div(a, b):
-    """C# 정수 나눗셈 (0쪽 버림)."""
-    q = abs(a) // abs(b)
-    return q if (a >= 0) == (b > 0) else -q
-
-
-def clamp(v, lo, hi):
-    return lo if v < lo else hi if v > hi else v
-
-
-# ── :95-99 Cost ──
-def cost_raw(stat, lv):
-    d = DEFS[stat]
-    return d["cb"] * math.pow(1 + lv / 10.0, d["ce"])
-
-
-def cost(stat, lv):
-    return int(min(LONG_CAP, math.ceil(cost_raw(stat, lv))))
-
-
-# ── :114-119 Value ──
-def value(stat, lv):
-    d = DEFS[stat]
-    lv = clamp(lv, 0, d["maxLv"])
-    return d["base"] * (1 + d["per"] * lv) if stat == "Speed" else d["base"] + d["per"] * lv
-
-
-# ── :145-170 ExpectedLevel / ExpectedCapped ──
-def expected_capped(stat, stage, ratio):
-    d = DEFS[stat]
-    gate = expected_level(d["us"], stage)
-    if gate < d["ul"]:
-        return 0
-    cap = (float(gate - d["ul"]) / d["ce_"] + 1) * d["cs"]
-    return int(min(d["maxLv"], cap * ratio))
-
-
-def expected_level(stat, stage):
-    s = max(0, stage - 1)
-    d = DEFS[stat]
-    if stat == "Speed":
-        return min(d["maxLv"], int(1.5 * s))
-    if stat == "HpRegen":
-        return min(d["maxLv"], int(LEVELS_PER_STAGE * s * 0.6))
-    if stat == "CritChance":
-        return expected_capped(stat, stage, 0.8)
-    if stat == "CritDamage":
-        return expected_capped(stat, stage, 0.6)
-    if stat == "AdvancedAttack":
-        return expected_capped(stat, stage, 0.5)
-    if stat == "NormalEnemyDamage":
-        return clamp(cs_div(expected_level(d["us"], stage) - d["ul"], 2), 0, d["maxLv"])
-    return min(d["maxLv"], LEVELS_PER_STAGE * s)
-
-
-# ── :172-198 기대 전투력 (골드 판정엔 안 쓰지만 포팅 완결성용) ──
-def expected_hit(s):
-    cc = min(1, value("CritChance", expected_level("CritChance", s)))
-    cd = value("CritDamage", expected_level("CritDamage", s))
-    return (value("Attack", expected_level("Attack", s)) * (1 + 0.012 * s)
-            * value("AdvancedAttack", expected_level("AdvancedAttack", s)) * (1 + cc * (cd - 1)))
-
-
-def expected_dps(s):
-    return expected_hit(s) * SLOT_COUNT * value("Speed", expected_level("Speed", s))
-
-
-def enemy_hp(stage, wave):
-    return expected_hit(stage) * value("NormalEnemyDamage", expected_level("NormalEnemyDamage", stage)) * 2.0 * (1 + 0.08 * (wave - 1))
-
-
-def boss_hp(stage):
-    return expected_dps(stage) * 18.0
-
-
-# ── :189 EnemyCount ──
-def enemy_count(stage, wave):
-    return clamp(5 + 2 * (wave - 1) + (stage - 1), 5, 15)
-
-
-def units(stage):
-    return BOSS_UNITS + sum(enemy_count(stage, w) for w in range(1, WAVES_PER_STAGE + 1))
-
-
-# ── :204-224 골드 ──
-def farm_factor(stage):
-    return math.exp((stage - 1) / FARM_SCALE)
-
-
-def need_by_stat(stage, cost_fn=cost, lvl_fn=expected_level):
-    """스테이지 s → s+1 기대 성장분 비용 (종류별)."""
-    out = {}
-    for k in STATS:
-        a, b = lvl_fn(k, stage), lvl_fn(k, stage + 1)
-        out[k] = float(sum(cost_fn(k, lv) for lv in range(a, b)))
+def _sheet_rows(ws):
+    rows = list(ws.iter_rows(values_only=True))
+    head = rows[0]
+    out = []
+    for r in rows[3:]:  # 1행 키, 2행 자료형, 3행 한글 설명 (info 시트 설명)
+        if r[0] is None:
+            continue
+        out.append({h: v for h, v in zip(head, r) if h is not None})
     return out
 
 
-def need(stage):
-    n = 0.0
-    for k in STATS:          # C#과 같은 순서로 double 누적
-        for lv in range(expected_level(k, stage), expected_level(k, stage + 1)):
-            n += cost(k, lv)
-    return n
+class Tables:
+    def __init__(self, path=XLSX):
+        wb = openpyxl.load_workbook(path, data_only=True)
+        names = wb.sheetnames
+        # 시트 이름은 한글 — 열 이름으로 찾는다
+        by_head = {}
+        for ws in wb.worksheets:
+            first = next(ws.iter_rows(values_only=True))
+            by_head[tuple(x for x in first if x is not None)] = ws
+        def find(col):
+            for h, ws in by_head.items():
+                if col in h:
+                    return ws
+            raise KeyError(col)
+        self.upgrades = {r['stat']: r for r in _sheet_rows(find('priceExponent'))}
+        self.stages = _sheet_rows(find('wavesPerStage'))
+        self.stages.sort(key=lambda r: r['stage'])
+        self.consts = {r['key']: float(r['value']) for r in _sheet_rows(find('value'))}
+        self.mascots = _sheet_rows(find('attackMultiplier'))
+        self.grades = _sheet_rows(find('ownBase'))
+        self.quests = _sheet_rows(find('goldKills'))
+        self.dungeons = _sheet_rows(find('unlockStage'))
 
 
-def enemy_gold(stage):
-    return int(max(1, round(need(stage) / (units(stage) * farm_factor(stage)))))
+T = Tables()
 
 
-def boss_gold(stage):
-    return enemy_gold(stage) * 20
+def C(key):
+    return T.consts[key]
 
 
-def run_gold(stage, eg=None, bg=None):
-    """한 판 골드 = 웨이브 적 처치 합 + 보스."""
-    eg = enemy_gold(stage) if eg is None else eg
-    bg = eg * 20 if bg is None else bg
-    return eg * sum(enemy_count(stage, w) for w in range(1, WAVES_PER_STAGE + 1)) + bg
+def CI(key):  # GameBalance.cs:55 ConstInt = (int)Math.Round
+    return int(cs_round(C(key)))
 
 
-def table(max_stage=1000):
-    rows, t = [], 0.0
-    for s in range(1, max_stage + 1):
-        eg = enemy_gold(s)
-        bg = eg * 20
-        nd = need(s)
-        rg = run_gold(s, eg, bg)
-        r = nd / rg
-        t += RUN_SECONDS * max(1.0, r)
-        rows.append(dict(stage=s, enemy_gold=eg, boss_gold=bg, attack_lv=expected_level("Attack", s),
-                         attack_cost=cost("Attack", expected_level("Attack", s)), need=nd, run_gold=rg,
-                         R=r, farm_factor=farm_factor(s), cum_hours=t / 3600))
+def cs_round(x):  # Math.Round 기본 = 은행가 반올림 (Python round와 같음)
+    return float(round(x))
+
+
+def clamp(v, lo, hi):
+    return max(lo, min(hi, v))
+
+
+def stage_row(stage):  # GameBalance.cs:65-69
+    return T.stages[clamp(stage, 1, len(T.stages)) - 1]
+
+
+def in_table(stage):  # GameBalance.cs:71-75
+    return 1 <= stage <= len(T.stages)
+
+
+# ── 강화 ──
+def d(stat):
+    return T.upgrades[stat]
+
+
+def value(stat, lv):  # IdleProgress.cs:167-172
+    r = d(stat)
+    lv = clamp(lv, 0, r['maxLevel'])
+    if r['valueMode'] == 'Multiply':
+        return r['baseValue'] * (1 + r['perLevel'] * lv)
+    return r['baseValue'] + r['perLevel'] * lv
+
+
+def cost(stat, lv):  # IdleProgress.cs:143-149
+    r = d(stat)
+    c = r['price'] * math.pow(1 + lv / r['priceDivisor'], r['priceExponent'])
+    if r['priceScale'] > 0:
+        x = lv / r["priceScale"]
+        c = float("inf") if x > 700 else c * math.exp(x)   # C# Math.Exp는 inf → Min(9e18)
+    return int(9e18) if c >= 9e18 else int(math.ceil(c))
+
+
+def unlocked(stat, levels):  # :110-114
+    r = d(stat)
+    return r['unlockLevel'] <= 0 or levels.get(r['unlockStat'], 0) >= r['unlockLevel']
+
+
+def cap_level(stat, levels):  # :119-128
+    r = d(stat)
+    if not unlocked(stat, levels):
+        return 0
+    if r['capEvery'] <= 0:
+        return r['maxLevel']
+    gate = levels.get(r['unlockStat'], 0)
+    if gate < r['unlockLevel']:
+        return 0
+    cap = ((gate - r['unlockLevel']) // r['capEvery'] + 1) * r['capStep']  # long 나눗셈, 양수라 // 같음
+    return int(min(r['maxLevel'], cap))
+
+
+# ── 기대 성장 곡선 (IdleProgress.cs:197-279) ──
+def expected_level(stat, stage, depth=0):
+    if depth >= 8:
+        return 0
+    s = max(0, stage - 1)
+    r = d(stat)
+    lps = CI('levelsPerStage')
+    if stat == 'Speed':
+        return min(r['maxLevel'], int(C('expSpeedPerStage') * s))
+    if stat == 'HpRegen':
+        return min(r['maxLevel'], int(lps * s * C('expRegenRatio')))
+    if stat in ('CritChance', 'CritDamage', 'AdvancedAttack'):
+        ratio = {'CritChance': C('expCritChanceRatio'), 'CritDamage': C('expCritDamageRatio'),
+                 'AdvancedAttack': C('expAdvancedAttackRatio')}[stat]
+        gate = expected_level(r['unlockStat'], stage, depth + 1)
+        if gate < r['unlockLevel']:
+            return 0
+        if r['capEvery'] <= 0:
+            return r['maxLevel'] if ratio > 0 else 0
+        cap = ((gate - r['unlockLevel']) / r['capEvery'] + 1) * r['capStep']
+        return int(min(r['maxLevel'], cap * ratio))
+    if stat == 'NormalEnemyDamage':
+        div = max(1, CI('expNormalDamageDivisor'))
+        num = expected_level(r['unlockStat'], stage, depth + 1) - r['unlockLevel']
+        q = int(num / div)  # C# int 나눗셈 = 0쪽 버림
+        return clamp(q, 0, r['maxLevel'])
+    return min(r['maxLevel'], lps * s)
+
+
+def expected_hit(s):  # :269-275 (인자 s = 스테이지 번호 그대로, 배율은 1+k*s)
+    cc = min(1, value('CritChance', expected_level('CritChance', s)))
+    cd = value('CritDamage', expected_level('CritDamage', s))
+    return (value('Attack', expected_level('Attack', s)) * (1 + C('expAttackMulPerStage') * s)
+            * value('AdvancedAttack', expected_level('AdvancedAttack', s)) * (1 + cc * (cd - 1)))
+
+
+def expected_dps(s):  # :277
+    return expected_hit(s) * SLOT_COUNT * value('Speed', expected_level('Speed', s))
+
+
+def expected_hp(s):
+    return value('Hp', expected_level('Hp', s)) * (1 + C('expHpMulPerStage') * s)
+
+
+def expected_regen(s):
+    return value('HpRegen', expected_level('HpRegen', s)) * (1 + C('expHpMulPerStage') * s)
+
+
+# ── 적 (:283-325) ──
+def waves_per_stage(stage):  # :17
+    return max(1, int(stage_row(stage)['wavesPerStage']))
+
+
+def boss_time(stage):  # :18
+    return max(1.0, float(stage_row(stage)['bossTime']))
+
+
+def enemy_count(stage, wave):  # :283-287
+    r = stage_row(stage)
+    n = r['enemyCountBase'] + r['enemyCountPerWave'] * (wave - 1) + r['enemyCountPerStage'] * (stage - 1)
+    return clamp(n, r['enemyCountBase'], r['enemyCountMax'])
+
+
+def enemy_hp(stage, wave):  # :290-291
+    return (expected_hit(stage) * value('NormalEnemyDamage', expected_level('NormalEnemyDamage', stage))
+            * C('enemyHpHits') * (1 + C('enemyHpWaveGrowth') * (wave - 1)))
+
+
+def boss_hp(stage):  # :292
+    return expected_dps(stage) * C('bossKillSeconds')
+
+
+def enemy_attack(stage):  # :296-298
+    if in_table(stage):
+        return float(stage_row(stage)['enemyAttack'])
+    return C('enemyAtkHpRate') * expected_hp(stage) + C('enemyAtkRegenRate') * expected_regen(stage)
+
+
+def boss_attack(stage):  # :299-301
+    if in_table(stage):
+        return float(stage_row(stage)['bossAttack'])
+    return expected_regen(stage) + C('bossAtkHpRate') * expected_hp(stage)
+
+
+def clamp_to_long(v, lo=0):  # :329-333
+    if v != v or v <= lo:
+        return lo
+    return int(9e18) if v >= 9e18 else int(v)
+
+
+def enemy_gold(stage):  # :309-314
+    if in_table(stage):
+        return int(stage_row(stage)['enemyGold'])
+    return clamp_to_long(cs_round(C('goldBase') * math.pow(1 + (stage - 1) / C('goldStep'), C('goldExp'))), 1)
+
+
+def boss_gold(stage):  # :316-322
+    if in_table(stage):
+        return int(stage_row(stage)['bossGold'])
+    g, mul = enemy_gold(stage), int(C('bossGoldMul'))
+    if mul <= 0:
+        return 0
+    return int(9e18) if g > int(9e18) // mul else g * mul
+
+
+def boss_mycelite(stage):  # :325 (C# long/int 나눗셈)
+    if in_table(stage):
+        return int(stage_row(stage)['bossMycelite'])
+    return int(C('mycelBase')) + stage // max(1, CI('mycelStageDiv'))
+
+
+# ── 편성 (Formation.cs) ──
+def default_formation():
+    """기본 편성 칸별 공격 배율 (Lv1 → 레벨 보너스 0). 빈 칸 = 0 (던지지 않음)"""
+    slots = [0.0] * SLOT_COUNT
+    for m in T.mascots:
+        ds = m['defaultSlot']
+        if 0 <= ds < SLOT_COUNT and m['initialOwned'] > 0:
+            slots[ds] = float(m['attackMultiplier'])
+    return slots
+
+
+# ── 뽑기·퀘스트 ──
+GACHA_COST11, GACHA_COST35 = 100, 300   # 균사석, 프리팹 직렬화 값 (위 출처)
+GACHA_KINDS = 4                          # GachaUI.prefab: 무기·방어구·펫·꼬마 (각각 같은 가격)
+
+
+def quest_mycelite_per_day():
+    return sum(int(q['mycelite']) for q in T.quests)
+
+
+if __name__ == '__main__':
+    print('기본 편성 배율', default_formation(), '합', sum(default_formation()))
+    for s in range(1, 8):
+        print(s, 'hit', round(expected_hit(s), 3), 'eHP w1', round(enemy_hp(s, 1), 2), 'bossHP', round(boss_hp(s), 2),
+              'cnt', [enemy_count(s, w) for w in range(1, waves_per_stage(s) + 1)],
+              'eAtk', round(enemy_attack(s), 3), 'bAtk', round(boss_attack(s), 3), 'gold', enemy_gold(s), boss_gold(s), 'myc', boss_mycelite(s))
+    print('퀘스트 균사석/일', quest_mycelite_per_day(), '35뽑 가격', GACHA_COST35)
+
+
+# ── 장비 (Idle/Equipment.cs:18 SubPerGrade 3, :210-225) ──
+SUB_PER_GRADE = 3
+
+
+def own_base(grade):  # GachaProgress.cs:34-38
+    gs = sorted(T.grades, key=lambda r: r['grade'])
+    return float(gs[clamp(grade, 0, min(5, len(gs)) - 1)]['ownBase'])
+
+
+def equip_base_percent(i):  # Equipment.cs:210-216
+    g, sub = i // SUB_PER_GRADE, i % SUB_PER_GRADE
+    frm = own_base(g)
+    to = own_base(g + 1) if g + 1 < 5 else frm * C('equipTopGradeMul')
+    return frm * math.pow(to / frm, sub / SUB_PER_GRADE)
+
+
+def equip_level_mul(lv):  # :218
+    return 1 + C('equipLevelBonus') * (lv - 1) if lv > 0 else 0
+
+
+def equip_own_percent(i, lv):  # :222
+    return equip_base_percent(i) * equip_level_mul(lv)
+
+
+def criterion8():
+    """기준 8: 등급 g의 가장 좋은 장비 최대 레벨 < 등급 g+1 이상 가장 약한 장비 Lv1 인지 (보유 효과; 장착 = 보유 × equipRatio라 순서 같음)"""
+    mx = CI('equipMaxLevel')
+    rows = []
+    for g in range(4):
+        low_top = equip_own_percent(g * 3 + 2, mx)
+        for h in range(g + 1, 5):
+            hi_l1 = equip_own_percent(h * 3, 1)
+            rows.append((g, h, low_top, hi_l1, hi_l1 > low_top))
     return rows
-
-
-def dips(rows):
-    return [r["stage"] for i, r in enumerate(rows) if i > 0 and r["enemy_gold"] < rows[i - 1]["enemy_gold"]]
-
-
-def explain_dip(s):
-    """s-1 → s 골드 감소를 종류별 need 변화 + 처치 수 + 반복 계수로 분해."""
-    a, b = need_by_stat(s - 1), need_by_stat(s)
-    dl = {k: (expected_level(k, s) - expected_level(k, s - 1), expected_level(k, s + 1) - expected_level(k, s)) for k in STATS}
-    drops = {k: b[k] - a[k] for k in STATS if b[k] < a[k]}
-    ratio = sum(b.values()) / sum(a.values())
-    if ratio < 1:
-        main = min(drops, key=drops.get)          # 기대 Lv 증분이 줄어 성장분 비용 자체가 감소
-    elif units(s) != units(s - 1):
-        main = "EnemyCount(처치 수 증가)"
-    else:
-        main = "FarmFactor(need 증가율 < e^(1/150)=+0.67%/스테이지)"
-    return dict(stage=s, main=main, drops=drops, dlv={k: dl[k] for k in drops},
-                need_ratio=ratio, units=(units(s - 1), units(s)))
-
-
-def main():
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 1000
-    rows = table(n)
-    path = os.path.join(HERE, "port_current.csv")
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-        w.writeheader()
-        w.writerows(rows)
-    d = dips(rows)
-    print(f"CSV: {path}")
-    print(f"EnemyGold 감소 {len(d)}곳 (1~{n}): {d[:20]}{' …' if len(d) > 20 else ''}")
-    causes = {}
-    for s in d:
-        e = explain_dip(s)
-        causes.setdefault(e["main"], []).append(s)
-    for k, v in causes.items():
-        print(f"  원인 {k}: {len(v)}곳 (첫 {v[:8]})")
-    for s in d[:5]:
-        e = explain_dip(s)
-        parts = ", ".join("%s: dneed %.3g, 기대Lv 증분(s-1→s, s→s+1)=%s" % (k, v, e["dlv"][k]) for k, v in e["drops"].items())
-        print(f"  예 {s}: need비 {e['need_ratio']:.3f}, 감소 종류 {{{parts}}}")
-    pk = max(rows, key=lambda r: r["enemy_gold"])
-    print(f"  EnemyGold 최대: s={pk['stage']} gold {pk['enemy_gold']} — 이후 추세 감소 (1000: {rows[min(n,1000)-1]['enemy_gold']})")
-    for s in (1, 10, 50, 100, 200, 300, 500, 1000, 2000):
-        if s <= n:
-            r = rows[s - 1]
-            print(f"  s={s:5} gold {r['enemy_gold']:>12} 공격력비용 {r['attack_cost']:>12} R {r['R']:8.2f} 누적 {r['cum_hours']:8.2f}h")
-
-
-if __name__ == "__main__":
-    main()

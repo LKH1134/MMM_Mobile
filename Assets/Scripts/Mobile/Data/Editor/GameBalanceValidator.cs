@@ -16,8 +16,8 @@ namespace MoreMush.Mobile.EditorTools
             { "적", "index:int key:string name:string hpCoefficient:double resourceId:int value:int requestCount:int" },
             { "보스", "index:int key:string name:string hpCoefficient:double resourceId:int" },
             { "꼬마", "index:int key:string name:string grade:int attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int favoriteIds:int[] bonusEffect:TreeEffect bonusValue:double evoStage:int" },
-            { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int" },
-            { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double" },
+            { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int valueExponent:double valueDivisor:double" },
+            { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double enemyHp:double bossHp:double" },
             { "리소스", "index:int key:string type:string path:string" },
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double" },
@@ -53,6 +53,8 @@ namespace MoreMush.Mobile.EditorTools
             ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
             ("kidBagShare", 0, false), ("decoSetBagMul", 0, false), ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
             ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false),
+            ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
+            ("offlineGoldRate", 0, false), ("adGachaPulls", 1, true),
         };
 
         sealed class Row
@@ -133,7 +135,9 @@ namespace MoreMush.Mobile.EditorTools
                 foreach (string col in new[] { "price", "priceDivisor", "maxLevel" }) Positive(r, col, issues);
                 foreach (string col in new[] { "baseValue", "perLevel", "priceExponent", "priceScale", "unlockLevel", "capEvery", "capStep" }) Between(r, col, 0, double.MaxValue, issues);
                 if (r.Int("capEvery") > 0 && (r.Int("capStep") <= 0 || r.Int("unlockLevel") <= 0)) issues.Add(r.At("capEvery") + ": 단계 제한은 capStep과 unlockLevel이 0보다 커야 한다");
-                if (r.Text("valueMode") != "Add" && r.Text("valueMode") != "Multiply") issues.Add(r.At("valueMode") + ": Add 또는 Multiply이어야 한다");
+                string mode = r.Text("valueMode");
+                if (mode != "Add" && mode != "Multiply" && mode != "Power") issues.Add(r.At("valueMode") + ": Add·Multiply·Power 중 하나여야 한다");
+                if (mode == "Power" && (!(r.Number("valueExponent") > 0) || !(r.Number("valueDivisor") > 0))) issues.Add(r.At("valueExponent") + ": Power는 valueExponent·valueDivisor가 0보다 커야 한다");
                 if (r.Text("currency") != "Gold") issues.Add(r.At("currency") + ": 현재 강화는 Gold를 사용한다");
             }
             foreach (IdleStat stat in Enum.GetValues(typeof(IdleStat)))
@@ -156,7 +160,7 @@ namespace MoreMush.Mobile.EditorTools
             foreach (var r in tables["스테이지"])
             {
                 foreach (string col in new[] { "stage", "stageCoefficient", "wavesPerStage", "bossTime", "enemyCountBase", "enemyCountMax", "enemyGold", "bossGold" }) Positive(r, col, issues);
-                foreach (string col in new[] { "enemyCountPerWave", "enemyCountPerStage", "bossMycelite", "enemyAttack", "bossAttack" }) Between(r, col, 0, double.MaxValue, issues);
+                foreach (string col in new[] { "enemyCountPerWave", "enemyCountPerStage", "bossMycelite", "enemyAttack", "bossAttack", "enemyHp", "bossHp" }) Between(r, col, 0, double.MaxValue, issues);
                 if (!stages.Add(r.Int("stage"))) issues.Add(r.At("stage") + ": 스테이지 번호가 겹친다");
                 if (r.Int("enemyCountBase") > r.Int("enemyCountMax")) issues.Add(r.At("enemyCountMax") + ": 시작 적 수보다 작다");
                 Reference(r, "bossId", bosses, issues);

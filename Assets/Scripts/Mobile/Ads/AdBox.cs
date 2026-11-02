@@ -235,7 +235,7 @@ namespace MoreMush.Mobile
         void Watch(long gold, long mycelite)
         {
             popup.SetWatchEnabled(false);       // 광고 창이 뜨기 전에 또 누르지 않게
-            bool started = AdService.ShowRewarded(() =>
+            bool started = AdService.ShowRewarded(AdPlacement.AdBox, () =>
             {
                 if (rewardGiven || state != State.Present) return;      // 보상은 한 번만 (데이터를 지워 상자가 사라졌으면 주지 않는다)
                 rewardGiven = true;

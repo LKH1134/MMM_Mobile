@@ -1,0 +1,1682 @@
+[
+ {
+  "label": "current",
+  "ads": 0.0,
+  "days": 30,
+  "stage": 1852,
+  "arrive": {
+   "5": [
+    0.14,
+    0.01
+   ],
+   "6": [
+    0.22,
+    0.01
+   ],
+   "10": [
+    0.51,
+    0.19
+   ],
+   "20": [
+    0.86,
+    0.41
+   ],
+   "30": [
+    0.91,
+    0.41
+   ],
+   "40": [
+    0.96,
+    0.42
+   ],
+   "50": [
+    1.02,
+    0.42
+   ],
+   "60": [
+    1.22,
+    0.43
+   ],
+   "80": [
+    1.44,
+    0.44
+   ],
+   "100": [
+    1.56,
+    1.06
+   ],
+   "150": [
+    1.75,
+    1.07
+   ],
+   "184": [
+    1.9,
+    1.08
+   ],
+   "200": [
+    1.98,
+    1.08
+   ],
+   "250": [
+    2.19,
+    1.26
+   ],
+   "300": [
+    2.41,
+    1.48
+   ],
+   "400": [
+    2.85,
+    1.49
+   ],
+   "500": [
+    3.33,
+    2.14
+   ],
+   "700": [
+    4.55,
+    3.19
+   ],
+   "1000": [
+    7.52,
+    4.69
+   ]
+  },
+  "per_day": [
+   [
+    1,
+    88,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    2,
+    433,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    3,
+    697,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    4,
+    886,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    5,
+    1000,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    6,
+    1047,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    7,
+    1093,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    8,
+    1120,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    9,
+    1169,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    10,
+    1189,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    11,
+    1226,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    12,
+    1248,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    13,
+    1261,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    14,
+    1283,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    15,
+    1303,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    16,
+    1379,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    17,
+    1405,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    18,
+    1423,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    19,
+    1489,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    20,
+    1503,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    21,
+    1517,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    22,
+    1531,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    23,
+    1607,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    24,
+    1651,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    25,
+    1692,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    26,
+    1705,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    27,
+    1739,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    28,
+    1765,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    29,
+    1836,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ],
+   [
+    30,
+    1852,
+    [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   ]
+  ],
+  "gold_src": {
+   "battle": 275105743467667.0,
+   "offline": 3123699670801827.0,
+   "offline_ad": 0.0,
+   "adbox": 0.0,
+   "quest": 23373439261000.0,
+   "dungeon": 0.0
+  },
+  "myc_src": {
+   "boss": 179825.0,
+   "quest": 180.0,
+   "adbox": 0.0,
+   "dungeon": 0.0
+  },
+  "pulls": {
+   "Weapon": 6622,
+   "Pet": 6600,
+   "Accessory": 6578,
+   "Character": 0
+  },
+  "levels": {
+   "Attack": 14832,
+   "Hp": 14367,
+   "HpRegen": 8972,
+   "Speed": 275,
+   "CritChance": 1000,
+   "CritDamage": 2500,
+   "AdvancedAttack": 1566,
+   "NormalEnemyDamage": 768
+  },
+  "atk_pct": 7614.999592193186,
+  "hp_pct": 3797.3697522551975,
+  "hurdles": [
+   {
+    "stage": 1423,
+    "wall_h": 15.65,
+    "play_min": 39.1,
+    "attempts": 63,
+    "reasons": {
+     "defeat": 62
+    }
+   },
+   {
+    "stage": 1303,
+    "wall_h": 15.64,
+    "play_min": 38.1,
+    "attempts": 60,
+    "reasons": {
+     "defeat": 59
+    }
+   },
+   {
+    "stage": 1261,
+    "wall_h": 15.63,
+    "play_min": 38.1,
+    "attempts": 59,
+    "reasons": {
+     "defeat": 58
+    }
+   },
+   {
+    "stage": 1531,
+    "wall_h": 15.63,
+    "play_min": 37.7,
+    "attempts": 62,
+    "reasons": {
+     "defeat": 61
+    }
+   },
+   {
+    "stage": 1765,
+    "wall_h": 15.63,
+    "play_min": 37.8,
+    "attempts": 64,
+    "reasons": {
+     "defeat": 63
+    }
+   },
+   {
+    "stage": 1739,
+    "wall_h": 15.61,
+    "play_min": 36.5,
+    "attempts": 65,
+    "reasons": {
+     "defeat": 64
+    }
+   },
+   {
+    "stage": 1120,
+    "wall_h": 15.6,
+    "play_min": 36.1,
+    "attempts": 56,
+    "reasons": {
+     "defeat": 55
+    }
+   },
+   {
+    "stage": 1226,
+    "wall_h": 15.6,
+    "play_min": 36.1,
+    "attempts": 56,
+    "reasons": {
+     "defeat": 55
+    }
+   },
+   {
+    "stage": 1379,
+    "wall_h": 15.6,
+    "play_min": 35.8,
+    "attempts": 57,
+    "reasons": {
+     "defeat": 56
+    }
+   },
+   {
+    "stage": 1836,
+    "wall_h": 15.6,
+    "play_min": 36.2,
+    "attempts": 65,
+    "reasons": {
+     "defeat": 64
+    }
+   },
+   {
+    "stage": 1692,
+    "wall_h": 15.57,
+    "play_min": 34.4,
+    "attempts": 58,
+    "reasons": {
+     "defeat": 57
+    }
+   },
+   {
+    "stage": 1705,
+    "wall_h": 15.57,
+    "play_min": 34.3,
+    "attempts": 58,
+    "reasons": {
+     "defeat": 57
+    }
+   }
+  ],
+  "dlevel": {},
+  "secs": 19.5
+ },
+ {
+  "label": "current",
+  "ads": 0.5,
+  "days": 30,
+  "stage": 2423,
+  "arrive": {
+   "5": [
+    0.04,
+    0.0
+   ],
+   "6": [
+    0.06,
+    0.0
+   ],
+   "10": [
+    0.12,
+    0.01
+   ],
+   "20": [
+    0.33,
+    0.01
+   ],
+   "30": [
+    0.44,
+    0.02
+   ],
+   "40": [
+    0.54,
+    0.19
+   ],
+   "50": [
+    0.58,
+    0.19
+   ],
+   "60": [
+    0.63,
+    0.19
+   ],
+   "80": [
+    0.72,
+    0.2
+   ],
+   "100": [
+    0.84,
+    0.2
+   ],
+   "150": [
+    1.02,
+    0.42
+   ],
+   "184": [
+    1.16,
+    0.42
+   ],
+   "200": [
+    1.22,
+    0.43
+   ],
+   "250": [
+    1.45,
+    0.44
+   ],
+   "300": [
+    1.66,
+    1.07
+   ],
+   "400": [
+    2.11,
+    1.25
+   ],
+   "500": [
+    2.55,
+    1.48
+   ],
+   "700": [
+    3.62,
+    2.32
+   ],
+   "1000": [
+    5.94,
+    3.62
+   ]
+  },
+  "per_day": [
+   [
+    1,
+    262,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    2,
+    585,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    3,
+    831,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    4,
+    1010,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    5,
+    1118,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    6,
+    1166,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    7,
+    1217,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    8,
+    1244,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    9,
+    1314,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    10,
+    1361,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    11,
+    1438,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    12,
+    1472,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    13,
+    1560,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    14,
+    1589,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    15,
+    1674,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    16,
+    1720,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    17,
+    1786,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    18,
+    1858,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    19,
+    1922,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    20,
+    1951,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    21,
+    2006,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    22,
+    2053,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    23,
+    2117,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    24,
+    2155,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    25,
+    2220,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    26,
+    2239,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    27,
+    2301,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    28,
+    2353,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    29,
+    2390,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    30,
+    2423,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ]
+  ],
+  "gold_src": {
+   "battle": 541539477734912.0,
+   "offline": 6121113950070656.0,
+   "offline_ad": 3037379005055525.0,
+   "adbox": 18837855917400.0,
+   "quest": 68842991928000.0,
+   "dungeon": 0.0
+  },
+  "myc_src": {
+   "boss": 304446.0,
+   "quest": 270.0,
+   "adbox": 18660.0,
+   "dungeon": 0.0
+  },
+  "pulls": {
+   "Weapon": 12285,
+   "Pet": 12484,
+   "Accessory": 11788,
+   "Character": 0
+  },
+  "levels": {
+   "Attack": 16528,
+   "Hp": 16047,
+   "HpRegen": 9990,
+   "Speed": 275,
+   "CritChance": 1000,
+   "CritDamage": 2500,
+   "AdvancedAttack": 1793,
+   "NormalEnemyDamage": 882
+  },
+  "atk_pct": 10540.866640901148,
+  "hp_pct": 5156.597950347933,
+  "hurdles": [
+   {
+    "stage": 2353,
+    "wall_h": 15.65,
+    "play_min": 39.3,
+    "attempts": 69,
+    "reasons": {
+     "defeat": 68
+    }
+   },
+   {
+    "stage": 2239,
+    "wall_h": 15.64,
+    "play_min": 38.3,
+    "attempts": 68,
+    "reasons": {
+     "defeat": 67
+    }
+   },
+   {
+    "stage": 1720,
+    "wall_h": 15.59,
+    "play_min": 35.2,
+    "attempts": 60,
+    "reasons": {
+     "defeat": 59
+    }
+   },
+   {
+    "stage": 2220,
+    "wall_h": 15.56,
+    "play_min": 33.4,
+    "attempts": 60,
+    "reasons": {
+     "defeat": 59
+    }
+   },
+   {
+    "stage": 1786,
+    "wall_h": 15.55,
+    "play_min": 32.7,
+    "attempts": 57,
+    "reasons": {
+     "defeat": 56
+    }
+   },
+   {
+    "stage": 2155,
+    "wall_h": 15.55,
+    "play_min": 32.7,
+    "attempts": 58,
+    "reasons": {
+     "defeat": 57
+    }
+   },
+   {
+    "stage": 1244,
+    "wall_h": 15.49,
+    "play_min": 29.5,
+    "attempts": 46,
+    "reasons": {
+     "defeat": 45
+    }
+   },
+   {
+    "stage": 2117,
+    "wall_h": 15.47,
+    "play_min": 28.2,
+    "attempts": 49,
+    "reasons": {
+     "defeat": 48
+    }
+   },
+   {
+    "stage": 1951,
+    "wall_h": 15.44,
+    "play_min": 26.6,
+    "attempts": 46,
+    "reasons": {
+     "defeat": 45
+    }
+   },
+   {
+    "stage": 2006,
+    "wall_h": 15.43,
+    "play_min": 25.9,
+    "attempts": 45,
+    "reasons": {
+     "defeat": 44
+    }
+   },
+   {
+    "stage": 1674,
+    "wall_h": 15.42,
+    "play_min": 25.3,
+    "attempts": 44,
+    "reasons": {
+     "defeat": 43
+    }
+   },
+   {
+    "stage": 1472,
+    "wall_h": 15.33,
+    "play_min": 19.7,
+    "attempts": 32,
+    "reasons": {
+     "defeat": 31
+    }
+   }
+  ],
+  "dlevel": {},
+  "secs": 22.8
+ },
+ {
+  "label": "current",
+  "ads": 1.0,
+  "days": 30,
+  "stage": 2933,
+  "arrive": {
+   "5": [
+    0.04,
+    0.0
+   ],
+   "6": [
+    0.05,
+    0.0
+   ],
+   "10": [
+    0.1,
+    0.0
+   ],
+   "20": [
+    0.26,
+    0.01
+   ],
+   "30": [
+    0.35,
+    0.01
+   ],
+   "40": [
+    0.44,
+    0.02
+   ],
+   "50": [
+    0.51,
+    0.19
+   ],
+   "60": [
+    0.55,
+    0.19
+   ],
+   "80": [
+    0.63,
+    0.19
+   ],
+   "100": [
+    0.73,
+    0.2
+   ],
+   "150": [
+    0.93,
+    0.41
+   ],
+   "184": [
+    1.06,
+    0.42
+   ],
+   "200": [
+    1.12,
+    0.42
+   ],
+   "250": [
+    1.33,
+    0.43
+   ],
+   "300": [
+    1.56,
+    1.06
+   ],
+   "400": [
+    1.97,
+    1.08
+   ],
+   "500": [
+    2.41,
+    1.48
+   ],
+   "700": [
+    3.38,
+    2.14
+   ],
+   "1000": [
+    5.5,
+    3.6
+   ]
+  },
+  "per_day": [
+   [
+    1,
+    286,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    2,
+    626,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    3,
+    872,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    4,
+    1058,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    5,
+    1189,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    6,
+    1241,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    7,
+    1333,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    8,
+    1426,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    9,
+    1472,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    10,
+    1572,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    11,
+    1662,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    12,
+    1761,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    13,
+    1853,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    14,
+    1957,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    15,
+    1994,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    16,
+    2090,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    17,
+    2166,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    18,
+    2217,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    19,
+    2303,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    20,
+    2348,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    21,
+    2430,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    22,
+    2513,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    23,
+    2546,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    24,
+    2631,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    25,
+    2678,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    26,
+    2721,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    27,
+    2752,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    28,
+    2796,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    29,
+    2872,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ],
+   [
+    30,
+    2933,
+    [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   ]
+  ],
+  "gold_src": {
+   "battle": 882663440040024.0,
+   "offline": 1.0040238929016812e+16,
+   "offline_ad": 1.0040238929016812e+16,
+   "adbox": 60209332007400.0,
+   "quest": 107535515091200.0,
+   "dungeon": 0.0
+  },
+  "myc_src": {
+   "boss": 443319.0,
+   "quest": 270.0,
+   "adbox": 44650.0,
+   "dungeon": 0.0
+  },
+  "pulls": {
+   "Weapon": 18695,
+   "Pet": 18485,
+   "Accessory": 18752,
+   "Character": 330
+  },
+  "levels": {
+   "Attack": 17804,
+   "Hp": 17311,
+   "HpRegen": 10755,
+   "Speed": 275,
+   "CritChance": 1000,
+   "CritDamage": 2500,
+   "AdvancedAttack": 1964,
+   "NormalEnemyDamage": 967
+  },
+  "atk_pct": 12955.72312761474,
+  "hp_pct": 6509.677046228298,
+  "hurdles": [
+   {
+    "stage": 2430,
+    "wall_h": 15.63,
+    "play_min": 37.6,
+    "attempts": 66,
+    "reasons": {
+     "defeat": 65
+    }
+   },
+   {
+    "stage": 2752,
+    "wall_h": 15.61,
+    "play_min": 36.4,
+    "attempts": 67,
+    "reasons": {
+     "defeat": 66
+    }
+   },
+   {
+    "stage": 1472,
+    "wall_h": 15.57,
+    "play_min": 34.0,
+    "attempts": 55,
+    "reasons": {
+     "defeat": 54
+    }
+   },
+   {
+    "stage": 2872,
+    "wall_h": 15.57,
+    "play_min": 34.2,
+    "attempts": 65,
+    "reasons": {
+     "defeat": 64
+    }
+   },
+   {
+    "stage": 1241,
+    "wall_h": 15.54,
+    "play_min": 32.3,
+    "attempts": 52,
+    "reasons": {
+     "defeat": 51
+    }
+   },
+   {
+    "stage": 1761,
+    "wall_h": 15.54,
+    "play_min": 32.6,
+    "attempts": 55,
+    "reasons": {
+     "defeat": 54
+    }
+   },
+   {
+    "stage": 1572,
+    "wall_h": 15.51,
+    "play_min": 30.3,
+    "attempts": 50,
+    "reasons": {
+     "defeat": 49
+    }
+   },
+   {
+    "stage": 2348,
+    "wall_h": 15.44,
+    "play_min": 26.4,
+    "attempts": 47,
+    "reasons": {
+     "defeat": 46
+    }
+   },
+   {
+    "stage": 2721,
+    "wall_h": 15.38,
+    "play_min": 23.1,
+    "attempts": 42,
+    "reasons": {
+     "defeat": 41
+    }
+   },
+   {
+    "stage": 1957,
+    "wall_h": 15.33,
+    "play_min": 20.0,
+    "attempts": 34,
+    "reasons": {
+     "defeat": 33
+    }
+   },
+   {
+    "stage": 2678,
+    "wall_h": 15.33,
+    "play_min": 19.9,
+    "attempts": 36,
+    "reasons": {
+     "defeat": 35
+    }
+   },
+   {
+    "stage": 2796,
+    "wall_h": 15.31,
+    "play_min": 18.5,
+    "attempts": 35,
+    "reasons": {
+     "defeat": 34
+    }
+   }
+  ],
+  "dlevel": {},
+  "secs": 30.1
+ }
+]
