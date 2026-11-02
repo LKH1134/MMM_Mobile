@@ -38,40 +38,10 @@ namespace MoreMush.Mobile
         public static int MaxLevel => Cfg.maxLevel;
         public static double LevelBonus => Cfg.levelBonus;
         public static double EquipRatio => Cfg.equipRatio;
-        static readonly string[] WeaponSprites = { "sam", "sam", "saw", "hs_gold", "hs_gold" };   // 등급별 수확기 그림
-
-        public static readonly Equipment Weapon = new Equipment(GachaKind.Weapon, "Weapon", "무기", EquipStat.Attack,
-            new[]
-            {
-                "나무 낫", "돌 낫", "구리 낫",
-                "철 낫", "강철 낫", "은 낫",
-                "회전 톱날", "강철 톱날", "은빛 톱날",
-                "붉은 낫", "불꽃 낫", "용암 낫",
-                "황금 낫", "별빛 낫", "태초의 낫",
-            },
-            i => "Art/Dream/Harvesters/" + WeaponSprites[i / SubPerGrade]);
-
-        public static readonly Equipment Armor = new Equipment(GachaKind.Accessory, "Armor", "방어구", EquipStat.Hp,
-            new[]
-            {
-                "풀잎 망토", "나뭇잎 조끼", "이끼 외투",
-                "버섯 모자", "포자 갑옷", "균사 갑옷",
-                "이슬 방패", "수정 갑옷", "달빛 갑옷",
-                "용암 갑옷", "불사조 망토", "화산 갑옷",
-                "황금 갑옷", "별빛 갑옷", "세계수 갑옷",
-            },
-            i => "Art/Dream/Icons/mushtree");
-
-        public static readonly Equipment Pet = new Equipment(GachaKind.Pet, "Pet", "펫", EquipStat.Attack,
-            new[]
-            {
-                "아기 송이", "아기 표고", "아기 팽이",
-                "꼬마 송이", "꼬마 표고", "꼬마 팽이",
-                "날쌘 버섯", "단단 버섯", "반짝 버섯",
-                "불꽃 버섯", "번개 버섯", "얼음 버섯",
-                "황금 버섯", "별빛 버섯", "태초 버섯",
-            },
-            i => "Art/Dream/Characters/Critters/Mushrooms/ed" + (i * 10 / 15));
+        // 이름·그림은 장비 시트(종류별 itemIndex 순서). 강화·저장 키는 여기 (종류마다 등급 × SubPerGrade = 15칸)
+        public static readonly Equipment Weapon = new Equipment(GachaKind.Weapon, "Weapon", "무기", EquipStat.Attack);
+        public static readonly Equipment Armor = new Equipment(GachaKind.Accessory, "Armor", "방어구", EquipStat.Hp);
+        public static readonly Equipment Pet = new Equipment(GachaKind.Pet, "Pet", "펫", EquipStat.Attack);
 
         public static readonly Equipment[] All = { Weapon, Armor, Pet };
 
@@ -84,8 +54,7 @@ namespace MoreMush.Mobile
         public readonly GachaKind Kind;
         public readonly string Title;               // 화면 이름 (무기·방어구·펫)
         public readonly EquipStat Stat;
-        public readonly string[] Names;
-        readonly Func<int, string> spritePath;
+        string[] names, spritePaths;                // 장비 시트에서 처음 쓸 때 읽는다 (null = 아직)
         readonly string keyPrefix;
 
         public event Action Changed;
@@ -97,17 +66,16 @@ namespace MoreMush.Mobile
         int equippedRaw;
         double totalPercent = double.NaN;           // NaN = 다시 셈
 
-        Equipment(GachaKind kind, string keyPrefix, string title, EquipStat stat, string[] names, Func<int, string> spritePath)
+        Equipment(GachaKind kind, string keyPrefix, string title, EquipStat stat)
         {
             Kind = kind;
             this.keyPrefix = keyPrefix;
             Title = title;
             Stat = stat;
-            Names = names;
-            this.spritePath = spritePath;
-            levelKeys = new string[names.Length];
-            copiesKeys = new string[names.Length];
-            for (int i = 0; i < names.Length; i++)
+            int n = GachaProgress.GradeCount * SubPerGrade;
+            levelKeys = new string[n];
+            copiesKeys = new string[n];
+            for (int i = 0; i < n; i++)
             {
                 levelKeys[i] = $"{keyPrefix}.Level.{i}";
                 copiesKeys[i] = $"{keyPrefix}.Copies.{i}";
@@ -123,6 +91,7 @@ namespace MoreMush.Mobile
 
         void Reload()
         {
+            names = spritePaths = null;
             levels = copies = null;
             totalPercent = double.NaN;
         }
@@ -164,7 +133,33 @@ namespace MoreMush.Mobile
             totalPercent = double.NaN;
         }
 
-        public int Count => Names.Length;
+        public int Count => levelKeys.Length;
+
+        // 장비 이름 (장비 시트 name)
+        public string[] Names
+        {
+            get
+            {
+                if (names == null) LoadRows();
+                return names;
+            }
+        }
+
+        void LoadRows()
+        {
+            var rows = GameBalance.EquipmentOf(Kind);
+            var n = new string[Count];
+            var p = new string[Count];
+            foreach (var r in rows)
+            {
+                if (r.itemIndex < 0 || r.itemIndex >= Count) continue;
+                n[r.itemIndex] = r.name;
+                p[r.itemIndex] = GameBalance.ResourcePath(r.resourceId);
+            }
+            for (int i = 0; i < Count; i++) if (n[i] == null) n[i] = Title + " " + (i + 1);   // 검증기가 막지만, 빠진 칸이 있어도 화면이 깨지지 않게
+            spritePaths = p;
+            names = n;
+        }
         public string StatName => Stat == EquipStat.Attack ? "공격력" : "체력";
 
         string OwnedKey(int i) => $"{keyPrefix}.Owned.{i}";        // 예전 세이브 (얻은 장수)
@@ -246,7 +241,12 @@ namespace MoreMush.Mobile
             }
         }
 
-        public Sprite Sprite(int i) => i >= 0 && i < Count ? Resources.Load<Sprite>(spritePath(i)) : null;
+        public Sprite Sprite(int i)
+        {
+            if (i < 0 || i >= Count) return null;
+            if (spritePaths == null) LoadRows();
+            return spritePaths[i] != null ? Resources.Load<Sprite>(spritePaths[i]) : null;
+        }
 
         // 뽑기 결과(등급별 개수) → 장비 번호들
         public List<int> PickItems(int[] gradeCounts)

@@ -54,12 +54,22 @@ namespace MoreMush.Mobile
             return new[] { (float)r.oddsNormal, (float)r.oddsUncommon, (float)r.oddsRare, (float)r.oddsEpic, (float)r.oddsLegend };
         }
 
-        // 무료 뽑기: 종류마다 하루 한 번. 던전 입장 횟수와 같이 한국 시각(UTC+9) 00시에 다시 생긴다
-        // (기기 시계를 되돌려 다시 받지 못하게 저장된 날보다 뒤의 날만 새날로 본다, DungeonTickets.IsNewDay)
-        public static bool FreeAvailable(GachaKind k) => DungeonTickets.IsNewDay(PlayerPrefs.GetString(FreeDayKey(k), ""));
+        // 광고 뽑기: 종류마다 하루 limit번 (뽑기상품 시트 dailyLimit). 던전 입장 횟수와 같이 한국 시각(UTC+9) 00시에 다시 생긴다
+        // (기기 시계를 되돌려 다시 받지 못하게 저장된 날보다 뒤의 날만 새날로 본다, DungeonTickets.IsNewDay).
+        // 횟수 키가 없는 예전 세이브는 그날 1번 쓴 것으로 본다
+        static string FreeCountKey(GachaKind k) => $"Gacha.{k}.AdCount";
+
+        public static int FreeUsed(GachaKind k) =>
+            DungeonTickets.IsNewDay(PlayerPrefs.GetString(FreeDayKey(k), "")) ? 0 : Mathf.Max(0, PlayerPrefs.GetInt(FreeCountKey(k), 1));
+
+        public static int FreeLeft(GachaKind k, int limit) => limit <= 0 ? int.MaxValue : Mathf.Max(0, limit - FreeUsed(k));
+        public static bool FreeAvailable(GachaKind k, int limit) => FreeLeft(k, limit) > 0;
+
         public static void MarkFreeUsed(GachaKind k)
         {
+            int used = FreeUsed(k) + 1;
             PlayerPrefs.SetString(FreeDayKey(k), DungeonTickets.Today);
+            PlayerPrefs.SetInt(FreeCountKey(k), used);
             PlayerPrefs.Save();
             Changed?.Invoke();
         }

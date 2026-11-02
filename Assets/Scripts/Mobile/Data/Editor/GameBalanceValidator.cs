@@ -59,7 +59,7 @@ namespace MoreMush.Mobile.EditorTools
             ("kidBagShare", 0, false), ("decoSetBagMul", 0, false), ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
             ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false), ("kidEvoLevelGradeMul", 0.001, false),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
-            ("offlineGoldRate", 0, false), ("adGachaPulls", 1, true),
+            ("offlineGoldRate", 0, false),
         };
 
         sealed class Row
@@ -218,11 +218,18 @@ namespace MoreMush.Mobile.EditorTools
                 if (!products.Add(r.Text("kind") + ":" + r.Text("pullCount") + ":" + ad)) issues.Add(r.At("kind") + ": 같은 종류/횟수/광고 여부의 상품이 겹친다");
             }
             foreach (GachaKind kind in Enum.GetValues(typeof(GachaKind)))
-                if (!tables["뽑기상품"].Any(r => r.Text("kind") == kind.ToString())) issues.Add($"[뽑기상품] {kind} 상품이 없다");
+            {
+                var rows = tables["뽑기상품"].Where(r => r.Text("kind") == kind.ToString()).ToList();
+                int ads = rows.Count(r => IsTrue(r.Text("requiresAd"))), paid = rows.Count - ads;
+                // GachaPanel 버튼: 광고 1개 + 재화 2개 (횟수 적은 것 → 첫 버튼)
+                if (ads != 1) issues.Add($"[뽑기상품] {kind} 광고 상품은 1개여야 한다 (지금 {ads})");
+                if (paid != 2) issues.Add($"[뽑기상품] {kind} 재화 상품은 2개여야 한다 (지금 {paid})");
+            }
 
+            if (tables["방치전투"].Count != 1) issues.Add("[방치전투] 행이 하나여야 한다 (지금 " + tables["방치전투"].Count + ")");
             foreach (var r in tables["방치전투"])
             {
-                Positive(r, "formationSlots", issues);
+                if (r.Int("formationSlots") != Formation.SlotCount) issues.Add(r.At("formationSlots") + $": 편성 칸은 코드(Formation.SlotCount)와 같은 {Formation.SlotCount}이어야 한다");
                 Positive(r, "stagesPerChapter", issues);
                 Positive(r, "flightTime", issues);
                 Between(r, "waveDelay", 0, double.MaxValue, issues);

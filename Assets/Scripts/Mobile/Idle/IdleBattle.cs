@@ -33,6 +33,7 @@ namespace MoreMush.Mobile
         [SerializeField] float enemySize = 110f;
         [SerializeField] float bossSize = 560f;
         [SerializeField] float harvesterSize = 64f;
+        // flightTime·waveDelay·enemyAttackDelay는 방치전투 시트 값을 쓴다 (Awake에서 덮어씀, 인스펙터 값은 표가 없을 때만)
         [SerializeField] float flightTime = 0.45f;          // 수확기가 날아가는 시간
         [SerializeField] float arcHeight = 140f;            // 포물선 높이
         [SerializeField] float waveDelay = 0.6f;            // 웨이브 사이 쉬는 시간
@@ -87,9 +88,9 @@ namespace MoreMush.Mobile
         int shownTickWaves = -1;
         GameObject statsPanel;
 
-        // 스테이지 배너: "<챕터 이름> 챕터-번호". 챕터 이름은 임시 한 가지 (기획 확정 후 표로)
-        const int StagesPerChapter = 10;
-        const string ChapterName = "늑대의 밤";
+        // 스테이지 배너: "<챕터 이름> 챕터-번호" (방치전투 시트 chapterName·stagesPerChapter)
+        static int StagesPerChapter => Mathf.Max(1, GameBalance.IdleBattle.stagesPerChapter);
+        static string ChapterName => GameBalance.IdleBattle.chapterName;
         const string MapIcon = "Art/Dream/Icons/quest";                 // 임시 그림
         const string PowerIcon = "Art/Dream/UI/Window/ic_mallet";       // 임시 그림
         const float PowerPillY = -967f;     // 강화 목록(UpgradePanel) 위쪽 가장자리 — 전투 화면과 강화 목록 사이
@@ -107,6 +108,10 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
+            var rule = GameBalance.IdleBattle;
+            flightTime = Mathf.Max(0.01f, (float)rule.flightTime);
+            waveDelay = Mathf.Max(0f, (float)rule.waveDelay);
+            enemyAttackDelay = Mathf.Max(0f, (float)rule.enemyAttackDelay);
             if (enemyArea == null)
             {
                 // 적이 나올 자리가 없으면 매 프레임 NullReference가 난다 — 전투를 끄고 한 번만 알린다

@@ -12,7 +12,7 @@ namespace MoreMush.Mobile
     public class DungeonEntry : MonoBehaviour
     {
         [SerializeField] int dungeon = 1;           // 던전 번호 (DungeonTickets 저장 키)
-        [SerializeField] string scene = "";
+        [SerializeField] string scene = "";         // 던전 시트 scene이 덮어쓴다 (implemented가 아니면 비운다)
         [SerializeField] Button enterButton;
         [SerializeField] TMP_Text countText;
 
@@ -41,6 +41,23 @@ namespace MoreMush.Mobile
                 else if (levelText == null && t.name == "LevelText") levelText = t.GetComponent<TMP_Text>();
             }
             if (levelText == null && countText != null) levelText = CreateLevelText(countText);
+            ApplyTable();
+        }
+
+        // 던전 시트: 입장 씬·이름. 이름은 카드의 제목 글자(입장·횟수·잠금·레벨 글자가 아닌 것)에 넣는다
+        void ApplyTable()
+        {
+            var row = GameBalance.Dungeon(dungeon);
+            if (row == null) return;
+            scene = row.implemented ? row.scene : "";
+            if (string.IsNullOrEmpty(row.name)) return;
+            foreach (var t in GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (t == buttonLabel || t == countText || t == lockText || t == levelText) continue;
+                if (t.transform.IsChildOf(enterButton != null ? enterButton.transform : transform) && enterButton != null) continue;
+                t.text = row.name;
+                break;
+            }
         }
 
         // 남은 횟수 칸(배경 + 문구)을 본떠 이름 칸 아래(카드 오른쪽 위)에 레벨 칸을 만든다

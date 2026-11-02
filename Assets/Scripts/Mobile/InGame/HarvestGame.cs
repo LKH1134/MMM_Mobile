@@ -52,6 +52,7 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
+            HarvestTuning.Apply(roundBase, "RoundBase");    // 수확전투 시트 (인스펙터 값은 표에 행이 없을 때만)
             field.Harvested += OnHarvested;
             field.Hit += OnHit;
             field.Launched += h =>
