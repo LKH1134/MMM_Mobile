@@ -1,8 +1,10 @@
-# 이론.md 표 조각: python tables.py
+# 이론.md 표 조각: python tables.py > tables4.log (라운드 4: 머지된 v3 표 입력)
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 import json, os
 import wt_model as M, wt_tables as WT
 KEYS = ['Attack', 'Hp', 'CritChance', 'CritDamage', 'KillGold', 'BossMycelite', 'Speed', 'Harvest', 'BagGold', 'BagMycelite', 'BagHours', 'CraftSpeed']
-for feed, which in [('feed_live.json', 'current'), ('feed_live.json', 'v3'), ('feed_v2.json', 'v3'), ('feed_live_a0.json', 'v3'), ('feed_v2_a0.json', 'v3')]:
+for feed, which in [('feed_v3_90.json', 'current'), ('feed_v3_90.json', 'v4'), ('feed_v3_a0_90.json', 'v4'), ('feed_v3_d1.json', 'v4'), ('feed_v3_a0_d1.json', 'v4')]:
     tr = M.run(feed, which)
     D = {r['day']: r for r in tr.log['daily']}
     print(f'### {feed} {which}')

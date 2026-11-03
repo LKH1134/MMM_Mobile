@@ -4,6 +4,7 @@
 #   python feedback.py <live|v2> <days> <ads> const A=1.05,H=1.05,G=1.02,CD=0.1,CC=0,BM=1.1   (1일부터 최대치 = 상한)
 #   python feedback.py <live|v2> <days> <ads> tl=<timeline.json>                              (wt_model 날짜별 효과, 전날 값)
 #   python feedback.py <live|v2> <days> <ads> none                                            (기준선)
+#   python feedback.py v3 <days> <ads> ...   (라운드 4: 머지된 라이브 표, idle_feed.setup_live)
 # → fb_<base>_a<ads>_<tag>.json : {day: stage}
 import copy, json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -46,9 +47,13 @@ def install():
 
 
 class FB(P.Sim):
-    def run_days(self, days, tl=None):
+    def run_days(self, days, tl=None, ad=None):
         self.stage_by_day = {}
-        orig = P.Sim.run_days
+        if ad is not None:
+            import idle_feed as IF
+            orig = lambda self_, n: IF.FeedSim.run_days(self_, n, ad)
+        else:
+            orig = P.Sim.run_days
         for day in range(days):
             if tl and day > 0:
                 e = tl[day - 1]
@@ -62,7 +67,12 @@ class FB(P.Sim):
 if __name__ == '__main__':
     base, days, ads, spec = sys.argv[1], int(sys.argv[2]), float(sys.argv[3]), sys.argv[4]
     dmod = None
-    if base == 'live':
+    ad = None
+    if base == 'v3':      # 라운드 4: 머지된 라이브 표 (idle_feed.setup_live — 1~700 시트 + 꼬리, 뽑기상품 광고 행, 던전 시트)
+        import idle_feed as IF
+        info = IF.setup_live()
+        dmod, ad = IF.DG, info['ad']
+    elif base == 'live':
         PR.current()
     else:
         import dungeon
@@ -82,7 +92,7 @@ if __name__ == '__main__':
         tag = 'tl_' + spec[3:-5]
     sim = FB(pattern='daily', ads=ads)
     sim.dungeon = dmod
-    sim.run_days(days, tl)
-    out = os.path.join(HERE, f'fb_{base}_a{ads:g}_{tag}.json')
+    sim.run_days(days, tl, ad)
+    out = os.path.join(HERE, f'fb_{base}_a{ads:g}_{days}_{tag}.json')
     json.dump(sim.stage_by_day, open(out, 'w'), indent=0)
-    print(base, ads, tag, {d: sim.stage_by_day[d] for d in (7, 14, 21, 30, 45, 60) if d in sim.stage_by_day})
+    print(base, ads, tag, {d: sim.stage_by_day[d] for d in (7, 14, 21, 30, 45, 60, 90, 120) if d in sim.stage_by_day})

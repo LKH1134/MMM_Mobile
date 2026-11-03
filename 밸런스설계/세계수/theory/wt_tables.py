@@ -41,7 +41,7 @@ def load_current():
     T['const'] = {r['key']: float(r['value']) for r in _rows(d['상수'])}
     T['gacha'] = [[float(r[k]) for k in ('oddsNormal', 'oddsUncommon', 'oddsRare', 'oddsEpic', 'oddsLegend')] + [int(r['expToNext'])]
                   for r in _rows(d['뽑기'])]
-    T['kidEvoLevelGradeMul'] = None     # 코드 변경 K1 (없으면 None = 지금 코드)
+    T['kidEvoLevelGradeMul'] = T['const'].get('kidEvoLevelGradeMul')     # K1 (v1부터 코드·상수에 있음; 없으면 None)
     return T
 
 
@@ -172,3 +172,10 @@ V2['dgrades'] = [(1500, 5, 6), (4000, 15, 24), (10000, 30, 48)]        # 희귀 
 V3 = copy.deepcopy(V2)
 V3['kids']['beak'] = ('BagMycelite', 0.11)
 V3['tree']['evoExp'] = [15000, 35000, 55000, 80000, 160000, 260000, 440000, 0]   # 부리 버섯 획득(6·7단계 +0.08·0.16)이 빠진 만큼 6·7단계를 줄여 8단계 날짜 유지
+
+# ── 수치안 v4 (라운드 4 D2, KHD 방치 v3 머지 뒤): 5단계 가지 칸 5 → 6 (칸 합 15 → 16) ──
+# 5단계에 9일 머무는 동안 가장 먼저(13일)·가장 오래(27접속 중 20) 못 놓는 자리가 가지(고급 장식 5개 + 일반 1개 = 6개, 칸 5).
+# 6단계 가지 6과 같아져 단계가 올라도 칸이 줄지 않는다 (가지 0/0/1/3/6/6/6/6).
+V4 = copy.deepcopy(V3)
+V4['tree']['slots'] = [list(s) for s in V3['tree']['slots']]
+V4['tree']['slots'][4] = [5, 4, 6, 1]

@@ -181,6 +181,9 @@ class Tree:
         if self.rush:
             self.do_rush()
         self.place_all()
+        un = len(self.decos_owned) - len(self.placed)          # 접속 끝 기준 (라운드 4: 검증 w7_r4와 같은 시점)
+        su = self.log.setdefault('unplaced_sess', {})
+        su[self.stage] = max(su.get(self.stage, 0), un)
         self.t += s['gap_h']
 
     def grow(self):
@@ -351,10 +354,10 @@ class Tree:
 
 
 def run(feed_name, which='v1', **kw):
-    feed = json.load(open(os.path.join(HERE, feed_name)))['feed']
+    feed = json.load(open(os.path.join(HERE, feed_name), encoding='utf-8'))['feed']
     T = WT.load_current()
-    if which in ('v1', 'v2', 'v3'):
-        T = WT.apply(T, {'v1': WT.V1, 'v2': WT.V2, 'v3': WT.V3}[which])
+    if which in ('v1', 'v2', 'v3', 'v4'):
+        T = WT.apply(T, {'v1': WT.V1, 'v2': WT.V2, 'v3': WT.V3, 'v4': WT.V4}[which])
     return Tree(T, feed, **kw).run()
 
 
@@ -379,7 +382,11 @@ def summary(tr, label=''):
     un = {}
     for r in D:
         un[r['stage']] = max(un.get(r['stage'], 0), r['decos'] - r['placed'])
-    out.append('칸 없는 장식 최대 (단계: 개): ' + ', '.join(f'{k}:{v}' for k, v in sorted(un.items())))
+    out.append('칸 없는 장식 최대 (단계: 개, 하루 끝): ' + ', '.join(f'{k}:{v}' for k, v in sorted(un.items())))
+    out.append('칸 없는 장식 최대 (단계: 개, 접속 끝): ' + ', '.join(f'{k}:{v}' for k, v in sorted(L.get('unplaced_sess', {}).items())))
+    full = next((r['day'] for r in D if r['decos'] >= len(tr.T['decos'])), None)
+    allp = next((r['day'] for r in D if r['placed'] >= len(tr.T['decos'])), None)
+    out.append(f'장식 24개 다 만듦 {full}일 · 다 놓음 {allp}일')
     out.append('★ 날짜: ' + '; '.join(f'{k} ' + ','.join(f'★{s}:{d}' for s, d in v.items()) for k, v in L['star_day'].items()))
     out.append('보유 날짜: ' + ', '.join(f'{k}:{d}' for k, d in L['own_day'].items()))
     out.append('호감도 최대 날짜: ' + ', '.join(f'{k}:{d}' for k, d in sorted(L['aff_max_day'].items(), key=lambda x: x[1])))
