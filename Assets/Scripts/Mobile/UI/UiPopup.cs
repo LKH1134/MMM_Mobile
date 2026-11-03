@@ -1,0 +1,121 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace MoreMush.Mobile
+{
+    // 팝업 하나. 루트(화면 전체, CanvasGroup)에 붙인다. 닫혀 있을 때는 루트를 끈다.
+    // BottomSheet: 시트가 화면 아래에서 올라온다 (의뢰·공방). FullScreen: 화면 전체가 살짝 커지며 나타난다 (도감).
+    // Center: 가운데 창이 FullScreen과 같은 방식으로 나타난다 (옵션)
+    [RequireComponent(typeof(CanvasGroup))]
+    public class UiPopup : MonoBehaviour
+    {
+        public enum Style { BottomSheet, FullScreen, Center }
+
+        [SerializeField] Style style = Style.BottomSheet;
+        [SerializeField] RectTransform sheet;     // 움직이는 본체
+        [SerializeField] Button dim;              // 시트 바깥(어두운 배경)을 누르면 닫힘. 없어도 된다
+        [SerializeField] Button closeButton;
+        [SerializeField] float duration = 0.25f;
+        [SerializeField] float overhang = 160f;   // 시트 위로 튀어나온 탭 높이. 닫힐 때 이만큼 더 내려 완전히 숨긴다
+        [SerializeField] int sortingOffset = 100; // 부모 캔버스보다 이만큼 위에 그린다 (전투 화면·전투 UI 위)
+
+        CanvasGroup group;
+        Coroutine anim;
+
+        public bool IsOpen { get; private set; }
+        public event System.Action Opened;
+        public event System.Action Closed;
+
+        void Awake()
+        {
+            group = GetComponent<CanvasGroup>();
+            if (dim != null) dim.onClick.AddListener(Close);
+            if (closeButton != null) closeButton.onClick.AddListener(Close);
+        }
+
+        public void Open()
+        {
+            if (IsOpen) return;
+            IsOpen = true;
+            PopupGate.Opened(this, Close, backCloses: dim != null || closeButton != null);   // 닫기 수단이 없는 팝업(결과 등)은 뒤로가기로도 안 닫힌다
+            gameObject.SetActive(true);
+            transform.SetAsLastSibling();
+            BringToFront();
+            Play(true);
+            Opened?.Invoke();
+        }
+
+        public void Close()
+        {
+            if (!IsOpen) return;
+            IsOpen = false;
+            PopupGate.Closed(this);
+            Play(false);
+            Closed?.Invoke();
+        }
+
+        public void Toggle() { if (IsOpen) Close(); else Open(); }
+
+        // 형제 순서만으로는 SafeArea 밖(전투 화면 등)에 가려진다 → 자기 캔버스로 맨 위에 그리고 입력도 먼저 받는다.
+        // 그래서 Dim을 누르면 팝업만 닫히고 뒤의 버튼은 눌리지 않는다
+        void BringToFront()
+        {
+            if (transform.parent == null || transform.parent.GetComponentInParent<Canvas>() == null) return;
+            PopupLayer.Raise(gameObject, sortingOffset);
+        }
+
+        void Play(bool open)
+        {
+            if (anim != null) StopCoroutine(anim);
+            anim = null;
+            if (group == null) group = GetComponent<CanvasGroup>();    // 한 번도 켜진 적 없어 Awake 전이어도
+            if (!isActiveAndEnabled)
+            {
+                // 부모가 꺼져 있으면 코루틴을 못 돌린다(예외) — 애니메이션 없이 끝 상태로 바로 둔다
+                group.blocksRaycasts = open;
+                Apply(open ? 1f : 0f, HiddenOffset());
+                if (!open) gameObject.SetActive(false);
+                return;
+            }
+            anim = StartCoroutine(Animate(open));
+        }
+
+        float HiddenOffset() => sheet != null ? -(sheet.rect.height + overhang) : 0f;
+
+        IEnumerator Animate(bool open)
+        {
+            group.blocksRaycasts = open;
+            // 레이아웃이 잡힌 뒤의 높이를 써야 시트가 정확히 화면 밖에서 출발한다 (열 때만 — 닫을 때는 이미 잡혀 있다.
+            // 모든 캔버스를 다시 그리는 무거운 호출이라 닫을 때까지 부르지 않는다)
+            if (open) Canvas.ForceUpdateCanvases();
+            float hidden = HiddenOffset();
+
+            for (float t = 0f; t < duration; t += Time.unscaledDeltaTime)
+            {
+                float k = Mathf.Clamp01(t / duration);
+                Apply(open ? EaseOut(k) : 1f - EaseOut(k), hidden);
+                yield return null;
+            }
+            Apply(open ? 1f : 0f, hidden);
+            if (!open) gameObject.SetActive(false);
+            anim = null;
+        }
+
+        // p: 0 = 닫힘, 1 = 열림
+        void Apply(float p, float hidden)
+        {
+            group.alpha = style == Style.BottomSheet ? 1f : p;
+            if (sheet == null) return;
+            if (style == Style.BottomSheet)
+            {
+                sheet.anchoredPosition = new Vector2(sheet.anchoredPosition.x, Mathf.Lerp(hidden, 0f, p));
+                if (dim != null) dim.targetGraphic.canvasRenderer.SetAlpha(p);
+            }
+            else
+                sheet.localScale = Vector3.one * Mathf.Lerp(0.95f, 1f, p);
+        }
+
+        static float EaseOut(float k) => 1f - (1f - k) * (1f - k) * (1f - k);
+    }
+}

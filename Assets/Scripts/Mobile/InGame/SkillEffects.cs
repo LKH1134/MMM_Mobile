@@ -427,8 +427,10 @@ namespace MoreMush.Mobile
         // 임시 표시: 걸린 버프를 수확기 색으로 보여 준다 (예전의 버프 글자 목록은 정신없어서 뺐다)
         void ShowBuffs()
         {
-            foreach (var h in field.Harvesters)
+            var harvesters = field.Harvesters;      // 매 프레임 — foreach는 열거자 박싱
+            for (int i = 0; i < harvesters.Count; i++)
             {
+                var h = harvesters[i];
                 if (h.Temporary) continue;
                 Color tint = Color.white;
                 if (h.Has(HarvesterBuff.Power)) tint = powerTint;

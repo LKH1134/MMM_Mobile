@@ -1,0 +1,580 @@
+{
+ "name": "g_q10_s3",
+ "ads": 0.0,
+ "days": 30,
+ "cfg": {
+  "wall": 1.4,
+  "quest_gold": [
+   2000,
+   3000,
+   2000,
+   3000,
+   6000
+  ],
+  "dungeon_mul": 1.0,
+  "sweep": 0.5,
+  "cost_mul": 1.0,
+  "unlock": [
+   5,
+   15,
+   30,
+   80,
+   150
+  ],
+  "step": 3,
+  "gacha_exp": [
+   30,
+   60,
+   100,
+   150,
+   200,
+   300,
+   400,
+   500,
+   600
+  ]
+ },
+ "table": [
+  {
+   "day": 0,
+   "stage": 100,
+   "target": 133,
+   "gained": 99,
+   "wall_stage": 95,
+   "wall_play_min": 7.5,
+   "wall_cal_days": 0.01,
+   "new": [
+    "던전1(s5)",
+    "던전2(s15)",
+    "던전3(s30)",
+    "던전4(s80)",
+    "뽑기 Lv2: 고급 등급",
+    "강화 공속",
+    "강화 치명 확률",
+    "강화 치명 피해",
+    "강화 체력 재생"
+   ],
+   "quests": 4,
+   "dungeon_entries": 8,
+   "dungeon_clear": 8,
+   "boxes": 0,
+   "gacha_level": "1~2",
+   "pulls": 57,
+   "d_lv_stage": {
+    "1": 11,
+    "2": 21,
+    "3": 36,
+    "4": 86
+   },
+   "gold_pct": {
+    "battle": 10.1,
+    "offline": 85.9,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 2.0,
+    "dungeon": 2.0
+   },
+   "myc": {
+    "boss": 198,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 22
+   },
+   "dlevel": {
+    "1": 3,
+    "2": 3,
+    "3": 3,
+    "4": 3
+   }
+  },
+  {
+   "day": 1,
+   "stage": 162,
+   "target": 192,
+   "gained": 62,
+   "wall_stage": 160,
+   "wall_play_min": 28.0,
+   "wall_cal_days": 0.02,
+   "new": [
+    "던전5(s150)"
+   ],
+   "quests": 4,
+   "dungeon_entries": 10,
+   "dungeon_clear": 10,
+   "boxes": 0,
+   "gacha_level": "1~2",
+   "pulls": 103,
+   "d_lv_stage": {
+    "1": 17,
+    "2": 27,
+    "3": 42,
+    "4": 92,
+    "5": 156
+   },
+   "gold_pct": {
+    "battle": 8.1,
+    "offline": 61.7,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 4.8,
+    "dungeon": 25.4
+   },
+   "myc": {
+    "boss": 124,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 31
+   },
+   "dlevel": {
+    "1": 5,
+    "2": 5,
+    "3": 5,
+    "4": 5,
+    "5": 3
+   }
+  },
+  {
+   "day": 2,
+   "stage": 230,
+   "target": 240,
+   "gained": 68,
+   "wall_stage": 230,
+   "wall_play_min": 32.9,
+   "wall_cal_days": 0.65,
+   "new": [
+    "강화 상급 공격력"
+   ],
+   "quests": 4,
+   "dungeon_entries": 10,
+   "dungeon_clear": 10,
+   "boxes": 0,
+   "gacha_level": "1~2",
+   "pulls": 160,
+   "d_lv_stage": {
+    "1": 23,
+    "2": 33,
+    "3": 48,
+    "4": 98,
+    "5": 162
+   },
+   "gold_pct": {
+    "battle": 9.8,
+    "offline": 72.2,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 7.7,
+    "dungeon": 10.2
+   },
+   "myc": {
+    "boss": 136,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 31
+   },
+   "dlevel": {
+    "1": 7,
+    "2": 7,
+    "3": 7,
+    "4": 7,
+    "5": 5
+   }
+  },
+  {
+   "day": 3,
+   "stage": 300,
+   "target": 286,
+   "gained": 70,
+   "wall_stage": 300,
+   "wall_play_min": 29.0,
+   "wall_cal_days": 0.65,
+   "new": [
+    "뽑기 Lv3: 희귀 등급",
+    "강화 일반 적 피해"
+   ],
+   "quests": 4,
+   "dungeon_entries": 10,
+   "dungeon_clear": 10,
+   "boxes": 0,
+   "gacha_level": "1~3",
+   "pulls": 217,
+   "d_lv_stage": {
+    "1": 29,
+    "2": 39,
+    "3": 54,
+    "4": 104,
+    "5": 168
+   },
+   "gold_pct": {
+    "battle": 10.5,
+    "offline": 78.0,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 7.2,
+    "dungeon": 4.3
+   },
+   "myc": {
+    "boss": 140,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 32
+   },
+   "dlevel": {
+    "1": 9,
+    "2": 9,
+    "3": 9,
+    "4": 9,
+    "5": 7
+   }
+  },
+  {
+   "day": 4,
+   "stage": 350,
+   "target": 318,
+   "gained": 50,
+   "wall_stage": 350,
+   "wall_play_min": 33.8,
+   "wall_cal_days": 0.65,
+   "new": [],
+   "quests": 4,
+   "dungeon_entries": 10,
+   "dungeon_clear": 10,
+   "boxes": 0,
+   "gacha_level": "1~3",
+   "pulls": 263,
+   "d_lv_stage": {
+    "1": 35,
+    "2": 45,
+    "3": 60,
+    "4": 110,
+    "5": 174
+   },
+   "gold_pct": {
+    "battle": 11.1,
+    "offline": 77.0,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 9.1,
+    "dungeon": 2.8
+   },
+   "myc": {
+    "boss": 100,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 32
+   },
+   "dlevel": {
+    "1": 11,
+    "2": 11,
+    "3": 11,
+    "4": 11,
+    "5": 9
+   }
+  },
+  {
+   "day": 5,
+   "stage": 390,
+   "target": 341,
+   "gained": 40,
+   "wall_stage": 390,
+   "wall_play_min": 38.1,
+   "wall_cal_days": 0.65,
+   "new": [],
+   "quests": 4,
+   "dungeon_entries": 10,
+   "dungeon_clear": 10,
+   "boxes": 0,
+   "gacha_level": "2~3",
+   "pulls": 309,
+   "d_lv_stage": {
+    "1": 41,
+    "2": 51,
+    "3": 66,
+    "4": 116,
+    "5": 180
+   },
+   "gold_pct": {
+    "battle": 10.8,
+    "offline": 77.8,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 9.2,
+    "dungeon": 2.1
+   },
+   "myc": {
+    "boss": 80,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 33
+   },
+   "dlevel": {
+    "1": 13,
+    "2": 13,
+    "3": 13,
+    "4": 13,
+    "5": 11
+   }
+  },
+  {
+   "day": 6,
+   "stage": 410,
+   "target": 360,
+   "gained": 20,
+   "wall_stage": 410,
+   "wall_play_min": 54.1,
+   "wall_cal_days": 0.87,
+   "new": [],
+   "quests": 4,
+   "dungeon_entries": 10,
+   "dungeon_clear": 10,
+   "boxes": 0,
+   "gacha_level": "2~3",
+   "pulls": 355,
+   "d_lv_stage": {
+    "1": 47,
+    "2": 57,
+    "3": 72,
+    "4": 122,
+    "5": 186
+   },
+   "gold_pct": {
+    "battle": 10.9,
+    "offline": 76.2,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 10.8,
+    "dungeon": 2.1
+   },
+   "myc": {
+    "boss": 40,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 34
+   },
+   "dlevel": {
+    "1": 15,
+    "2": 15,
+    "3": 15,
+    "4": 15,
+    "5": 13
+   }
+  },
+  {
+   "day": 7,
+   "stage": 440,
+   "target": 377,
+   "gained": 30,
+   "wall_stage": 440,
+   "wall_play_min": 54.8,
+   "wall_cal_days": 0.87,
+   "new": [
+    "뽑기 Lv4"
+   ],
+   "quests": 4,
+   "dungeon_entries": 10,
+   "dungeon_clear": 10,
+   "boxes": 0,
+   "gacha_level": "2~4",
+   "pulls": 401,
+   "d_lv_stage": {
+    "1": 53,
+    "2": 63,
+    "3": 78,
+    "4": 128,
+    "5": 192
+   },
+   "gold_pct": {
+    "battle": 11.0,
+    "offline": 76.6,
+    "offline_ad": 0.0,
+    "adbox": 0.0,
+    "quest": 10.6,
+    "dungeon": 1.8
+   },
+   "myc": {
+    "boss": 60,
+    "quest": 300,
+    "adbox": 0,
+    "dungeon": 34
+   },
+   "dlevel": {
+    "1": 17,
+    "2": 17,
+    "3": 17,
+    "4": 17,
+    "5": 15
+   }
+  }
+ ],
+ "stage": 710,
+ "first_use_h": {
+  "gacha": 0.48,
+  "dungeon": 0.5,
+  "quest": 0.5
+ },
+ "shape_mono_fix": null,
+ "arrive": {
+  "10": 0.0,
+  "50": 0.02,
+  "100": 0.44,
+  "150": 1.47,
+  "200": 2.14,
+  "250": 3.2,
+  "300": 3.61,
+  "400": 6.38,
+  "500": 9.76,
+  "600": 22.33,
+  "700": 29.78
+ },
+ "target": {
+  "10": 0.02,
+  "50": 0.2,
+  "100": 0.43,
+  "150": 1.28,
+  "200": 2.13,
+  "250": 3.21,
+  "300": 4.3,
+  "400": 9.6,
+  "500": 14.9,
+  "600": 22.64,
+  "700": 34.4,
+  "800": 68.7,
+  "900": 137.2,
+  "1000": 274.0
+ },
+ "share30": {
+  "battle": 10.7,
+  "offline": 75.3,
+  "offline_ad": 0.0,
+  "adbox": 0.0,
+  "quest": 11.6,
+  "dungeon": 2.3,
+  "offline_all": 75.3
+ },
+ "share_end": {
+  "battle": 10.7,
+  "offline": 75.3,
+  "offline_ad": 0.0,
+  "adbox": 0.0,
+  "quest": 11.6,
+  "dungeon": 2.3,
+  "offline_all": 75.3
+ },
+ "dev_max": [
+  0.296,
+  [
+   10,
+   530,
+   409,
+   0.296
+  ]
+ ],
+ "dev7": [
+  [
+   1,
+   100,
+   133,
+   -0.248
+  ],
+  [
+   2,
+   162,
+   192,
+   -0.156
+  ],
+  [
+   3,
+   230,
+   240,
+   -0.042
+  ],
+  [
+   4,
+   300,
+   286,
+   0.049
+  ],
+  [
+   5,
+   350,
+   318,
+   0.101
+  ],
+  [
+   6,
+   390,
+   341,
+   0.144
+  ],
+  [
+   7,
+   410,
+   360,
+   0.139
+  ],
+  [
+   8,
+   440,
+   377,
+   0.167
+  ]
+ ],
+ "longest_zero_900": 3,
+ "longest_zero_all": 3,
+ "myc_per_day": {
+  "boss": 47.3,
+  "quest": 300.0,
+  "adbox": 0.0,
+  "dungeon": 38.4
+ },
+ "dungeon": {
+  "try": 298,
+  "fail": 0,
+  "sweep": 0
+ },
+ "dlevel": {
+  "1": 61,
+  "2": 61,
+  "3": 61,
+  "4": 61,
+  "5": 59
+ },
+ "tail": {
+  "ehp": 1.013068128003502,
+  "bhp": 1.0115492583925794,
+  "atk": 1.0035351858869528,
+  "bossAtk": 1.00353506475589,
+  "gold": 1.0041914213337166
+ },
+ "stage_by_day": [
+  100,
+  162,
+  230,
+  300,
+  350,
+  390,
+  410,
+  440,
+  470,
+  530,
+  550,
+  560,
+  570,
+  578,
+  580,
+  580,
+  580,
+  580,
+  590,
+  590,
+  599,
+  600,
+  630,
+  640,
+  670,
+  670,
+  670,
+  670,
+  700,
+  710
+ ]
+}

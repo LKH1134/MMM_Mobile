@@ -87,7 +87,8 @@ namespace MoreMush.Mobile
         {
             Rect r = field.Rect.rect;
             parts.Clear();
-            foreach (var m in field.Mushrooms) if (m.IsBoss && m.Alive) parts.Add(m);
+            var mushrooms = field.Mushrooms;    // 매 프레임 — foreach는 열거자 박싱
+            for (int i = 0; i < mushrooms.Count; i++) if (mushrooms[i].IsBoss && mushrooms[i].Alive) parts.Add(mushrooms[i]);
             foreach (var m in parts)
             {
                 if (!moveDir.TryGetValue(m, out float dir)) dir = 1f;

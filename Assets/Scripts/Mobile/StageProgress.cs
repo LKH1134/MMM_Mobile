@@ -94,6 +94,8 @@ namespace MoreMush.Mobile
 
         // 표 뒤 스테이지: 표의 마지막 CycleLength개 중 같은 자리 행을 본떠, 넘은 바퀴 수만큼 체력·보상을 키운다.
         // 보스 자리(CycleLength번째)는 표의 보스를 차례로 다시 쓰고, 마지막 보스만큼 버티게 체력을 맞춘다 (BossHpMul)
+        const double MaxRate = 1e30;
+
         static StageData Generate(int stage, int max)
         {
             int cycle = (stage - max - 1) / CycleLength + 1;                 // 표 뒤 몇 바퀴째인지 (1부터)
@@ -107,11 +109,13 @@ namespace MoreMush.Mobile
             }
             if (t == null || last == null) return null;
             float Growth(float lastValue, float prevValue) => prev != null && prevValue > 0f && lastValue > 0f ? lastValue / prevValue : 1f;
+            // 바퀴가 아주 많아지면 float가 무한대로 넘친다 (보스를 못 잡고 점수가 NaN) → double로 셈하고 상한에서 멈춘다
+            float Grown(float baseValue, float growth, int n) => (float)System.Math.Min(MaxRate, baseValue * System.Math.Pow(growth, n));
             var data = new StageData
             {
                 index = t.index, key = $"stage_{stage}", name = $"{last.theme} {stage}", stage = stage, theme = last.theme,
-                hpRate = t.hpRate * Mathf.Pow(Growth(last.hpRate, prev != null ? prev.hpRate : 0f), cycle),
-                rewardRate = t.rewardRate * Mathf.Pow(Growth(last.rewardRate, prev != null ? prev.rewardRate : 0f), cycle),
+                hpRate = Grown(t.hpRate, Growth(last.hpRate, prev != null ? prev.hpRate : 0f), cycle),
+                rewardRate = Grown(t.rewardRate, Growth(last.rewardRate, prev != null ? prev.rewardRate : 0f), cycle),
                 mushHpMul = t.mushHpMul, gem = t.gem,
             };
             if (stage % CycleLength == 0)
@@ -138,9 +142,12 @@ namespace MoreMush.Mobile
             get
             {
                 var s = CurrentData;
-                return s != null && s.boss != 0 && FarmLeft == 0;
+                return HasBoss(s) && FarmLeft == 0;
             }
         }
+
+        // 보스 스테이지인지. 표에 없는 보스면 일반 스테이지로 본다 (못 깨는 보스 판·파밍 판에 갇히지 않게)
+        public static bool HasBoss(StageData s) => s != null && s.boss != 0 && GameData.Bosses.Get(s.boss) != null;
 
         // 판이 끝났을 때. bossRound = 보스 판이었는지, cleared = 보스를 처치했는지 / 일반 판이면 넘었는지 (파밍 판은 무시)
         public static void Complete(bool bossRound, bool cleared, long score, long gold)
@@ -154,7 +161,7 @@ namespace MoreMush.Mobile
             {
                 PlayerPrefs.SetString(LastScoreKey, score.ToString());
                 PlayerPrefs.SetString(LastGoldKey, gold.ToString());
-                if (s != null && s.boss != 0) PlayerPrefs.SetInt(FarmKey, Mathf.Max(0, FarmLeft - 1));   // 보스 스테이지에서 파밍
+                if (HasBoss(s)) PlayerPrefs.SetInt(FarmKey, Mathf.Max(0, FarmLeft - 1));   // 보스 스테이지에서 파밍
                 else if (cleared) Advance();
             }
             PlayerPrefs.Save();

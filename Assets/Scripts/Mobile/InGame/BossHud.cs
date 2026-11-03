@@ -25,6 +25,7 @@ namespace MoreMush.Mobile
         float shown, trailShown, trailWait;
         string bossName;
         int shownClones = -1;
+        int shownPercent = -1;
 
         void Awake() => Hide();
 
@@ -38,21 +39,24 @@ namespace MoreMush.Mobile
                 mainGone = false;
                 shown = trailShown = 1f;
                 shownClones = -1;
+                shownPercent = -1;
                 bossName = stats != null && stats.Boss != null && !string.IsNullOrEmpty(stats.Boss.name) ? stats.Boss.name : "보스";
             }
             if (stats == null || !stats.BossRound) { Hide(); return; }
 
             int clones = 0;
+            var mushrooms = field.Mushrooms;
             if (!mainGone)
             {
                 // 본체 = 처음 나온 보스 몸. 쓰러지면 풀로 돌아가 다른 버섯으로 다시 쓰일 수 있으니 그 뒤로는 보지 않는다
                 if (main == null)
-                    foreach (var m in field.Mushrooms)
-                        if (m.IsBoss && m.Alive) { main = m; break; }
+                    for (int i = 0; i < mushrooms.Count; i++)
+                        if (mushrooms[i].IsBoss && mushrooms[i].Alive) { main = mushrooms[i]; break; }
                 if (main != null && (!main.Alive || !main.IsBoss)) mainGone = true;
             }
-            foreach (var m in field.Mushrooms)
-                if (m.IsBoss && m.Alive && m != main) clones++;
+            // 매 프레임 돈다 — IReadOnlyList를 foreach하면 열거자가 박싱돼 프레임마다 쓰레기가 생긴다
+            for (int i = 0; i < mushrooms.Count; i++)
+                if (mushrooms[i].IsBoss && mushrooms[i].Alive && mushrooms[i] != main) clones++;
             if (main == null && !mainGone) { Hide(); return; }   // 보스가 아직 안 나왔다
 
             if (!root.activeSelf) root.SetActive(true);
@@ -71,7 +75,12 @@ namespace MoreMush.Mobile
 
             SetWidth(fill, shown);
             if (trail != null) SetWidth(trail, trailShown);
-            if (percentText != null) percentText.text = Mathf.CeilToInt(target * 100f) + "%";
+            int pct = Mathf.CeilToInt(target * 100f);
+            if (percentText != null && pct != shownPercent)
+            {
+                shownPercent = pct;     // 매 프레임 문자열을 만들지 않게 바뀔 때만
+                percentText.text = pct + "%";
+            }
             if (clones != shownClones)
             {
                 shownClones = clones;

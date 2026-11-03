@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     // 수확량 = 버섯 기본 수확량 × 등급별 수확량 × 황금 × (마지막 몇 초 보너스) × 스테이지 보상 배율. 골드 = 점수 × 전환율.
     // 보스 판: 보스 체력을 다 깎는 만큼 때리면 직전 일반 판 점수의 bossHitShare만큼 점수를 받는다 (못 잡은 판은 일반 판보다 손해).
     //   분신까지 모두 쓰러뜨리면 처치: 추가 골드 max(이번 판, 직전 일반 판) × bossRewardMul + 균사석 + 레전드리 버섯, 판이 바로 끝난다.
-    //   못 잡으면 그 판 골드 × failGold(지금 표는 1 = 감액 없음), 결과 팝업에서 재도전·파밍을 고른다. 스테이지 진행·파밍은 StageProgress가 맡는다.
+    //   못 잡으면 그 판 골드 × failGold(지금 표는 1 = 감액 없음), 결과 팝업의 "한 번 더하기"로 다시 도전한다. 스테이지 진행·파밍은 StageProgress가 맡는다.
     // 일반 판은 목표가 없다: 시간 끝까지 돌면 다음 스테이지로 넘어간다 (보스 스테이지의 일반 판 = 파밍은 넘는 판이 아니다).
     // 보스·★ 스테이지를 처음 넘으면 균사석(StageProgress.FirstClearGem)
     // Simulating이면 지갑·스테이지 저장과 결과 팝업을 건너뛴다 (밸런스 측정기 BalanceBot이 쓴다)
@@ -29,28 +29,32 @@ namespace MoreMush.Mobile
 
         public RoundStats Stats { get; private set; }
         public RoundBase Base => roundBase;
-        public long Score => (long)score;
-        public long Yield => (long)yield;
+        // 무한 스테이지에서 점수가 long을 넘으면 (long) 변환이 음수가 돼 보상이 사라진다 — 9e18에서 멈춘다
+        public long Score => IdleProgress.ClampToLong(score);
+        public long Yield => IdleProgress.ClampToLong(yield);
         // 점수를 바꾼 골드 (보스를 못 잡았으면 failGold배)
-        public long Gold => (long)(score * Stats.GoldMul * (Stats.BossRound && Finished && !BossKilled && Stats.Boss.failGold > 0f ? Stats.Boss.failGold : 1f));
+        public long Gold => IdleProgress.ClampToLong(score * Stats.GoldMul * (Stats.BossRound && Finished && !BossKilled && Stats.Boss.failGold > 0f ? Stats.Boss.failGold : 1f));
         public long BonusGold { get; private set; }  // 보스 처치 보상 골드
-        public long TotalGold => Gold + BonusGold;
+        public long TotalGold => IdleProgress.SaturatingAdd(Gold, BonusGold);
         public long ReferenceScore { get; set; }     // 직전 일반 판 점수 (보스 타격 점수 기준)
         public long ReferenceGold { get; set; }      // 직전 일반 판 골드 (처치 보상 기준)
         public int HarvestCount { get; private set; }
         public bool Finished { get; private set; }
         public bool BossKilled { get; private set; }
-        public bool FarmRound => !Stats.BossRound && Stats.Stage != null && Stats.Stage.boss != 0;   // 보스 스테이지의 일반 판
+        public bool FarmRound => !Stats.BossRound && StageProgress.HasBoss(Stats.Stage);   // 보스 스테이지의 일반 판
         // 스테이지를 넘었는지: 보스 판은 처치, 일반 판은 늘 넘는다 (파밍 판은 넘는 판이 아니다)
         public bool StageCleared => Stats.BossRound ? BossKilled : !FarmRound;
         public int MyceliteEarned { get; private set; }   // 이번 판 첫 클리어 균사석 (측정기는 스스로 센다)
-        public int StageNumber { get; private set; }
+        public int StageNumber { get; private set; }      // = 던전 1 레벨 (DungeonTickets.Level)
+        public long DungeonGold { get; private set; }     // 판 골드에 더해 주는 던전 레벨 보상 (DungeonRewards: 깨면 그 레벨, 못 깨면 소탕)
+        const int Dungeon = 1;
         public bool Simulating { get; set; }
         public bool FinalRush => Stats.FinalRushBonus > 0f && hud.TimerStarted && hud.Remaining <= Stats.FinalRushSeconds;
         public event System.Action<long> GameOver;   // 이번 판에 번 골드 (보상 포함)
 
         void Awake()
         {
+            HarvestTuning.Apply(roundBase, "RoundBase");    // 수확전투 시트 (인스펙터 값은 표에 행이 없을 때만)
             field.Harvested += OnHarvested;
             field.Hit += OnHit;
             field.Launched += h =>
@@ -73,6 +77,7 @@ namespace MoreMush.Mobile
             Finished = BossKilled = false;
             BonusGold = 0;
             MyceliteEarned = 0;
+            DungeonGold = 0;
             ReferenceScore = referenceScore;
             ReferenceGold = referenceGold;
             StageNumber = stageNumber;
@@ -84,7 +89,11 @@ namespace MoreMush.Mobile
             hud.SetStage(StageNumber, Stats.BossRound);
         }
 
-        void Start() => hud.SetDuration(Stats.Duration);
+        void Start()
+        {
+            hud.SetDuration(Stats.Duration);
+            if (!Simulating) InGameTutorial.Begin(field, hud.transform, hud.GetComponentInChildren<TMPro.TMP_Text>(true)?.font);
+        }
 
         // 보스 타격 점수는 보스 체력만큼까지만 (넘친 피해는 점수가 없다)
         void OnHit(Mushroom m, Harvester h, int damage, bool crit)
@@ -141,7 +150,7 @@ namespace MoreMush.Mobile
             BossKilled = true;
             score += Stats.Boss.reward * Stats.ScoreMul * Stats.RewardRate;
             yield += Stats.Boss.drop * Stats.YieldMul(MushroomTier.Legendary) * Stats.RewardRate;
-            if (Finished) BonusGold = (long)(System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
+            if (Finished) BonusGold = IdleProgress.ClampToLong((double)System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
         }
 
         // 측정기가 시간 끝을 직접 부를 때도 쓴다
@@ -149,7 +158,7 @@ namespace MoreMush.Mobile
         {
             if (Finished) return;
             Finished = true;
-            if (BossKilled) BonusGold = (long)(System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
+            if (BossKilled) BonusGold = IdleProgress.ClampToLong((double)System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
             field.Stop();
             input.Interactable = false;
             if (!Simulating)
@@ -157,7 +166,9 @@ namespace MoreMush.Mobile
                 Wallet.Add(Currency.Gold, TotalGold);
                 MyceliteEarned = StageProgress.FirstClearGem(Stats.Stage, Stats.Boss, StageCleared, StageProgress.Cleared);
                 if (MyceliteEarned > 0) Wallet.Add(Currency.Mycelite, MyceliteEarned);
+                DungeonGold = (StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber) : DungeonRewards.GrantSweep(Dungeon, StageNumber)).gold;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
+                WorldTree.QuestDungeon();
             }
             GameOver?.Invoke(TotalGold);
             if (!Simulating) StartCoroutine(ShowResult());
@@ -166,9 +177,8 @@ namespace MoreMush.Mobile
         IEnumerator ShowResult()
         {
             yield return new WaitForSecondsRealtime(resultDelay);
-            string note = Stats.BossRound ? (BossKilled ? "보스 처치" : "보스 실패") : null;
             var popup = resultPopup.Get(hud.transform).GetComponent<ResultPopup>();
-            popup.Show(TotalGold, Score, Yield, note, MyceliteEarned, Stats.BossRound && !BossKilled, StageNumber);
+            popup.Show(IdleProgress.SaturatingAdd(TotalGold, DungeonGold), StageCleared);
         }
     }
 }

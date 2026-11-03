@@ -65,14 +65,35 @@ namespace MoreMush.Mobile
             return list;
         }
 
-        // 서식이 섞인 문자열은 <r><t>로 쪼개져 있다. 후리가나(<rPh>)는 뺀다
+        // 서식이 섞인 문자열은 <r><t>로 쪼개져 있다. 후리가나(<rPh>)는 뺀다.
+        // GetElementsByTagName은 칸마다 문서 변경 알림을 거는 목록을 만들어 칸이 많을수록 느려진다 — 자식을 직접 돈다
+        static readonly System.Text.StringBuilder textBuilder = new System.Text.StringBuilder();
+
         static string Text(XmlElement e)
         {
-            var sb = new System.Text.StringBuilder();
-            foreach (XmlElement t in e.GetElementsByTagName("t", MainNs))
-                if (t.ParentNode == null || t.ParentNode.LocalName != "rPh") sb.Append(t.InnerText);
-            return sb.ToString();
+            textBuilder.Clear();
+            AppendText(e, textBuilder);
+            return textBuilder.ToString();
         }
+
+        static void AppendText(XmlNode node, System.Text.StringBuilder sb)
+        {
+            for (var child = node.FirstChild; child != null; child = child.NextSibling)
+            {
+                if (!(child is XmlElement el) || el.LocalName == "rPh") continue;
+                if (el.LocalName == "t") sb.Append(el.InnerText);
+                else AppendText(el, sb);
+            }
+        }
+
+        static XmlElement Child(XmlElement parent, string localName)
+        {
+            for (var child = parent.FirstChild; child != null; child = child.NextSibling)
+                if (child is XmlElement el && el.LocalName == localName) return el;
+            return null;
+        }
+
+        const int MaxRows = 65536;      // 아래쪽 먼 칸에 서식만 남아 있어도 빈 행을 수십만 개 만들지 않게
 
         static List<string[]> ReadSheet(ZipArchive zip, string path, List<string> shared)
         {
@@ -83,8 +104,11 @@ namespace MoreMush.Mobile
             foreach (XmlElement row in doc.GetElementsByTagName("row", MainNs))
             {
                 // r 속성은 1부터. 비어 있는 행은 파일에 없을 수 있어 그만큼 빈 행으로 채운다
-                if (int.TryParse(row.GetAttribute("r"), out int r))
-                    while (rows.Count < r - 1) rows.Add(new string[0]);
+                if (int.TryParse(row.GetAttribute("r"), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int r))
+                {
+                    if (r > MaxRows) break;
+                    while (rows.Count < r - 1) rows.Add(System.Array.Empty<string>());
+                }
 
                 var cells = new List<string>();
                 int next = 0;
@@ -106,13 +130,13 @@ namespace MoreMush.Mobile
             string type = c.GetAttribute("t");
             if (type == "inlineStr")
             {
-                var inline = c.GetElementsByTagName("is", MainNs);
-                return inline.Count > 0 ? Text((XmlElement)inline[0]) : "";
+                var inline = Child(c, "is");
+                return inline != null ? Text(inline) : "";
             }
 
-            var v = c.GetElementsByTagName("v", MainNs);
-            string raw = v.Count > 0 ? v[0].InnerText : "";
-            if (type == "s") return int.TryParse(raw, out int i) && i >= 0 && i < shared.Count ? shared[i] : "";
+            var v = Child(c, "v");
+            string raw = v != null ? v.InnerText : "";
+            if (type == "s") return int.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int i) && i >= 0 && i < shared.Count ? shared[i] : "";
             if (type == "b") return raw == "1" ? "TRUE" : "FALSE";
             return raw;
         }

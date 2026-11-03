@@ -43,8 +43,6 @@ namespace MoreMush.Mobile
         }
 
         public T Get(int index) => byIndex.TryGetValue(index, out var row) ? row : null;
-        public bool TryGet(int index, out T row) => byIndex.TryGetValue(index, out row);
-        public T GetByKey(string key) => key != null && byKey.TryGetValue(key, out var row) ? row : null;
 
         // 시트를 읽어 채운다. 문제는 issues에 쌓고, 고칠 수 없는 행만 버린다
         public void Load(List<string[]> sheet, List<string> issues)
@@ -94,7 +92,7 @@ namespace MoreMush.Mobile
             }
             if (!string.IsNullOrEmpty(row.key))
             {
-                if (byKey.ContainsKey(row.key)) issues.Add($"[{Name}] {r + 1}행 key '{row.key}': 겹친다 (GetByKey는 앞의 것)");
+                if (byKey.ContainsKey(row.key)) issues.Add($"[{Name}] {r + 1}행 key '{row.key}': 겹친다 (앞의 것만 남긴다)");
                 else byKey.Add(row.key, row);
             }
             rows.Add(row);
@@ -121,7 +119,7 @@ namespace MoreMush.Mobile
             for (int c = 0; c < header.Length; c++)
             {
                 string name = header[c].Trim();
-                if (name.Length == 0 || name.StartsWith("#")) continue;
+                if (name.Length == 0 || name[0] == '#') continue;
                 if (!byName.TryGetValue(name, out var field))
                 {
                     issues.Add($"[{Name}] 모르는 열 '{name}' — 코드에 필드가 없어 읽지 않는다 (메모라면 '#'을 붙인다)");

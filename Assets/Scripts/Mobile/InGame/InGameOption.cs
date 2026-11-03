@@ -1,10 +1,10 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // InGame 옵션 팝업 내용. 배경음·효과음 슬라이더(값만 저장한다 — 소리 연결은 추후), 세계수로 돌아가기.
+    // InGame 옵션 팝업 내용. 배경음·효과음 슬라이더(값만 저장한다 — 소리 연결은 추후), 로비(Main)로 돌아가기.
     // 닫기는 UiPopup의 CloseButton이 맡는다
     public class InGameOption : MonoBehaviour
     {
@@ -13,28 +13,30 @@ namespace MoreMush.Mobile
 
         [SerializeField] Slider bgmSlider;
         [SerializeField] Slider sfxSlider;
-        [SerializeField] Button worldTreeButton;
-        [SerializeField] string worldTreeScene = "WorldTree";
+        [FormerlySerializedAs("worldTreeButton")]
+        [SerializeField] Button lobbyButton;
+        [SerializeField] string lobbyScene = MainNavigation.MainScene;
 
         void Awake()
         {
             Bind(bgmSlider, BgmKey);
             Bind(sfxSlider, SfxKey);
-            if (worldTreeButton != null) worldTreeButton.onClick.AddListener(GoWorldTree);
+            if (lobbyButton != null) lobbyButton.onClick.AddListener(GoLobby);
         }
 
         static void Bind(Slider slider, string key)
         {
             if (slider == null) return;
             slider.SetValueWithoutNotify(PlayerPrefs.GetFloat(key, 1f));
-            slider.onValueChanged.AddListener(v => PlayerPrefs.SetFloat(key, v));
+            slider.onValueChanged.AddListener(v => { PlayerPrefs.SetFloat(key, v); SaveScheduler.MarkDirty(); });
         }
 
-        public void GoWorldTree()
+        public void GoLobby()
         {
             PlayerPrefs.Save();
-            if (Application.CanStreamedLevelBeLoaded(worldTreeScene)) SceneManager.LoadScene(worldTreeScene);
-            else Debug.LogWarning($"[InGameOption] 빌드 설정에 없는 씬: {worldTreeScene}");
+            // 배속은 여기서 풀지 않는다 — 풀면 읽는 동안 판이 계속 돌아 시간이 끝나거나 보스가 죽어 보상·진행이 처리된다.
+            // 씬이 바뀌면 StageHud.OnDestroy와 AppSettings가 1로 되돌린다 (로딩 화면은 실제 시간으로 돈다)
+            SceneLoader.Load(lobbyScene);
         }
     }
 }

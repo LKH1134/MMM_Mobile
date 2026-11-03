@@ -26,7 +26,9 @@ namespace MoreMush.Mobile
         float hpMul = 1f;
         float scale = 1f;
 
-        public int MaxHp => Mathf.Max(1, Mathf.RoundToInt(maxHp * hpMul));
+        // 무한 스테이지에서 체력 배율이 아주 커지면 int를 넘어 기기에 따라 1(바로 죽음)이 된다 — 20억에서 멈춘다
+        const float MaxHpCap = 2e9f;
+        public int MaxHp => Mathf.Max(1, Mathf.RoundToInt(Mathf.Min(maxHp * hpMul, MaxHpCap)));
         public int Hp { get; private set; }
         public bool Alive => Hp > 0;
         public long Reward => reward;

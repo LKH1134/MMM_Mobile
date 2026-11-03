@@ -1,0 +1,1065 @@
+{
+ "0.0": {
+  "profile": [
+   {
+    "band": "1-5",
+    "max_play_min": 0.6,
+    "at": 1,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.02,
+    "reasons": {}
+   },
+   {
+    "band": "6-9",
+    "max_play_min": 1.8,
+    "at": 6,
+    "fails": 1,
+    "wall_h": 0.0,
+    "sum_play_h": 0.08,
+    "reasons": {
+     "defeat": 1
+    }
+   },
+   {
+    "band": "10-10",
+    "max_play_min": 44.5,
+    "at": 10,
+    "fails": 137,
+    "wall_h": 9.7,
+    "sum_play_h": 0.74,
+    "reasons": {
+     "defeat": 133,
+     "boss_timeout": 4
+    }
+   },
+   {
+    "band": "11-19",
+    "max_play_min": 38.4,
+    "at": 14,
+    "fails": 68,
+    "wall_h": 15.6,
+    "sum_play_h": 0.68,
+    "reasons": {
+     "defeat": 68
+    }
+   },
+   {
+    "band": "20-20",
+    "max_play_min": 0.2,
+    "at": 20,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.0,
+    "reasons": {}
+   },
+   {
+    "band": "21-49",
+    "max_play_min": 21.2,
+    "at": 46,
+    "fails": 122,
+    "wall_h": 15.4,
+    "sum_play_h": 1.49,
+    "reasons": {
+     "defeat": 122
+    }
+   },
+   {
+    "band": "50-50",
+    "max_play_min": 0.2,
+    "at": 50,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.0,
+    "reasons": {}
+   },
+   {
+    "band": "51-99",
+    "max_play_min": 87.4,
+    "at": 63,
+    "fails": 487,
+    "wall_h": 10.5,
+    "sum_play_h": 3.12,
+    "reasons": {
+     "defeat": 487
+    }
+   },
+   {
+    "band": "100-100",
+    "max_play_min": 0.3,
+    "at": 100,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.0,
+    "reasons": {}
+   },
+   {
+    "band": "101-199",
+    "max_play_min": 45.1,
+    "at": 147,
+    "fails": 159,
+    "wall_h": 9.8,
+    "sum_play_h": 6.43,
+    "reasons": {
+     "defeat": 159
+    }
+   },
+   {
+    "band": "200-200",
+    "max_play_min": 60.4,
+    "at": 200,
+    "fails": 96,
+    "wall_h": 21.0,
+    "sum_play_h": 1.01,
+    "reasons": {
+     "defeat": 96
+    }
+   },
+   {
+    "band": "201-299",
+    "max_play_min": 178.1,
+    "at": 258,
+    "fails": 464,
+    "wall_h": 51.0,
+    "sum_play_h": 21.24,
+    "reasons": {
+     "defeat": 464
+    }
+   },
+   {
+    "band": "300-300",
+    "max_play_min": 267.3,
+    "at": 300,
+    "fails": 398,
+    "wall_h": 76.5,
+    "sum_play_h": 4.46,
+    "reasons": {
+     "defeat": 180,
+     "boss_timeout": 218
+    }
+   },
+   {
+    "band": "301-400",
+    "max_play_min": 357.6,
+    "at": 330,
+    "fails": 525,
+    "wall_h": 102.0,
+    "sum_play_h": 22.7,
+    "reasons": {
+     "defeat": 132,
+     "boss_timeout": 393
+    }
+   }
+  ],
+  "walls": [
+   {
+    "stage": 10,
+    "play_min": 44.5,
+    "fails": 137
+   },
+   {
+    "stage": 20,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 30,
+    "play_min": 13.7,
+    "fails": 56
+   },
+   {
+    "stage": 40,
+    "play_min": 18.0,
+    "fails": 85
+   },
+   {
+    "stage": 50,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 60,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 70,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 80,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 90,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 100,
+    "play_min": 0.3,
+    "fails": 0
+   },
+   {
+    "stage": 110,
+    "play_min": 0.3,
+    "fails": 0
+   },
+   {
+    "stage": 120,
+    "play_min": 0.4,
+    "fails": 0
+   },
+   {
+    "stage": 130,
+    "play_min": 0.3,
+    "fails": 0
+   },
+   {
+    "stage": 140,
+    "play_min": 0.4,
+    "fails": 0
+   },
+   {
+    "stage": 150,
+    "play_min": 36.1,
+    "fails": 98
+   },
+   {
+    "stage": 160,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 170,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 180,
+    "play_min": 18.1,
+    "fails": 30
+   },
+   {
+    "stage": 190,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 200,
+    "play_min": 60.4,
+    "fails": 96
+   },
+   {
+    "stage": 210,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 220,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 230,
+    "play_min": 79.0,
+    "fails": 148
+   },
+   {
+    "stage": 240,
+    "play_min": 87.5,
+    "fails": 175
+   },
+   {
+    "stage": 250,
+    "play_min": 177.8,
+    "fails": 310
+   },
+   {
+    "stage": 260,
+    "play_min": 151.3,
+    "fails": 327
+   },
+   {
+    "stage": 270,
+    "play_min": 86.2,
+    "fails": 124
+   },
+   {
+    "stage": 280,
+    "play_min": 86.1,
+    "fails": 124
+   },
+   {
+    "stage": 290,
+    "play_min": 86.7,
+    "fails": 126
+   },
+   {
+    "stage": 300,
+    "play_min": 267.3,
+    "fails": 398
+   },
+   {
+    "stage": 310,
+    "play_min": 268.7,
+    "fails": 386
+   },
+   {
+    "stage": 320,
+    "play_min": 177.5,
+    "fails": 259
+   },
+   {
+    "stage": 330,
+    "play_min": 357.6,
+    "fails": 525
+   },
+   {
+    "stage": 340,
+    "play_min": 357.6,
+    "fails": 525
+   }
+  ]
+ },
+ "0.5": {
+  "profile": [
+   {
+    "band": "1-5",
+    "max_play_min": 0.2,
+    "at": 1,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.02,
+    "reasons": {}
+   },
+   {
+    "band": "6-9",
+    "max_play_min": 0.3,
+    "at": 7,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.02,
+    "reasons": {}
+   },
+   {
+    "band": "10-10",
+    "max_play_min": 0.4,
+    "at": 10,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.01,
+    "reasons": {}
+   },
+   {
+    "band": "11-19",
+    "max_play_min": 6.2,
+    "at": 18,
+    "fails": 28,
+    "wall_h": 0.1,
+    "sum_play_h": 0.28,
+    "reasons": {
+     "defeat": 28
+    }
+   },
+   {
+    "band": "20-20",
+    "max_play_min": 4.3,
+    "at": 20,
+    "fails": 12,
+    "wall_h": 0.1,
+    "sum_play_h": 0.07,
+    "reasons": {
+     "defeat": 12
+    }
+   },
+   {
+    "band": "21-49",
+    "max_play_min": 31.6,
+    "at": 38,
+    "fails": 167,
+    "wall_h": 15.5,
+    "sum_play_h": 1.24,
+    "reasons": {
+     "defeat": 167
+    }
+   },
+   {
+    "band": "50-50",
+    "max_play_min": 22.8,
+    "at": 50,
+    "fails": 132,
+    "wall_h": 4.4,
+    "sum_play_h": 0.38,
+    "reasons": {
+     "defeat": 132
+    }
+   },
+   {
+    "band": "51-99",
+    "max_play_min": 38.5,
+    "at": 57,
+    "fails": 200,
+    "wall_h": 15.6,
+    "sum_play_h": 1.16,
+    "reasons": {
+     "defeat": 200
+    }
+   },
+   {
+    "band": "100-100",
+    "max_play_min": 0.3,
+    "at": 100,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.01,
+    "reasons": {}
+   },
+   {
+    "band": "101-199",
+    "max_play_min": 60.3,
+    "at": 187,
+    "fails": 195,
+    "wall_h": 21.0,
+    "sum_play_h": 4.91,
+    "reasons": {
+     "defeat": 195
+    }
+   },
+   {
+    "band": "200-200",
+    "max_play_min": 59.4,
+    "at": 200,
+    "fails": 123,
+    "wall_h": 21.0,
+    "sum_play_h": 0.99,
+    "reasons": {
+     "defeat": 123
+    }
+   },
+   {
+    "band": "201-299",
+    "max_play_min": 181.5,
+    "at": 260,
+    "fails": 409,
+    "wall_h": 51.0,
+    "sum_play_h": 14.52,
+    "reasons": {
+     "defeat": 409
+    }
+   },
+   {
+    "band": "300-300",
+    "max_play_min": 36.0,
+    "at": 300,
+    "fails": 58,
+    "wall_h": 15.6,
+    "sum_play_h": 0.6,
+    "reasons": {
+     "defeat": 58
+    }
+   },
+   {
+    "band": "301-400",
+    "max_play_min": 403.0,
+    "at": 310,
+    "fails": 795,
+    "wall_h": 117.7,
+    "sum_play_h": 31.74,
+    "reasons": {
+     "defeat": 795
+    }
+   }
+  ],
+  "walls": [
+   {
+    "stage": 10,
+    "play_min": 0.4,
+    "fails": 0
+   },
+   {
+    "stage": 20,
+    "play_min": 4.3,
+    "fails": 12
+   },
+   {
+    "stage": 30,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 40,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 50,
+    "play_min": 22.8,
+    "fails": 132
+   },
+   {
+    "stage": 60,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 70,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 80,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 90,
+    "play_min": 0.3,
+    "fails": 0
+   },
+   {
+    "stage": 100,
+    "play_min": 0.3,
+    "fails": 0
+   },
+   {
+    "stage": 110,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 120,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 130,
+    "play_min": 18.7,
+    "fails": 27
+   },
+   {
+    "stage": 140,
+    "play_min": 35.9,
+    "fails": 57
+   },
+   {
+    "stage": 150,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 160,
+    "play_min": 1.6,
+    "fails": 1
+   },
+   {
+    "stage": 170,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 180,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 190,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 200,
+    "play_min": 59.4,
+    "fails": 123
+   },
+   {
+    "stage": 210,
+    "play_min": 87.2,
+    "fails": 174
+   },
+   {
+    "stage": 220,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 230,
+    "play_min": 90.6,
+    "fails": 146
+   },
+   {
+    "stage": 240,
+    "play_min": 87.7,
+    "fails": 162
+   },
+   {
+    "stage": 250,
+    "play_min": 87.4,
+    "fails": 163
+   },
+   {
+    "stage": 260,
+    "play_min": 181.5,
+    "fails": 409
+   },
+   {
+    "stage": 270,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 280,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 290,
+    "play_min": 128.8,
+    "fails": 188
+   },
+   {
+    "stage": 300,
+    "play_min": 36.0,
+    "fails": 58
+   },
+   {
+    "stage": 310,
+    "play_min": 403.0,
+    "fails": 795
+   },
+   {
+    "stage": 320,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 330,
+    "play_min": 42.1,
+    "fails": 60
+   },
+   {
+    "stage": 340,
+    "play_min": 126.2,
+    "fails": 182
+   },
+   {
+    "stage": 350,
+    "play_min": 358.2,
+    "fails": 529
+   },
+   {
+    "stage": 360,
+    "play_min": 86.5,
+    "fails": 128
+   },
+   {
+    "stage": 370,
+    "play_min": 87.1,
+    "fails": 130
+   },
+   {
+    "stage": 380,
+    "play_min": 87.4,
+    "fails": 140
+   },
+   {
+    "stage": 390,
+    "play_min": 137.3,
+    "fails": 227
+   },
+   {
+    "stage": 400,
+    "play_min": 218.6,
+    "fails": 371
+   },
+   {
+    "stage": 410,
+    "play_min": 269.2,
+    "fails": 452
+   },
+   {
+    "stage": 420,
+    "play_min": 269.3,
+    "fails": 456
+   }
+  ]
+ },
+ "1.0": {
+  "profile": [
+   {
+    "band": "1-5",
+    "max_play_min": 0.2,
+    "at": 1,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.02,
+    "reasons": {}
+   },
+   {
+    "band": "6-9",
+    "max_play_min": 0.3,
+    "at": 7,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.02,
+    "reasons": {}
+   },
+   {
+    "band": "10-10",
+    "max_play_min": 0.4,
+    "at": 10,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.01,
+    "reasons": {}
+   },
+   {
+    "band": "11-19",
+    "max_play_min": 0.9,
+    "at": 19,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.09,
+    "reasons": {}
+   },
+   {
+    "band": "20-20",
+    "max_play_min": 1.1,
+    "at": 20,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.02,
+    "reasons": {}
+   },
+   {
+    "band": "21-49",
+    "max_play_min": 11.1,
+    "at": 40,
+    "fails": 19,
+    "wall_h": 5.2,
+    "sum_play_h": 0.75,
+    "reasons": {
+     "defeat": 19
+    }
+   },
+   {
+    "band": "50-50",
+    "max_play_min": 0.5,
+    "at": 50,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.01,
+    "reasons": {}
+   },
+   {
+    "band": "51-99",
+    "max_play_min": 29.2,
+    "at": 55,
+    "fails": 76,
+    "wall_h": 0.5,
+    "sum_play_h": 0.92,
+    "reasons": {
+     "defeat": 76
+    }
+   },
+   {
+    "band": "100-100",
+    "max_play_min": 12.2,
+    "at": 100,
+    "fails": 22,
+    "wall_h": 4.2,
+    "sum_play_h": 0.2,
+    "reasons": {
+     "defeat": 22
+    }
+   },
+   {
+    "band": "101-199",
+    "max_play_min": 56.7,
+    "at": 187,
+    "fails": 125,
+    "wall_h": 20.9,
+    "sum_play_h": 4.13,
+    "reasons": {
+     "defeat": 125
+    }
+   },
+   {
+    "band": "200-200",
+    "max_play_min": 25.5,
+    "at": 200,
+    "fails": 37,
+    "wall_h": 4.4,
+    "sum_play_h": 0.42,
+    "reasons": {
+     "defeat": 37
+    }
+   },
+   {
+    "band": "201-299",
+    "max_play_min": 114.2,
+    "at": 258,
+    "fails": 325,
+    "wall_h": 29.9,
+    "sum_play_h": 11.66,
+    "reasons": {
+     "defeat": 325
+    }
+   },
+   {
+    "band": "300-300",
+    "max_play_min": 0.7,
+    "at": 300,
+    "fails": 0,
+    "wall_h": 0.0,
+    "sum_play_h": 0.01,
+    "reasons": {}
+   },
+   {
+    "band": "301-400",
+    "max_play_min": 269.4,
+    "at": 400,
+    "fails": 425,
+    "wall_h": 76.5,
+    "sum_play_h": 28.67,
+    "reasons": {
+     "defeat": 425
+    }
+   }
+  ],
+  "walls": [
+   {
+    "stage": 10,
+    "play_min": 0.4,
+    "fails": 0
+   },
+   {
+    "stage": 20,
+    "play_min": 1.1,
+    "fails": 0
+   },
+   {
+    "stage": 30,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 40,
+    "play_min": 11.1,
+    "fails": 19
+   },
+   {
+    "stage": 50,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 60,
+    "play_min": 0.2,
+    "fails": 0
+   },
+   {
+    "stage": 70,
+    "play_min": 0.3,
+    "fails": 0
+   },
+   {
+    "stage": 80,
+    "play_min": 0.4,
+    "fails": 0
+   },
+   {
+    "stage": 90,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 100,
+    "play_min": 12.2,
+    "fails": 22
+   },
+   {
+    "stage": 110,
+    "play_min": 0.8,
+    "fails": 0
+   },
+   {
+    "stage": 120,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 130,
+    "play_min": 18.3,
+    "fails": 28
+   },
+   {
+    "stage": 140,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 150,
+    "play_min": 9.0,
+    "fails": 12
+   },
+   {
+    "stage": 160,
+    "play_min": 5.2,
+    "fails": 7
+   },
+   {
+    "stage": 170,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 180,
+    "play_min": 23.2,
+    "fails": 26
+   },
+   {
+    "stage": 190,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 200,
+    "play_min": 25.5,
+    "fails": 37
+   },
+   {
+    "stage": 210,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 220,
+    "play_min": 25.2,
+    "fails": 36
+   },
+   {
+    "stage": 230,
+    "play_min": 60.6,
+    "fails": 87
+   },
+   {
+    "stage": 240,
+    "play_min": 87.0,
+    "fails": 131
+   },
+   {
+    "stage": 250,
+    "play_min": 0.5,
+    "fails": 0
+   },
+   {
+    "stage": 260,
+    "play_min": 40.4,
+    "fails": 97
+   },
+   {
+    "stage": 270,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 280,
+    "play_min": 82.7,
+    "fails": 119
+   },
+   {
+    "stage": 290,
+    "play_min": 87.5,
+    "fails": 131
+   },
+   {
+    "stage": 300,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 310,
+    "play_min": 181.0,
+    "fails": 369
+   },
+   {
+    "stage": 320,
+    "play_min": 0.7,
+    "fails": 0
+   },
+   {
+    "stage": 330,
+    "play_min": 132.4,
+    "fails": 191
+   },
+   {
+    "stage": 340,
+    "play_min": 176.9,
+    "fails": 256
+   },
+   {
+    "stage": 350,
+    "play_min": 216.7,
+    "fails": 315
+   },
+   {
+    "stage": 360,
+    "play_min": 137.6,
+    "fails": 200
+   },
+   {
+    "stage": 370,
+    "play_min": 35.9,
+    "fails": 57
+   },
+   {
+    "stage": 380,
+    "play_min": 87.3,
+    "fails": 137
+   },
+   {
+    "stage": 390,
+    "play_min": 177.7,
+    "fails": 280
+   },
+   {
+    "stage": 400,
+    "play_min": 269.4,
+    "fails": 425
+   },
+   {
+    "stage": 410,
+    "play_min": 0.6,
+    "fails": 0
+   },
+   {
+    "stage": 420,
+    "play_min": 83.7,
+    "fails": 142
+   },
+   {
+    "stage": 430,
+    "play_min": 87.2,
+    "fails": 119
+   },
+   {
+    "stage": 440,
+    "play_min": 116.5,
+    "fails": 157
+   },
+   {
+    "stage": 450,
+    "play_min": 329.9,
+    "fails": 448
+   },
+   {
+    "stage": 460,
+    "play_min": 267.3,
+    "fails": 362
+   }
+  ]
+ }
+}
