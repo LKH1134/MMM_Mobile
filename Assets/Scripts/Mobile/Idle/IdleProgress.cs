@@ -149,7 +149,16 @@ namespace MoreMush.Mobile
             var d = Get(stat);
             double c = d.costBase * System.Math.Pow(1 + lv / d.costDivisor, d.costExp);
             if (d.costScale > 0) c *= System.Math.Exp(lv / d.costScale);
+            if (stat == IdleStat.Speed) c *= SpeedCostRamp(lv, d.maxLv);
             return (long)System.Math.Min(9e18, System.Math.Ceiling(c));
+        }
+
+        // 공격 속도 후반 비용 가중: 시작 레벨까지는 1배, 그 뒤로 마지막 강화(만렙 - 1)까지 1 → 1 + speedCostRamp배로 이어서 오른다 (한 레벨에서 튀지 않게)
+        static double SpeedCostRamp(int lv, int maxLv)
+        {
+            int from = GameBalance.ConstInt("speedCostRampFromLv");
+            if (lv <= from || maxLv - 1 <= from) return 1.0;
+            return 1.0 + GameBalance.Const("speedCostRamp") * (System.Math.Min(lv, maxLv - 1) - from) / (maxLv - 1 - from);
         }
 
         public static bool TryUpgrade(IdleStat stat)

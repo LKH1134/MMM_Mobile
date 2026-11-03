@@ -60,7 +60,7 @@ namespace MoreMush.Mobile.EditorTools
             ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
             ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("kidEvoLevelGradeMul", 0.001, false), ("treeQuestDaily", 1, true),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
-            ("offlineGoldRate", 0, false),
+            ("offlineGoldRate", 0, false), ("speedCostRampFromLv", 0, true), ("speedCostRamp", 0, false),
             ("dungeonSweepMul", 0, false),
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
             ("harvestHpRateExp", 0, false),

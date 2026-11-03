@@ -41,7 +41,8 @@ namespace MoreMush.Mobile
 
         // 설정은 처음 쓸 때 읽는다 (이 객체가 만들어질 때는 표를 아직 안 읽었을 수 있다)
         float intervalSeconds, staySeconds;
-        long goldKills, myceliteBosses;
+        long goldKills;
+        const long AdMycelite = 90;     // 상자 광고 균사석: 스테이지와 상관없이 고정
         bool configured;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -105,7 +106,6 @@ namespace MoreMush.Mobile
                 intervalSeconds = Mathf.Max(MinIntervalSeconds, (float)(GameBalance.Const("adBoxIntervalHours") * 3600.0));
                 staySeconds = Mathf.Max(MinStaySeconds, (float)GameBalance.Const("adBoxStaySeconds"));
                 goldKills = (long)GameBalance.Const("adBoxGoldKills");
-                myceliteBosses = (long)GameBalance.Const("adBoxMyceliteBosses");
             }
             catch (System.Exception e)
             {
@@ -227,7 +227,7 @@ namespace MoreMush.Mobile
             if (state != State.Present || popup == null || popup.IsOpen) return;
             var stage = IdleProgress.Stage;
             long gold = ClampLong((double)IdleProgress.EnemyGold(stage) * goldKills);
-            long mycelite = ClampLong((double)IdleProgress.BossMycelite(stage) * myceliteBosses);
+            long mycelite = AdMycelite;
             PopupGate.Opened(this, () => popup.Close());      // 뒤로가기·다른 팝업이 열리면 닫힌다
             popup.Open(gold, mycelite, () => Watch(gold, mycelite), () => PopupGate.Closed(this));
         }
