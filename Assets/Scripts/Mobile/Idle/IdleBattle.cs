@@ -647,7 +647,8 @@ namespace MoreMush.Mobile
             // 공격 속도가 높으면 초당 수십 번 맞는다 — 이펙트·숫자는 동시에 보이는 수를 묶어 둔다 (치명타는 조금 더 허용)
             if (hitFx.Playing < MaxHitFx) hitFx.Play(ToLayer(e.rt.position), Mathf.Min(e.rt.sizeDelta.x, enemySize * 2f), crit);   // 보스는 화면을 덮지 않게 일반 적 2배까지
             if (popups.Count < (crit ? MaxPopups + MaxPopups / 2 : MaxPopups))
-                ShowText(e.rt.position + (Vector3)(Random.insideUnitCircle * 20f),
+                // 흔들림은 레이어(UI) 단위로 — 월드 단위로 20을 더하면 캔버스 배율 때문에 수천 px 밖(화면 가장자리·바깥)에 찍힌다
+                ShowText(e.rt.position + effectLayer.TransformVector(Random.insideUnitCircle * 20f),
                     IdleProgress.FormatNumber(dmg) + (crit ? "!" : ""),
                     crit ? new Color(1f, 0.55f, 0.15f) : Color.white, crit ? 46f : 34f, 0.6f);
             SetHp(e);
