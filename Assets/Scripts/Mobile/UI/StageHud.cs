@@ -56,6 +56,8 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
+            for (int i = 0; i < speeds.Length; i++)
+                speeds[i].scale = HarvestTuning.Number("StageHud", "speed" + i, speeds[i].scale);
             optionPopup.Created += popup =>
             {
                 popup.Opened += ApplyTimeScale;

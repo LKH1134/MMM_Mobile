@@ -29,7 +29,11 @@ namespace MoreMush.Mobile
         int lit;
         bool acornUsed;
 
-        void Awake() => field.BeforeColonies += Place;
+        void Awake()
+        {
+            HarvestTuning.Apply(this, "FieldDevices");
+            field.BeforeColonies += Place;
+        }
 
         // 판마다 새로 놓는다 (측정기가 필드를 Restart하면 다시 불린다).
         // 지난 판 그림은 Destroy하지 않고 꺼서 다시 쓴다 — 측정기는 한 프레임 안에서 수천 판을 돌려

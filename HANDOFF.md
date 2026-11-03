@@ -1,5 +1,7 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
+> **2026-11-03 데이터 추가 조사:** 통합 23시트·Legacy 5종·게임 코드·씬/프리팹·Resources를 대조해 `수확전투` 16행(스킬 효과·환경 장치·보스 분신 기준·배속), `상수` 3행, `리소스` 26행을 추가했다. 등급 `#name`은 런타임 `name:string`으로 전환했다. 새 전투 설정·상수·등급명은 게임 연동, 기존 값·수식은 보존. Unity 검증 1,116행 OK. 조사 범위·제외 기준·검증은 [DATA_AUDIT.md](DATA_AUDIT.md), 재대조는 `python Tools/audit_game_data.py`.
+
 > 작성 2026-10-28 · **갱신 2026-11-03** · 기준 브랜치 `LKH` (`c2814a2`까지, KHD `66ed1e6` 방치 밸런스 v3 머지 포함)
 > itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
 >

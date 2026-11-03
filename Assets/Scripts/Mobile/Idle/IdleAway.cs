@@ -13,7 +13,7 @@ namespace MoreMush.Mobile
         public static double OfflineCapHours => GameBalance.Const("offlineCapHours");        // 앱 밖 보상 최대 시간 (임시값, 상수 시트)
         public static double OfflineMinSeconds => GameBalance.Const("offlineMinSeconds");    // 이보다 짧게 비우면 앱 밖 보상 없음 (상수 시트)
         public static double OfflineGoldRate => System.Math.Max(0, GameBalance.Const("offlineGoldRate"));   // 앱 밖 골드 = 접속 중 초당 골드 × 이 비율 (상수 시트)
-        const double RateMinSeconds = 30;
+        static double RateMinSeconds => GameBalance.Const("offlineRateMinSeconds");
         const string RateKey = "Idle.GoldPerSec";
         const string LastSeenKey = "Idle.LastSeen";
         public static readonly TimeSpan MaxClockSkew = TimeSpan.FromDays(1);   // 저장된 시각·날짜가 지금보다 이만큼 넘게 앞서면 틀린 값으로 본다

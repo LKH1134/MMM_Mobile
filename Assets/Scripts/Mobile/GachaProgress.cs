@@ -16,7 +16,7 @@ namespace MoreMush.Mobile
 
         // 최고 레벨 = 뽑기 시트의 행 수. 레벨별 경험치와 등급 확률도 그 시트에서 읽는다
         public static int MaxLevel => GameBalance.GachaLevels.Count;
-        public static readonly string[] GradeNames = { "일반", "고급", "희귀", "영웅", "전설" };
+        public static string[] GradeNames => GameBalance.GradeNames;
 
         public static event Action Changed;
 

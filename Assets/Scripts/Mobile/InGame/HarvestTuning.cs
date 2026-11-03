@@ -8,7 +8,8 @@ namespace MoreMush.Mobile
 {
     // 수확 판(던전 1 InGame 등) 수치를 수확전투·수확등급 시트에서 넣는다. 씬·프리팹의 인스펙터 값은 표에 행이 없을 때만 남는다.
     // 어느 던전의 행인지는 지금 씬 이름 = 던전 시트 scene으로 찾는다.
-    // scope: RoundBase(HarvestGame.roundBase) · HarvestField · FieldInput · Harvester · Cluster · Single(버섯 프리팹) · Bar(바 크기 width·height).
+    // scope: RoundBase · HarvestField · FieldInput · Harvester · Cluster · Single · Bar · SkillEffects · FieldDevices.
+    // BossGimmicks.splitAtN·StageHud.speedN 배열 항목은 각 컴포넌트가 Number로 읽는다.
     // 프리팹은 원본을 건드리지 않고, 표 값을 넣은 복사본(Template)을 꺼진 보관함 아래에 두고 풀·크기 계산이 그것을 쓴다
     public static class HarvestTuning
     {
