@@ -88,9 +88,8 @@ namespace MoreMush.Mobile
         int shownTickWaves = -1;
         GameObject statsPanel;
 
-        // 스테이지 배너: "<챕터 이름> 챕터-번호" (방치전투 시트 chapterName·stagesPerChapter)
+        // 스테이지 배너: "스테이지 챕터-번호" (방치전투 시트 stagesPerChapter. 시트의 chapterName은 배너에 쓰지 않는다)
         static int StagesPerChapter => Mathf.Max(1, GameBalance.IdleBattle.stagesPerChapter);
-        static string ChapterName => GameBalance.IdleBattle.chapterName;
         const string MapIcon = "Art/Dream/Icons/quest";                 // 임시 그림
         const string PowerIcon = "Art/Dream/UI/Window/ic_mallet";       // 임시 그림
         const float PowerPillY = -967f;     // 강화 목록(UpgradePanel) 위쪽 가장자리 — 전투 화면과 강화 목록 사이
@@ -861,7 +860,7 @@ namespace MoreMush.Mobile
         static string StageLabel(int stage)
         {
             int s = Mathf.Max(1, stage) - 1;
-            return $"<color=#BA8CF2>{ChapterName}</color> {s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}";
+            return $"<color=#BA8CF2>스테이지</color> {s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}";
         }
 
         // 진행 막대에 웨이브 사이 눈금을 (waves - 1)개 둔다
