@@ -434,7 +434,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 | `Main/DungeonUI`·`GachaUI` | 던전 목록·뽑기 | `Banner`(고정) + `ListPanel` + `Viewport/Content`(스크롤). 던전 1 입장하기 → InGame(하루 2회), 2~5는 잠김 |
 | `GachaResultPopup` (코드) | 뽑기 결과 연출 | `PopupLayer.Popup` 층 |
 | `InGameOptionPopup` | InGame 옵션 | `OptionPopup`의 변형(원본을 고치면 같이 바뀜). BGM/SFX, **로비로 돌아가기 → Main**(`LobbyRow`, `SceneLoader`). 열면 일시정지 |
-| `ConfirmPopup` | 예/아니오 확인·알림 | `Show(title, message, onYes)` / `ShowNotice(title, message)`(확인 하나). 종료 확인(`MainBackHandler`)·개발중 알림(`ComingSoonButton`)이 씀 |
+| `ConfirmPopup` | 예/아니오 확인·알림 | `Show(title, message, onYes)` / `ShowNotice(title, message)`(확인 하나). 종료 확인(`MainBackHandler`)이 씀 (개발중 알림 `ComingSoonButton`은 11-03 삭제) |
 | `ResultPopup` | InGame(던전 1) 결과 | 10-30 간소화: **번 골드만**, 버튼 "한 번 더하기"(같은 씬 다시) · "나가기"(→ Main). 스테이지·점수·도감·신종·전투 통계·파밍·닫기는 제거 |
 | `Toast` | 안내 문구 | 공용 |
 
@@ -464,7 +464,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 - 시나리오 7개(일반 1·25·49스테이지, 분신 보스 40, 이동 보스 50 / 스킬 없음·절반·최대 + 25스테이지 분열만 최대 1배속·4배속)마다 InGame 씬을 새로 열어 자동 조작으로 판을 돌리며 매 프레임 잽니다. 기본 시나리오당 30초(예열 3초 버림), 약 4분. 시나리오는 `Benchmark.Default`에서 `skill`(전체 비율)·`maxAbilities`(이 능력 키의 스킬만 최대)·`speed`(배속, `Time.timeScale`)로 정합니다. 측정 시간은 배속과 상관없이 실제 초이고, 제한 시간은 배속만큼 늘려 줍니다.
 - 잰 값: FPS(평균·하위 1%·목표의 1.5배를 넘긴 끊김 비율), 프레임 시간 p95·최대, CPU 메인·렌더 스레드 ms, GPU ms, 메모리(Total Used·System Used·Mono 최대), GC 할당 KB/s, 드로우 콜·SetPass·배치, 평균 버섯·수확기 수. 기기 정보도 같이 적습니다.
 - 결과: `Application.persistentDataPath/Benchmark/<시각>_summary.csv`(시나리오별)·`_timeline.csv`(1초 단위). 엑셀에서 한글이 안 깨지게 BOM을 붙입니다. 끝나면 화면에 요약이 뜨고, 누르면 SkillTree 씬으로 갑니다.
-- 시작: 에디터 메뉴 `Run Benchmark`(플레이 중이 아니면 플레이 모드에 들어가 시작), 개발 빌드 옵션 팝업의 "벤치마크 (개발용)" 버튼(정식 빌드에선 숨김), 또는 실행 인자 `-benchmark`(선택 `-benchmark-seconds=60`·`-benchmark-repeat=3`). 안드로이드: `adb shell am start -n <패키지>/com.unity3d.player.UnityPlayerGameActivity -e unity "-benchmark"`, 결과는 `adb pull /sdcard/Android/data/<패키지>/files/Benchmark/`.
+- 시작: 에디터 메뉴 `Run Benchmark`(플레이 중이 아니면 플레이 모드에 들어가 시작), 또는 실행 인자 (옵션 팝업 버튼 `BenchmarkButton`은 팝업에서 빠져 11-03 삭제) `-benchmark`(선택 `-benchmark-seconds=60`·`-benchmark-repeat=3`). 안드로이드: `adb shell am start -n <패키지>/com.unity3d.player.UnityPlayerGameActivity -e unity "-benchmark"`, 결과는 `adb pull /sdcard/Android/data/<패키지>/files/Benchmark/`.
 - 저장값은 건드리지 않습니다(`SkillProgress.SimLevels`, `HarvestGame.Simulating`). 보스는 죽지 않게(`BossHpMul`), 분신 보스는 30%로 깎아 분신 둘을 띄운 채로, 배속은 시나리오 값으로 고정합니다(배속 버튼은 무시). 바 조작은 `BalanceBot.AimX`를 같이 씁니다.
 - CPU·GPU 프레임 시간은 Player Settings의 **Frame Timing Stats**(이번에 켬)가 있어야 나옵니다. 드로우 콜 같은 렌더 카운터는 정식 빌드에서 0으로 나오는 기기가 있습니다. 에디터 수치는 PC 성능이라 참고용입니다. **MCP 스크린샷(`manage_camera screenshot`)은 플레이 모드를 일시정지시키므로 벤치마크 도중엔 찍지 마세요**(그 구간 수치가 망가집니다).
 - 앱 전체 목표 프레임은 `AppSettings.TargetFrameRate` = 60 (전에는 설정이 없어 모바일 기본 30fps였음).
@@ -500,6 +500,13 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 - **안정화:** 화면 꺼짐 방지(`Screen.sleepTimeout = NeverSleep`, `AppSettings` — 안 하면 기기 화면 꺼짐(30초~2분)이 절전 모드(3분)보다 먼저 와서 방치 전투가 멈춤). 앱으로 돌아오면 절전 덮개 해제. 골드 더하기가 long을 넘으면 0이 되던 것 → 최댓값에서 멈춤. 앱 밖 보상: 초당 골드를 `InvariantCulture`로 저장·읽기(기기 언어가 바뀌면 값이 1만 배 틀어질 수 있었음), 망가진 `Idle.LastSeen` 값 범위 검사, **시계를 되돌려도 마지막 접속 시각은 뒤로 가지 않음**. **던전 입장 횟수·무료 뽑기는 저장된 날짜보다 '뒤의 날'일 때만 다시 채움**(시계를 되돌렸다 맞추는 반복 방지). 둘 다 저장값이 지금보다 하루(`IdleAway.MaxClockSkew`) 넘게 앞서면 한때 틀린 시계로 보고 버림. 표에 없는 보스 스테이지는 일반 스테이지로 취급(`StageProgress.HasBoss`, 보스 판·파밍 판에 갇히지 않게). 무한 스테이지 체력·보상 float 넘침 상한(1e30), 스킬 가격 long 넘침 상한, 표에 없는 보스면 보스 판으로 보지 않음.
 - **설정:** URP `Mobile_RPAsset` — HDR·메인 라이트 그림자·라이트 쿠키·렌즈 플레어·지형 구멍·LOD 크로스페이드·혼합 조명·반사 프로브 블렌딩 끔(UI만 쓰는 게임이라 셰이더 변형·대역폭 절약), **Render Scale 0.8 → 1**(Main 캔버스가 Screen Space-Camera라 UI 전체가 80%로 그려져 흐렸음). Player — **Optimized Frame Pacing(Swappy) 켬**, 밉맵 스트리핑 켬, 릴리스 빌드 Log·Warning 스택 트레이스 끔(Error·Exception은 유지).
 - **안 한 것:** 스프라이트 아틀라스(Sprite Packer가 꺼져 있음 — 켜고 아틀라스를 만들면 드로우 콜이 줄지만 에디터에서 확인하며 해야 함), `homeTabs`가 Main 씬에서 비어 있어 전투가 늘 '홈'으로 동작(탭을 열어도 숨기지 않음·방치 정산 팝업 안 뜸 — 의도인지 확인 필요), InGame에 있던 시간이 앱 밖 시간으로 세어지는 것(던전 다녀오면 방치 보상도 받음 — 의도인지 확인 필요).
+
+**정리 (2026-11-03 전수 조사)**
+- 기준: 빌드 씬 4개 의존성(`AssetDatabase.GetDependencies`) + Resources(코드 문자열·폴더 로드·`리소스` 시트) + 스크립트별 씬·프리팹 GUID·코드 참조 + 메서드별 호출(씬 `m_MethodName`·메뉴·`RuntimeInitializeOnLoadMethod` 포함).
+- **지움:** 어디에도 붙거나 불리지 않는 스크립트 `AdmobTestButton`(광고 확인용 임시)·`BenchmarkButton`·`BossBadgeLabel`(옛 판 플레이 하단바)·`ComingSoonButton`, 안 불리는 메서드 `DungeonRewards.Blocked`·`IdleProgress.FarmFactor`·`WorldTree.CraftProgress`·`DataTable.TryGet/GetByKey`, 세계수 임시 그림 `Art/Generated/WorldTree/world_tree_1~3`(PC판 `Farm/Tree`로 대체). 빌드 크기엔 영향 없음(원래 빌드에 안 들어감).
+- **확인하고 남긴 것:** Resources 안 파일은 모두 코드·표·씬이 씀(`리소스` 시트 63행 전부 다른 시트가 가리킴). `CollectPopup`(도감, 다시 쓸 예정)·`world_tree_0`(씬이 씀)·`Sprite/BG/imsi`·`Sprite/Tree/image`(세계수 하늘·들판 배경, 이름만 임시)·`NewInGame` 씬(kms)·앱 아이콘 v2(Player Settings).
+- **남은 후보 (결정 필요):** `밸런스설계/test/sim/bin·obj` 120개(약 45MB, Unity DLL 사본 — 빌드 산출물이라 git에서 빼고 `dotnet build`로 만드는 게 맞음, KHD 도구), 행 없는 Legacy 표 `Mushroom`·`Harvester`(게임이 읽기만 함), 어디에도 안 붙은 `DataResetButton`(지우는 코드 `ClearSaves`는 에디터 메뉴가 씀), 출시 전 옛 세이브 옮기기 코드(`Wallet` 테스트 균사석 회수·`Formation`/`Equipment` MigratedLevel·`Gacha.<종류>.AdDay`).
+- `.gitignore`: `*.log`에서 `밸런스설계/**/*.log`는 예외(문서가 근거로 가리키는 계산 기록).
 
 **출시 준비 (Google Play, 2026-10-30 검증)**
 - **대상 API 36 고정**(`AndroidTargetSdkVersion: 36`, 2026-08-31부터 새 앱·업데이트 필수, 연장 시 11-01까지). Automatic이면 SDK 36이 없는 PC에서 내려가므로 고정함. 최소 25, IL2CPP + ARM64, 16KB 페이지는 Unity 6000.3 기본 지원, 런처 액티비티 `exported="true"`, 권한·서드파티 SDK 없음.

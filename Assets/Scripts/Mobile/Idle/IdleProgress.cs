@@ -346,7 +346,6 @@ namespace MoreMush.Mobile
         // 그 차이 ≈ e^((s-1)/FarmScale)가 스테이지당 반복 판 수 → 누적 플레이 시간 대비 스테이지가 로그 곡선
         //   (밸런스설계/이론.md: 100스테이지 1.5시간 · 300 11시간 · 500 2.4일 · 1000 70일, 한 판 40초 가정). 전체 속도는 goldBase로 조절한다
         public const double FarmScale = 150;
-        public static double FarmFactor(int stage) => System.Math.Exp((stage - 1) / FarmScale);
 
         public static long EnemyGold(int stage)
         {

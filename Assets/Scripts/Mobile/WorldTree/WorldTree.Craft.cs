@@ -91,7 +91,6 @@ namespace MoreMush.Mobile
         }
 
         public static double CraftRemaining(Craft c) => Math.Max(0, (c.endTicks - NowTicks) / (double)TimeSpan.TicksPerSecond);
-        public static double CraftProgress(Craft c) => c.endTicks <= c.startTicks ? 1 : Mathf.Clamp01((float)((NowTicks - c.startTicks) / (double)(c.endTicks - c.startTicks)));
         public static bool CraftDone(Craft c) => NowTicks >= c.endTicks;
 
         public static bool ClaimCraft(int i)
