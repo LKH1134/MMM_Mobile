@@ -15,11 +15,15 @@ namespace MoreMush.Mobile
 
         public static void MarkDirty() => dirty = true;
 
+        // 저장 직전에 부른다: 메모리에만 고쳐 둔 값(세계수 JSON 등)을 이때 PlayerPrefs에 쓴다
+        public static event System.Action BeforeFlush;
+
         // 밀린 값을 지금 저장한다
         public static void Flush()
         {
             if (!dirty) return;
             dirty = false;
+            BeforeFlush?.Invoke();
             PlayerPrefs.Save();
         }
 

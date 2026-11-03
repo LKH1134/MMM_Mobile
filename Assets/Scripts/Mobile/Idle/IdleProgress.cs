@@ -179,9 +179,13 @@ namespace MoreMush.Mobile
         // 보유 효과까지 더한 실제 값: 무기·펫 → 공격력 %, 장신구 → 체력·체력 재생 %
         public static double AttackMultiplier => 1 + (GachaProgress.OwnPercent(GachaKind.Weapon) + GachaProgress.OwnPercent(GachaKind.Pet)) / 100.0;
         public static double HpMultiplier => 1 + GachaProgress.OwnPercent(GachaKind.Accessory) / 100.0;
-        public static double FinalAttack => Value(IdleStat.Attack) * AttackMultiplier * Value(IdleStat.AdvancedAttack);
-        public static double FinalHp => Value(IdleStat.Hp) * HpMultiplier;
-        public static double FinalHpRegen => Value(IdleStat.HpRegen) * HpMultiplier;
+        // 세계수 효과(가호·꼬마 특기·장식)도 여기서 곱한다 (WorldTree.Bonus)
+        public static double FinalAttack => Value(IdleStat.Attack) * AttackMultiplier * Value(IdleStat.AdvancedAttack) * WorldTree.Mul(TreeEffect.Attack);
+        public static double FinalHp => Value(IdleStat.Hp) * HpMultiplier * WorldTree.Mul(TreeEffect.Hp);
+        public static double FinalHpRegen => Value(IdleStat.HpRegen) * HpMultiplier * WorldTree.Mul(TreeEffect.Hp);
+        public static double FinalSpeed => Value(IdleStat.Speed) * WorldTree.Mul(TreeEffect.Speed);
+        public static double FinalCritChance => System.Math.Min(1, Value(IdleStat.CritChance) + WorldTree.Bonus(TreeEffect.CritChance));
+        public static double FinalCritDamage => Value(IdleStat.CritDamage) + WorldTree.Bonus(TreeEffect.CritDamage);
 
         public static string FormatValue(IdleStat stat, double v)
         {
@@ -342,7 +346,6 @@ namespace MoreMush.Mobile
         // 그 차이 ≈ e^((s-1)/FarmScale)가 스테이지당 반복 판 수 → 누적 플레이 시간 대비 스테이지가 로그 곡선
         //   (밸런스설계/이론.md: 100스테이지 1.5시간 · 300 11시간 · 500 2.4일 · 1000 70일, 한 판 40초 가정). 전체 속도는 goldBase로 조절한다
         public const double FarmScale = 150;
-        public static double FarmFactor(int stage) => System.Math.Exp((stage - 1) / FarmScale);
 
         public static long EnemyGold(int stage)
         {

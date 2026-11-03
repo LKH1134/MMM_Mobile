@@ -15,7 +15,7 @@ namespace MoreMush.Mobile
         [SerializeField] float duration = 30f;        // 스테이지 제한 시간(초)
         [SerializeField] bool startOnAwake = true;    // 끄면 StartTimer를 부를 때까지 시간이 흐르지 않는다
 
-        [SerializeField] TMP_Text earnedGoldText;     // 이번 판 점수 (골드는 판이 끝나고 전환율을 곱해 정한다)
+        [SerializeField] TMP_Text earnedGoldText;     // 이번 판 점수 (골드는 판이 끝나고 전환율을 곱해 정한다). 비워도 된다 (11-03 던전 HUD에서 뺌)
         [SerializeField] TMP_Text timerText;
         [SerializeField] RectTransform timerFill;     // 진행 바 안쪽 채움. 앵커 x 최대값 = 남은 비율
         [SerializeField] GameObject comboRoot;        // 콤보가 2 미만이면 숨긴다
@@ -126,7 +126,7 @@ namespace MoreMush.Mobile
         public void SetScore(long value)
         {
             score = value;
-            earnedGoldText.text = Wallet.Format(score);
+            if (earnedGoldText != null) earnedGoldText.text = Wallet.Format(score);
         }
 
         public void SetStage(int stage, bool boss)

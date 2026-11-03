@@ -1,0 +1,4718 @@
+{
+"base": "v3",
+"ads": 0.5,
+"scale": 2.0,
+"d1": false,
+"sessions": [
+[
+60.0,
+4.0
+],
+[
+40.0,
+5.0
+],
+[
+80.0,
+15.0
+]
+],
+"ad_gacha": {
+"Weapon": [
+4,
+1
+],
+"Accessory": [
+4,
+1
+],
+"Pet": [
+4,
+1
+],
+"Character": [
+4,
+1
+]
+},
+"form": [
+0.75,
+0.75,
+1.08,
+0.9,
+0.9
+],
+"days": [
+{
+"day": 1,
+"stage": 124,
+"eg": 34926923,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 8888,
+"kills_all": 8948,
+"bosses": 86,
+"stage0": 1,
+"stage": 61,
+"eg": 2938481,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 5325,
+"kills_all": 5354,
+"bosses": 71,
+"stage0": 61,
+"stage": 90,
+"eg": 11408720,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 9450,
+"kills_all": 9484,
+"bosses": 126,
+"stage0": 90,
+"stage": 124,
+"eg": 34926923,
+"bmyc": 2
+}
+],
+"kills": 23786,
+"bosses": 283,
+"gold": {
+"battle": 348002252323.0,
+"offline": 1490350541481.0,
+"offline_ad": 193447720575.0,
+"adbox": 139707692000.0,
+"quest": 47015696000.0,
+"dungeon": 7000788000.0
+},
+"gold_total": 2225524690379.0,
+"gold_kills": 63719.460496963904,
+"myc": {
+"boss": 246.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 15.15
+},
+"myc_total": 621.15,
+"pulls": 76,
+"quests": 5,
+"cc": 0.5,
+"cd": 3.3,
+"spd": 3.0,
+"atk_lv": 2013,
+"gacha_lv": {
+"Weapon": 3,
+"Pet": 2,
+"Accessory": 1,
+"Character": 1
+},
+"dlevel": {
+"1": 4,
+"2": 4
+}
+},
+{
+"day": 2,
+"stage": 219,
+"eg": 123526523,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 7725,
+"kills_all": 7761,
+"bosses": 103,
+"stage0": 124,
+"stage": 160,
+"eg": 76611327,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 5400,
+"kills_all": 5448,
+"bosses": 72,
+"stage0": 160,
+"stage": 208,
+"eg": 115791260,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 8550,
+"kills_all": 8561,
+"bosses": 114,
+"stage0": 208,
+"stage": 219,
+"eg": 123526523,
+"bmyc": 2
+}
+],
+"kills": 21770,
+"bosses": 289,
+"gold": {
+"battle": 2266967106225.0,
+"offline": 8332077148785.0,
+"offline_ad": 5903218314210.001,
+"adbox": 800551400000.0,
+"quest": 1225781232000.0,
+"dungeon": 2575091496000.0
+},
+"gold_total": 21103686697220.0,
+"gold_kills": 170843.3637140422,
+"myc": {
+"boss": 190.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 15.6
+},
+"myc_total": 575.6,
+"pulls": 65,
+"quests": 5,
+"cc": 0.775,
+"cd": 4.4,
+"spd": 3.0,
+"atk_lv": 3105,
+"gacha_lv": {
+"Weapon": 3,
+"Pet": 2,
+"Accessory": 2,
+"Character": 1
+},
+"dlevel": {
+"1": 7,
+"2": 7,
+"3": 3
+}
+},
+{
+"day": 3,
+"stage": 265,
+"eg": 169415588,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 7200,
+"kills_all": 7224,
+"bosses": 96,
+"stage0": 219,
+"stage": 243,
+"eg": 138110016,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3600,
+"kills_all": 3617,
+"bosses": 48,
+"stage0": 243,
+"stage": 260,
+"eg": 159838549,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 6600,
+"kills_all": 6605,
+"bosses": 88,
+"stage0": 260,
+"stage": 265,
+"eg": 169415588,
+"bmyc": 2
+}
+],
+"kills": 17446,
+"bosses": 232,
+"gold": {
+"battle": 2745865712235.0,
+"offline": 9291317851003.75,
+"offline_ad": 2275445873456.251,
+"adbox": 677662352000.0,
+"quest": 2209760256000.0,
+"dungeon": 4253632107000.0
+},
+"gold_total": 21453684151695.0,
+"gold_kills": 126633.47219085295,
+"myc": {
+"boss": 92.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 31.14
+},
+"myc_total": 483.14,
+"pulls": 65,
+"quests": 5,
+"cc": 0.85,
+"cd": 4.7,
+"spd": 3.0,
+"atk_lv": 3479,
+"gacha_lv": {
+"Weapon": 3,
+"Pet": 4,
+"Accessory": 3,
+"Character": 1
+},
+"dlevel": {
+"1": 10,
+"2": 10,
+"3": 6,
+"4": 3
+}
+},
+{
+"day": 4,
+"stage": 300,
+"eg": 246473387,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6600,
+"kills_all": 6615,
+"bosses": 88,
+"stage0": 265,
+"stage": 280,
+"eg": 200265464,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 4425,
+"kills_all": 4445,
+"bosses": 59,
+"stage0": 280,
+"stage": 300,
+"eg": 246473387,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 8325,
+"kills_all": 8325,
+"bosses": 111,
+"stage0": 300,
+"stage": 300,
+"eg": 246473387,
+"bmyc": 2
+}
+],
+"kills": 19385,
+"bosses": 258,
+"gold": {
+"battle": 4552109691415.0,
+"offline": 16232817704608.75,
+"offline_ad": 11949522801377.498,
+"adbox": 1786955404000.0,
+"quest": 3204247424000.0,
+"dungeon": 5826205158000.0
+},
+"gold_total": 43551858183401.25,
+"gold_kills": 176700.04341442854,
+"myc": {
+"boss": 70.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 28.74000000000001
+},
+"myc_total": 468.74,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 5.300000000000001,
+"spd": 3.0,
+"atk_lv": 4081,
+"gacha_lv": {
+"Weapon": 5,
+"Pet": 4,
+"Accessory": 3,
+"Character": 1
+},
+"dlevel": {
+"1": 13,
+"2": 13,
+"3": 9,
+"4": 4
+}
+},
+{
+"day": 5,
+"stage": 350,
+"eg": 388474649,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 7800,
+"kills_all": 7847,
+"bosses": 104,
+"stage0": 300,
+"stage": 347,
+"eg": 378860588,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3975,
+"kills_all": 3978,
+"bosses": 53,
+"stage0": 347,
+"stage": 350,
+"eg": 388474649,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7875,
+"kills_all": 7875,
+"bosses": 105,
+"stage0": 350,
+"stage": 350,
+"eg": 388474649,
+"bmyc": 2
+}
+],
+"kills": 19700,
+"bosses": 262,
+"gold": {
+"battle": 7612379528310.0,
+"offline": 25612768417055.0,
+"offline_ad": 5871245803387.5,
+"adbox": 1553898596000.0,
+"quest": 6061769408000.0,
+"dungeon": 7723035984000.0
+},
+"gold_total": 54435097736752.5,
+"gold_kills": 140125.2253573759,
+"myc": {
+"boss": 100.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 35.67
+},
+"myc_total": 495.67,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 5.7,
+"spd": 3.0,
+"atk_lv": 4413,
+"gacha_lv": {
+"Weapon": 5,
+"Pet": 5,
+"Accessory": 4,
+"Character": 1
+},
+"dlevel": {
+"1": 16,
+"2": 16,
+"3": 12,
+"4": 7
+}
+},
+{
+"day": 6,
+"stage": 380,
+"eg": 492445662,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6000,
+"kills_all": 6010,
+"bosses": 80,
+"stage0": 350,
+"stage": 360,
+"eg": 421546364,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 4350,
+"kills_all": 4370,
+"bosses": 58,
+"stage0": 360,
+"stage": 380,
+"eg": 492445662,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7875,
+"kills_all": 7875,
+"bosses": 105,
+"stage0": 380,
+"stage": 380,
+"eg": 492445662,
+"bmyc": 2
+}
+],
+"kills": 18255,
+"bosses": 243,
+"gold": {
+"battle": 8741583917350.0,
+"offline": 31146125361695.0,
+"offline_ad": 22643410598045.0,
+"adbox": 3655968104000.0,
+"quest": 6744741824000.0,
+"dungeon": 10557434274000.0
+},
+"gold_total": 83489264079090.0,
+"gold_kills": 169540.05390160184,
+"myc": {
+"boss": 60.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 36.66
+},
+"myc_total": 466.65999999999997,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 6.1000000000000005,
+"spd": 3.0,
+"atk_lv": 4845,
+"gacha_lv": {
+"Weapon": 5,
+"Pet": 5,
+"Accessory": 4,
+"Character": 1
+},
+"dlevel": {
+"1": 19,
+"2": 19,
+"3": 15,
+"4": 10
+}
+},
+{
+"day": 7,
+"stage": 400,
+"eg": 569718886,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6150,
+"kills_all": 6170,
+"bosses": 82,
+"stage0": 380,
+"stage": 400,
+"eg": 569718886,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3975,
+"kills_all": 3975,
+"bosses": 53,
+"stage0": 400,
+"stage": 400,
+"eg": 569718886,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7875,
+"kills_all": 7875,
+"bosses": 105,
+"stage0": 400,
+"stage": 400,
+"eg": 569718886,
+"bmyc": 2
+}
+],
+"kills": 18020,
+"bosses": 240,
+"gold": {
+"battle": 10404739035035.0,
+"offline": 35988925638932.5,
+"offline_ad": 8492372144437.5,
+"adbox": 2278875544000.0,
+"quest": 9115502176000.0,
+"dungeon": 30871307145000.0
+},
+"gold_total": 97151721683405.0,
+"gold_kills": 170525.71728051332,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 45.64999999999998
+},
+"myc_total": 445.65,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 6.4,
+"spd": 3.0,
+"atk_lv": 5171,
+"gacha_lv": {
+"Weapon": 5,
+"Pet": 5,
+"Accessory": 5,
+"Character": 1
+},
+"dlevel": {
+"1": 22,
+"2": 22,
+"3": 18,
+"4": 13,
+"5": 2
+}
+},
+{
+"day": 8,
+"stage": 430,
+"eg": 697592391,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6000,
+"kills_all": 6010,
+"bosses": 80,
+"stage0": 400,
+"stage": 410,
+"eg": 610750061,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 4125,
+"kills_all": 4135,
+"bosses": 55,
+"stage0": 410,
+"stage": 420,
+"eg": 653375822,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7950,
+"kills_all": 7960,
+"bosses": 106,
+"stage0": 420,
+"stage": 430,
+"eg": 697592391,
+"bmyc": 2
+}
+],
+"kills": 18105,
+"bosses": 241,
+"gold": {
+"battle": 12230690459485.0,
+"offline": 43522800593592.5,
+"offline_ad": 33009849560517.5,
+"adbox": 5233369808000.0,
+"quest": 9772000976000.0,
+"dungeon": 31045893889500.0
+},
+"gold_total": 134814605287095.0,
+"gold_kills": 193256.98936285416,
+"myc": {
+"boss": 60.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 44.640000000000015
+},
+"myc_total": 474.64,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 6.7,
+"spd": 3.0,
+"atk_lv": 5485,
+"gacha_lv": {
+"Weapon": 5,
+"Pet": 6,
+"Accessory": 5,
+"Character": 1
+},
+"dlevel": {
+"1": 25,
+"2": 25,
+"3": 21,
+"4": 16,
+"5": 2
+}
+},
+{
+"day": 9,
+"stage": 470,
+"eg": 920689492,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6300,
+"kills_all": 6330,
+"bosses": 84,
+"stage0": 430,
+"stage": 460,
+"eg": 853967762,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3975,
+"kills_all": 3975,
+"bosses": 53,
+"stage0": 460,
+"stage": 460,
+"eg": 853967762,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7875,
+"kills_all": 7885,
+"bosses": 105,
+"stage0": 460,
+"stage": 470,
+"eg": 920689492,
+"bmyc": 2
+}
+],
+"kills": 18190,
+"bosses": 242,
+"gold": {
+"battle": 16439018973495.0,
+"offline": 57317012608040.0,
+"offline_ad": 12729456952312.5,
+"adbox": 3682757968000.0,
+"quest": 13663484192000.0,
+"dungeon": 52208392365000.0
+},
+"gold_total": 156040123058847.5,
+"gold_kills": 169481.81163649852,
+"myc": {
+"boss": 80.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 51.86999999999995
+},
+"myc_total": 491.86999999999995,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 7.0,
+"spd": 3.0,
+"atk_lv": 5748,
+"gacha_lv": {
+"Weapon": 6,
+"Pet": 6,
+"Accessory": 5,
+"Character": 1
+},
+"dlevel": {
+"1": 28,
+"2": 28,
+"3": 24,
+"4": 19,
+"5": 5
+}
+},
+{
+"day": 10,
+"stage": 490,
+"eg": 1065178639,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6000,
+"kills_all": 6010,
+"bosses": 80,
+"stage0": 470,
+"stage": 480,
+"eg": 991054176,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3975,
+"kills_all": 3985,
+"bosses": 53,
+"stage0": 480,
+"stage": 490,
+"eg": 1065178639,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7725,
+"bosses": 103,
+"stage0": 490,
+"stage": 490,
+"eg": 1065178639,
+"bmyc": 2
+}
+],
+"kills": 17720,
+"bosses": 236,
+"gold": {
+"battle": 18744076746205.0,
+"offline": 65773576082677.5,
+"offline_ad": 49243232958577.5,
+"adbox": 8224931260000.0,
+"quest": 16079240205000.0,
+"dungeon": 65286293331000.0
+},
+"gold_total": 223351350583460.0,
+"gold_kills": 209684.40635755184,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 53.21999999999997
+},
+"myc_total": 463.21999999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 7.3,
+"spd": 3.0,
+"atk_lv": 6033,
+"gacha_lv": {
+"Weapon": 6,
+"Pet": 7,
+"Accessory": 5,
+"Character": 1
+},
+"dlevel": {
+"1": 31,
+"2": 31,
+"3": 27,
+"4": 22,
+"5": 8
+}
+},
+{
+"day": 11,
+"stage": 500,
+"eg": 1143180890,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5634,
+"bosses": 75,
+"stage0": 490,
+"stage": 499,
+"eg": 1135202780,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3751,
+"bosses": 50,
+"stage0": 499,
+"stage": 500,
+"eg": 1143180890,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 500,
+"stage": 500,
+"eg": 1143180890,
+"bmyc": 2
+}
+],
+"kills": 16885,
+"bosses": 225,
+"gold": {
+"battle": 19439257295915.0,
+"offline": 67853965840317.5,
+"offline_ad": 16158877630687.5,
+"adbox": 4572723560000.0,
+"quest": 18163244480000.0,
+"dungeon": 81786536142000.0
+},
+"gold_total": 207974604948920.0,
+"gold_kills": 181926.24349145655,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 54.56999999999999
+},
+"myc_total": 434.57,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 7.5,
+"spd": 3.0,
+"atk_lv": 6241,
+"gacha_lv": {
+"Weapon": 7,
+"Pet": 7,
+"Accessory": 5,
+"Character": 1
+},
+"dlevel": {
+"1": 34,
+"2": 34,
+"3": 30,
+"4": 25,
+"5": 11
+}
+},
+{
+"day": 12,
+"stage": 520,
+"eg": 1311296999,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5925,
+"kills_all": 5935,
+"bosses": 79,
+"stage0": 500,
+"stage": 510,
+"eg": 1225180208,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3900,
+"bosses": 52,
+"stage0": 510,
+"stage": 510,
+"eg": 1225180208,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7950,
+"kills_all": 7960,
+"bosses": 106,
+"stage0": 510,
+"stage": 520,
+"eg": 1311296999,
+"bmyc": 2
+}
+],
+"kills": 17795,
+"bosses": 237,
+"gold": {
+"battle": 22881016035180.0,
+"offline": 80728254651747.5,
+"offline_ad": 62809994109747.5,
+"adbox": 10145908828000.0,
+"quest": 19602883328000.0,
+"dungeon": 81177320616000.0
+},
+"gold_total": 277345377568675.0,
+"gold_kills": 211504.62311755432,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 47.58999999999992
+},
+"myc_total": 457.5899999999999,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 7.7,
+"spd": 3.0,
+"atk_lv": 6463,
+"gacha_lv": {
+"Weapon": 7,
+"Pet": 7,
+"Accessory": 6,
+"Character": 1
+},
+"dlevel": {
+"1": 37,
+"2": 37,
+"3": 33,
+"4": 27,
+"5": 12
+}
+},
+{
+"day": 13,
+"stage": 540,
+"eg": 1496370768,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6075,
+"kills_all": 6095,
+"bosses": 81,
+"stage0": 520,
+"stage": 540,
+"eg": 1496370768,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3900,
+"bosses": 52,
+"stage0": 540,
+"stage": 540,
+"eg": 1496370768,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7800,
+"kills_all": 7800,
+"bosses": 104,
+"stage0": 540,
+"stage": 540,
+"eg": 1496370768,
+"bmyc": 2
+}
+],
+"kills": 17795,
+"bosses": 237,
+"gold": {
+"battle": 27009171976350.0,
+"offline": 93410304420300.0,
+"offline_ad": 21884422482000.0,
+"adbox": 5985483072000.0,
+"quest": 23941932288000.0,
+"dungeon": 106415233842000.0
+},
+"gold_total": 278646548080650.0,
+"gold_kills": 186214.91012757475,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 50.700000000000045
+},
+"myc_total": 450.70000000000005,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 7.9,
+"spd": 3.0,
+"atk_lv": 6645,
+"gacha_lv": {
+"Weapon": 7,
+"Pet": 7,
+"Accessory": 6,
+"Character": 1
+},
+"dlevel": {
+"1": 40,
+"2": 40,
+"3": 36,
+"4": 29,
+"5": 14
+}
+},
+{
+"day": 14,
+"stage": 560,
+"eg": 1699389209,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6000,
+"kills_all": 6010,
+"bosses": 80,
+"stage0": 540,
+"stage": 550,
+"eg": 1595574482,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3975,
+"kills_all": 3985,
+"bosses": 53,
+"stage0": 550,
+"stage": 560,
+"eg": 1699389209,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7725,
+"bosses": 103,
+"stage0": 560,
+"stage": 560,
+"eg": 1699389209,
+"bmyc": 2
+}
+],
+"kills": 17720,
+"bosses": 236,
+"gold": {
+"battle": 30008493461600.0,
+"offline": 105157036793482.5,
+"offline_ad": 78755760140332.5,
+"adbox": 13179854764000.0,
+"quest": 25529191712000.0,
+"dungeon": 127515955264500.0
+},
+"gold_total": 380146292135915.0,
+"gold_kills": 223695.8373765424,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 51.64999999999981
+},
+"myc_total": 461.6499999999998,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 8.100000000000001,
+"spd": 3.0,
+"atk_lv": 6851,
+"gacha_lv": {
+"Weapon": 7,
+"Pet": 7,
+"Accessory": 6,
+"Character": 1
+},
+"dlevel": {
+"1": 43,
+"2": 43,
+"3": 39,
+"4": 31,
+"5": 16
+}
+},
+{
+"day": 15,
+"stage": 580,
+"eg": 1921357866,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5925,
+"kills_all": 5935,
+"bosses": 79,
+"stage0": 560,
+"stage": 570,
+"eg": 1807941209,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3900,
+"bosses": 52,
+"stage0": 570,
+"stage": 570,
+"eg": 1807941209,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7800,
+"kills_all": 7810,
+"bosses": 104,
+"stage0": 570,
+"stage": 580,
+"eg": 1921357866,
+"bmyc": 2
+}
+],
+"kills": 17645,
+"bosses": 235,
+"gold": {
+"battle": 33378732379940.0,
+"offline": 117374704603567.5,
+"offline_ad": 26441140181625.0,
+"adbox": 7685431464000.0,
+"quest": 28927059344000.0,
+"dungeon": 151432881435000.0
+},
+"gold_total": 365239949408132.5,
+"gold_kills": 190094.70118573552,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 52.60000000000002
+},
+"myc_total": 452.6,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 8.3,
+"spd": 3.0,
+"atk_lv": 7014,
+"gacha_lv": {
+"Weapon": 7,
+"Pet": 8,
+"Accessory": 6,
+"Character": 1
+},
+"dlevel": {
+"1": 46,
+"2": 46,
+"3": 42,
+"4": 33,
+"5": 18
+}
+},
+{
+"day": 16,
+"stage": 590,
+"eg": 2039767695,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5850,
+"kills_all": 5850,
+"bosses": 78,
+"stage0": 580,
+"stage": 580,
+"eg": 1921357866,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3835,
+"bosses": 51,
+"stage0": 580,
+"stage": 590,
+"eg": 2039767695,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 590,
+"stage": 590,
+"eg": 2039767695,
+"bmyc": 2
+}
+],
+"kills": 17185,
+"bosses": 229,
+"gold": {
+"battle": 34686000656115.0,
+"offline": 121876294591631.25,
+"offline_ad": 91322046738450.0,
+"adbox": 15844502244000.0,
+"quest": 31096955343000.0,
+"dungeon": 179167390578000.0
+},
+"gold_total": 473993190151196.25,
+"gold_kills": 232376.0648396759,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 53.549999999999955
+},
+"myc_total": 443.54999999999995,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 8.5,
+"spd": 3.0,
+"atk_lv": 7200,
+"gacha_lv": {
+"Weapon": 8,
+"Pet": 8,
+"Accessory": 6,
+"Character": 1
+},
+"dlevel": {
+"1": 49,
+"2": 49,
+"3": 45,
+"4": 35,
+"5": 20
+}
+},
+{
+"day": 17,
+"stage": 590,
+"eg": 2039767695,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5775,
+"bosses": 77,
+"stage0": 590,
+"stage": 590,
+"eg": 2039767695,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3900,
+"bosses": 52,
+"stage0": 590,
+"stage": 590,
+"eg": 2039767695,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7725,
+"bosses": 103,
+"stage0": 590,
+"stage": 590,
+"eg": 2039767695,
+"bmyc": 2
+}
+],
+"kills": 17400,
+"bosses": 232,
+"gold": {
+"battle": 35491957893000.0,
+"offline": 124298343914062.5,
+"offline_ad": 29831602539375.0,
+"adbox": 8159070780000.0,
+"quest": 32636283120000.0,
+"dungeon": 158575833984000.0
+},
+"gold_total": 388993092230437.5,
+"gold_kills": 190704.60483512928,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 47.94999999999993
+},
+"myc_total": 407.94999999999993,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 8.600000000000001,
+"spd": 3.0,
+"atk_lv": 7327,
+"gacha_lv": {
+"Weapon": 8,
+"Pet": 8,
+"Accessory": 7,
+"Character": 1
+},
+"dlevel": {
+"1": 52,
+"2": 52,
+"3": 46,
+"4": 36,
+"5": 21
+}
+},
+{
+"day": 18,
+"stage": 620,
+"eg": 2426257956,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5850,
+"kills_all": 5850,
+"bosses": 78,
+"stage0": 590,
+"stage": 590,
+"eg": 2039767695,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 4350,
+"kills_all": 4380,
+"bosses": 58,
+"stage0": 590,
+"stage": 620,
+"eg": 2426257956,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7725,
+"bosses": 103,
+"stage0": 620,
+"stage": 620,
+"eg": 2426257956,
+"bmyc": 2
+}
+],
+"kills": 17955,
+"bosses": 239,
+"gold": {
+"battle": 42104996000945.0,
+"offline": 151068745258556.25,
+"offline_ad": 108208074226950.0,
+"adbox": 17864102604000.0,
+"quest": 32636283120000.0,
+"dungeon": 137962226544000.0
+},
+"gold_total": 489844427754451.25,
+"gold_kills": 201892.9712494475,
+"myc": {
+"boss": 60.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 41.999999999999886
+},
+"myc_total": 471.9999999999999,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 8.7,
+"spd": 3.0,
+"atk_lv": 7472,
+"gacha_lv": {
+"Weapon": 8,
+"Pet": 8,
+"Accessory": 7,
+"Character": 1
+},
+"dlevel": {
+"1": 55,
+"2": 55,
+"3": 46,
+"4": 36,
+"5": 21
+}
+},
+{
+"day": 19,
+"stage": 630,
+"eg": 2565947730,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5850,
+"kills_all": 5860,
+"bosses": 78,
+"stage0": 620,
+"stage": 630,
+"eg": 2565947730,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3900,
+"bosses": 52,
+"stage0": 630,
+"stage": 630,
+"eg": 2565947730,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7725,
+"bosses": 103,
+"stage0": 630,
+"stage": 630,
+"eg": 2565947730,
+"bmyc": 2
+}
+],
+"kills": 17485,
+"bosses": 233,
+"gold": {
+"battle": 45279700497315.0,
+"offline": 157626859787505.0,
+"offline_ad": 37526985551250.0,
+"adbox": 10263790920000.0,
+"quest": 41055163680000.0,
+"dungeon": 259936544568000.0
+},
+"gold_total": 551689045004070.0,
+"gold_kills": 215004.0075072262,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 62.25
+},
+"myc_total": 442.25,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 8.9,
+"spd": 3.0,
+"atk_lv": 7610,
+"gacha_lv": {
+"Weapon": 8,
+"Pet": 8,
+"Accessory": 7,
+"Character": 1
+},
+"dlevel": {
+"1": 58,
+"2": 58,
+"3": 49,
+"4": 39,
+"5": 24
+}
+},
+{
+"day": 20,
+"stage": 640,
+"eg": 2711289734,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5850,
+"kills_all": 5860,
+"bosses": 78,
+"stage0": 630,
+"stage": 640,
+"eg": 2711289734,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3900,
+"bosses": 52,
+"stage0": 640,
+"stage": 640,
+"eg": 2711289734,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7725,
+"bosses": 103,
+"stage0": 640,
+"stage": 640,
+"eg": 2711289734,
+"bmyc": 2
+}
+],
+"kills": 17485,
+"bosses": 233,
+"gold": {
+"battle": 47845656583410.0,
+"offline": 166557648589245.0,
+"offline_ad": 126905036229495.0,
+"adbox": 21690317872000.0,
+"quest": 43380635744000.0,
+"dungeon": 221062477176000.0
+},
+"gold_total": 627441772194150.0,
+"gold_kills": 231418.19346192753,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 50.10000000000002
+},
+"myc_total": 440.1,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.0,
+"spd": 3.0,
+"atk_lv": 7754,
+"gacha_lv": {
+"Weapon": 8,
+"Pet": 8,
+"Accessory": 7,
+"Character": 1
+},
+"dlevel": {
+"1": 61,
+"2": 61,
+"3": 50,
+"4": 40,
+"5": 25
+}
+},
+{
+"day": 21,
+"stage": 650,
+"eg": 2862419046,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5560,
+"bosses": 74,
+"stage0": 640,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7275,
+"kills_all": 7275,
+"bosses": 97,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+}
+],
+"kills": 16510,
+"bosses": 220,
+"gold": {
+"battle": 47722974102330.0,
+"offline": 165915127093372.5,
+"offline_ad": 39447712477687.5,
+"adbox": 11449676184000.0,
+"quest": 45798704736000.0,
+"dungeon": 243245315532000.0
+},
+"gold_total": 553579510125390.0,
+"gold_kills": 193395.69127691936,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 46.674999999999955
+},
+"myc_total": 426.67499999999995,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.100000000000001,
+"spd": 3.0,
+"atk_lv": 7865,
+"gacha_lv": {
+"Weapon": 8,
+"Pet": 8,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 64,
+"2": 63,
+"3": 51,
+"4": 41,
+"5": 26
+}
+},
+{
+"day": 22,
+"stage": 650,
+"eg": 2862419046,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+}
+],
+"kills": 16800,
+"bosses": 224,
+"gold": {
+"battle": 48088639972800.0,
+"offline": 168632262047475.0,
+"offline_ad": 128379494213100.0,
+"adbox": 22899352368000.0,
+"quest": 45798704736000.0,
+"dungeon": 248972400798000.0
+},
+"gold_total": 662770854135375.0,
+"gold_kills": 231542.21778308242,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 43.0
+},
+"myc_total": 413.0,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.2,
+"spd": 3.0,
+"atk_lv": 7987,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 8,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 66,
+"2": 64,
+"3": 52,
+"4": 42,
+"5": 27
+}
+},
+{
+"day": 23,
+"stage": 650,
+"eg": 2862419046,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5700,
+"kills_all": 5700,
+"bosses": 76,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3825,
+"bosses": 51,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7650,
+"kills_all": 7650,
+"bosses": 102,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+}
+],
+"kills": 17175,
+"bosses": 229,
+"gold": {
+"battle": 49162047115050.0,
+"offline": 172228175974012.5,
+"offline_ad": 41057823191062.5,
+"adbox": 11449676184000.0,
+"quest": 45798704736000.0,
+"dungeon": 175525717689000.0
+},
+"gold_total": 495222144889125.0,
+"gold_kills": 173008.26221833524,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 32.25
+},
+"myc_total": 392.25,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.3,
+"spd": 3.0,
+"atk_lv": 8068,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 8,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 66,
+"2": 64,
+"3": 52,
+"4": 42,
+"5": 27
+}
+},
+{
+"day": 24,
+"stage": 670,
+"eg": 3182584999,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5775,
+"bosses": 77,
+"stage0": 650,
+"stage": 650,
+"eg": 2862419046,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 4050,
+"kills_all": 4060,
+"bosses": 54,
+"stage0": 650,
+"stage": 660,
+"eg": 3019471742,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7735,
+"bosses": 103,
+"stage0": 660,
+"stage": 670,
+"eg": 3182584999,
+"bmyc": 2
+}
+],
+"kills": 17570,
+"bosses": 234,
+"gold": {
+"battle": 54416974291235.0,
+"offline": 193987540393031.25,
+"offline_ad": 146174195688525.0,
+"adbox": 24180016180000.0,
+"quest": 45798704736000.0,
+"dungeon": 175525717689000.0
+},
+"gold_total": 640083148977791.2,
+"gold_kills": 201120.5196966968,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 32.25
+},
+"myc_total": 442.25,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.4,
+"spd": 3.0,
+"atk_lv": 8165,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 66,
+"2": 64,
+"3": 52,
+"4": 42,
+"5": 27
+}
+},
+{
+"day": 25,
+"stage": 670,
+"eg": 3182584999,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5775,
+"bosses": 77,
+"stage0": 670,
+"stage": 670,
+"eg": 3182584999,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3900,
+"bosses": 52,
+"stage0": 670,
+"stage": 670,
+"eg": 3182584999,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7725,
+"kills_all": 7725,
+"bosses": 103,
+"stage0": 670,
+"stage": 670,
+"eg": 3182584999,
+"bmyc": 2
+}
+],
+"kills": 17400,
+"bosses": 232,
+"gold": {
+"battle": 55376978982600.0,
+"offline": 193938773376562.25,
+"offline_ad": 46545305610375.0,
+"adbox": 12730339996000.0,
+"quest": 50921359984000.0,
+"dungeon": 318804766119000.0
+},
+"gold_total": 678317524068537.2,
+"gold_kills": 213134.1423030874,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 54.34999999999991
+},
+"myc_total": 414.3499999999999,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.5,
+"spd": 3.0,
+"atk_lv": 8260,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 68,
+"2": 66,
+"3": 54,
+"4": 44,
+"5": 29
+}
+},
+{
+"day": 26,
+"stage": 700,
+"eg": 3709675390,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 6075,
+"kills_all": 6095,
+"bosses": 81,
+"stage0": 670,
+"stage": 690,
+"eg": 3527547084,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3975,
+"kills_all": 3985,
+"bosses": 53,
+"stage0": 690,
+"stage": 700,
+"eg": 3709675390,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 700,
+"stage": 700,
+"eg": 3709675390,
+"bmyc": 2
+}
+],
+"kills": 17655,
+"bosses": 235,
+"gold": {
+"battle": 65985774166795.0,
+"offline": 229159910063440.0,
+"offline_ad": 171439087138315.0,
+"adbox": 28948889896000.0,
+"quest": 56440753344000.0,
+"dungeon": 195316517151000.0
+},
+"gold_total": 747290931759550.0,
+"gold_kills": 201443.7526728046,
+"myc": {
+"boss": 60.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 32.69999999999959
+},
+"myc_total": 462.6999999999996,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.6,
+"spd": 3.0,
+"atk_lv": 8355,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 68,
+"2": 66,
+"3": 54,
+"4": 44,
+"5": 29
+}
+},
+{
+"day": 27,
+"stage": 710,
+"eg": 3864961485.2470484,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5850,
+"kills_all": 5860,
+"bosses": 78,
+"stage0": 700,
+"stage": 710,
+"eg": 3864961485.2470484,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3825,
+"bosses": 51,
+"stage0": 710,
+"stage": 710,
+"eg": 3864961485.2470484,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7650,
+"kills_all": 7650,
+"bosses": 102,
+"stage0": 710,
+"stage": 710,
+"eg": 3864961485.2470484,
+"bmyc": 2
+}
+],
+"kills": 17335,
+"bosses": 231,
+"gold": {
+"battle": 67650495640093.875,
+"offline": 235089465627410.0,
+"offline_ad": 55438041304012.25,
+"adbox": 15459845940988.188,
+"quest": 61839383763952.75,
+"dungeon": 433573189896000.0
+},
+"gold_total": 869050422172457.0,
+"gold_kills": 224853.5788751611,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 66.29999999999995
+},
+"myc_total": 446.29999999999995,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.7,
+"spd": 3.0,
+"atk_lv": 8457,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 71,
+"2": 69,
+"3": 57,
+"4": 47,
+"5": 32
+}
+},
+{
+"day": 28,
+"stage": 720,
+"eg": 4030047338.7986956,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5775,
+"bosses": 77,
+"stage0": 710,
+"stage": 710,
+"eg": 3864961485.2470484,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3975,
+"kills_all": 3985,
+"bosses": 53,
+"stage0": 710,
+"stage": 720,
+"eg": 4030047338.7986956,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 720,
+"stage": 720,
+"eg": 4030047338.7986956,
+"bmyc": 2
+}
+],
+"kills": 17335,
+"bosses": 231,
+"gold": {
+"battle": 69586410290354.125,
+"offline": 244784478022099.5,
+"offline_ad": 182014543815904.25,
+"adbox": 31580035296183.0,
+"quest": 62334641324607.75,
+"dungeon": 317937655944947.5
+},
+"gold_total": 908237764694096.1,
+"gold_kills": 225366.5250902065,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 44.80000000000018
+},
+"myc_total": 434.8000000000002,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.8,
+"spd": 3.0,
+"atk_lv": 8556,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 72,
+"2": 70,
+"3": 58,
+"4": 48,
+"5": 33
+}
+},
+{
+"day": 29,
+"stage": 730,
+"eg": 4202184579.316786,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5775,
+"bosses": 77,
+"stage0": 720,
+"stage": 720,
+"eg": 4030047338.7986956,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3910,
+"bosses": 52,
+"stage0": 720,
+"stage": 730,
+"eg": 4202184579.316786,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 730,
+"stage": 730,
+"eg": 4202184579.316786,
+"bmyc": 2
+}
+],
+"kills": 17260,
+"bosses": 230,
+"gold": {
+"battle": 72243522362778.62,
+"offline": 254058204083929.0,
+"offline_ad": 64269190473343.25,
+"adbox": 16808738317267.125,
+"quest": 64480757420779.125,
+"dungeon": 331517871299804.0
+},
+"gold_total": 803378283957901.1,
+"gold_kills": 191181.10325570675,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 45.100000000000136
+},
+"myc_total": 425.10000000000014,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 9.9,
+"spd": 3.0,
+"atk_lv": 8634,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 8,
+"Character": 1
+},
+"dlevel": {
+"1": 73,
+"2": 71,
+"3": 59,
+"4": 49,
+"5": 34
+}
+},
+{
+"day": 30,
+"stage": 730,
+"eg": 4202184579.316786,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5700,
+"kills_all": 5700,
+"bosses": 76,
+"stage0": 730,
+"stage": 730,
+"eg": 4202184579.316786,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3825,
+"bosses": 51,
+"stage0": 730,
+"stage": 730,
+"eg": 4202184579.316786,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7650,
+"kills_all": 7650,
+"bosses": 102,
+"stage0": 730,
+"stage": 730,
+"eg": 4202184579.316786,
+"bmyc": 2
+}
+],
+"kills": 17175,
+"bosses": 229,
+"gold": {
+"battle": 72172520149765.62,
+"offline": 252840193406766.5,
+"offline_ad": 192565108347191.25,
+"adbox": 33617476634534.25,
+"quest": 67234953269068.75,
+"dungeon": 345678144554805.0
+},
+"gold_total": 964108396362131.4,
+"gold_kills": 229430.28278850173,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 45.40000000000032
+},
+"myc_total": 415.4000000000003,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.0,
+"spd": 3.0,
+"atk_lv": 8724,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 74,
+"2": 72,
+"3": 60,
+"4": 50,
+"5": 35
+}
+},
+{
+"day": 31,
+"stage": 740,
+"eg": 4381674395.892212,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5850,
+"kills_all": 5860,
+"bosses": 78,
+"stage0": 730,
+"stage": 740,
+"eg": 4381674395.892212,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3825,
+"bosses": 51,
+"stage0": 740,
+"stage": 740,
+"eg": 4381674395.892212,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 740,
+"stage": 740,
+"eg": 4381674395.892212,
+"bmyc": 2
+}
+],
+"kills": 17260,
+"bosses": 230,
+"gold": {
+"battle": 76365846402924.75,
+"offline": 265039484665562.0,
+"offline_ad": 62849642116079.0,
+"adbox": 17526697583568.875,
+"quest": 70106790334275.25,
+"dungeon": 259258608416102.5
+},
+"gold_total": 751147069518512.4,
+"gold_kills": 171429.23039254293,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 34.05000000000041
+},
+"myc_total": 414.0500000000004,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.0,
+"spd": 3.0,
+"atk_lv": 8794,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 74,
+"2": 72,
+"3": 60,
+"4": 50,
+"5": 35
+}
+},
+{
+"day": 32,
+"stage": 750,
+"eg": 4568830842.442163,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5785,
+"bosses": 77,
+"stage0": 740,
+"stage": 750,
+"eg": 4568830842.442163,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3825,
+"bosses": 51,
+"stage0": 750,
+"stage": 750,
+"eg": 4568830842.442163,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 750,
+"stage": 750,
+"eg": 4568830842.442163,
+"bmyc": 2
+}
+],
+"kills": 17185,
+"bosses": 229,
+"gold": {
+"battle": 79285033136295.25,
+"offline": 275674911802936.5,
+"offline_ad": 210140744406656.75,
+"adbox": 36550646739537.25,
+"quest": 73101293479074.75,
+"dungeon": 360443251986227.0
+},
+"gold_total": 1035195881550727.5,
+"gold_kills": 226577.85268263234,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 45.70000000000027
+},
+"myc_total": 435.7000000000003,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.1,
+"spd": 3.0,
+"atk_lv": 8877,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 9,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 75,
+"2": 73,
+"3": 61,
+"4": 51,
+"5": 36
+}
+},
+{
+"day": 33,
+"stage": 760,
+"eg": 4763981387.21129,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5775,
+"bosses": 77,
+"stage0": 750,
+"stage": 750,
+"eg": 4568830842.442163,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3910,
+"bosses": 52,
+"stage0": 750,
+"stage": 760,
+"eg": 4763981387.21129,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 760,
+"stage": 760,
+"eg": 4763981387.21129,
+"bmyc": 2
+}
+],
+"kills": 17185,
+"bosses": 229,
+"gold": {
+"battle": 81544576334260.25,
+"offline": 286415809855108.5,
+"offline_ad": 72861441806519.75,
+"adbox": 19055925548845.188,
+"quest": 73101293479074.62,
+"dungeon": 375839028150675.0
+},
+"gold_total": 908818075174483.2,
+"gold_kills": 190768.60325570698,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 46.0
+},
+"myc_total": 426.0,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.200000000000001,
+"spd": 3.0,
+"atk_lv": 8944,
+"gacha_lv": {
+"Weapon": 9,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 76,
+"2": 74,
+"3": 62,
+"4": 52,
+"5": 37
+}
+},
+{
+"day": 34,
+"stage": 760,
+"eg": 4763981387.21129,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5700,
+"kills_all": 5700,
+"bosses": 76,
+"stage0": 760,
+"stage": 760,
+"eg": 4763981387.21129,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3825,
+"bosses": 51,
+"stage0": 760,
+"stage": 760,
+"eg": 4763981387.21129,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 760,
+"stage": 760,
+"eg": 4763981387.21129,
+"bmyc": 2
+}
+],
+"kills": 17100,
+"bosses": 228,
+"gold": {
+"battle": 81464081721313.25,
+"offline": 285034961373586.5,
+"offline_ad": 216701603350773.75,
+"adbox": 38111851097690.375,
+"quest": 76223702195380.25,
+"dungeon": 391892411087893.0
+},
+"gold_total": 1089428610826637.1,
+"gold_kills": 228680.28278850182,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 46.30000000000018
+},
+"myc_total": 416.3000000000002,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.3,
+"spd": 3.0,
+"atk_lv": 9021,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 77,
+"2": 75,
+"3": 63,
+"4": 53,
+"5": 38
+}
+},
+{
+"day": 35,
+"stage": 770,
+"eg": 4967467485.743955,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5775,
+"bosses": 77,
+"stage0": 760,
+"stage": 760,
+"eg": 4763981387.21129,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3900,
+"kills_all": 3910,
+"bosses": 52,
+"stage0": 760,
+"stage": 770,
+"eg": 4967467485.743955,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 770,
+"stage": 770,
+"eg": 4967467485.743955,
+"bmyc": 2
+}
+],
+"kills": 17185,
+"bosses": 229,
+"gold": {
+"battle": 85027626822094.0,
+"offline": 298649618295658.0,
+"offline_ad": 75973605629509.0,
+"adbox": 19869869942975.812,
+"quest": 76834160490978.25,
+"dungeon": 293919308315919.0
+},
+"gold_total": 850274189497134.0,
+"gold_kills": 171168.54653549733,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 34.725000000000136
+},
+"myc_total": 414.72500000000014,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.3,
+"spd": 3.0,
+"atk_lv": 9082,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 77,
+"2": 75,
+"3": 63,
+"4": 53,
+"5": 38
+}
+},
+{
+"day": 36,
+"stage": 770,
+"eg": 4967467485.743955,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5700,
+"kills_all": 5700,
+"bosses": 76,
+"stage0": 770,
+"stage": 770,
+"eg": 4967467485.743955,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3825,
+"kills_all": 3825,
+"bosses": 51,
+"stage0": 770,
+"stage": 770,
+"eg": 4967467485.743955,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 770,
+"stage": 770,
+"eg": 4967467485.743955,
+"bmyc": 2
+}
+],
+"kills": 17100,
+"bosses": 228,
+"gold": {
+"battle": 84943694006221.75,
+"offline": 297209789006418.0,
+"offline_ad": 225957677257778.0,
+"adbox": 39739739885951.625,
+"quest": 79479479771903.25,
+"dungeon": 408631489454342.0
+},
+"gold_total": 1135961869382614.5,
+"gold_kills": 228680.2827885016,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 46.59999999999968
+},
+"myc_total": 416.5999999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.4,
+"spd": 3.0,
+"atk_lv": 9154,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 78,
+"2": 76,
+"3": 64,
+"4": 54,
+"5": 39
+}
+},
+{
+"day": 37,
+"stage": 800,
+"eg": 5631576194.948828,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5785,
+"bosses": 77,
+"stage0": 770,
+"stage": 780,
+"eg": 5179645178.330114,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 4125,
+"kills_all": 4145,
+"bosses": 55,
+"stage0": 780,
+"stage": 800,
+"eg": 5631576194.948828,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7575,
+"kills_all": 7575,
+"bosses": 101,
+"stage0": 800,
+"stage": 800,
+"eg": 5631576194.948828,
+"bmyc": 2
+}
+],
+"kills": 17505,
+"bosses": 233,
+"gold": {
+"battle": 98522122160740.0,
+"offline": 347487912617227.0,
+"offline_ad": 93847915936936.5,
+"adbox": 22526304779795.312,
+"quest": 82874322853281.75,
+"dungeon": 306473617090755.0
+},
+"gold_total": 951732195438735.5,
+"gold_kills": 168999.25748893886,
+"myc": {
+"boss": 60.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 34.94999999999959
+},
+"myc_total": 454.9499999999996,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.5,
+"spd": 3.0,
+"atk_lv": 9206,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 78,
+"2": 76,
+"3": 64,
+"4": 54,
+"5": 39
+}
+},
+{
+"day": 38,
+"stage": 810,
+"eg": 5872120264.154432,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5775,
+"kills_all": 5785,
+"bosses": 77,
+"stage0": 800,
+"stage": 810,
+"eg": 5872120264.154432,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 810,
+"stage": 810,
+"eg": 5872120264.154432,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 810,
+"stage": 810,
+"eg": 5872120264.154432,
+"bmyc": 2
+}
+],
+"kills": 17035,
+"bosses": 227,
+"gold": {
+"battle": 101020798758895.75,
+"offline": 350679641704201.0,
+"offline_ad": 268102950489529.0,
+"adbox": 46976962113235.5,
+"quest": 93953924226470.5,
+"dungeon": 666816389323094.0
+},
+"gold_total": 1527550666615425.8,
+"gold_kills": 260136.13446239397,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 70.79999999999973
+},
+"myc_total": 460.7999999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.6,
+"spd": 3.0,
+"atk_lv": 9300,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 81,
+"2": 79,
+"3": 67,
+"4": 57,
+"5": 42
+}
+},
+{
+"day": 39,
+"stage": 820,
+"eg": 6122938801.329039,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5700,
+"kills_all": 5710,
+"bosses": 76,
+"stage0": 810,
+"stage": 820,
+"eg": 6122938801.329039,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 820,
+"stage": 820,
+"eg": 6122938801.329039,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7425,
+"kills_all": 7425,
+"bosses": 99,
+"stage0": 820,
+"stage": 820,
+"eg": 6122938801.329039,
+"bmyc": 2
+}
+],
+"kills": 16885,
+"bosses": 225,
+"gold": {
+"battle": 104417305151816.0,
+"offline": 362673447687025.0,
+"offline_ad": 86103826893689.5,
+"adbox": 24491755205316.125,
+"quest": 97967020821264.25,
+"dungeon": 483049613647765.0
+},
+"gold_total": 1158702969406876.0,
+"gold_kills": 189239.67836414912,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 47.80000000000018
+},
+"myc_total": 427.8000000000002,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.6,
+"spd": 3.0,
+"atk_lv": 9359,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 82,
+"2": 80,
+"3": 68,
+"4": 58,
+"5": 43
+}
+},
+{
+"day": 40,
+"stage": 840,
+"eg": 6657173456.775248,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5625,
+"bosses": 75,
+"stage0": 820,
+"stage": 820,
+"eg": 6122938801.329039,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 4050,
+"kills_all": 4070,
+"bosses": 54,
+"stage0": 820,
+"stage": 840,
+"eg": 6657173456.775248,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 840,
+"stage": 840,
+"eg": 6657173456.775248,
+"bmyc": 2
+}
+],
+"kills": 17195,
+"bosses": 229,
+"gold": {
+"battle": 113454797058951.0,
+"offline": 402629410839845.0,
+"offline_ad": 293562665681116.5,
+"adbox": 51120449032417.125,
+"quest": 97967020821264.25,
+"dungeon": 503682330967522.0
+},
+"gold_total": 1462416674401116.0,
+"gold_kills": 219675.3147407871,
+"myc": {
+"boss": 40.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 48.09999999999991
+},
+"myc_total": 458.0999999999999,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.700000000000001,
+"spd": 3.0,
+"atk_lv": 9430,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 9,
+"Character": 1
+},
+"dlevel": {
+"1": 83,
+"2": 81,
+"3": 69,
+"4": 59,
+"5": 44
+}
+},
+{
+"day": 41,
+"stage": 850,
+"eg": 6941524327.165062,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5635,
+"bosses": 75,
+"stage0": 840,
+"stage": 850,
+"eg": 6941524327.165062,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 850,
+"stage": 850,
+"eg": 6941524327.165062,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 850,
+"stage": 850,
+"eg": 6941524327.165062,
+"bmyc": 2
+}
+],
+"kills": 16660,
+"bosses": 222,
+"gold": {
+"battle": 116815179467151.25,
+"offline": 405823546775040.0,
+"offline_ad": 95662882133743.5,
+"adbox": 27766097308660.25,
+"quest": 111064389234641.0,
+"dungeon": 673320140896821.0
+},
+"gold_total": 1430452235816057.0,
+"gold_kills": 206071.77449744064,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 60.725000000000136
+},
+"myc_total": 440.72500000000014,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.8,
+"spd": 3.0,
+"atk_lv": 9500,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 85,
+"2": 83,
+"3": 71,
+"4": 61,
+"5": 46
+}
+},
+{
+"day": 42,
+"stage": 850,
+"eg": 6941524327.165062,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5625,
+"bosses": 75,
+"stage0": 850,
+"stage": 850,
+"eg": 6941524327.165062,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 850,
+"stage": 850,
+"eg": 6941524327.165062,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 850,
+"stage": 850,
+"eg": 6941524327.165062,
+"bmyc": 2
+}
+],
+"kills": 16875,
+"bosses": 225,
+"gold": {
+"battle": 117138223020910.5,
+"offline": 409983780573187.0,
+"offline_ad": 312368594722427.5,
+"adbox": 55532194617320.5,
+"quest": 111064389234641.0,
+"dungeon": 571020431041270.0
+},
+"gold_total": 1577107613209756.5,
+"gold_kills": 227199.03278850162,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 48.99999999999977
+},
+"myc_total": 418.9999999999998,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.8,
+"spd": 3.0,
+"atk_lv": 9573,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 86,
+"2": 84,
+"3": 72,
+"4": 62,
+"5": 47
+}
+},
+{
+"day": 43,
+"stage": 860,
+"eg": 7238020805.2991295,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5635,
+"bosses": 75,
+"stage0": 850,
+"stage": 860,
+"eg": 7238020805.2991295,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 860,
+"stage": 860,
+"eg": 7238020805.2991295,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 860,
+"stage": 860,
+"eg": 7238020805.2991295,
+"bmyc": 2
+}
+],
+"kills": 16660,
+"bosses": 222,
+"gold": {
+"battle": 121804759229779.0,
+"offline": 423157672061010.0,
+"offline_ad": 99748974223028.5,
+"adbox": 28952083221196.5,
+"quest": 115808332884786.25,
+"dungeon": 428265323280954.0
+},
+"gold_total": 1217737144900754.2,
+"gold_kills": 168241.73039254316,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 36.75
+},
+"myc_total": 416.75,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.9,
+"spd": 3.0,
+"atk_lv": 9621,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 86,
+"2": 84,
+"3": 72,
+"4": 62,
+"5": 47
+}
+},
+{
+"day": 44,
+"stage": 860,
+"eg": 7238020805.2991295,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 860,
+"stage": 860,
+"eg": 7238020805.2991295,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 860,
+"stage": 860,
+"eg": 7238020805.2991295,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 860,
+"stage": 860,
+"eg": 7238020805.2991295,
+"bmyc": 2
+}
+],
+"kills": 16800,
+"bosses": 224,
+"gold": {
+"battle": 121598749529025.0,
+"offline": 426409900692185.0,
+"offline_ad": 324625233117666.0,
+"adbox": 57904166442393.0,
+"quest": 115808332884786.25,
+"dungeon": 595410685798970.0
+},
+"gold_total": 1641757068465025.2,
+"gold_kills": 226824.03278850144,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 49.30000000000018
+},
+"myc_total": 419.3000000000002,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 10.9,
+"spd": 3.0,
+"atk_lv": 9695,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 87,
+"2": 85,
+"3": 73,
+"4": 63,
+"5": 48
+}
+},
+{
+"day": 45,
+"stage": 870,
+"eg": 7547181672.031804,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5635,
+"bosses": 75,
+"stage0": 860,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 870,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 870,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+}
+],
+"kills": 16660,
+"bosses": 222,
+"gold": {
+"battle": 127007461176708.0,
+"offline": 441232197705255.0,
+"offline_ad": 104009597417688.5,
+"adbox": 30188726688127.25,
+"quest": 120754906752509.0,
+"dungeon": 446558014349226.0
+},
+"gold_total": 1269750904089513.8,
+"gold_kills": 168241.7303925426,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 36.975000000000136
+},
+"myc_total": 416.97500000000014,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.0,
+"spd": 3.0,
+"atk_lv": 9739,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 87,
+"2": 85,
+"3": 73,
+"4": 63,
+"5": 48
+}
+},
+{
+"day": 46,
+"stage": 870,
+"eg": 7547181672.031804,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 870,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 870,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7425,
+"kills_all": 7425,
+"bosses": 99,
+"stage0": 870,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+}
+],
+"kills": 16650,
+"bosses": 222,
+"gold": {
+"battle": 125660574839329.5,
+"offline": 439953521594003.0,
+"offline_ad": 335943924176315.5,
+"adbox": 60377453376254.5,
+"quest": 120754906752509.0,
+"dungeon": 620842732574624.0
+},
+"gold_total": 1703533113313035.5,
+"gold_kills": 225717.78278850164,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 49.59999999999968
+},
+"myc_total": 419.5999999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.1,
+"spd": 3.0,
+"atk_lv": 9800,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 88,
+"2": 86,
+"3": 74,
+"4": 64,
+"5": 49
+}
+},
+{
+"day": 47,
+"stage": 880,
+"eg": 7869547867.139459,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5625,
+"bosses": 75,
+"stage0": 870,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 870,
+"stage": 870,
+"eg": 7547181672.031804,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7425,
+"kills_all": 7435,
+"bosses": 99,
+"stage0": 870,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+}
+],
+"kills": 16810,
+"bosses": 224,
+"gold": {
+"battle": 130590637593433.0,
+"offline": 460299178454910.0,
+"offline_ad": 106132242262947.0,
+"adbox": 31478191468557.875,
+"quest": 120754906752509.0,
+"dungeon": 465632049430968.0
+},
+"gold_total": 1314887205963325.0,
+"gold_kills": 167085.4829479905,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 37.20000000000027
+},
+"myc_total": 417.2000000000003,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.1,
+"spd": 3.0,
+"atk_lv": 9848,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 88,
+"2": 86,
+"3": 74,
+"4": 64,
+"5": 49
+}
+},
+{
+"day": 48,
+"stage": 880,
+"eg": 7869547867.139459,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+}
+],
+"kills": 16575,
+"bosses": 221,
+"gold": {
+"battle": 130437755897836.5,
+"offline": 456089483574902.0,
+"offline_ad": 347637277030886.0,
+"adbox": 62956382937115.75,
+"quest": 125912765874232.0,
+"dungeon": 647361069903380.0
+},
+"gold_total": 1770394735218352.2,
+"gold_kills": 224967.78278850243,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 49.90000000000009
+},
+"myc_total": 419.9000000000001,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.200000000000001,
+"spd": 3.0,
+"atk_lv": 9905,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 89,
+"2": 87,
+"3": 75,
+"4": 65,
+"5": 50
+}
+},
+{
+"day": 49,
+"stage": 880,
+"eg": 7869547867.139459,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7425,
+"kills_all": 7425,
+"bosses": 99,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+}
+],
+"kills": 16725,
+"bosses": 223,
+"gold": {
+"battle": 131618188077907.5,
+"offline": 460958766317694.0,
+"offline_ad": 110665516881649.0,
+"adbox": 31478191468557.875,
+"quest": 125912765874231.5,
+"dungeon": 485520802427538.0
+},
+"gold_total": 1346154231047578.0,
+"gold_kills": 171058.64959137715,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 37.42499999999973
+},
+"myc_total": 397.4249999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.200000000000001,
+"spd": 3.0,
+"atk_lv": 9953,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 89,
+"2": 87,
+"3": 75,
+"4": 65,
+"5": 50
+}
+},
+{
+"day": 50,
+"stage": 880,
+"eg": 7869547867.139459,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5625,
+"bosses": 75,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7500,
+"kills_all": 7500,
+"bosses": 100,
+"stage0": 880,
+"stage": 880,
+"eg": 7869547867.139459,
+"bmyc": 2
+}
+],
+"kills": 16875,
+"bosses": 225,
+"gold": {
+"battle": 132798620257978.5,
+"offline": 464795170902922.0,
+"offline_ad": 354129654021276.0,
+"adbox": 62956382937115.75,
+"quest": 125912765874232.0,
+"dungeon": 485520802427538.0
+},
+"gold_total": 1626113396421062.2,
+"gold_kills": 206633.6495913769,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 37.42499999999973
+},
+"myc_total": 407.4249999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.3,
+"spd": 3.0,
+"atk_lv": 10000,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 89,
+"2": 87,
+"3": 75,
+"4": 65,
+"5": 50
+}
+},
+{
+"day": 51,
+"stage": 890,
+"eg": 8205683435.804565,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5635,
+"bosses": 75,
+"stage0": 880,
+"stage": 890,
+"eg": 8205683435.804565,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 890,
+"stage": 890,
+"eg": 8205683435.804565,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 890,
+"stage": 890,
+"eg": 8205683435.804565,
+"bmyc": 2
+}
+],
+"kills": 16660,
+"bosses": 222,
+"gold": {
+"battle": 138089033190152.0,
+"offline": 479730301109730.0,
+"offline_ad": 113084574849682.0,
+"adbox": 32822733743218.25,
+"quest": 131290934972872.5,
+"dungeon": 485520802427538.0
+},
+"gold_total": 1380538380293192.8,
+"gold_kills": 168241.73039254363,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 37.42499999999973
+},
+"myc_total": 417.4249999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.3,
+"spd": 3.0,
+"atk_lv": 10049,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 89,
+"2": 87,
+"3": 75,
+"4": 65,
+"5": 50
+}
+},
+{
+"day": 52,
+"stage": 890,
+"eg": 8205683435.804565,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 890,
+"stage": 890,
+"eg": 8205683435.804565,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 890,
+"stage": 890,
+"eg": 8205683435.804565,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 890,
+"stage": 890,
+"eg": 8205683435.804565,
+"bmyc": 2
+}
+],
+"kills": 16575,
+"bosses": 221,
+"gold": {
+"battle": 136009202948461.0,
+"offline": 475570640626348.0,
+"offline_ad": 362486065776667.0,
+"adbox": 65645467486436.5,
+"quest": 131290934972872.5,
+"dungeon": 675012097006506.0
+},
+"gold_total": 1846014408817291.0,
+"gold_kills": 224967.78278850208,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 50.20000000000073
+},
+"myc_total": 420.2000000000007,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.4,
+"spd": 3.0,
+"atk_lv": 10102,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 90,
+"2": 88,
+"3": 76,
+"4": 66,
+"5": 51
+}
+},
+{
+"day": 53,
+"stage": 900,
+"eg": 8556176515.527409,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5560,
+"bosses": 74,
+"stage0": 890,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7275,
+"kills_all": 7275,
+"bosses": 97,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+}
+],
+"kills": 16510,
+"bosses": 220,
+"gold": {
+"battle": 142703866242014.5,
+"offline": 496050103075668.0,
+"offline_ad": 117914807604612.0,
+"adbox": 34224706062109.75,
+"quest": 136898824248438.5,
+"dungeon": 506259072754878.0
+},
+"gold_total": 1434051379987720.8,
+"gold_kills": 167604.2303925429,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 37.650000000000546
+},
+"myc_total": 417.65000000000055,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.4,
+"spd": 3.0,
+"atk_lv": 10149,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 90,
+"2": 88,
+"3": 76,
+"4": 66,
+"5": 51
+}
+},
+{
+"day": 54,
+"stage": 900,
+"eg": 8556176515.527409,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5475,
+"kills_all": 5475,
+"bosses": 73,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+}
+],
+"kills": 16500,
+"bosses": 220,
+"gold": {
+"battle": 141176912506202.0,
+"offline": 494600478700708.0,
+"offline_ad": 376685671096094.0,
+"adbox": 68449412124219.5,
+"quest": 136898824248438.5,
+"dungeon": 703844194976272.0
+},
+"gold_total": 1921655493651934.0,
+"gold_kills": 224592.78278850258,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 50.5
+},
+"myc_total": 420.5,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0,
+"atk_lv": 10200,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 91,
+"2": 89,
+"3": 77,
+"4": 67,
+"5": 52
+}
+},
+{
+"day": 55,
+"stage": 900,
+"eg": 8556176515.527409,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+}
+],
+"kills": 16575,
+"bosses": 221,
+"gold": {
+"battle": 141818625744866.5,
+"offline": 495883905178036.0,
+"offline_ad": 117914807604612.0,
+"adbox": 34224706062109.75,
+"quest": 136898824248438.5,
+"dungeon": 527883146232204.0
+},
+"gold_total": 1454624015070266.8,
+"gold_kills": 170008.64959137683,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 37.875
+},
+"myc_total": 397.875,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0,
+"atk_lv": 10244,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 91,
+"2": 89,
+"3": 77,
+"4": 67,
+"5": 52
+}
+},
+{
+"day": 56,
+"stage": 900,
+"eg": 8556176515.527409,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3750,
+"kills_all": 3750,
+"bosses": 50,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7425,
+"kills_all": 7425,
+"bosses": 99,
+"stage0": 900,
+"stage": 900,
+"eg": 8556176515.527409,
+"bmyc": 2
+}
+],
+"kills": 16725,
+"bosses": 223,
+"gold": {
+"battle": 143102052222196.0,
+"offline": 501178039397018.0,
+"offline_ad": 380856807147414.0,
+"adbox": 68449412124219.5,
+"quest": 136898824248438.5,
+"dungeon": 527883146232204.0
+},
+"gold_total": 1758368281371490.0,
+"gold_kills": 205508.64959137686,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 37.875
+},
+"myc_total": 407.875,
+"pulls": 65,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0,
+"atk_lv": 10296,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 91,
+"2": 89,
+"3": 77,
+"4": 67,
+"5": 52
+}
+},
+{
+"day": 57,
+"stage": 910,
+"eg": 8921640365.192163,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5625,
+"kills_all": 5635,
+"bosses": 75,
+"stage0": 900,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7275,
+"kills_all": 7275,
+"bosses": 97,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+}
+],
+"kills": 16585,
+"bosses": 221,
+"gold": {
+"battle": 149468364256608.0,
+"offline": 518576362253790.0,
+"offline_ad": 122951356282804.0,
+"adbox": 35686561460768.75,
+"quest": 142746245843075.0,
+"dungeon": 527883146232204.0
+},
+"gold_total": 1497312036329249.8,
+"gold_kills": 167829.2303925433,
+"myc": {
+"boss": 20.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 37.875
+},
+"myc_total": 417.875,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0,
+"atk_lv": 10327,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 91,
+"2": 89,
+"3": 77,
+"4": 67,
+"5": 52
+}
+},
+{
+"day": 58,
+"stage": 910,
+"eg": 8921640365.192163,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5475,
+"kills_all": 5475,
+"bosses": 73,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+}
+],
+"kills": 16500,
+"bosses": 220,
+"gold": {
+"battle": 147207066025670.5,
+"offline": 515726573360388.0,
+"offline_ad": 392775217077584.0,
+"adbox": 71373122921537.5,
+"quest": 142746245843075.0,
+"dungeon": 733907811428466.0
+},
+"gold_total": 2003736036656721.0,
+"gold_kills": 224592.7827885004,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 50.79999999999973
+},
+"myc_total": 420.7999999999997,
+"pulls": 54,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0,
+"atk_lv": 10383,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 92,
+"2": 90,
+"3": 78,
+"4": 68,
+"5": 53
+}
+},
+{
+"day": 59,
+"stage": 910,
+"eg": 8921640365.192163,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5475,
+"kills_all": 5475,
+"bosses": 73,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+}
+],
+"kills": 16500,
+"bosses": 220,
+"gold": {
+"battle": 147207066025670.5,
+"offline": 515726573360388.0,
+"offline_ad": 122951356282804.0,
+"adbox": 35686561460768.75,
+"quest": 142746245843075.0,
+"dungeon": 550430858571348.0
+},
+"gold_total": 1514748661544054.2,
+"gold_kills": 169783.6495913751,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 10.0,
+"dungeon": 38.099999999999454
+},
+"myc_total": 398.09999999999945,
+"pulls": 52,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0,
+"atk_lv": 10411,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 92,
+"2": 90,
+"3": 78,
+"4": 68,
+"5": 53
+}
+},
+{
+"day": 60,
+"stage": 910,
+"eg": 8921640365.192163,
+"sessions": [
+{
+"mins": 60.0,
+"gap": 4.0,
+"kills": 5550,
+"kills_all": 5550,
+"bosses": 74,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 40.0,
+"gap": 5.0,
+"kills": 3675,
+"kills_all": 3675,
+"bosses": 49,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+},
+{
+"mins": 80.0,
+"gap": 15.0,
+"kills": 7350,
+"kills_all": 7350,
+"bosses": 98,
+"stage0": 910,
+"stage": 910,
+"eg": 8921640365.192163,
+"bmyc": 2
+}
+],
+"kills": 16575,
+"bosses": 221,
+"gold": {
+"battle": 147876189053059.0,
+"offline": 517064819415166.0,
+"offline_ad": 394113463132363.0,
+"adbox": 71373122921537.5,
+"quest": 142746245843075.0,
+"dungeon": 550430858571348.0
+},
+"gold_total": 1823604698936548.5,
+"gold_kills": 204402.3995913749,
+"myc": {
+"boss": 0.0,
+"quest": 350.0,
+"adbox": 20.0,
+"dungeon": 38.099999999999454
+},
+"myc_total": 408.09999999999945,
+"pulls": 52,
+"quests": 5,
+"cc": 1.0,
+"cd": 11.5,
+"spd": 3.0,
+"atk_lv": 10459,
+"gacha_lv": {
+"Weapon": 10,
+"Pet": 10,
+"Accessory": 10,
+"Character": 1
+},
+"dlevel": {
+"1": 92,
+"2": 90,
+"3": 78,
+"4": 68,
+"5": 53
+}
+}
+]
+}

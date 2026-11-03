@@ -28,9 +28,6 @@ namespace MoreMush.Mobile
 
         public static bool CanSweep(int dungeon) => IsCapped(dungeon) && DungeonTickets.Level(dungeon) > 1;
 
-        // 상한에 걸려 소탕할 것도 없다 (레벨 1의 기준 스테이지에 아직 못 갔다)
-        public static bool Blocked(int dungeon) => IsCapped(dungeon) && !CanSweep(dungeon);
-
         public static (long gold, long mycelite) Reward(int dungeon, int level, double mul = 1)
         {
             var row = GameBalance.Dungeon(dungeon);
@@ -64,6 +61,7 @@ namespace MoreMush.Mobile
             if (DungeonTickets.CanEnter(dungeon))
             {
                 if (!DungeonTickets.TryUse(dungeon)) return false;
+                WorldTree.QuestDungeon();
                 onDone?.Invoke(GrantSweep(dungeon, DungeonTickets.Level(dungeon)).gold);
                 return true;
             }
@@ -71,6 +69,7 @@ namespace MoreMush.Mobile
             return AdService.ShowRewarded(AdPlacement.Dungeon, () =>
             {
                 if (!CanSweep(dungeon) || !DungeonTickets.TryUseAd(dungeon)) return;
+                WorldTree.QuestDungeon();
                 onDone?.Invoke(GrantSweep(dungeon, DungeonTickets.Level(dungeon)).gold);
             });
         }

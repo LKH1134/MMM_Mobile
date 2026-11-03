@@ -33,7 +33,11 @@ namespace MoreMush.Mobile
 
         public bool Interactable { get; set; } = true;
 
-        void Awake() => ShowArrow(false);
+        void Awake()
+        {
+            HarvestTuning.Apply(this, "FieldInput");        // 수확전투 시트
+            ShowArrow(false);
+        }
 
         void Update()
         {

@@ -12,12 +12,12 @@ namespace MoreMush.Mobile
         public static double OffenseSeconds => GameBalance.Const("powerOffenseSeconds");   // 상수 시트
         public static double RegenSeconds => GameBalance.Const("powerRegenSeconds");
 
-        public static double CritChance => System.Math.Min(1, IdleProgress.Value(IdleStat.CritChance));
-        public static double CritDamage => IdleProgress.Value(IdleStat.CritDamage);
+        public static double CritChance => IdleProgress.FinalCritChance;
+        public static double CritDamage => IdleProgress.FinalCritDamage;
         public static double CritFactor => 1 + CritChance * (CritDamage - 1);
 
         // 편성된 꼬마 전원의 초당 피해 (꼬마마다 공격력 × 공격 배율 × 초당 투척 수 × 치명타 기대값)
-        public static double Dps => IdleProgress.FinalAttack * Formation.TotalAttackMultiplier() * IdleProgress.Value(IdleStat.Speed) * CritFactor;
+        public static double Dps => IdleProgress.FinalAttack * Formation.TotalAttackMultiplier() * IdleProgress.FinalSpeed * CritFactor;
 
         public static double Offense => Dps * OffenseSeconds;
         public static double Survival => IdleProgress.FinalHp + IdleProgress.FinalHpRegen * RegenSeconds;
@@ -40,7 +40,7 @@ namespace MoreMush.Mobile
                   .Append("  ·  ").Append(eq.StatName).Append(" +").Append(eq.TotalPercent.ToString("0.#")).Append("%\n");
             }
             sb.Append("편성 ").Append(members).Append('/').Append(Formation.SlotCount).Append("명  ·  배율 합 ×").Append(Formation.TotalAttackMultiplier().ToString("0.##")).Append('\n');
-            sb.Append("공격 속도 ").Append(IdleProgress.Value(IdleStat.Speed).ToString("0.00")).Append("/초  ·  치명타 ")
+            sb.Append("공격 속도 ").Append(IdleProgress.FinalSpeed.ToString("0.00")).Append("/초  ·  치명타 ")
               .Append((CritChance * 100).ToString("0.##")).Append("% × ").Append((CritDamage * 100).ToString("0.#")).Append("%\n");
             sb.Append("초당 피해 ").Append(Format(Dps)).Append('\n');
             sb.Append("체력 ").Append(Format(IdleProgress.FinalHp)).Append("  (보유 효과 +").Append(ownHp.ToString("0.#")).Append("%)  ·  재생 ")

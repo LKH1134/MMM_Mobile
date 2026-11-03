@@ -113,8 +113,30 @@ namespace MoreMush.Mobile
         void Awake()
         {
             rect = (RectTransform)transform;
+            EnsureTuned();
             if (bar != null) bars.Add(bar);
             SaveBarBase();
+        }
+
+        // 수확전투·수확등급 시트 값을 한 번 넣는다 (HarvestGame.Awake가 이 Awake보다 먼저 Configure를 부를 수 있어 두 곳에서 부른다).
+        // 프리팹은 표 값 복사본으로 바꿔 풀과 크기 계산(BaseRadius·MaxHp)이 같은 값을 쓰게 한다
+        bool tuned;
+        void EnsureTuned()
+        {
+            if (tuned) return;
+            tuned = true;
+            HarvestTuning.Apply(this, "HarvestField");
+            foreach (var row in GameBalance.HarvestTiers)
+                foreach (var t in tiers)
+                    if (t.tier == row.tier) { t.hpMul = row.hpMultiplier; t.scoreMul = (float)row.scoreMultiplier; }
+            if (bar != null && !barBaseSaved)
+            {
+                var barRect = (RectTransform)bar.transform;
+                barRect.sizeDelta = new Vector2(HarvestTuning.Number("Bar", "width", barRect.sizeDelta.x), HarvestTuning.Number("Bar", "height", barRect.sizeDelta.y));
+            }
+            harvesterPrefab = HarvestTuning.Template(harvesterPrefab, "Harvester");
+            clusterPrefab = HarvestTuning.Template(clusterPrefab, "Cluster");
+            singlePrefab = HarvestTuning.Template(singlePrefab, "Single");
         }
 
         // 씬에 놓인 바의 원래 길이·자리. HarvestGame.Awake가 이 Awake보다 먼저 Configure를 부를 수 있어 처음 쓸 때 한 번 저장한다
@@ -130,6 +152,7 @@ namespace MoreMush.Mobile
         // 판 시작 전에 HarvestGame이 넣는다. 안 넣으면 스킬 없는 기본값으로 시작한다. 바 길이는 씬의 원래 길이 × 바 길이 배율
         public void Configure(RoundStats roundStats)
         {
+            EnsureTuned();
             stats = roundStats;
             SaveBarBase();
             if (bar != null)

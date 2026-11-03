@@ -1,6 +1,6 @@
 # HANDOFF — 방치형 전환 · 뽑기 · 서버/보안 방침
 
-> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치 `34bd391`: Main 방치형 구현, InGame = 던전 1, SkillTree·WorldTree 제거, 꼬마 강화·펫 칸, 던전 입장 횟수, 무료 뽑기, 해상도 대응, 뒤로가기)
+> 작성 2026-10-29 · 기준 브랜치 `KHD` (`origin/UI_Rework` 머지 `917e200`, UI 폴더 복원 `11ea16b` 이후) · **갱신 2026-10-30** (`InGame` 브랜치 `34bd391`: Main 방치형 구현, InGame = 던전 1, SkillTree·WorldTree 제거, 꼬마 강화·펫 칸, 던전 입장 횟수, 무료 뽑기, 해상도 대응, 뒤로가기) · **갱신 2026-11-02** (`LKH` `43c2308`: WorldTree 씬 복원·세계수 구현, 광고 뽑기·뽑기상품 시트, 표 ↔ 게임 연동) · **갱신 2026-11-03** (`LKH` `c2814a2`: KHD 방치 밸런스 v3 머지, 세계수 일일·주간 의뢰, 정리, 던전 HUD·그림)
 > 이 문서는 **기획 논의와 결정 사항**을 모은 것이다. 구현된 Main 구조는 `HANDOFF.md` 3.1, 작업 기록은 `AGENT_WORKLOG.md`를 본다.
 > 표시: ✅ 확정 · 🟡 방향만 있음 · ❓ 미정
 
@@ -26,25 +26,26 @@ Start(로딩) → Main(방치형, 상주)  ⇄  InGame(던전 전투)
 - InGame 결과 팝업의 "돌아가기"는 Main으로, "재도전"만 InGame을 다시 로드한다.
 
 ### 현재 코드 상태 (2026-10-30 갱신, `InGame` 브랜치 `34bd391`)
-- 빌드 씬: `Start`, `Main`, `InGame`. **`SkillTree`(KHD)·`WorldTree`는 10-30 제거**(`Backup/SkillTree/`·`Backup/WorldTree/`에 백업). `InGame.unity`는 10-30 한 번 지웠다가 KHD가 **던전 1로 복원**.
+- 빌드 씬: `Start`, `Main`, `WorldTree`, `InGame`. **`SkillTree`(KHD)는 10-30 제거**(`Backup/SkillTree/`에 백업). `WorldTree`는 10-30 제거했다가 11-02 복원. `InGame.unity`는 10-30 한 번 지웠다가 KHD가 **던전 1로 복원**.
 - Start → Main 연결됨. Canvas Scaler = 1080×2340 Expand + **디자인 영역 `SafeArea/Stage`(높이 2340, 폭 1080~1316, 남는 쪽 검정)** — `HANDOFF.md` 3.2.
 - **던전 1 "입장하기" = `DungeonEntry`**(로딩 팝업 거침). **입장 횟수 하루 2회, 한국 00시(UTC+9) 충전**(`DungeonTickets`, 카드에 `n/2`, 0이면 막힘, 배너에 다음 충전까지 남은 시간). 결과 팝업 "한 번 더하기"(1회 사용) · "나가기"(→ Main). 위 합의안의 `DungeonRequest`는 **아직 없음** — InGame은 늘 일반 스테이지 기본값으로 시작.
 - 씬 이동은 `SceneLoader.Load(이름)`(로딩 팝업). 예외: `StartLoading`(Start → Main), InGame 안 코드(`ResultPopup`·`Benchmark`는 `SceneManager.LoadScene` 직접 — 로딩 팝업 없음). 인게임 설정 "로비로 돌아가기"는 Main(`SceneLoader`).
-- 하단바 세계수 → "아직 개발중인 기능입니다." 알림(`ComingSoonButton`). Android 뒤로가기 = 팝업 닫기 → 홈 → 종료 확인(InGame은 설정 팝업).
-- 뽑기 4종(수확기·방어구·펫·꼬마)은 구현됨: 뽑기 레벨·경험치 막대, **무료 11회(하루 1회, 한국 00시 — 광고 없음, 10-30)**·11회·35회(균사석) 소환(KHD 카드, 무료 전환은 LKH). 중복 처리 = **조각 → 합성 레벨업**(장비·꼬마 같은 방식, 꼬마는 레벨당 공격 +5% 임시값).
+- 하단바 세계수 → **`WorldTree` 씬**(11-02, 성장·꼬마·공방·꾸미기·수확 보따리, 11-03 일일·주간 의뢰 — `HANDOFF.md` 3.3). 씬 전환이 Main ⇄ InGame 하나뿐이라는 1장 합의에 WorldTree가 더해짐. Android 뒤로가기 = 팝업 닫기 → 홈 → 종료 확인(InGame은 설정 팝업).
+- 뽑기 4종(수확기·방어구·펫·꼬마)은 구현됨: 뽑기 레벨·경험치 막대, 광고 뽑기·11회·35회(균사석) 소환(KHD 카드). 10-30엔 하루 1회 무료였고, 11-02 KHD가 광고 뽑기로 되돌렸으며 같은 날 버튼의 횟수·가격·광고 하루 한도가 **뽑기상품 시트**로 옮겨짐. 중복 처리 = **조각 → 합성 레벨업**(장비·꼬마 같은 방식, 꼬마는 레벨당 공격 +5% 임시값).
 - 편성 = 꼬마 칸 5 + 펫 칸 (3×2).
+- 던전 1(InGame) 상단 = 보유 골드·균사석 · 타이머 · 스테이지 글자 · 설정 (11-03, 이번 판 점수 글자는 뺌). 던전 1은 레벨 5부터 한 판에 버섯 1~3개만 캐는 문제가 있음(스킬 구매 UI 없음, 11-03 실측 — `HANDOFF.md` 9장).
 - Main 구조·팝업 규칙은 `HANDOFF.md` 3.1.
 
 ### ❓ 미정
-- 세계수를 다시 만들지, 만든다면 Main 패널로 흡수할지 별도 씬일지(`Backup/WorldTree/`). 스킬 트리를 다시 쓸지(`Backup/SkillTree/`).
+- ~~세계수를 다시 만들지~~ ✅ 11-02 별도 씬(`WorldTree`)으로 구현. 세계수 전투 효과 크기(U1)·8단계 뒤 의뢰 보상(U5)은 미정(`HANDOFF.md` 3.3). 스킬 트리를 다시 쓸지(`Backup/SkillTree/`).
 - 던전 2~5 내용·해금 조건·보상. (입장 횟수는 하루 2회로 결정·구현)
 
 ### 다음 작업 순서(제안)
 1. ~~Main 씬 기초 정리: Canvas Scaler 맞춤, SafeArea·TopBar·BottomBar 배치~~ ✅ (TopBar 대신 `WalletBar`+`OptionButton`)
 2. ~~빌드 설정에 `Main` 추가, Start → Main~~ ✅ 10-30
 3. ~~InGame 나가기/결과 → Main 복귀~~ ✅ 10-30 (KHD) / `DungeonRequest` 도입 ⬜
-4. ~~하단바 탭 전환 매니저~~ ✅ `TabGroup`(KHD) / 세계수 ❓ (씬 제거, 개발중 알림)
-5. ~~던전 입장 횟수~~ ✅ 10-30 / ~~광고 뽑기~~ → 하루 1회 무료 뽑기 ✅ 10-30
+4. ~~하단바 탭 전환 매니저~~ ✅ `TabGroup`(KHD) / 세계수 ✅ 11-02 (WorldTree 씬)
+5. ~~던전 입장 횟수~~ ✅ 10-30 / ~~광고 뽑기~~ → 하루 1회 무료 뽑기 ✅ 10-30 → 11-02 광고 뽑기(뽑기상품 시트)
 6. ~~해상도 대응·뒤로가기·대상 API 36~~ ✅ 10-30 / ~~업로드 키·서명된 AAB~~ ✅ 10-30 / 실기기 확인·Play Console 첫 업로드 ⬜ (`HANDOFF.md` 8장 "출시 준비")
 
 ---

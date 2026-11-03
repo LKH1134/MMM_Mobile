@@ -54,6 +54,7 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
+            HarvestTuning.Apply(roundBase, "RoundBase");    // 수확전투 시트 (인스펙터 값은 표에 행이 없을 때만)
             field.Harvested += OnHarvested;
             field.Hit += OnHit;
             field.Launched += h =>
@@ -167,6 +168,7 @@ namespace MoreMush.Mobile
                 if (MyceliteEarned > 0) Wallet.Add(Currency.Mycelite, MyceliteEarned);
                 DungeonGold = (StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber) : DungeonRewards.GrantSweep(Dungeon, StageNumber)).gold;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
+                WorldTree.QuestDungeon();
             }
             GameOver?.Invoke(TotalGold);
             if (!Simulating) StartCoroutine(ShowResult());

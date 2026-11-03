@@ -33,6 +33,7 @@ namespace MoreMush.Mobile
         [SerializeField] float enemySize = 110f;
         [SerializeField] float bossSize = 560f;
         [SerializeField] float harvesterSize = 64f;
+        // flightTime·waveDelay·enemyAttackDelay는 방치전투 시트 값을 쓴다 (Awake에서 덮어씀, 인스펙터 값은 표가 없을 때만)
         [SerializeField] float flightTime = 0.45f;          // 수확기가 날아가는 시간
         [SerializeField] float arcHeight = 140f;            // 포물선 높이
         [SerializeField] float waveDelay = 0.6f;            // 웨이브 사이 쉬는 시간
@@ -87,9 +88,9 @@ namespace MoreMush.Mobile
         int shownTickWaves = -1;
         GameObject statsPanel;
 
-        // 스테이지 배너: "<챕터 이름> 챕터-번호". 챕터 이름은 임시 한 가지 (기획 확정 후 표로)
-        const int StagesPerChapter = 10;
-        const string ChapterName = "늑대의 밤";
+        // 스테이지 배너: "<챕터 이름> 챕터-번호" (방치전투 시트 chapterName·stagesPerChapter)
+        static int StagesPerChapter => Mathf.Max(1, GameBalance.IdleBattle.stagesPerChapter);
+        static string ChapterName => GameBalance.IdleBattle.chapterName;
         const string MapIcon = "Art/Dream/Icons/quest";                 // 임시 그림
         const string PowerIcon = "Art/Dream/UI/Window/ic_mallet";       // 임시 그림
         const float PowerPillY = -967f;     // 강화 목록(UpgradePanel) 위쪽 가장자리 — 전투 화면과 강화 목록 사이
@@ -107,6 +108,10 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
+            var rule = GameBalance.IdleBattle;
+            flightTime = Mathf.Max(0.01f, (float)rule.flightTime);
+            waveDelay = Mathf.Max(0f, (float)rule.waveDelay);
+            enemyAttackDelay = Mathf.Max(0f, (float)rule.enemyAttackDelay);
             if (enemyArea == null)
             {
                 // 적이 나올 자리가 없으면 매 프레임 NullReference가 난다 — 전투를 끄고 한 번만 알린다
@@ -115,6 +120,14 @@ namespace MoreMush.Mobile
                 return;
             }
             if (effectLayer == null) effectLayer = (RectTransform)transform;
+
+            // 전투 그림은 매 프레임 움직인다 → 따로 캔버스를 둬서 같은 캔버스의 Main UI(강화 목록·하단바·재화 바…)가
+            // 프레임마다 다시 묶이지 않게 한다. HUD의 전투력 버튼 때문에 이 오브젝트만 입력(GraphicRaycaster)을 받는다.
+            // 아래에서 글자·그림을 만들기 전에 붙인다 — 만든 뒤에 붙이면 그 전에 만든 HUD 글자가 새 캔버스에서 빠져 안 보이는 일이 있었다
+            AddSubCanvas(transform, true);
+            AddSubCanvas(enemyArea, false);
+            if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddSubCanvas(ggomaSlots[0].parent, false);
+
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
             enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
@@ -157,12 +170,6 @@ namespace MoreMush.Mobile
             AddView(transform);
             AddView(enemyArea);
             if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddView(ggomaSlots[0].parent);
-
-            // 전투 그림은 매 프레임 움직인다 → 따로 캔버스를 둬서 같은 캔버스의 Main UI(강화 목록·하단바·재화 바…)가
-            // 프레임마다 다시 묶이지 않게 한다. HUD의 전투력 버튼 때문에 이 오브젝트만 입력(GraphicRaycaster)을 받는다
-            AddSubCanvas(transform, true);
-            AddSubCanvas(enemyArea, false);
-            if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddSubCanvas(ggomaSlots[0].parent, false);
         }
 
         static void AddSubCanvas(Transform t, bool raycast)
@@ -337,6 +344,7 @@ namespace MoreMush.Mobile
                 bossTimeLeft = IdleProgress.BossTime(stage);
                 boss = Spawn(true, Vector2.zero);
                 DailyQuests.Add(QuestKind.Stage);   // 보스 도전 — 벽에서 막혀도 하루 퀘스트는 깬다
+                WorldTree.QuestStage();              // 세계수 의뢰 '보스 도전'도 같은 지점
             }
             else
             {
@@ -383,12 +391,17 @@ namespace MoreMush.Mobile
             pendingGold = IdleProgress.SaturatingAdd(pendingGold, e.gold);     // 아주 높은 스테이지에서 넘쳐 음수가 되면 골드가 사라진다
             IdleAway.AddKill();
             DailyQuests.Add(QuestKind.Kill);
+            if (!e.boss && e.img.sprite != null) WorldTree.AddHarvest(e.img.sprite.name);     // 세계수 창고 버섯
             ShowText(e.rt.position, "+" + Wallet.Format(e.gold), new Color(1f, 0.85f, 0.25f), 34f, 0.8f);
             if (e.boss)
             {
                 boss = null;
-                Wallet.Add(Currency.Mycelite, IdleProgress.BossMycelite(stage));
-                IdleAway.AddMycelite(IdleProgress.BossMycelite(stage));
+                // 세계수 보스 균사석 배율: 소수 부분은 확률로 (보스 균사석이 작아도 효과가 기대값으로 남게)
+                double myceliteRaw = IdleProgress.BossMycelite(stage) * WorldTree.Mul(TreeEffect.BossMycelite);
+                long mycelite = IdleProgress.ClampToLong(System.Math.Floor(myceliteRaw));
+                if (Random.value < myceliteRaw - System.Math.Floor(myceliteRaw)) mycelite++;
+                Wallet.Add(Currency.Mycelite, mycelite);
+                IdleAway.AddMycelite(mycelite);
                 IdleAway.AddStage();
                 partyHp = partyMaxHp;
                 stage++;
@@ -490,7 +503,7 @@ namespace MoreMush.Mobile
 
         void UpdateGgomas(float dt)
         {
-            float rate = (float)IdleProgress.Value(IdleStat.Speed);
+            float rate = (float)IdleProgress.FinalSpeed;
             foreach (var g in ggomas)
             {
                 // 숨쉬듯 살짝 위아래 + 던질 때 움찔
@@ -522,8 +535,8 @@ namespace MoreMush.Mobile
         void Throw(Ggoma g, Enemy target)
         {
             double dmg = IdleProgress.FinalAttack * Formation.AttackMultiplier(Formation.Get(g.slot));   // 꼬마마다 공격 배율
-            bool crit = Random.value < IdleProgress.Value(IdleStat.CritChance);
-            if (crit) dmg *= IdleProgress.Value(IdleStat.CritDamage);
+            bool crit = Random.value < IdleProgress.FinalCritChance;
+            if (crit) dmg *= IdleProgress.FinalCritDamage;
             if (!target.boss) dmg *= IdleProgress.Value(IdleStat.NormalEnemyDamage);   // 후반 강화: 보스가 아닌 적에게만
 
             var s = freeShots.Count > 0 ? freeShots.Pop() : NewShot();
@@ -584,7 +597,7 @@ namespace MoreMush.Mobile
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
             e.boss = isBoss;
             e.maxHp = e.hp = isBoss ? IdleProgress.BossHp(stage) : IdleProgress.EnemyHp(stage, wave);
-            e.gold = isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage);
+            e.gold = IdleProgress.ClampToLong((isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage)) * WorldTree.Mul(TreeEffect.KillGold), 1);
             e.incoming = 0;
             e.gen++;
             e.dead = false;
