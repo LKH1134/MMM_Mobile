@@ -92,7 +92,9 @@ namespace MoreMush.Mobile
         public bool BossRound => Boss != null;
         public float BossHp => Boss != null ? Base.bossBaseHp * Mathf.Max(0.0001f, Boss.hpRate) * HpRate * (Stage != null ? Stage.BossHpMul : 1f) : 0f;
         public float BossHpMul = 1f;          // 측정기 전용: 보스를 죽지 않게 해 판 전체 피해를 잴 때 (게임에선 1)
-        public float HpRate => Stage != null && Stage.hpRate > 0f ? Stage.hpRate : 1f;
+        // 레벨 체력 계수(Stage.xlsx hpRate)^harvestHpRateExp. 수확 힘은 방치 성장과 따로라(스킬 트리 없음) 계수를 다 쓰면 레벨 수십에서 못 깬다 — 조금씩만 단단해지게
+        public float HpRate => Stage != null && Stage.hpRate > 0f ? Mathf.Pow(Stage.hpRate, HpRateExp) : 1f;
+        static float HpRateExp => Mathf.Max(0f, (float)GameBalance.Const("harvestHpRateExp"));
         public float RewardRate => Stage != null && Stage.rewardRate > 0f ? Stage.rewardRate : 1f;
         // 일반 버섯 체력 배율 (Stage.xlsx mushHpMul). 보스 체력(BossHp)엔 곱하지 않는다
         public float MushHpMul => Stage != null && Stage.mushHpMul > 0f ? Stage.mushHpMul : 1f;

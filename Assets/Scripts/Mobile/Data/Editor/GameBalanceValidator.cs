@@ -22,12 +22,12 @@ namespace MoreMush.Mobile.EditorTools
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double" },
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
-            { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double" },
+            { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double hpMul:double atkMul:double" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
-            { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double bagKillsPerHour:double bagMycelitePerHour:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
+            { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
             { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
-            { "꼬마진화", "index:int key:string star:int mycelite:int needLevel:int bagMul:double" },
-            { "호감도", "index:int key:string level:int need:int bagBonus:double" },
+            { "꼬마진화", "index:int key:string star:int mycelite:int needLevel:int" },
+            { "호감도", "index:int key:string level:int need:int" },
             { "장식", "index:int key:string name:string owner:string grade:int zone:TreeZone effect:TreeEffect value:double resourceId:int" },
             { "장식등급", "index:int key:string name:string grade:int goldKills:int mycelite:int hours:double" },
             { "의뢰", "index:int key:string name:string period:string kind:string target:int exp:int desc:string" },
@@ -54,15 +54,16 @@ namespace MoreMush.Mobile.EditorTools
             ("goldBase", 0, false), ("goldStep", 0.001, false), ("goldExp", 0, false), ("bossGoldMul", 0, true),
             ("mycelBase", 0, true), ("mycelStageDiv", 1, true),
             ("adBoxIntervalHours", 0.001, false), ("adBoxStaySeconds", 1, false), ("adBoxGoldKills", 0, true), ("adBoxMyceliteBosses", 0, true),
-            ("treeRingMax", 1, true), ("treeRingGrowth", 1, false), ("treeRingBagBonus", 0, false), ("treeHarvestPerKill", 0, false),
+            ("treeRingMax", 1, true), ("treeRingGrowth", 1, false), ("treeHarvestPerKill", 0, false),
             ("tributePreferMul", 0, false), ("giftFavoriteMul", 0, false), ("giftMaxCount", 1, true),
             ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
-            ("kidBagShare", 0, false), ("decoSetBagMul", 0, false), ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
-            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false), ("kidEvoLevelGradeMul", 0.001, false), ("treeQuestDaily", 1, true),
+            ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
+            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("kidEvoLevelGradeMul", 0.001, false), ("treeQuestDaily", 1, true),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
             ("offlineGoldRate", 0, false),
             ("dungeonSweepMul", 0, false),
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
+            ("harvestHpRateExp", 0, false),
         };
 
         sealed class Row
@@ -289,7 +290,7 @@ namespace MoreMush.Mobile.EditorTools
             foreach (var r in tables["세계수"])
             {
                 if (!stages.Add(r.Int("stage"))) issues.Add(r.At("stage") + ": 세계수 단계가 겹친다");
-                foreach (string col in new[] { "evoExp", "evoGoldKills", "evoMycelite", "ringKills", "bagKillsPerHour", "bagMycelitePerHour", "craftSlots", "rootSlots", "trunkSlots", "branchSlots", "crownSlots" })
+                foreach (string col in new[] { "evoExp", "evoGoldKills", "evoMycelite", "ringKills", "craftSlots", "rootSlots", "trunkSlots", "branchSlots", "crownSlots" })
                     Between(r, col, 0, double.MaxValue, issues);
                 foreach (int id in r.Ids("preferIds")) if (!enemies.ContainsKey(id)) issues.Add(r.At("preferIds") + $": 적 {id}가 없다");
             }
@@ -306,7 +307,6 @@ namespace MoreMush.Mobile.EditorTools
                 if (!stars.Add(r.Int("star"))) issues.Add(r.At("star") + ": ★ 단계가 겹친다");
                 Between(r, "mycelite", 0, int.MaxValue, issues);
                 Between(r, "needLevel", 1, int.MaxValue, issues);
-                Positive(r, "bagMul", issues);
             }
             if (stars.Count == 0 || stars.Min() != 0 || stars.Max() != stars.Count - 1) issues.Add("[꼬마진화] star는 0부터 빠짐없이 이어져야 한다");
 
@@ -384,6 +384,7 @@ namespace MoreMush.Mobile.EditorTools
                 Between(r, "dungeon", 1, int.MaxValue, issues);
                 Between(r, "unlockStage", 0, int.MaxValue, issues);
                 foreach (var col in new[] { "baseStage", "stageStep", "rewardKills", "rewardMyc", "rewardGrowth" }) Between(r, col, 0, int.MaxValue, issues);
+                foreach (var col in new[] { "hpMul", "atkMul" }) Between(r, col, 0.01, 1000, issues);
                 if (!seen.Add(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 던전 번호가 겹친다");
                 string scene = r.Text("scene");
                 bool implemented = IsTrue(r.Text("implemented"));

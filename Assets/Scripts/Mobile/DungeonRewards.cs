@@ -26,6 +26,19 @@ namespace MoreMush.Mobile
             return s > 0 && s > IdleProgress.Stage;
         }
 
+        // 보스전 던전(2~5)의 레벨 보스: 기준 스테이지 방치 보스 × hpMul·atkMul, 제한 시간은 그 스테이지 보스 시간.
+        // 기준 스테이지는 방치 스테이지 이하라(넘으면 소탕) 배율 1이면 이미 이긴 보스와 같다. 던전 씬이 생기면 이 값을 쓴다
+        public static double BossHp(int dungeon, int level) => IdleProgress.BossHp(Stage(dungeon, level)) * Mul(dungeon, true);
+        public static double BossAttack(int dungeon, int level) => IdleProgress.BossAttack(Stage(dungeon, level)) * Mul(dungeon, false);
+        public static float BossTime(int dungeon, int level) => IdleProgress.BossTime(Stage(dungeon, level));
+
+        static double Mul(int dungeon, bool hp)
+        {
+            var row = GameBalance.Dungeon(dungeon);
+            double m = row == null ? 1 : hp ? row.hpMul : row.atkMul;
+            return m > 0 ? m : 1;
+        }
+
         public static bool CanSweep(int dungeon) => IsCapped(dungeon) && DungeonTickets.Level(dungeon) > 1;
 
         public static (long gold, long mycelite) Reward(int dungeon, int level, double mul = 1)

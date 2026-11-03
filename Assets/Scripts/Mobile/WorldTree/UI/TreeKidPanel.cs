@@ -75,12 +75,11 @@ namespace MoreMush.Mobile
             TreeUi.Line(card, need > 0 ? $"호감도 Lv {affLv}  ({have}/{need})" : $"호감도 Lv {affLv} (최고)", 30f, TreeUi.Ink, font, 196f, 290f, 0.62f, 0.78f);
             TreeUi.Bar(card, need > 0 ? have / (float)need : 1f, new Color(0.95f, 0.5f, 0.6f), new Vector2(196f, -14f), new Vector2(-290f, 0f), 0.6f);
 
-            // 특기·보따리
+            // 특기
             var sb = new StringBuilder();
             int step = WorldTree.KidStep(id);
             if (row != null)
                 sb.Append("특기: ").Append(WorldTree.EffectText(row.bonusEffect, row.bonusValue * step)).Append(step == 0 ? " (진화하면)" : "").Append('\n');
-            sb.Append("보따리 기여 +").Append(WorldTree.Percent(WorldTree.KidBagShare(id)));
             if (WorldTree.DecoSetComplete(id)) sb.Append(TreeUi.Colored("  장식 세트!", TreeUi.Good));
             TreeUi.Line(card, sb.ToString(), 26f, TreeUi.Faint, font, 196f, 290f, 0.3f, 0.56f);
 

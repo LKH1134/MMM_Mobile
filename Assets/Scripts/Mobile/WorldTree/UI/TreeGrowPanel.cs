@@ -16,7 +16,7 @@ namespace MoreMush.Mobile
             var card = TreeUi.Card(list, 230f);
             TreeUi.Icon(card, WorldTree.TreeSprite(WorldTree.Stage), 190f);
             TreeUi.Line(card, $"{WorldTree.Stage}단계 · {row.name}", 46f, TreeUi.Ink, font, 240f, 24f, 0.62f, 0.95f).fontStyle = FontStyles.Bold;
-            TreeUi.Line(card, $"나이테 Lv {WorldTree.Ring}/{WorldTree.RingMax}  ·  보따리 ×{WorldTree.BagMultiplier:0.##}", 34f, TreeUi.Ink, font, 240f, 24f, 0.38f, 0.62f);
+            TreeUi.Line(card, $"나이테 Lv {WorldTree.Ring}/{WorldTree.RingMax}", 34f, TreeUi.Ink, font, 240f, 24f, 0.38f, 0.62f);
             if (max)
                 TreeUi.Line(card, "최고 단계입니다", 34f, TreeUi.Good, font, 240f, 24f, 0.08f, 0.36f);
             else
@@ -29,7 +29,7 @@ namespace MoreMush.Mobile
             // 나이테
             card = TreeUi.Card(list, 170f);
             TreeUi.Line(card, "나이테 성장", 40f, TreeUi.Ink, font, 32f, 290f, 0.5f, 0.92f).fontStyle = FontStyles.Bold;
-            TreeUi.Line(card, $"보따리 +{WorldTree.Percent(GameBalance.Const("treeRingBagBonus"))} / Lv · 최대 Lv가 되어야 진화", 28f, TreeUi.Faint, font, 32f, 290f, 0.1f, 0.5f);
+            TreeUi.Line(card, "최대 Lv가 되어야 진화", 28f, TreeUi.Faint, font, 32f, 290f, 0.1f, 0.5f);
             if (WorldTree.IsMaxRing)
                 TreeUi.Button(card, "최대", false, null, font);
             else

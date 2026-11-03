@@ -5,15 +5,15 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 세계수 효과 종류 (가호·꼬마 특기·장식). 비율은 0.05 = 5%. 표의 TreeEffect 열 이름과 같아야 한다
-    public enum TreeEffect { Attack, Hp, Speed, CritChance, CritDamage, KillGold, BossMycelite, Harvest, BagGold, BagMycelite, BagHours, CraftSpeed }
+    public enum TreeEffect { Attack, Hp, Speed, CritChance, CritDamage, KillGold, BossMycelite, Harvest, CraftSpeed }
 
     // 꾸미기 자리 (탭): 뿌리·줄기·가지·수관
     public enum TreeZone { Root, Trunk, Branch, Crown }
 
-    // 세계수: 성장(나이테·공물·가호)·꼬마(호감도·진화·부탁)·공방·꾸미기·수확 보따리·의뢰(일일·주간). 수치는 GameBalance.xlsx 세계수 시트들에서 온다.
+    // 세계수: 성장(나이테·공물·가호)·꼬마(호감도·진화·부탁)·공방·꾸미기·의뢰(일일·주간). 수치는 GameBalance.xlsx 세계수 시트들에서 온다.
     // 저장은 PlayerPrefs("WorldTree.Save") JSON 하나. 자주 바뀌는 값(창고 버섯은 처치마다)은 메모리만 고치고
     // SaveScheduler가 저장할 때 JSON을 쓴다. 진화·제작처럼 드문 쓰기는 바로 저장한다.
-    // PC MoreMustMush의 Game.Farm*.cs를 모바일 방치형에 맞게 옮겼다 (창고 버섯 = 방치 전투 처치, 꼬마 = 뽑기 꼬마, 보따리 = 단계별 시간당 표)
+    // PC MoreMustMush의 Game.Farm*.cs를 모바일 방치형에 맞게 옮겼다 (창고 버섯 = 방치 전투 처치, 꼬마 = 뽑기 꼬마. 수확 보따리는 앱 밖 보상과 겹쳐 11-03에 뺐다)
     public static partial class WorldTree
     {
         const string SaveKey = "WorldTree.Save";
@@ -40,8 +40,6 @@ namespace MoreMush.Mobile
             public List<string> decosOwned = new List<string>();
             public List<string> decosPlaced = new List<string>();
             public List<string> decosFirstPlaced = new List<string>();
-            public double bagGold, bagMycelite, bagSeconds;
-            public long bagTicks;
             public string questDay = "", questWeek = "";
             public List<Quest> questDaily = new List<Quest>();
             public List<Quest> questWeekly = new List<Quest>();
@@ -86,7 +84,6 @@ namespace MoreMush.Mobile
             if (data == null) data = new SaveData();
             data.stage = Mathf.Clamp(data.stage, 1, MaxStage);
             data.ring = Mathf.Clamp(data.ring, 1, RingMax);
-            if (data.bagTicks <= 0) data.bagTicks = NowTicks;
             bonusDirty = true;
         }
 
@@ -164,9 +161,6 @@ namespace MoreMush.Mobile
                 case TreeEffect.KillGold: return "처치 골드 +" + Percent(v);
                 case TreeEffect.BossMycelite: return "보스 균사석 +" + Percent(v);
                 case TreeEffect.Harvest: return "버섯 획득량 +" + Percent(v);
-                case TreeEffect.BagGold: return "보따리 골드 +" + Percent(v);
-                case TreeEffect.BagMycelite: return "보따리 균사석 +" + Percent(v);
-                case TreeEffect.BagHours: return "보따리 보관 +" + v.ToString("0.#") + "시간";
                 case TreeEffect.CraftSpeed: return "제작 속도 +" + Percent(v);
             }
             return effect + " " + v;

@@ -344,6 +344,8 @@ namespace MoreMush.Mobile
         public int rewardKills;    // 깨면 골드 = 기준 스테이지 적 처치 골드 × 이 값
         public int rewardMyc;      // 깨면 균사석 = 이 값 × (1 + rewardGrowth × (L − 1))
         public double rewardGrowth;
+        public double hpMul;       // 보스전 던전(2~5): 레벨 보스 체력 = 기준 스테이지 방치 보스 × 이 값 (DungeonRewards.BossHp). 던전 1은 상수 harvestHpRateExp
+        public double atkMul;      // 보스전 던전(2~5): 레벨 보스 공격 = 기준 스테이지 방치 보스 × 이 값
     }
 
     // 리소스: 리소스.index → Resources 경로
@@ -368,7 +370,6 @@ namespace MoreMush.Mobile
         public int stage;
         public int evoExp, evoGoldKills, evoMycelite;
         public double ringKills;           // 나이테 Lv1→2 골드 = 적 처치 골드 × 이 횟수 (Lv마다 treeRingGrowth배)
-        public double bagKillsPerHour, bagMycelitePerHour;
         public int craftSlots;
         public int rootSlots, trunkSlots, branchSlots, crownSlots;
         public int[] preferIds;            // 공물로 좋아하는 버섯 (적.index)
@@ -389,7 +390,6 @@ namespace MoreMush.Mobile
         public int star;
         public int mycelite;       // 이 ★로 진화하는 균사석
         public int needLevel;      // 필요한 꼬마(뽑기) 레벨
-        public double bagMul;      // 보따리 기여 배율
     }
 
     // 호감도: 레벨 (1부터)
@@ -397,7 +397,6 @@ namespace MoreMush.Mobile
     {
         public int level;
         public int need;           // 다음 레벨까지 (최고 레벨 0)
-        public double bagBonus;
     }
 
     // 장식: 공방에서 만들어 꾸미기 자리에 놓는다

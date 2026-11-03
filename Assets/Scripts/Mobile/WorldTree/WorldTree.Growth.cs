@@ -31,7 +31,6 @@ namespace MoreMush.Mobile
         public static bool RingUp()
         {
             if (CanRingUp() != GrowFail.None) return false;
-            SettleBag();
             if (!Wallet.TrySpend(Currency.Gold, RingCost)) return false;
             D.ring++;
             Notify(true);
@@ -56,7 +55,6 @@ namespace MoreMush.Mobile
         public static bool Evolve()
         {
             if (CanEvolve() != GrowFail.None) return false;
-            SettleBag();
             long gold = EvoGold, mycelite = EvoMycelite;
             if (!Wallet.CanAfford(Currency.Gold, gold) || !Wallet.CanAfford(Currency.Mycelite, mycelite)) return false;
             Wallet.TrySpend(Currency.Gold, gold);

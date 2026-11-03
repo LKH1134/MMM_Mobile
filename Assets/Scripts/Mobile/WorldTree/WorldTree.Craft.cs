@@ -7,7 +7,7 @@ namespace MoreMush.Mobile
     // 공방: 장식을 골드·균사석과 시간으로 만든다 (주인 꼬마를 가져야 제작 목록에 열린다). 슬롯 수는 세계수 단계(craftSlots).
     // 다 되면 받아야 장식이 생긴다. 가속은 남은 시간 craftRushSeconds마다 균사석 1, 하루 craftRushPerDay번.
     // 꾸미기: 가진 장식을 그 장식의 자리(뿌리·줄기·가지·수관)에 놓는다. 자리마다 칸 수는 세계수 단계. 놓은 장식만 효과.
-    // 처음 놓으면 균사석과 주인 꼬마 호감도. 한 꼬마의 장식을 모두 놓으면 세트 (그 꼬마 보따리 기여·특기 단계 +)
+    // 처음 놓으면 균사석과 주인 꼬마 호감도. 한 꼬마의 장식을 모두 놓으면 세트 (그 꼬마 특기 단계 +)
     public static partial class WorldTree
     {
         public enum CraftFail { None, Recipe, Owned, Crafting, Slots, Gold, Mycelite }
@@ -173,7 +173,6 @@ namespace MoreMush.Mobile
         public static bool Place(DecoRow d)
         {
             if (!CanPlace(d)) return false;
-            SettleBag();
             D.decosPlaced.Add(d.key);
             if (!D.decosFirstPlaced.Contains(d.key))
             {
@@ -188,7 +187,6 @@ namespace MoreMush.Mobile
         public static bool Remove(DecoRow d)
         {
             if (d == null || !IsPlaced(d.key)) return false;
-            SettleBag();
             D.decosPlaced.Remove(d.key);
             Notify(true);
             return true;

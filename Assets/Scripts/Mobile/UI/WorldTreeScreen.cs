@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // WorldTree 씬 화면. 재화 표시, 옵션 팝업, 성장·꼬마·꾸미기·공방·의뢰 시트, Main으로 돌아가기.
-    // 골드·균사석은 지갑(Wallet)을 보여 준다. 시트 내용은 각 팝업 Content의 TreePanel이, 수확 보따리는 TreeBagButton이 맡는다
+    // 골드·균사석은 지갑(Wallet)을 보여 준다. 시트 내용은 각 팝업 Content의 TreePanel이 맡는다
     public class WorldTreeScreen : MonoBehaviour
     {
         // 버튼 하나 = 팝업 하나. 시트 팝업은 모두 처음 열 때 이 캔버스 아래에 만든다

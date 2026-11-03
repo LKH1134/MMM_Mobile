@@ -5,8 +5,8 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 세계수 꼬마 = 뽑기 꼬마(Formation). 가진 꼬마만 다룬다.
-    // 호감도: 선물(창고 버섯)·부탁·장식 첫 배치로 오르고, 레벨이 보따리 기여를 늘린다.
-    // 진화(★): 균사석 + 꼬마 레벨 + 세계수 단계. ★가 보따리 기여 배율과 특기(bonusEffect × 단계)를 올린다.
+    // 호감도: 선물(창고 버섯)·부탁·장식 첫 배치로 오른다.
+    // 진화(★): 균사석 + 꼬마 레벨 + 세계수 단계. ★가 특기(bonusEffect × 단계)를 올린다.
     // 부탁: 하루(KST) requestPerDay건. 창고 버섯을 주면 골드·호감도, 이번 주 requestWeekGoal건이면 주간 상자(균사석)
     public static partial class WorldTree
     {
@@ -71,7 +71,6 @@ namespace MoreMush.Mobile
         public static bool KidEvolve(string id)
         {
             if (CanKidEvolve(id) != KidFail.None) return false;
-            SettleBag();
             if (!Wallet.TrySpend(Currency.Mycelite, EvoMyceliteCost(id))) return false;
             Kid(id).star++;
             Notify(true);
@@ -113,7 +112,6 @@ namespace MoreMush.Mobile
         static void AddAffinity(string id, int amount)
         {
             if (amount <= 0) return;
-            SettleBag();
             var k = Kid(id);
             k.affinity = (int)Math.Min(int.MaxValue, (long)k.affinity + amount);
         }
