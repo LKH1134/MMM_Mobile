@@ -2465,6 +2465,7 @@ MonoBehaviour:
   closeButton: {fileID: 3997016378740523596}
   duration: 0.25
   overhang: 160
+  sortingOffset: 100
 --- !u!1 &2695650532021498858
 GameObject:
   m_ObjectHideFlags: 0
@@ -3069,6 +3070,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5323861555133882802}
+  - component: {fileID: 702551998307621735}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -3102,6 +3104,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 19}
   m_SizeDelta: {x: -96, y: -378}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &702551998307621735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3158496526475907269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d581b133b29424a9eaa3b8794e27a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.TreeQuestPanel
 --- !u!1 &3179597424943937094
 GameObject:
   m_ObjectHideFlags: 0

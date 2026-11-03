@@ -14,8 +14,9 @@ def copies_to_next(lv):           # Equipment.CopiesToNext: copiesBase 1 + copie
 
 
 class Tree:
-    def __init__(self, T, feed, char_frac=0.25, gold_frac=0.10, myc_frac=0.10, gifts=1, rush=False):
+    def __init__(self, T, feed, char_frac=0.25, gold_frac=0.10, myc_frac=0.10, gifts=1, rush=False, quests=None):
         self.T, self.feed = T, feed
+        self.quests = quests      # 의뢰 v5 (quest_model.QuestBook) — None이면 의뢰 없음 (v4까지)
         self.C = T['const']
         self.char_frac, self.gold_frac, self.myc_frac, self.gifts, self.rush = char_frac, gold_frac, myc_frac, gifts, rush
         self.stage, self.ring, self.exp = 1, 1, 0.0
@@ -123,7 +124,7 @@ class Tree:
     def reset_day_acc(self):
         self.acc = dict(g_spend=0.0, g_ring=0.0, g_evo=0.0, g_craft=0.0, g_bag=0.0, g_req=0.0,
                         m_spend=0.0, m_evo=0.0, m_star=0.0, m_craft=0.0, m_rush=0.0, m_bag=0.0, m_week=0.0, m_first=0.0,
-                        exp=0.0, gift_mush=0.0, harvest=0.0, req_done=0)
+                        exp=0.0, gift_mush=0.0, harvest=0.0, req_done=0, q_exp=0.0)
 
     def spend_gold(self, ke, kind):
         self.gold_b -= ke; self.acc['g_spend'] += ke; self.acc['g_' + kind] += ke
@@ -162,6 +163,9 @@ class Tree:
         for e in self.store:
             self.store[e] += h / len(self.store)
         self.t += s['mins'] / 60
+        if self.quests:          # 의뢰: 접속 진행 → 받기 → D.exp (공물과 같은 풀, WorldTree.ClaimQuest)
+            qx = self.quests.session(self, s)
+            self.exp += qx; self.acc['q_exp'] += qx
         # 4) 부탁
         self.requests()
         # 5) 선물
@@ -330,6 +334,8 @@ class Tree:
             if (self.day - 1) // 7 != self.week:
                 self.week, self.week_done, self.week_claimed = (self.day - 1) // 7, 0, False
             self.reset_day_acc()
+            if self.quests:
+                self.quests.new_day(self, dayrec)
             self.pull_kids(self.char_frac * dayrec['pulls'])
             self.roll_requests()
             gold_ke = sum(dayrec['gold'].values()) / dayrec['eg']

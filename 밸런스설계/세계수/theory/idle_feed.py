@@ -103,7 +103,7 @@ class FeedSim(P.Sim):
             self.d_dun = {}
             sess = []
             for i, (mins, gap_h) in enumerate(self.sessions):
-                s0, k0, st0 = self.stage, self.d_kills, self.d_stages
+                s0, k0, st0, b0 = self.stage, self.d_kills, self.d_stages, self.d_boss
                 if self.dungeon:
                     self.run_dungeons()
                 g = self.play(mins * 60)
@@ -120,7 +120,8 @@ class FeedSim(P.Sim):
                     self.gold += off; self.src['offline_ad'] += off
                 kills = (self.d_kills - k0) - (self.d_stages - st0)      # 보스 처치(= 돌파 수) 제외
                 sess.append(dict(mins=mins, gap_h=gap_h, stage_start=s0, stage_end=self.stage,
-                                 eg=F.enemy_gold(self.stage), kills=kills, battle_gold=g))
+                                 eg=F.enemy_gold(self.stage), kills=kills, battle_gold=g,
+                                 stages=self.d_stages - st0, boss_tries=self.d_boss - b0, dungeon_runs=dict(self.d_dun)))
                 self.wall += gap_h * 3600
                 self.buy()
             self.feed.append(dict(day=day + 1, stage=self.stage, eg=F.enemy_gold(self.stage), boss_myc=F.boss_myc(self.stage),

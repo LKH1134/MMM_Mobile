@@ -344,6 +344,7 @@ namespace MoreMush.Mobile
                 bossTimeLeft = IdleProgress.BossTime(stage);
                 boss = Spawn(true, Vector2.zero);
                 DailyQuests.Add(QuestKind.Stage);   // 보스 도전 — 벽에서 막혀도 하루 퀘스트는 깬다
+                WorldTree.QuestStage();              // 세계수 의뢰 '보스 도전'도 같은 지점
             }
             else
             {

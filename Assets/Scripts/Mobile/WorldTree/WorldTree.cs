@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     // 꾸미기 자리 (탭): 뿌리·줄기·가지·수관
     public enum TreeZone { Root, Trunk, Branch, Crown }
 
-    // 세계수: 성장(나이테·공물·가호)·꼬마(호감도·진화·부탁)·공방·꾸미기·수확 보따리. 수치는 GameBalance.xlsx 세계수 시트들에서 온다.
+    // 세계수: 성장(나이테·공물·가호)·꼬마(호감도·진화·부탁)·공방·꾸미기·수확 보따리·의뢰(일일·주간). 수치는 GameBalance.xlsx 세계수 시트들에서 온다.
     // 저장은 PlayerPrefs("WorldTree.Save") JSON 하나. 자주 바뀌는 값(창고 버섯은 처치마다)은 메모리만 고치고
     // SaveScheduler가 저장할 때 JSON을 쓴다. 진화·제작처럼 드문 쓰기는 바로 저장한다.
     // PC MoreMustMush의 Game.Farm*.cs를 모바일 방치형에 맞게 옮겼다 (창고 버섯 = 방치 전투 처치, 꼬마 = 뽑기 꼬마, 보따리 = 단계별 시간당 표)
@@ -42,6 +42,9 @@ namespace MoreMush.Mobile
             public List<string> decosFirstPlaced = new List<string>();
             public double bagGold, bagMycelite, bagSeconds;
             public long bagTicks;
+            public string questDay = "", questWeek = "";
+            public List<Quest> questDaily = new List<Quest>();
+            public List<Quest> questWeekly = new List<Quest>();
         }
 
         static SaveData data;
@@ -64,6 +67,7 @@ namespace MoreMush.Mobile
         {
             data = null;
             pending = false;
+            nextEnsureTicks = 0;
             bonusDirty = true;
             enemyBySprite = null;
             SaveScheduler.BeforeFlush -= WritePending;

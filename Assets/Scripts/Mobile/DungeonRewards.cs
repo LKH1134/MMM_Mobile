@@ -64,6 +64,7 @@ namespace MoreMush.Mobile
             if (DungeonTickets.CanEnter(dungeon))
             {
                 if (!DungeonTickets.TryUse(dungeon)) return false;
+                WorldTree.QuestDungeon();
                 onDone?.Invoke(GrantSweep(dungeon, DungeonTickets.Level(dungeon)).gold);
                 return true;
             }
@@ -71,6 +72,7 @@ namespace MoreMush.Mobile
             return AdService.ShowRewarded(AdPlacement.Dungeon, () =>
             {
                 if (!CanSweep(dungeon) || !DungeonTickets.TryUseAd(dungeon)) return;
+                WorldTree.QuestDungeon();
                 onDone?.Invoke(GrantSweep(dungeon, DungeonTickets.Level(dungeon)).gold);
             });
         }

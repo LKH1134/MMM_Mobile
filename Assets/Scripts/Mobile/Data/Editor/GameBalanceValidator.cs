@@ -30,6 +30,7 @@ namespace MoreMush.Mobile.EditorTools
             { "호감도", "index:int key:string level:int need:int bagBonus:double" },
             { "장식", "index:int key:string name:string owner:string grade:int zone:TreeZone effect:TreeEffect value:double resourceId:int" },
             { "장식등급", "index:int key:string name:string grade:int goldKills:int mycelite:int hours:double" },
+            { "의뢰", "index:int key:string name:string period:string kind:string target:int exp:int desc:string" },
             { "장비", "index:int key:string name:string kind:GachaKind stat:EquipStat itemIndex:int grade:int sub:int resourceId:int" },
             { "뽑기상품", "index:int key:string name:string kind:GachaKind pullCount:int price:long currency:Currency dailyLimit:int requiresAd:bool" },
             { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int chapterName:string flightTime:double waveDelay:double enemyAttackDelay:double" },
@@ -57,7 +58,7 @@ namespace MoreMush.Mobile.EditorTools
             ("tributePreferMul", 0, false), ("giftFavoriteMul", 0, false), ("giftMaxCount", 1, true),
             ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
             ("kidBagShare", 0, false), ("decoSetBagMul", 0, false), ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
-            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false), ("kidEvoLevelGradeMul", 0.001, false),
+            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("bagCapHours", 0.001, false), ("kidEvoLevelGradeMul", 0.001, false), ("treeQuestDaily", 1, true),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
             ("offlineGoldRate", 0, false),
             ("dungeonSweepMul", 0, false),
@@ -333,6 +334,23 @@ namespace MoreMush.Mobile.EditorTools
                 if (!kids.Contains(r.Text("owner"))) issues.Add(r.At("owner") + ": 꼬마 " + r.Text("owner") + "가 없다");
                 if (!grades.Contains(r.Int("grade"))) issues.Add(r.At("grade") + ": 장식등급 시트에 없는 등급이다");
             }
+
+            // 의뢰: period daily/weekly, kind는 WorldTree.Quests가 세는 것만. 일일 행은 하루에 뽑는 수(treeQuestDaily) 이상
+            var kinds = new HashSet<string> { "stage", "kill", "species", "dungeon", "daily" };
+            int dailyRows = 0;
+            foreach (var r in tables["의뢰"])
+            {
+                string period = r.Text("period"), kind = r.Text("kind");
+                if (period != "daily" && period != "weekly") issues.Add(r.At("period") + ": daily 또는 weekly");
+                if (!kinds.Contains(kind)) issues.Add(r.At("kind") + ": stage·kill·species·dungeon·daily 중 하나");
+                if (kind == "daily" && period != "weekly") issues.Add(r.At("kind") + ": daily(일일 의뢰 받은 수)는 주간 의뢰에만 쓴다");
+                Between(r, "target", 1, int.MaxValue, issues);
+                Between(r, "exp", 0, int.MaxValue, issues);
+                if (string.IsNullOrEmpty(r.Text("desc"))) issues.Add(r.At("desc") + ": 설명 글이 비었다");
+                if (period == "daily") dailyRows++;
+            }
+            int perDay = tables["상수"].Where(r => r.Text("key") == "treeQuestDaily").Select(r => r.Int("value")).FirstOrDefault();
+            if (dailyRows < perDay) issues.Add($"[의뢰] 일일 행 {dailyRows}개 < 하루에 뽑는 수 treeQuestDaily {perDay}");
         }
 
         static void ValidateConsts(List<Row> rows, List<string> issues)

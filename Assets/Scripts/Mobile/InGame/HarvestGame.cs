@@ -168,6 +168,7 @@ namespace MoreMush.Mobile
                 if (MyceliteEarned > 0) Wallet.Add(Currency.Mycelite, MyceliteEarned);
                 DungeonGold = (StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber) : DungeonRewards.GrantSweep(Dungeon, StageNumber)).gold;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
+                WorldTree.QuestDungeon();
             }
             GameOver?.Invoke(TotalGold);
             if (!Simulating) StartCoroutine(ShowResult());

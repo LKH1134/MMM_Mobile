@@ -119,6 +119,12 @@ if __name__ == '__main__':
         bm0 = F.boss_myc
         F.boss_myc = lambda s: bm0(s) * CUR['BM']
     sessions = [(m * scale, g) for m, g in [(30, 4.0), (20, 5.0), (40, 15.0)]]
+    D1N = {'n': 0}      # 라운드 6: 던전 1 입장(도전·소탕·실패 소탕 모두 = 입장 횟수 사용) — WorldTree.QuestDungeon (HarvestGame.Finish · DungeonRewards.TrySweep)
+    run0 = DG.run
+    def run_count(dn, lv, sim_):
+        if dn == 1: D1N['n'] += 1
+        return run0(dn, lv, sim_)
+    DG.run = run_count
     sim = P.Sim(pattern='daily', ads=ads, sessions=sessions)
     sim.dungeon = DG; sim.dungeon_after_play = True
     ag = info['ad_gacha']
@@ -142,6 +148,7 @@ if __name__ == '__main__':
         sim.d_dun = {}
         sess = []
         for i, (mins, gap_h) in enumerate(sim.sessions):
+            n0 = D1N['n']
             k0, b0, s0 = sim.d_kills, sim.d_boss, sim.stage   # 라운드 5: 창고 처치 = 보스 처치(= 돌파 수, battle.py:125-128) 제외 — IdleBattle.cs:393 if (!e.boss) AddHarvest
             if sim.dungeon: sim.run_dungeons()
             g = sim.play(mins * 60)
@@ -156,7 +163,7 @@ if __name__ == '__main__':
                 sim.gold += off; sim.src['offline_ad'] += off
             sim.wall += gap_h * 3600
             sim.buy()
-            sess.append(dict(mins=mins, gap=gap_h, kills=(sim.d_kills - k0) - (sim.stage - s0), kills_all=sim.d_kills - k0, bosses=sim.d_boss - b0,
+            sess.append(dict(mins=mins, gap=gap_h, kills=(sim.d_kills - k0) - (sim.stage - s0), kills_all=sim.d_kills - k0, bosses=sim.d_boss - b0, d1n=D1N['n'] - n0,
                              stage0=s0, stage=sim.stage, eg=F.enemy_gold(sim.stage), bmyc=F.boss_myc(sim.stage)))
         gold = {k: sim.src[k] - src0[k] for k in sim.src}
         myc = {k: sim.myc_src[k] - myc0[k] for k in sim.myc_src}

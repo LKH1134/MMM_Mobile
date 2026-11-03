@@ -128,6 +128,7 @@ namespace MoreMush.Mobile
                 }
             }
             if (!enemyBySprite.TryGetValue(spriteName, out int enemy)) return;
+            QuestKill(enemy);
             double amount = GameBalance.Const("treeHarvestPerKill") * (1 + Bonus(TreeEffect.Harvest));
             long n = (long)Math.Floor(amount);
             if (UnityEngine.Random.value < amount - n) n++;

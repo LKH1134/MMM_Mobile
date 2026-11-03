@@ -35,6 +35,7 @@ namespace MoreMush.Mobile
         static IdleBattleRow idleBattle;
         static HarvestSettingRow[] harvestSettings;
         static HarvestTierRow[] harvestTiers;
+        static TreeQuestRow[] treeQuests;
         static DungeonRow[] dungeonList;
 
         // 표 이름(= 시트 이름)과 index 범위
@@ -42,7 +43,7 @@ namespace MoreMush.Mobile
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트",
             EnemySheet = "적", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
-            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", HarvestTierSheet = "수확등급";
+            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", HarvestTierSheet = "수확등급", TreeQuestSheet = "의뢰";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -70,6 +71,7 @@ namespace MoreMush.Mobile
             idleBattle = null;
             harvestSettings = null;
             harvestTiers = null;
+            treeQuests = null;
             dungeonList = null;
         }
 
@@ -100,6 +102,7 @@ namespace MoreMush.Mobile
         public static IdleBattleRow IdleBattle { get { Ensure(); return idleBattle; } }
         public static IReadOnlyList<HarvestSettingRow> HarvestSettings { get { Ensure(); return harvestSettings; } }
         public static IReadOnlyList<HarvestTierRow> HarvestTiers { get { Ensure(); return harvestTiers; } }
+        public static IReadOnlyList<TreeQuestRow> TreeQuests { get { Ensure(); return treeQuests; } }
 
         // 장비 시트에서 그 종류의 장비를 저장 인덱스(itemIndex) 순서로
         public static EquipmentRow[] EquipmentOf(GachaKind kind)
@@ -199,6 +202,7 @@ namespace MoreMush.Mobile
             idleBattle = battleRows.Count > 0 ? battleRows[0] : null;
             harvestSettings = ToArray(Read(new DataTable<HarvestSettingRow>(HarvestSheet, 14001, 14999), sheets, issues));
             harvestTiers = ToArray(Read(new DataTable<HarvestTierRow>(HarvestTierSheet, 15001, 15999), sheets, issues));
+            treeQuests = ToArray(Read(new DataTable<TreeQuestRow>(TreeQuestSheet, 9901, 9999), sheets, issues));
 
             foreach (var issue in issues)
                 if (!Ignorable(issue)) Debug.LogError("[GameBalance] " + issue);
@@ -408,6 +412,15 @@ namespace MoreMush.Mobile
     }
 
     // 장식등급: 제작 비용·시간
+    // 의뢰: 세계수 일일·주간 의뢰 한 종 (WorldTree.Quests). period = daily/weekly, kind = stage(보스 도전)/kill/species/dungeon/daily
+    public class TreeQuestRow : TableRow
+    {
+        public string period;
+        public string kind;
+        public int target;
+        public int exp;            // 받으면 세계수 경험치. 설명 글은 desc ({n} = 목표, {m} = 지정한 적 이름)
+    }
+
     public class DecoGradeRow : TableRow
     {
         public int grade;
