@@ -41,9 +41,10 @@ class QuestBook:
             kind, target, exp = e['q']
             if e['done']:
                 continue
-            if kind == 'combo':
+            if kind in ('combo', 'dungeon'):     # dungeon = 던전 1 판 수 (11-03 라이브 9904, 첫 접속에 입장 2 이상 → 깸)
+                p = 1.0 if kind == 'dungeon' else self.combo_p
                 if self.first_sess:      # 던전 1은 그날 첫 접속에 돈다 (progress.run_dungeons)
-                    e['done'] = True; ex += exp * self.combo_p; n_done += self.combo_p
+                    e['done'] = True; ex += exp * p; n_done += p
                 continue
             e['prog'] += self._prog(kind, s)
             if e['prog'] >= target:

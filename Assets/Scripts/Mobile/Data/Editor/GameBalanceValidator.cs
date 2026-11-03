@@ -20,7 +20,7 @@ namespace MoreMush.Mobile.EditorTools
             { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double enemyHp:double bossHp:double" },
             { "리소스", "index:int key:string type:string path:string" },
             { "상수", "index:int key:string value:double" },
-            { "등급", "index:int key:string grade:int ownBase:double" },
+            { "등급", "index:int key:string grade:int ownBase:double name:string" },
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
             { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double hpMul:double atkMul:double" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
@@ -64,6 +64,7 @@ namespace MoreMush.Mobile.EditorTools
             ("dungeonSweepMul", 0, false),
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
             ("harvestHpRateExp", 0, false),
+            ("harvestFarmRounds", 1, true), ("harvestCycleLength", 1, true), ("offlineRateMinSeconds", 0.001, false),
         };
 
         sealed class Row
@@ -248,20 +249,37 @@ namespace MoreMush.Mobile.EditorTools
                 string scope = r.Text("scope"), field = r.Text("field");
                 Type owner = scope == "RoundBase" ? typeof(RoundBase) : scope == "HarvestField" ? typeof(HarvestField)
                     : scope == "Harvester" ? typeof(Harvester) : scope == "Cluster" || scope == "Single" ? typeof(Mushroom)
-                    : scope == "FieldInput" ? typeof(FieldInput) : null;
+                    : scope == "FieldInput" ? typeof(FieldInput) : scope == "SkillEffects" ? typeof(SkillEffects)
+                    : scope == "FieldDevices" ? typeof(FieldDevices) : null;
                 var member = owner?.GetField(field, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
                 string expected = member?.FieldType == typeof(int) ? "int" : member?.FieldType == typeof(long) ? "long" : member?.FieldType == typeof(float) ? "float" : member?.FieldType == typeof(bool) ? "bool" : null;
                 if (scope == "Bar" && (field == "width" || field == "height")) expected = "float";
+                if (scope == "BossGimmicks" && (field == "splitAt0" || field == "splitAt1")) expected = "float";
+                if (scope == "StageHud" && (field == "speed0" || field == "speed1" || field == "speed2")) expected = "float";
                 if (expected == null) issues.Add(r.At("field") + ": 기록할 수 있는 수확 전투 수치 필드가 아니다");
                 else if (r.Text("dataType") != expected) issues.Add(r.At("dataType") + $": 실제 필드는 {expected}이다");
                 Between(r, "value", 0, double.MaxValue, issues);
                 if ((expected == "int" || expected == "long" || expected == "bool") && r.Number("value") != Math.Floor(r.Number("value"))) issues.Add(r.At("value") + ": 정수여야 한다");
                 if (expected == "bool") Between(r, "value", 0, 1, issues);
+                if (scope == "BossGimmicks") Between(r, "value", 0.001, 1, issues);
+                if (scope == "StageHud" || scope == "FieldDevices" || (scope == "SkillEffects" && field != "flashTime")) Positive(r, "value", issues);
                 if (!settings.Add(r.Int("dungeon") + ":" + scope + "." + field)) issues.Add(r.At("field") + ": 같은 던전의 설정이 겹친다");
             }
-            foreach (int dungeon in tables["수확전투"].Select(r => r.Int("dungeon")).Distinct())
+            foreach (int dungeon in dungeons)
+            {
                 foreach (var field in typeof(RoundBase).GetFields().Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float)))
                     if (!settings.Contains(dungeon + ":RoundBase." + field.Name)) issues.Add($"[수확전투] 던전 {dungeon} RoundBase.{field.Name}가 없다");
+                foreach (var owner in new[] { typeof(SkillEffects), typeof(FieldDevices) })
+                    foreach (var field in owner.GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)
+                        .Where(f => Attribute.IsDefined(f, typeof(SerializeField)) && (f.FieldType == typeof(float) || f.FieldType == typeof(int))))
+                        if (!settings.Contains(dungeon + ":" + owner.Name + "." + field.Name)) issues.Add($"[수확전투] 던전 {dungeon} {owner.Name}.{field.Name}가 없다");
+                foreach (string key in new[] { "BossGimmicks.splitAt0", "BossGimmicks.splitAt1", "StageHud.speed0", "StageHud.speed1", "StageHud.speed2" })
+                    if (!settings.Contains(dungeon + ":" + key)) issues.Add($"[수확전투] 던전 {dungeon} {key}가 없다");
+                var split = tables["수확전투"].Where(r => r.Int("dungeon") == dungeon && r.Text("scope") == "BossGimmicks")
+                    .GroupBy(r => r.Text("field")).ToDictionary(g => g.Key, g => g.First().Number("value"));
+                if (split.TryGetValue("splitAt0", out double first) && split.TryGetValue("splitAt1", out double second) && first <= second)
+                    issues.Add($"[수확전투] 던전 {dungeon} 분신 체력 기준은 splitAt0 > splitAt1이어야 한다");
+            }
 
             var tiers = new HashSet<string>();
             foreach (var r in tables["수확등급"])
@@ -414,6 +432,7 @@ namespace MoreMush.Mobile.EditorTools
             foreach (var r in rows)
             {
                 Between(r, "grade", 0, GachaProgress.GradeCount - 1, issues);
+                if (string.IsNullOrWhiteSpace(r.Text("name"))) issues.Add(r.At("name") + ": 등급 이름이 비어 있다");
                 Positive(r, "ownBase", issues);
                 if (!seen.Add(r.Int("grade"))) issues.Add(r.At("grade") + ": 등급 번호가 겹친다");
             }

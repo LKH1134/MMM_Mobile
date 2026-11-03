@@ -20,6 +20,12 @@ namespace MoreMush.Mobile
         readonly Dictionary<Mushroom, float> moveDir = new Dictionary<Mushroom, float>();   // 몸마다 좌우 방향
         readonly List<Mushroom> parts = new List<Mushroom>();
 
+        void Awake()
+        {
+            for (int i = 0; i < splitAt.Length; i++)
+                splitAt[i] = HarvestTuning.Number("BossGimmicks", "splitAt" + i, splitAt[i]);
+        }
+
         void Update() => Step(Time.deltaTime);
 
         // 판을 처음부터 다시 (밸런스 측정기)

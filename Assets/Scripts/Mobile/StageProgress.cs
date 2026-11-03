@@ -20,8 +20,8 @@ namespace MoreMush.Mobile
         const string LastGoldKey = "Stage.LastNormalGold";
         const string ClearedKey = "Stage.Cleared";
 
-        public const int FarmRounds = 1;   // 보스에 지고 "파밍"을 고르면 이만큼 일반 판을 돈 뒤 재도전
-        public const int CycleLength = 10;   // 표 뒤 스테이지: 이만큼씩 되풀이, 마지막 스테이지가 보스
+        public static int FarmRounds => GameBalance.ConstInt("harvestFarmRounds");
+        public static int CycleLength => GameBalance.ConstInt("harvestCycleLength");
 
         // 옛 세이브는 표의 마지막 스테이지(그때의 끝)를 넘고도 거기 머물러 있었다 — 넘은 스테이지 다음으로 본다
         public static int Current => Mathf.Max(1, Mathf.Max(PlayerPrefs.GetInt(Key, 1), Cleared + 1));

@@ -76,6 +76,7 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
+            HarvestTuning.Apply(this, "SkillEffects");
             field.BarHit += OnBarHit;
             field.Launched += OnLaunched;
             field.Harvested += OnHarvested;

@@ -19,6 +19,7 @@ namespace MoreMush.Mobile
         static MascotRow[] mascots;
         static StageRow[] stages;
         static GradeRow[] grades;
+        static string[] gradeNames;
         static GachaLevelRow[] gachaLevels;
         static Dictionary<int, string> resources;
         static Dictionary<int, DungeonRow> dungeons;
@@ -55,6 +56,7 @@ namespace MoreMush.Mobile
             mascots = null;
             stages = null;
             grades = null;
+            gradeNames = null;
             gachaLevels = null;
             resources = null;
             dungeons = null;
@@ -88,6 +90,19 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<UpgradeRow> Upgrades { get { Ensure(); return upgrades; } }
         public static IReadOnlyList<MascotRow> Mascots { get { Ensure(); return mascots; } }
         public static IReadOnlyList<GradeRow> Grades { get { Ensure(); return grades; } }
+        public static string[] GradeNames
+        {
+            get
+            {
+                Ensure();
+                if (gradeNames == null)
+                {
+                    gradeNames = new string[grades.Length];
+                    for (int i = 0; i < grades.Length; i++) gradeNames[i] = grades[i].name;
+                }
+                return gradeNames;
+            }
+        }
         public static IReadOnlyList<GachaLevelRow> GachaLevels { get { Ensure(); return gachaLevels; } }
         public static int StageCount { get { Ensure(); return stages.Length; } }
         public static IReadOnlyList<QuestRow> Quests { get { Ensure(); return quests; } }
