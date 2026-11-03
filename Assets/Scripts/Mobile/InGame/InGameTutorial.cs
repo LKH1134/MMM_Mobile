@@ -5,15 +5,15 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // InGame 첫 입장 안내. "드래그하여 발사"를 첫 투척까지 띄우고, 던지면 "버섯을 캐십쇼"를 잠깐 띄운 뒤 끝난다.
+    // InGame 첫 입장 안내. "드래그하여 발사"를 첫 투척까지 띄우고, 던지면 "버섯을 채집하세요!"를 잠깐 띄운 뒤 끝난다.
     // 한 번 끝까지 보면 다시 나오지 않는다 (PlayerPrefs). 글자는 터치를 막지 않는다 — 안내를 띄운 채로 바로 끌어 던질 수 있다.
     // HarvestGame이 판 시작 때 Begin을 부른다 (측정기 판에서는 부르지 않는다)
     public class InGameTutorial : MonoBehaviour
     {
         const string DoneKey = "InGame.TutorialDone";
         const string DragText = "드래그하여 발사";
-        const string HarvestText = "버섯을 캐십쇼";
-        const float HarvestShow = 2f;       // "버섯을 캐십쇼"를 보여 주는 시간
+        const string HarvestText = "버섯을 채집하세요!";
+        const float HarvestShow = 2f;       // "버섯을 채집하세요!"를 보여 주는 시간
         const float Fade = 0.25f;
         const float PulseSpeed = 3f;
 
