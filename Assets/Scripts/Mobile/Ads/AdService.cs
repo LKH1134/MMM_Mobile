@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     public static class AdService
     {
 #if UNITY_ANDROID
-        const string RewardedUnitId = "ca-app-pub-3609467797467871/2013896497";
+        const string RewardedUnitId = "ca-app-pub-3940256099942544/5224354917"   // 테스트 광고. 출시 때 실제 ID ca-app-pub-3609467797467871/2013896497 로 바꾼다;
 #elif UNITY_IPHONE
         const string RewardedUnitId = "ca-app-pub-3940256099942544/1712485313";
 #else
