@@ -24,16 +24,23 @@ namespace MoreMush.Mobile
 
         void ResetAll()
         {
+            ClearSaves();
+            Time.timeScale = 1f;
+            SceneLoader.Load(startScene);
+        }
+
+        // 저장된 게임 기록(PlayerPrefs)을 모두 지우고 메모리 캐시도 버린다. 에디터 메뉴 "MoreMush/게임 기록 전체 초기화"도 이것을 부른다
+        public static void ClearSaves()
+        {
             PlayerPrefs.DeleteAll();
             PlayerPrefs.Save();
             IdleProgress.ReloadLevels();   // 메모리에 둔 강화 레벨·잔액도 버린다
             Wallet.Reload();
             Formation.Reload();
             Equipment.ReloadAll();
+            WorldTree.Reload();            // 세계수 JSON 캐시 (안 버리면 다음 저장 때 옛 값을 다시 쓴다)
             AdBox.ResetTimer();            // 광고 상자 쿨타임도 처음부터
             DailyQuests.Reload();          // 일일 퀘스트 진행도도 처음부터
-            Time.timeScale = 1f;
-            SceneLoader.Load(startScene);
         }
     }
 }
