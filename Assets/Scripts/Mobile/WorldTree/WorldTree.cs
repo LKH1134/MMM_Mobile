@@ -87,7 +87,25 @@ namespace MoreMush.Mobile
             data.stage = Mathf.Clamp(data.stage, 1, MaxStage);
             data.ring = Mathf.Clamp(data.ring, 1, RingMax);
             if (data.bagTicks <= 0) data.bagTicks = NowTicks;
+            TrimPlacedToSlots();
             bonusDirty = true;
+        }
+
+        // 자리별로 지금 단계 칸 수보다 많이 놓인 장식은 뒤에 놓은 것부터 빼서 보유 목록으로 돌린다 (칸 수가 줄어든 표·옛 세이브)
+        static void TrimPlacedToSlots()
+        {
+            foreach (TreeZone zone in Enum.GetValues(typeof(TreeZone)))
+            {
+                int over = PlacedIn(zone).Count - ZoneSlots(zone);
+                for (int i = data.decosPlaced.Count - 1; i >= 0 && over > 0; i--)
+                {
+                    var d = Deco(data.decosPlaced[i]);
+                    if (d == null || d.zone != zone) continue;
+                    data.decosPlaced.RemoveAt(i);
+                    over--;
+                    pending = true;
+                }
+            }
         }
 
         // 메모리만 고쳤다: 다음 저장 때 쓴다

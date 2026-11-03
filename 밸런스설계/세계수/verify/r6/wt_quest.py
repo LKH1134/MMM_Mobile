@@ -91,6 +91,7 @@ class WTQ(W.WT):
             tot_min = sum(s['mins'] for s in D['sessions'])
             for si, S in enumerate(D['sessions']):
                 day_f = di + (si + 1) / len(D['sessions'])
+                self.cur_day = day_f      # 라운드 7: 접속 끝 측정용
                 elapsed = (self.t - self.last_claim)
                 self.login(prev_eg, elapsed); self.last_claim = self.t
                 eg = S['eg']
