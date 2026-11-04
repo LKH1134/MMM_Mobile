@@ -12,7 +12,7 @@ namespace MoreMush.Mobile
     // 적·수확기·숫자 팝업은 전부 코드로 만들고 풀에 돌려 쓴다. 그림은 임시 리소스(Resources 경로)를 쓴다.
     // 전투는 홈(하단바 TabGroup에 열린 탭이 없을 때)에서만 보인다. 다른 탭을 여는 동안에도 보이지 않게 계속 진행하고,
     // 홈으로 돌아오면 그동안(앱 밖에 있던 시간 포함, IdleAway) 번 것을 정산 팝업으로 보여 준다
-    public class IdleBattle : MonoBehaviour
+    public partial class IdleBattle : MonoBehaviour
     {
         [Header("배치 (씬)")]
         [SerializeField] RectTransform enemyArea;
