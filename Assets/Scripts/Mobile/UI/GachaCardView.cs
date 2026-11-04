@@ -109,6 +109,7 @@ namespace MoreMush.Mobile
                 }
                 b.image.color = color;
             }
+            UiSkin.GreyWhenDisabled(b);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             var rt = (RectTransform)b.transform;
 
             text.title = label != null ? label : NewText("Title", rt, font, 32f, Color.white);

@@ -27,7 +27,7 @@ namespace MoreMush.Mobile
         Equipment Eq => Equipment.Of(kind) ?? Equipment.Weapon;
 
         // 칸 바탕: 색은 그림으로 정한다 (물들이지 않는다)
-        const string SelectedSprite = "UI/UI_PP_In_Color_Yellow";
+        const string SelectedSprite = "UI/UI_PP_In_InnerLine1";   // 고른 칸: 노란 안쪽 선
         const string EquippedSprite = "UI/UI_PP_In_Color_Green";
         const string SlotSprite = "UI/UI_PP_In_Color_Beige1";
         const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
@@ -65,6 +65,8 @@ namespace MoreMush.Mobile
                 ownStat = AddRowText(up.Find("Panel (2)"));
                 equipButton = up.Find("Button")?.GetComponent<Button>();
                 mergeButton = up.Find("Button (1)")?.GetComponent<Button>();
+                UiSkin.GreyWhenDisabled(equipButton);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
+                UiSkin.GreyWhenDisabled(mergeButton);
                 if (equipButton != null)
                 {
                     equipButton.onClick.AddListener(EquipSelected);

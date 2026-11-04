@@ -219,6 +219,7 @@ namespace MoreMush.Mobile
             img.raycastTarget = true;
             text = NewText("Label", img.transform, label, textSize, Color.white, size, Vector2.zero);
             var button = img.gameObject.AddComponent<Button>();
+            UiSkin.GreyWhenDisabled(button);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             button.targetGraphic = img;
             return button;
         }

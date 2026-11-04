@@ -117,6 +117,7 @@ namespace MoreMush.Mobile
             img.type = Image.Type.Sliced;
             img.color = Color.white;
             var b = rt.gameObject.AddComponent<UnityEngine.UI.Button>();
+            UiSkin.GreyWhenDisabled(b);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             b.targetGraphic = img;
             b.interactable = interactable;
             if (onClick != null) b.onClick.AddListener(() => onClick());

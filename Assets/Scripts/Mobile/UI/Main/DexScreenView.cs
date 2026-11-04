@@ -87,7 +87,12 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             for (int i = 0; i < kindTabs.Length; i++)
-                if (kindTabs[i] != null && kindTabs[i].image != null) kindTabs[i].image.sprite = i == kind ? tabOn : tabOff;
+            {
+                if (kindTabs[i] == null) continue;
+                if (kindTabs[i].image != null) kindTabs[i].image.sprite = i == kind ? tabOn : tabOff;
+                var label = kindTabs[i].GetComponentInChildren<TMP_Text>();
+                if (label != null) label.color = i == kind ? Color.white : UiSkin.Ink;   // 초록 탭 = 흰 글자, 베이지 탭 = 진한 글자
+            }
             if (sortLabel != null) sortLabel.text = ascending ? "레어도 ↑" : "레어도 ↓";
             if (goldKnob != null && goldToggle != null)
             {

@@ -42,6 +42,7 @@ namespace MoreMush.Mobile
         [SerializeField] GameObject questDot;       // 받을 보상이 있으면 켠다
         [SerializeField] Button dexButton;
         [SerializeField] GameObject dexScreen;      // 도감 화면 (없으면 버튼만 보인다)
+        [SerializeField] GameObject questScreen;    // 일일 의뢰 화면 (없으면 예전 DailyQuestPopup)
 
         readonly List<Image> dots = new List<Image>();
         int shownStage = -1, shownWave = -1, shownWaves = -1, shownBossSec = -1;
@@ -59,7 +60,7 @@ namespace MoreMush.Mobile
             RefreshPower(true);
 
             // 퀘스트·도감 버튼 (예전 코드 버튼 QuestButton·DexButton 대신)
-            if (questButton != null) questButton.onClick.AddListener(DailyQuestPopup.Open);
+            if (questButton != null) questButton.onClick.AddListener(() => { if (questScreen != null) questScreen.SetActive(true); else DailyQuestPopup.Open(); });
             if (dexButton != null) dexButton.onClick.AddListener(() => { if (dexScreen != null) dexScreen.SetActive(true); });
             DailyQuests.Changed += RefreshQuestDot;
             RefreshQuestDot();

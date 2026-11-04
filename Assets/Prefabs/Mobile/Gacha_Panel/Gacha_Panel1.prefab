@@ -1035,17 +1035,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.GachaPanel
   kind: 0
-  adButton: {fileID: 1804407100280302484}
+  freeButton: {fileID: 1804407100280302484}
   coinButton11: {fileID: 4276038141025534207}
   coinButton35: {fileID: 55238459876051939}
-  adLabel: {fileID: 1800096575074759470}
+  freeLabel: {fileID: 1800096575074759470}
   coinLabel11: {fileID: 5363431864098969497}
   coinLabel35: {fileID: 5590286369333228296}
   infoText: {fileID: 8778889272189508516}
+  titleText: {fileID: 0}
+  previewFrame: {fileID: 0}
   toast: {fileID: 0}
-  currency: 1
-  cost11: 100
-  cost35: 300
 --- !u!1 &8179660749877988592
 GameObject:
   m_ObjectHideFlags: 0

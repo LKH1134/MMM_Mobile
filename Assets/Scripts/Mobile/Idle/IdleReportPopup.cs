@@ -139,6 +139,7 @@ namespace MoreMush.Mobile
             rt.anchoredPosition = new Vector2(x, 50f);
             rt.sizeDelta = new Vector2(350f, 130f);
             var button = img.gameObject.AddComponent<Button>();
+            UiSkin.GreyWhenDisabled(button);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             button.targetGraphic = img;
             var text = NewText("Text", img.transform, size);
             text.text = label;
