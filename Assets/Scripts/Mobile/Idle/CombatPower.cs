@@ -17,7 +17,22 @@ namespace MoreMush.Mobile
         public static double CritFactor => 1 + CritChance * (CritDamage - 1);
 
         // 편성된 꼬마 전원의 초당 피해 (꼬마마다 공격력 × 공격 배율 × 초당 투척 수 × 치명타 기대값)
-        public static double Dps => IdleProgress.FinalAttack * Formation.TotalAttackMultiplier() * IdleProgress.FinalSpeed * CritFactor;
+        // 꼬마 스킬 중 늘 붙는 공격력·공격 속도·치명타 확률도 꼬마마다 곱한다 (보스·버섯 종류·범위 피해는 상황에 따라 달라 뺀다)
+        public static double Dps => IdleProgress.FinalAttack * IdleProgress.FinalSpeed * SkilledSum();
+
+        // 편성 꼬마마다 공격 배율 × 스킬 공격력 × 스킬 공격 속도 × 치명타 기대값의 합
+        static double SkilledSum()
+        {
+            double team = GgomaSkills.TeamAttack(), sum = 0;
+            for (int i = 0; i < Formation.SlotCount; i++)
+            {
+                string id = Formation.Get(i);
+                if (string.IsNullOrEmpty(id)) continue;
+                double crit = System.Math.Min(1, CritChance + GgomaSkills.Self(id, GgomaSkillEffect.CritChance));
+                sum += Formation.AttackMultiplier(id) * GgomaSkills.AttackMul(id, team) * GgomaSkills.SpeedMul(id) * (1 + crit * (CritDamage - 1));
+            }
+            return sum;
+        }
 
         public static double Offense => Dps * OffenseSeconds;
         public static double Survival => IdleProgress.FinalHp + IdleProgress.FinalHpRegen * RegenSeconds;

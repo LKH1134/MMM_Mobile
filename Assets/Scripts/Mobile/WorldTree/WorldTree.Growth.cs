@@ -70,7 +70,7 @@ namespace MoreMush.Mobile
         public static bool BlessActive(BlessRow b) => b.stage <= Stage;
 
         // ── 창고 버섯 ──
-        static Dictionary<string, int> enemyBySprite;     // 적 그림 이름(ed0…) → 적.index
+        static Dictionary<string, int> enemyBySprite;     // 적 그림 이름(ed0…, 군락 시트 이름) → 적.index
 
         public static EnemyRow Enemy(int index)
         {
@@ -125,7 +125,13 @@ namespace MoreMush.Mobile
                     if (path != null) enemyBySprite[path.Substring(path.LastIndexOf('/') + 1)] = e.index;
                 }
             }
-            if (!enemyBySprite.TryGetValue(spriteName, out int enemy)) return;
+            // 군락 시트(독버섯·약용버섯)는 잘린 조각 이름이 "시트이름_번호"다 — 조각 이름으로 못 찾으면 시트 이름으로 찾는다
+            if (!enemyBySprite.TryGetValue(spriteName, out int enemy))
+            {
+                int us = spriteName.LastIndexOf('_');
+                if (us <= 0 || !int.TryParse(spriteName.Substring(us + 1), out _)
+                    || !enemyBySprite.TryGetValue(spriteName.Substring(0, us), out enemy)) return;
+            }
             QuestKill(enemy);
             double amount = GameBalance.Const("treeHarvestPerKill") * (1 + Bonus(TreeEffect.Harvest));
             long n = (long)Math.Floor(amount);

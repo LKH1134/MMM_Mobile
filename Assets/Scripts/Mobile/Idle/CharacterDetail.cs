@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 꼬마 고르기 팝업 아래쪽 정보 칸 (장비 화면 위쪽 정보 칸과 같은 구성):
-    // 그림 · [등급] 이름 · Lv · 다음 레벨 조각 막대 · 공격 배율(→ 다음 레벨) · 편성 / 합성 / 일괄 합성 버튼.
+    // 그림 · [진화 단계] 이름 · Lv · 다음 레벨 조각 막대 · 공격 배율(→ 다음 레벨) · 스킬 3칸(해금 전은 잠금) · 편성 / 합성 / 일괄 합성 버튼.
     // FormationPanel이 팝업 그리드 아래 빈 자리에 코드로 만들고, 꼬마를 누를 때마다 Show로 바꾼다
     public class CharacterDetail : MonoBehaviour
     {
@@ -15,11 +15,16 @@ namespace MoreMush.Mobile
         static readonly Color Brown = new Color(0.36f, 0.24f, 0.14f);
         static readonly Color Green = new Color(0.45f, 0.78f, 0.38f);
         static readonly Color Locked = new Color(0.25f, 0.25f, 0.25f);
+        static readonly Color SkillOn = new Color(0.86f, 0.95f, 0.78f);      // 해금된 스킬 칸
+        static readonly Color SkillOff = new Color(0.78f, 0.76f, 0.73f);     // 잠긴 스킬 칸
+        const int SkillSlots = 3;   // 진화 단계마다 하나
 
         TMP_FontAsset font;
         Image icon;
         TMP_Text nameText, levelText, barText, statText, placeLabel, message;
         RectTransform barFill;
+        readonly Image[] skillBg = new Image[SkillSlots];
+        readonly TMP_Text[] skillText = new TMP_Text[SkillSlots];
         Button placeButton, mergeButton, mergeAllButton;
         string id;
         bool inTargetSlot;
@@ -63,7 +68,7 @@ namespace MoreMush.Mobile
             var bar = NewImage("Bar", rt);
             bar.color = new Color(0.85f, 0.82f, 0.78f);
             bar.preserveAspect = false;
-            Place(bar.rectTransform, new Vector2(0f, 1f), new Vector2(300f, -116f), new Vector2(880f, 44f), new Vector2(0f, 1f));
+            Place(bar.rectTransform, new Vector2(0f, 1f), new Vector2(300f, -106f), new Vector2(880f, 38f), new Vector2(0f, 1f));
             var fill = NewImage("Fill", bar.rectTransform);
             fill.color = Green;
             fill.preserveAspect = false;
@@ -76,7 +81,22 @@ namespace MoreMush.Mobile
 
             statText = NewText("Stat", rt, 34f);
             statText.alignment = TextAlignmentOptions.MidlineLeft;
-            Place(statText.rectTransform, new Vector2(0f, 1f), new Vector2(300f, -168f), new Vector2(880f, 56f), new Vector2(0f, 1f));
+            Place(statText.rectTransform, new Vector2(0f, 1f), new Vector2(300f, -148f), new Vector2(880f, 46f), new Vector2(0f, 1f));
+
+            // 스킬 3칸 (1·2·3단계). 해금 전에도 무슨 스킬인지 보이게 잠금으로 그린다
+            const float skillW = 286f, skillGap = 11f;
+            for (int k = 0; k < SkillSlots; k++)
+            {
+                var bg = NewImage("Skill" + (k + 1), rt);
+                bg.preserveAspect = false;
+                Skin(bg, CreamSprite, 3f);
+                Place(bg.rectTransform, new Vector2(0f, 1f), new Vector2(300f + k * (skillW + skillGap), -200f), new Vector2(skillW, 58f), new Vector2(0f, 1f));
+                var t = NewText("Text", bg.rectTransform, 21f);
+                t.lineSpacing = -18f;
+                Stretch(t.rectTransform);
+                skillBg[k] = bg;
+                skillText[k] = t;
+            }
 
             placeButton = NewButton("Place", rt, new Vector2(-330f, 30f), "편성", out placeLabel);
             mergeButton = NewButton("Merge", rt, new Vector2(0f, 30f), "합성", out _);
@@ -88,7 +108,7 @@ namespace MoreMush.Mobile
             // 합성 결과 한 줄 (버튼 위)
             message = NewText("Message", rt, 28f);
             message.color = new Color(0.23f, 0.56f, 0.18f);
-            Place(message.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 150f), new Vector2(1000f, 40f), new Vector2(0.5f, 0f));
+            Place(message.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 140f), new Vector2(1000f, 34f), new Vector2(0.5f, 0f));
         }
 
         // id: 보여 줄 꼬마, inTargetSlot: 지금 고르는 칸에 이미 놓인 꼬마인가 (편성 버튼 글자)
@@ -120,14 +140,20 @@ namespace MoreMush.Mobile
 
             icon.sprite = Formation.Icon(id);
             icon.color = have ? Color.white : Locked;
-            nameText.text = $"[{GachaProgress.GradeNames[Mathf.Clamp(Formation.Grade(id), 0, GachaProgress.GradeCount - 1)]}] {Formation.Name(id)}";
+            int stage = Formation.EvoStage(id);
+            nameText.text = $"[{stage}단계] {Formation.Name(id)}";
             levelText.text = have ? (max ? $"Lv.{level} MAX" : $"Lv.{level}") : "미보유";
             barFill.anchorMax = new Vector2(max ? 1f : have ? Mathf.Clamp01(copies / (float)need) : 0f, 1f);
             barText.text = !have ? "꼬마 뽑기로 얻을 수 있습니다" : max ? "최고 레벨" : $"다음 레벨 조각 {copies}/{need}";
 
             int shown = Mathf.Max(1, level);
             string next = have && !max ? $"  <size=80%><color=#3A8F2E>→ ×{Formation.AttackMultiplierAt(id, level + 1):0.00}</color></size>" : "";
-            statText.text = $"공격 배율  ×{Formation.AttackMultiplierAt(id, shown):0.00}" + next;
+            // 다음 진화 안내 (한 줄 칸이라 같은 줄 뒤에 작게)
+            string evo = stage < Formation.EvoStageCount
+                ? $"   <size=70%>Lv.{Formation.EvoLevel(stage + 1)} {stage + 1}단계 진화</size>"
+                : "   <size=70%>최종 진화</size>";
+            statText.text = $"공격 배율  ×{Formation.AttackMultiplierAt(id, shown):0.00}" + next + evo;
+            RefreshSkills(have);
 
             placeButton.interactable = have;
             placeLabel.text = inTargetSlot ? "편성 해제" : "편성";
@@ -135,6 +161,23 @@ namespace MoreMush.Mobile
             bool anyMerge = false;
             foreach (var other in Formation.Ids) if (Formation.CanMerge(other)) { anyMerge = true; break; }
             mergeAllButton.interactable = anyMerge;
+        }
+
+        // 스킬 칸: 해금 = 연두 칸에 이름·효과, 잠금 = 회색 칸에 "잠금 Lv.N" + 이름·효과 (무슨 스킬인지는 늘 보인다)
+        void RefreshSkills(bool have)
+        {
+            var skills = GgomaSkills.Of(id);
+            for (int k = 0; k < SkillSlots; k++)
+            {
+                var r = k < skills.Count ? skills[k] : null;
+                skillBg[k].gameObject.SetActive(r != null);
+                if (r == null) continue;
+                bool on = have && GgomaSkills.IsUnlocked(r);
+                skillBg[k].color = on ? SkillOn : SkillOff;
+                string head = on ? $"<b>{r.name}</b>" : $"<color=#7A6E64>잠금 Lv.{Formation.EvoLevel(r.stage)}</color> <b>{r.name}</b>";
+                skillText[k].text = head + "\n<size=90%>" + GgomaSkills.EffectText(r) + "</size>";
+                skillText[k].color = on ? Brown : new Color(0.45f, 0.4f, 0.36f);
+            }
         }
 
         // ── 만들기 도우미 ──

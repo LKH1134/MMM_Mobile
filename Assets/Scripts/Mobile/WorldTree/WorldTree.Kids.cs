@@ -52,10 +52,8 @@ namespace MoreMush.Mobile
             return Mathf.Min(MaxStage, (row != null ? row.evoStage : 1) + Star(id) + 1);
         }
 
-        // 필요 레벨 = needLevel × kidEvoLevelGradeMul^등급 (올림). 높은 등급은 조각이 적게 들어와 레벨이 느리게 오른다
-        public static int EvoLevelNeeded(string id) =>
-            Mathf.Max(1, Mathf.CeilToInt(StarRow(Star(id) + 1).needLevel
-                * Mathf.Pow((float)GameBalance.Const("kidEvoLevelGradeMul"), KidRow(id)?.grade ?? 0) - 1e-4f));
+        // 필요 레벨 = 꼬마진화 시트 needLevel (꼬마 등급이 없어져 모든 꼬마가 같다)
+        public static int EvoLevelNeeded(string id) => Mathf.Max(1, StarRow(Star(id) + 1).needLevel);
         public static int EvoMyceliteCost(string id) => StarRow(Star(id) + 1).mycelite;
 
         public static KidFail CanKidEvolve(string id)
