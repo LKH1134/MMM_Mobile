@@ -93,8 +93,8 @@ namespace MoreMush.Mobile
 
         // 스테이지 배너: "스테이지 챕터-번호" (방치전투 시트 stagesPerChapter. 시트의 chapterName은 배너에 쓰지 않는다)
         static int StagesPerChapter => Mathf.Max(1, GameBalance.IdleBattle.stagesPerChapter);
-        const string MapIcon = "Art/Dream/Icons/quest";                 // 임시 그림
-        const string PowerIcon = "Art/Dream/UI/Window/ic_mallet";       // 임시 그림
+        const string MapIcon = "UI/Icon/quest_scroll";                 // 임시 그림
+        const string PowerIcon = "UI/Icon/workshop_hammer";       // 임시 그림
         const float PowerPillY = -967f;     // 강화 목록(UpgradePanel) 위쪽 가장자리 — 전투 화면과 강화 목록 사이
         static readonly Color NormalFill = new Color(0.2f, 0.85f, 0.8f);
         static readonly Color BossFill = new Color(0.95f, 0.35f, 0.35f);

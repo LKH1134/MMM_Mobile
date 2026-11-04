@@ -8,7 +8,7 @@ namespace MoreMush.Mobile
     // IdleBattle의 HUD에 Create로 만들어 붙인다 (홈 화면을 따라 보이고 숨는다)
     public class DexButton : MonoBehaviour
     {
-        const string IconSprite = "Art/Dream/Icons/book";      // 임시 그림
+        const string IconSprite = "UI/Icon/collection_book";      // 임시 그림
         static readonly Color PlateColor = new Color(0.1f, 0.08f, 0.14f, 0.85f);
 
         public static event System.Action Opened;   // 도감 창이 생기면 여기에 연결한다

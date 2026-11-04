@@ -37,6 +37,12 @@ namespace MoreMush.Mobile
         [SerializeField] GameObject statsPanel;     // 전투력을 누르면 열고 닫는 세부 통계
         [SerializeField] TMP_Text statsText;
 
+        [Header("왼쪽 아이콘 열 (퀘스트·도감)")]
+        [SerializeField] Button questButton;
+        [SerializeField] GameObject questDot;       // 받을 보상이 있으면 켠다
+        [SerializeField] Button dexButton;
+        [SerializeField] GameObject dexScreen;      // 도감 화면 (없으면 버튼만 보인다)
+
         readonly List<Image> dots = new List<Image>();
         int shownStage = -1, shownWave = -1, shownWaves = -1, shownBossSec = -1;
         bool shownBoss;
@@ -52,16 +58,39 @@ namespace MoreMush.Mobile
             if (statsPanel != null && statsPanel.TryGetComponent<Button>(out var close)) close.onClick.AddListener(() => statsPanel.SetActive(false));
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed += OnTabChanged;
             RefreshPower(true);
+
+            // 퀘스트·도감: IdleBattle이 코드로 만든 예전 버튼은 숨기고 이 프리팹의 버튼을 쓴다
+            if (battle != null)
+            {
+                foreach (var b in battle.GetComponentsInChildren<QuestButton>(true)) b.gameObject.SetActive(false);
+                foreach (var b in battle.GetComponentsInChildren<DexButton>(true)) b.gameObject.SetActive(false);
+            }
+            if (questButton != null) questButton.onClick.AddListener(DailyQuestPopup.Open);
+            if (dexButton != null) dexButton.onClick.AddListener(() => { if (dexScreen != null) dexScreen.SetActive(true); });
+            DailyQuests.Changed += RefreshQuestDot;
+            RefreshQuestDot();
         }
 
         void OnDestroy()
         {
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= OnTabChanged;
+            DailyQuests.Changed -= RefreshQuestDot;
+        }
+
+        void RefreshQuestDot()
+        {
+            if (questDot != null) questDot.SetActive(DailyQuests.ClaimableCount > 0);
         }
 
         void OnTabChanged(int tab)
         {
             if (statsPanel != null) statsPanel.SetActive(false);   // 통계 창은 홈 전용
+            // HUD도 홈 전용: 편성·던전·뽑기 화면에서는 숨긴다 (책 판 탭과 스테이지 제목이 겹치지 않게)
+            if (!TryGetComponent<CanvasGroup>(out var group)) group = gameObject.AddComponent<CanvasGroup>();
+            bool home = tab < 0;
+            group.alpha = home ? 1f : 0f;
+            group.blocksRaycasts = home;
+            group.interactable = home;
         }
 
         void ToggleStats()

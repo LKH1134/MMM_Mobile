@@ -13,7 +13,7 @@ namespace MoreMush.Mobile
     // 자기 오버레이 캔버스를 코드로 만들고 씬이 바뀌어도 남겨 둔다 (씬에 둘 것 없음). 수치는 상수 시트의 adBox* 다
     public class AdBox : MonoBehaviour
     {
-        const int SortingOrder = 10050;                 // Main 캔버스(10000) 위, 팝업(10100) 아래
+        const int SortingOrder = 10000 + PopupLayer.AdBox;   // [UI 개편] Main 캔버스(10000) 바로 위 — 하단 바(10020)·편성 안 팝업(10030)·팝업(10100) 아래
         const string ElapsedKey = "AdBox.Elapsed";      // 쿨타임을 센 초 (홈 화면을 본 시간)
         const float MaxStep = 0.5f;                     // 한 프레임이 길어도 이만큼만 센다 (화면 멈춤 때문에 시간이 튀지 않게)
         const float SaveEvery = 1f;
@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
         const float ChestSize = 230f;
         const float TargetX = 0.22f, TargetY = 0.13f;   // 상자가 머무는 자리: 캔버스 중심에서 폭·높이의 비율 (오른쪽 위쪽)
         const float BobHeight = 18f, BobSpeed = 2.4f;
-        const string ChestIcon = "Art/Dream/Characters/Critters/Ggomas/icon_chest";   // 임시 그림
+        const string ChestIcon = "UI/Icon/treasure_chest";   // 임시 그림
         const float EditorIntervalSeconds = 2f;         // 유니티 에디터에서는 표의 간격 대신 바로 나온다 (테스트용)
 
         static AdBox instance;

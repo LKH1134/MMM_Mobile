@@ -13,13 +13,13 @@ namespace MoreMush.Mobile
         public class ExpRow { public TMP_Text level, value; public RectTransform fill; }
         public class ButtonText { public TMP_Text title, sub; }
 
-        const string BarBack = "Art/Dream/UI/progress_back";
-        const string BarFill = "Art/Dream/UI/progress_fill";
-        // 버튼 그림: 무료 = 초록 버튼 그대로, 재화 = 크림 버튼을 보라로 물들임
-        public const string FreeSprite = "Art/Dream/UI/btn_go";
-        public const string CoinSprite = "Art/Dream/UI/Window/btn_cream";
+        const string BarBack = "UI/UI_PP_Bar_Gauge_Under";
+        const string BarFill = "UI/UI_PP_Bar_Gauge_Yellow";
+        // 버튼 그림: 무료 = 초록 버튼, 재화 = 하늘 버튼 (색은 그림으로 정하고 물들이지 않는다)
+        public const string FreeSprite = "UI/UI_Btn_Green";
+        public const string CoinSprite = "UI/UI_Btn_Sky";
         public static readonly Color FreeColor = Color.white;
-        public static readonly Color CoinColor = new Color(0.62f, 0.45f, 0.85f);
+        public static readonly Color CoinColor = Color.white;
         static readonly Color32 TextOutline = new Color32(40, 28, 20, 255);
 
         // 오른쪽 열 (카드 오른쪽 끝 기준, 버튼 앵커는 프리팹 그대로 오른쪽 가운데)
@@ -63,13 +63,13 @@ namespace MoreMush.Mobile
             lrt.anchoredPosition = new Vector2(4f, 0f);
             lrt.sizeDelta = new Vector2(110f, 0f);
 
-            var back = NewImage("Bar", root, BarBack, new Color(0.2f, 0.16f, 0.22f, 0.85f));
+            var back = NewImage("Bar", root, BarBack, Color.white);
             var brt = back.rectTransform;
             brt.anchorMin = new Vector2(0f, 0.5f);
             brt.anchorMax = new Vector2(1f, 0.5f);
             brt.offsetMin = new Vector2(118f, -15f);
             brt.offsetMax = new Vector2(-4f, 15f);
-            var fill = NewImage("Fill", brt, BarFill, new Color(0.45f, 0.7f, 1f));
+            var fill = NewImage("Fill", brt, BarFill, Color.white);
             row.fill = fill.rectTransform;
             row.fill.anchorMin = Vector2.zero;
             row.fill.anchorMax = new Vector2(0f, 1f);

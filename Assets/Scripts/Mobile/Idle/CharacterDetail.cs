@@ -10,13 +10,14 @@ namespace MoreMush.Mobile
     // FormationPanel이 팝업 그리드 아래 빈 자리에 코드로 만들고, 꼬마를 누를 때마다 Show로 바꾼다
     public class CharacterDetail : MonoBehaviour
     {
-        const string CreamSprite = "Art/Dream/UI/Window/btn_cream";
-        const string GoSprite = "Art/Dream/UI/btn_go";
+        const string CreamSprite = "UI/UI_Btn_Beige";
+        const string GoSprite = "UI/UI_Btn_Green";
         static readonly Color Brown = new Color(0.36f, 0.24f, 0.14f);
-        static readonly Color Green = new Color(0.45f, 0.78f, 0.38f);
-        static readonly Color Locked = new Color(0.25f, 0.25f, 0.25f);
-        static readonly Color SkillOn = new Color(0.86f, 0.95f, 0.78f);      // 해금된 스킬 칸
-        static readonly Color SkillOff = new Color(0.78f, 0.76f, 0.73f);     // 잠긴 스킬 칸
+        // 색은 그림으로 정한다 (물들이지 않는다)
+        const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
+        const string BarFillSprite = "UI/UI_PP_Bar_Gauge_Green";
+        const string SkillOnSprite = "UI/UI_PP_In_Color_Green";     // 해금된 스킬 칸
+        const string SkillOffSprite = "UI/UI_PP_In_Color_Grey";     // 잠긴 스킬 칸 (회색)
         const int SkillSlots = 3;   // 진화 단계마다 하나
 
         TMP_FontAsset font;
@@ -66,11 +67,11 @@ namespace MoreMush.Mobile
 
             // 다음 레벨 조각 막대
             var bar = NewImage("Bar", rt);
-            bar.color = new Color(0.85f, 0.82f, 0.78f);
+            Skin(bar, BarBackSprite, 1f);
             bar.preserveAspect = false;
             Place(bar.rectTransform, new Vector2(0f, 1f), new Vector2(300f, -106f), new Vector2(880f, 38f), new Vector2(0f, 1f));
             var fill = NewImage("Fill", bar.rectTransform);
-            fill.color = Green;
+            Skin(fill, BarFillSprite, 1f);
             fill.preserveAspect = false;
             barFill = fill.rectTransform;
             barFill.anchorMin = Vector2.zero;
@@ -139,7 +140,7 @@ namespace MoreMush.Mobile
             bool have = level > 0, max = level >= Formation.MaxLevel;
 
             icon.sprite = Formation.Icon(id);
-            icon.color = have ? Color.white : Locked;
+            icon.color = Color.white;     // 못 얻은 꼬마는 "미보유" 글자로 알린다
             int stage = Formation.EvoStage(id);
             nameText.text = $"[{stage}단계] {Formation.Name(id)}";
             levelText.text = have ? (max ? $"Lv.{level} MAX" : $"Lv.{level}") : "미보유";
@@ -173,7 +174,7 @@ namespace MoreMush.Mobile
                 skillBg[k].gameObject.SetActive(r != null);
                 if (r == null) continue;
                 bool on = have && GgomaSkills.IsUnlocked(r);
-                skillBg[k].color = on ? SkillOn : SkillOff;
+                Skin(skillBg[k], on ? SkillOnSprite : SkillOffSprite, 3f);
                 string head = on ? $"<b>{r.name}</b>" : $"<color=#7A6E64>잠금 Lv.{Formation.EvoLevel(r.stage)}</color> <b>{r.name}</b>";
                 skillText[k].text = head + "\n<size=90%>" + GgomaSkills.EffectText(r) + "</size>";
                 skillText[k].color = on ? Brown : new Color(0.45f, 0.4f, 0.36f);

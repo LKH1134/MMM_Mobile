@@ -26,9 +26,12 @@ namespace MoreMush.Mobile
 
         Equipment Eq => Equipment.Of(kind) ?? Equipment.Weapon;
 
-        static readonly Color Locked = new Color(0.25f, 0.25f, 0.25f, 1f);
-        static readonly Color SelectedBg = new Color(1f, 0.9f, 0.45f);
-        static readonly Color EquippedBg = new Color(0.75f, 0.92f, 0.7f);
+        // 칸 바탕: 색은 그림으로 정한다 (물들이지 않는다)
+        const string SelectedSprite = "UI/UI_PP_In_Color_Yellow";
+        const string EquippedSprite = "UI/UI_PP_In_Color_Green";
+        const string SlotSprite = "UI/UI_PP_In_Color_Beige1";
+        const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
+        const string BarFillSprite = "UI/UI_PP_Bar_Gauge_Green";
 
         void Awake() => Build();
 
@@ -140,8 +143,8 @@ namespace MoreMush.Mobile
         }
 
         // 프리팹 칸과 같은 게임 UI 그림 (Resources 경로)
-        const string CreamSprite = "Art/Dream/UI/Window/btn_cream";
-        const string GoSprite = "Art/Dream/UI/btn_go";
+        const string CreamSprite = "UI/UI_Btn_Beige";
+        const string GoSprite = "UI/UI_Btn_Green";
         static readonly Color Brown = new Color(0.36f, 0.24f, 0.14f);
 
         static void Skin(Image img, string sprite, float pixelsPerUnit)
@@ -249,9 +252,9 @@ namespace MoreMush.Mobile
         {
             if (bar == null) return;
             var bg = bar.GetComponent<Image>();
-            if (bg != null && bg.sprite == null) bg.color = new Color(0.85f, 0.82f, 0.78f);   // 그림(progress_back)이 있으면 그대로
+            if (bg != null && bg.sprite == null) Skin(bg, BarBackSprite, 1f);   // 그림이 있으면 그대로
             var fill = NewImage("Fill", bar);
-            fill.color = new Color(0.45f, 0.78f, 0.38f);
+            Skin(fill, BarFillSprite, 1f);
             fill.preserveAspect = false;
             mergeBarFill = fill.rectTransform;
             mergeBarFill.anchorMin = Vector2.zero;
@@ -341,12 +344,14 @@ namespace MoreMush.Mobile
             {
                 var s = slots[i];
                 int lv = Eq.Level(i);
-                s.icon.color = lv > 0 ? Color.white : Locked;
+                s.icon.color = Color.white;     // 못 얻은 것은 "미보유" 글자로 알린다
                 s.count.text = lv <= 0 ? "미보유"
                     : lv >= Equipment.MaxLevel ? $"Lv.{lv} MAX"
                     : $"Lv.{lv} <size=80%>({Eq.Copies(i)}/{Equipment.CopiesToNext(lv)})</size>";
                 s.badge.text = i == equipped ? "<color=#3A8F2E>장착</color>" : "";
-                s.bg.color = i == selected ? SelectedBg : i == equipped ? EquippedBg : Color.white;
+                s.bg.sprite = Resources.Load<Sprite>(i == selected ? SelectedSprite : i == equipped ? EquippedSprite : SlotSprite);
+                s.bg.type = Image.Type.Sliced;
+                s.bg.color = Color.white;
             }
 
             if (ownTotal != null)
@@ -355,7 +360,7 @@ namespace MoreMush.Mobile
             if (selected < 0 || selected >= Eq.Count) return;
             int level = Eq.Level(selected), copies = Eq.Copies(selected), need = Equipment.CopiesToNext(level);
             bool have = level > 0, max = level >= Equipment.MaxLevel;
-            if (detailIcon != null) { detailIcon.sprite = Eq.Sprite(selected); detailIcon.color = have ? Color.white : Locked; }
+            if (detailIcon != null) { detailIcon.sprite = Eq.Sprite(selected); detailIcon.color = Color.white; }
             if (detailName != null) detailName.text = $"[{GachaProgress.GradeNames[Equipment.Grade(selected)]}] {Eq.Names[selected]}";
             if (detailCount != null) detailCount.text = have ? $"Lv.{level}" : "미보유";
             if (mergeBarFill != null) mergeBarFill.anchorMax = new Vector2(max ? 1f : have ? Mathf.Clamp01(copies / (float)need) : 0f, 1f);

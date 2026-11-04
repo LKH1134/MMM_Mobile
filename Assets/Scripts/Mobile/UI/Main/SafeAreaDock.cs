@@ -8,7 +8,8 @@ namespace MoreMush.Mobile
     // - dockBottom: 아래를 안전 영역(SafeArea) 아래 끝에 붙인다 (Z플립처럼 긴 화면에서 Stage 아래 남는 공간에 뜨지 않게). 처음 Stage 아래와의 간격은 지킨다
     // - keepTop: 위 가장자리는 Stage 안 처음 자리 그대로 → 아래로 내려간 만큼 높이가 늘어난다 (끄면 높이를 지킨 채 통째로 내려간다)
     // - bleedBottom: 바탕을 안전 영역 밖 화면 맨 아래(홈바 자리)까지 늘인다. 안의 버튼은 LayoutGroup 아래 여백을 늘려 안전 영역 안에 남긴다
-    // Stage 바로 아래 오브젝트에 붙인다. 플레이 중에만 고친다 — 편집 중에 바꾸면 씬에 화면별 값이 저장된다
+    // Canvas > SafeArea > Stage 아래 어디에 두어도 된다 (부모가 Stage가 아니어도 Stage·SafeArea는 위로 찾아 쓴다).
+    // 플레이 중에만 고친다 — 편집 중에 바꾸면 씬에 화면별 값이 저장된다
     [RequireComponent(typeof(RectTransform))]
     public class SafeAreaDock : MonoBehaviour
     {
@@ -16,11 +17,12 @@ namespace MoreMush.Mobile
         [SerializeField] bool dockBottom = true;
         [SerializeField] bool keepTop = true;
         [SerializeField] bool bleedBottom = false;
+        [SerializeField] bool coverScreen = false;   // 화면 전체를 덮는다 (팝업 뒤 어둡게 하는 판). 다른 옵션은 무시
 
-        RectTransform rect, parent, safe, screen;
+        RectTransform rect, parent, stage, safe, screen;
         LayoutGroup layout;
         int basePaddingBottom;
-        float left0, right0, bottom0, top0, bottomGap;   // 처음 자리 (부모 가운데 기준, 부모 단위)
+        float left0, right0, bottom0, top0, bottomGap;   // 처음 자리 (부모 가운데 기준) · Stage 아래와의 간격 (Stage 단위)
         Vector3 lastSafeMin, lastSafeMax, lastScreenMin, lastScreenMax;
         bool ready;
         readonly Vector3[] corners = new Vector3[4];
@@ -29,19 +31,21 @@ namespace MoreMush.Mobile
         {
             rect = (RectTransform)transform;
             parent = rect.parent as RectTransform;
-            safe = parent != null ? parent.parent as RectTransform : null;
+            var frame = GetComponentInParent<StageFrame>(true);
+            var area = GetComponentInParent<SafeArea>(true);
             var canvas = GetComponentInParent<Canvas>();
+            stage = frame != null ? (RectTransform)frame.transform : null;
+            safe = area != null ? (RectTransform)area.transform : null;
             screen = canvas != null ? (RectTransform)canvas.rootCanvas.transform : null;
-            if (parent == null || safe == null || screen == null)
+            if (parent == null || stage == null || safe == null || screen == null)
             {
-                Debug.LogWarning("[SafeAreaDock] Canvas > SafeArea > Stage(부모) 아래에 둔다", this);
+                // 화면 전체 캔버스에 직접 만든 팝업(코드 팝업)은 Stage가 없다 → 앵커 그대로(이미 화면 끝 기준) 둔다
                 enabled = false;
                 return;
             }
             layout = GetComponent<LayoutGroup>();
             if (layout != null) basePaddingBottom = layout.padding.bottom;
 
-            // 처음 자리를 부모(Stage) 가운데 기준 좌표로 적어 둔다. Stage 높이는 늘 같으므로 위·아래는 이 값을 기준으로 삼는다
             rect.GetWorldCorners(corners);
             var min = parent.InverseTransformPoint(corners[0]);
             var max = parent.InverseTransformPoint(corners[2]);
@@ -50,7 +54,7 @@ namespace MoreMush.Mobile
             right0 = max.x - pc.x;
             bottom0 = min.y - pc.y;
             top0 = max.y - pc.y;
-            bottomGap = min.y - parent.rect.yMin;
+            bottomGap = stage.InverseTransformPoint(corners[0]).y - stage.rect.yMin;
             ready = true;
             Apply();
         }
@@ -71,19 +75,29 @@ namespace MoreMush.Mobile
             safe.GetWorldCorners(corners);
             lastSafeMin = corners[0];
             lastSafeMax = corners[2];
-            var sMin = (Vector2)parent.InverseTransformPoint(corners[0]) - pc;   // 안전 영역 끝 (Stage 가운데 기준, Stage 단위)
+            // 안전 영역 아래 끝 + 처음 간격 (Stage 단위로 더한 뒤 부모 좌표로)
+            var safeBottomStage = stage.InverseTransformPoint(corners[0]);
+            var dockWorld = stage.TransformPoint(new Vector3(0f, safeBottomStage.y + bottomGap, 0f));
+            float dockY = parent.InverseTransformPoint(dockWorld).y - pc.y;
             screen.GetWorldCorners(corners);
             lastScreenMin = corners[0];
             lastScreenMax = corners[2];
-            var fMin = (Vector2)parent.InverseTransformPoint(corners[0]) - pc;   // 화면 끝
+            var fMin = (Vector2)parent.InverseTransformPoint(corners[0]) - pc;   // 화면 끝 (부모 가운데 기준)
             var fMax = (Vector2)parent.InverseTransformPoint(corners[2]) - pc;
 
+            if (coverScreen)
+            {
+                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.offsetMin = fMin;
+                rect.offsetMax = fMax;
+                return;
+            }
             float l = stretchWidth ? fMin.x : left0;
             float r = stretchWidth ? fMax.x : right0;
             float b = bottom0, t = top0;
             if (dockBottom)
             {
-                b = sMin.y + bottomGap;
+                b = dockY;
                 if (!keepTop) t = b + (top0 - bottom0);
             }
             int extra = 0;

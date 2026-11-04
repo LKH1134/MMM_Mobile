@@ -106,7 +106,7 @@ namespace MoreMush.Mobile
             dim.raycastTarget = true;                       // 뒤를 누르지 못하게 막는다
 
             var panel = NewImage("Panel", transform, new Color(0.98f, 0.94f, 0.86f));
-            var sprite = Resources.Load<Sprite>("Art/Dream/UI/panel_paper");
+            var sprite = Resources.Load<Sprite>("UI/UI_PP_Out_Paper2");
             if (sprite != null) { panel.sprite = sprite; panel.type = Image.Type.Sliced; panel.color = Color.white; }
             panel.rectTransform.sizeDelta = new Vector2(820f, 760f);
 
@@ -122,16 +122,16 @@ namespace MoreMush.Mobile
             body.alignment = TextAlignmentOptions.Top;
 
             // 왼쪽 = 확인(초록), 오른쪽 = 광고 보고 2배 보상(청록)
-            NewButton("Ok", panel.transform, "확인", 52f, Color.white, -190f).onClick.AddListener(Hide);
-            doubleButton = NewButton("DoubleAd", panel.transform, "광고 보고\n2배 보상", 40f, new Color(0.45f, 0.85f, 0.8f, 1f), 190f);
+            NewButton("Ok", panel.transform, "확인", 52f, "UI/UI_Btn_Green", -190f).onClick.AddListener(Hide);
+            doubleButton = NewButton("DoubleAd", panel.transform, "광고 보고\n2배 보상", 40f, "UI/UI_Btn_Sky", 190f);   // 색은 그림으로 (물들이지 않는다)
             doubleButton.onClick.AddListener(WatchForDouble);
         }
 
-        Button NewButton(string name, Transform parent, string label, float size, Color tint, float x)
+        Button NewButton(string name, Transform parent, string label, float size, string spritePath, float x)
         {
             var img = NewImage(name, parent, new Color(0.45f, 0.75f, 0.35f));
-            var sprite = Resources.Load<Sprite>("Art/Dream/UI/btn_go");
-            if (sprite != null) { img.sprite = sprite; img.type = Image.Type.Sliced; img.color = tint; }
+            var sprite = Resources.Load<Sprite>(spritePath);
+            if (sprite != null) { img.sprite = sprite; img.type = Image.Type.Sliced; img.color = Color.white; }
             img.raycastTarget = true;
             var rt = img.rectTransform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);

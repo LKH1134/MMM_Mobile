@@ -15,7 +15,7 @@ namespace MoreMush.Mobile
         [Header("색")]
         [SerializeField] Color costColor = new Color(0.36f, 0.22f, 0.12f);
         [SerializeField] Color shortCostColor = new Color(0.85f, 0.25f, 0.2f);
-        [SerializeField] Color disabledButton = new Color(0.6f, 0.6f, 0.6f);
+        [SerializeField] Sprite disabledButtonSprite;   // 살 수 없을 때 버튼 그림 (비우면 UI/UI_Btn_Grey)
         [SerializeField] float cappedLabelSize = 28f;   // 단계 제한 문구 글자 크기
 
         readonly List<UpgradeRowView> rows = new List<UpgradeRowView>();
@@ -151,7 +151,13 @@ namespace MoreMush.Mobile
                 if (r.button != null && r.button.interactable != can)
                 {
                     r.button.interactable = can;
-                    if (r.buttonImage != null) r.buttonImage.color = can ? Color.white : disabledButton;
+                    if (r.buttonImage != null)
+                    {
+                        if (r.normalButton == null) r.normalButton = r.buttonImage.sprite;
+                        if (disabledButtonSprite == null) disabledButtonSprite = Resources.Load<Sprite>("UI/UI_Btn_Grey");
+                        r.buttonImage.sprite = can ? r.normalButton : disabledButtonSprite;   // 색을 입히지 않고 회색 그림으로 바꿔 낀다
+                        r.buttonImage.color = Color.white;
+                    }
                 }
                 if (r.cost != null)
                 {

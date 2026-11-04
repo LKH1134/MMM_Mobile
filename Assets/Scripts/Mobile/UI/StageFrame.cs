@@ -34,11 +34,15 @@ namespace MoreMush.Mobile
             if (avail.x <= 0f || avail.y <= 0f || avail == appliedParent) return;
             appliedParent = avail;
 
+            // [UI 개편 2026-11-04] 태블릿·폴드처럼 넓거나 긴 화면에서 남는 곳을 비우지 않고 Stage를 안전 영역 끝까지 늘인다
+            //   (예전: 폭 1080~1316, 높이 2340 고정 → 아이패드 양옆·Z플립 위아래가 비었다). 줄이는 배율은 그대로.
+            //   안의 UI는 앵커로 붙어 있어 늘어난 만큼 끝에 붙고, 고정 크기 UI는 가운데에 남는다. 충돌 시 UI_REWORK_LOG.md 참고
             float scale = Mathf.Min(1f, avail.x / MinWidth, avail.y / DesignHeight);
-            float width = Mathf.Clamp(avail.x / scale, MinWidth, MaxWidth);
+            float width = Mathf.Max(MinWidth, avail.x / scale);
+            float height = Mathf.Max(DesignHeight, avail.y / scale);
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(width, DesignHeight);
+            rect.sizeDelta = new Vector2(width, height);
             rect.localScale = new Vector3(scale, scale, 1f);
         }
     }

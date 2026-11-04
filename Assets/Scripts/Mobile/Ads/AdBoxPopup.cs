@@ -10,11 +10,12 @@ namespace MoreMush.Mobile
     public class AdBoxPopup
     {
         const int SortingOrder = 10100;     // PopupLayer.Popup(Main 캔버스 10000 + 100)과 같은 층. 한 번에 하나만 뜨게 PopupGate에 알린다
-        const string PanelSprite = "Art/Dream/UI/panel_paper";
-        const string TitleSprite = "Art/Dream/UI/window_title";
-        const string ButtonSprite = "Art/Dream/UI/btn_go";
-        const string GoldIcon = "Art/Dream/Icons/gold";
-        const string MyceliteIcon = "Art/Dream/Icons/gem";
+        const string PanelSprite = "UI/UI_PP_Out_Paper2";
+        const string TitleSprite = "UI/UI_PP_Under_Tag_Yellow";
+        const string CancelSprite = "UI/UI_Btn_Red";     // 색은 그림으로 정한다 (코드에서 물들이지 않는다)
+        const string WatchSprite = "UI/UI_Btn_Sky";
+        const string GoldIcon = "UI/Icon/gold";
+        const string MyceliteIcon = "UI/Icon/mycelium_stone";
         static readonly Color Ink = new Color(0.30f, 0.20f, 0.10f, 1f);
 
         readonly GameObject root;
@@ -37,7 +38,7 @@ namespace MoreMush.Mobile
 
             var panel = NewImage("Panel", root.transform, Resources.Load<Sprite>(PanelSprite), Color.white, new Vector2(860f, 1040f), Vector2.zero);
             panel.type = Image.Type.Sliced;
-            var title = NewImage("Title", panel.transform, Resources.Load<Sprite>(TitleSprite), new Color(0.75f, 0.5f, 0.9f, 1f), new Vector2(560f, 120f), new Vector2(0f, 460f));
+            var title = NewImage("Title", panel.transform, Resources.Load<Sprite>(TitleSprite), Color.white, new Vector2(560f, 120f), new Vector2(0f, 460f));
             title.type = Image.Type.Sliced;
             NewText("TitleText", title.transform, "광고 보기", 54f, Color.white, font, new Vector2(520f, 100f), Vector2.zero);
             NewText("Desc", panel.transform, "광고를 보고 골드와 균사석을 받으세요!", 44f, Ink, font, new Vector2(740f, 130f), new Vector2(0f, 330f));
@@ -50,9 +51,9 @@ namespace MoreMush.Mobile
             myceliteText = NewText("Mycelite", panel.transform, "", 56f, Ink, font, new Vector2(260f, 100f), new Vector2(270f, -160f));
             statusText = NewText("Status", panel.transform, "", 34f, new Color(Ink.r, Ink.g, Ink.b, 0.8f), font, new Vector2(760f, 80f), new Vector2(0f, -270f));
 
-            var cancel = NewButton("Cancel", panel.transform, "취소", new Color(0.9f, 0.35f, 0.45f, 1f), font, new Vector2(-200f, -400f));
+            var cancel = NewButton("Cancel", panel.transform, "취소", CancelSprite, font, new Vector2(-200f, -400f));
             cancel.onClick.AddListener(Cancel);
-            watchButton = NewButton("Watch", panel.transform, "광고 보기", new Color(0.4f, 0.85f, 0.75f, 1f), font, new Vector2(200f, -400f));
+            watchButton = NewButton("Watch", panel.transform, "광고 보기", WatchSprite, font, new Vector2(200f, -400f));
             watchButton.onClick.AddListener(() => onWatch?.Invoke());
             root.SetActive(false);
         }
@@ -129,9 +130,9 @@ namespace MoreMush.Mobile
             return t;
         }
 
-        static Button NewButton(string name, Transform parent, string label, Color tint, TMP_FontAsset font, Vector2 pos)
+        static Button NewButton(string name, Transform parent, string label, string sprite, TMP_FontAsset font, Vector2 pos)
         {
-            var img = NewImage(name, parent, Resources.Load<Sprite>(ButtonSprite), tint, new Vector2(340f, 150f), pos);
+            var img = NewImage(name, parent, Resources.Load<Sprite>(sprite), Color.white, new Vector2(340f, 150f), pos);
             img.type = Image.Type.Sliced;
             img.raycastTarget = true;
             NewText("Label", img.transform, label, 48f, Color.white, font, new Vector2(300f, 100f), Vector2.zero);

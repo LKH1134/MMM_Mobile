@@ -20,7 +20,7 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform charGrid;    // 팝업 안 꼬마 버튼들의 부모
         [SerializeField] Button closeButton;
         [SerializeField] TMP_FontAsset font;
-        [SerializeField] string clearIcon = "Art/Dream/UI/btn_close";   // 편성 해제 버튼·팝업 닫기 버튼 그림 (Resources 경로)
+        [SerializeField] string clearIcon = "UI/Icon/cross";   // 편성 해제 버튼·팝업 닫기 버튼 그림 (Resources 경로)
         [SerializeField] int popupSortingOrder = 10; // 부모 캔버스보다 이만큼 위에 그린다 (전투 화면·강화 목록 위)
 
         class Pick { public Button button; public Image bg, icon; public TMP_Text name, badge; public string id; }

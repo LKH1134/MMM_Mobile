@@ -78,8 +78,8 @@ namespace MoreMush.Mobile
             coin35Text = GachaCardView.Style(coinButton35, coinLabel35, GachaCardView.CoinSprite, GachaCardView.CoinColor, CostIcon(bigProduct), font);
         }
 
-        const string GemIcon = "Art/Dream/Icons/gem";
-        const string GoldIcon = "Art/Dream/Icons/gold";
+        const string GemIcon = "UI/Icon/mycelium_stone";
+        const string GoldIcon = "UI/Icon/gold";
 
         // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 별똥 꼬마 3단계
         void ShowPreview()
