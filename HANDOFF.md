@@ -1,8 +1,12 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
+> **⚠️ 2026-11-04 작업 중단 상태 (다음 작업자 먼저 읽기):** 펫 기능 삭제는 **작업 트리에만 있고 커밋 전**이고, 펫 삭제로 느려진 진행을 되돌리는 **밸런스 보정은 verify 판정 도중 멈췄다**(표·코드에 아직 적용 안 함). 할 일 순서·재개 방법은 **9장 "2026-11-04 미완료"**, 밸런스 경과는 `밸런스설계/현황/manager.md` #18~#20.
+
+> **2026-11-04 (LKH):** 무기(수확기) 10종 개편·고급 등급 삭제(`77ad593`) → KHD 머지(`f303741`, 꼬마 등급 삭제·꼬마 뽑기 같은 확률·버섯 리소스) → 안드로이드 몰입 모드(`b6b2d6a`) → **방어구 10종 개편**(`7b17e68`, 일반 4·희귀 3·영웅 2·전설 1, 그림 10장 = HarvesterSet 규격) → **펫 삭제(미커밋)**: 장비 펫·펫 뽑기·편성 펫 칸 삭제, 편성 칸 위 3 · 아래 2 가운데 → 펫 삭제 밸런스 보정(이론 끝, 검증 중단). 커밋 표는 2장.
+
 > **2026-11-03 데이터 추가 조사:** 통합 23시트·Legacy 5종·게임 코드·씬/프리팹·Resources를 대조해 `수확전투` 16행(스킬 효과·환경 장치·보스 분신 기준·배속), `상수` 3행, `리소스` 26행을 추가했다. 등급 `#name`은 런타임 `name:string`으로 전환했다. 새 전투 설정·상수·등급명은 게임 연동, 기존 값·수식은 보존. Unity 검증 1,116행 OK. 조사 범위·제외 기준·검증은 [DATA_AUDIT.md](DATA_AUDIT.md), 재대조는 `python Tools/audit_game_data.py`.
 
-> 작성 2026-10-28 · **갱신 2026-11-03** · 기준 브랜치 `LKH` (`c2814a2`까지, KHD `66ed1e6` 방치 밸런스 v3 머지 포함)
+> 작성 2026-10-28 · **갱신 2026-11-04** · 기준 브랜치 `LKH` (`7b17e68`까지 + **미커밋 펫 삭제 작업**, KHD `c59443c` 머지 포함)
 > itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
 >
 > **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 10-30 한 번 지웠다가 KHD(`3183125`)가 **던전 1로 되살렸습니다**(Main 던전 탭 → InGame → 결과 팝업 → Main, 4장). **`SkillTree` 씬은 제거**(`Backup/SkillTree/`에 백업, 5장). **`WorldTree` 씬도 10-30 늦게 제거**(`Backup/WorldTree/`에 백업, 하단바 세계수 = "아직 개발중인 기능입니다." 알림). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`·`밸런스설계/`를 보세요.
@@ -29,7 +33,7 @@
 |---|---|
 | **Main 방치형 전투** (꼬마 5칸이 수확기 투척, 웨이브 5 + 보스, 패배 시 같은 스테이지 처음부터) | ✅ 동작 (3.1) |
 | Main 강화 목록 (공격력·체력·재생·공격 속도·치명타 + 상급 공격력·일반 적 피해량) / 방치 정산 팝업 / 앱 밖 골드 | ✅ 동작 (성장 곡선 10-30 재설계, `BALANCE_IDLE.md`) |
-| Main 하단 탭: 편성(꼬마 편성·장비) · 던전 · 뽑기(결과 연출 `GachaResultPopup`) | ✅ 동작. 던전은 **스테이지 진입으로 해금**(던전 시트: 1 = 5, 2 = 25, 3 = 150, 4 = 250, 5 = 400 — KHD v3), 레벨이 방치 스테이지보다 앞서면 소탕(`DungeonRewards`), 던전 1만 InGame 연결(**하루 2회·한국 00시 충전**), 2~5는 아직 씬 없음(던전 시트 `implemented`). 뽑기 버튼 셋은 **뽑기상품 시트**(종류마다 광고 1 · 재화 2, 가격·횟수·광고 하루 한도, 11-02. 광고 뽑기는 KHD v3대로 4회) |
+| Main 하단 탭: 편성(꼬마 편성·장비) · 던전 · 뽑기(결과 연출 `GachaResultPopup`) | ✅ 동작. 던전은 **스테이지 진입으로 해금**(던전 시트: 1 = 5, 2 = 25, 3 = 150, 4 = 250, 5 = 400 — KHD v3), 레벨이 방치 스테이지보다 앞서면 소탕(`DungeonRewards`), 던전 1만 InGame 연결(**하루 2회·한국 00시 충전**), 2~5는 아직 씬 없음(던전 시트 `implemented`). 뽑기 버튼 셋은 **뽑기상품 시트**(종류마다 광고 1 · 재화 2, 가격·횟수·광고 하루 한도, 11-02. 광고 뽑기는 종류마다 하루 1회·11회(D11). **11-04 펫 삭제로 뽑기 3종: 수확기·방어구·꼬마**) |
 | 던전·뽑기 탭 그림 (배너·카드, Codex 생성) | ✅ 2026-10-30 (`Assets/Art/Generated/Dungeon`·`Gacha`) |
 | 해상도 대응 (`StageFrame`·`FitWidth`, 16:9~20:9·노치, 남는 쪽 검정) | ✅ 2026-10-30 에디터에서 측정 (3.2). 실기기 재확인 필요 |
 | Android 뒤로가기 (팝업 닫기 → 홈 → 종료 확인 / InGame = 설정) | ✅ 2026-10-30 로직 확인. 실제 키 입력은 실기기 확인 필요 |
@@ -69,6 +73,17 @@
 ---
 
 ## 2. 커밋
+
+### 2026-11-04 (`LKH` 브랜치)
+
+| 커밋 | 내용 |
+|---|---|
+| `77ad593` | **수확기(무기) 10종 개편 · 고급 등급 삭제** — 등급 0 일반·1 희귀·2 영웅·3 전설(ownBase 2/50/250/1250), 뽑기 `oddsUncommon` 삭제, 무기 일반 4·희귀 3·영웅 2·전설 1(그림 `Art/Dream/HarvesterSet`, 리소스 7254~7263), 방어구·펫 고급 3종씩 삭제, `Equipment`가 배치를 장비 시트에서 읽음 + 예전 세이브 옮김(`RemapLayout`) |
+| `f303741` | **KHD `c59443c` 머지** — 꼬마 등급 열 삭제·진화 그림·꼬마스킬 시트, 적 독성·약용 버섯, 버섯 리소스. `GameBalance.xlsx`는 KHD 표 위에 LKH 변경(등급·뽑기·장비 시트, 리소스 7254~7263, 상수 9004~9006 삭제)을 다시 얹어 병합, 검증기 `equipSubWeight` 검사 삭제·`enemyToxicRate` 검사 유지 |
+| `b6b2d6a` | **안드로이드 몰입 모드** `ImmersiveMode.cs` — 시작·포커스 복귀마다 상태 바·하단 내비게이션 바 숨김(API 30+ `WindowInsetsController`, 아래는 IMMERSIVE_STICKY). 씬에 둘 필요 없음(`RuntimeInitializeOnLoadMethod`). **실기기 확인 전** |
+| `23c9c83` | 방어구 아이콘 첫 5장 (`Art/Dream/Icons/Armor`) |
+| `7b17e68` | **방어구 10종 개편** — 12종 → 10종(일반 풀잎 망토·나뭇잎 조끼·이끼 외투·나무 갑옷 / 희귀 수정·달빛·화산 갑옷 / 영웅 황금·별빛 갑옷 / 전설 세계수 갑옷), 그림 10장을 HarvesterSet 규격(256×256, 244px 맞춤, 임포트 설정 동일)으로, 리소스 7264~7273, `Equipment.LayoutVersion` 3(12종 방어구 세이브 옮김) |
+| (미커밋) | **펫 삭제** — 9장 "2026-11-04 미완료" 참고 |
 
 ### 2026-11-03 (`LKH` 브랜치)
 
@@ -191,10 +206,10 @@
 - **꼬마 배치:** `GgomaArea`(232×362) 안 `Ggoma1~5` = 편성 칸 1~5. 앞줄(x +58) 1·2·3, 뒷줄(x −58) 4·5 지그재그, 모두 가운데 앵커 100×100 (10-30 정리).
 - **전투(`IdleBattle`):** 웨이브 `IdleProgress.WavesPerStage` + 보스(제한 시간). 적 처치 골드는 1초마다 모아 `Wallet`에, 보스 처치 = 균사석 `BossMycelite` + 골드 `BossGold`(일반 20마리분) + 다음 스테이지. 꼬마 무리 체력이 0이면 같은 스테이지 1웨이브부터. 수치는 `BALANCE_IDLE.md`.
 - **하단 탭:** 탭이 열리면 `UpgradePanel`은 숨김(`TabGroup.homeOnly`). **10-30 KHD 이후 편성(`Equit`, y 233~2340)·던전·뽑기(y 200~2340) 패널은 하단바 위부터 화면 맨 위까지 덮습니다**(전투는 탭이 열린 동안 가려짐). 던전·뽑기는 `ScrollRect`(Viewport/Content). 탭별로 열린 동안 끌 것은 `TabGroup.Tab.hide`(지금 Main 씬에선 비어 있음).
-- **편성(`Equit`):** `GGoma`(칸 3×2 = 꼬마 칸 5 + 6번째 **펫 칸**(`Middle/Pet`, 누르면 펫 창) + 자동 편성 + 꼬마 판 위에 붙은 장착 장비 칸 `EquippedGearView`), `Char`(꼬마 고르기 — 목록 위쪽(`Outside`) 또는 오른쪽 위 X(`Out`, 코드 생성)로 닫힘), `Wepon`·`Amor`·`Pet`(장비 팝업, `EquipmentPanel`). 장비 탭은 `TabGroup.pagesArePopups`라 다른 팝업과 한 번에 하나만. 하단 꼬마/펫 탭(`Down`)은 10-30 KHD가 삭제.
+- **편성(`Equit`):** `GGoma`(꼬마 칸 5 = **위 3칸 · 아래 2칸 가운데**(11-04 펫 칸 삭제, 칸 위치는 `GGoma.prefab` `Middle/Button`~`Button (4)`) + 자동 편성 + 꼬마 판 위에 붙은 장착 장비 칸 `EquippedGearView`), `Char`(꼬마 고르기 — 목록 위쪽(`Outside`) 또는 오른쪽 위 X(`Out`, 코드 생성)로 닫힘), `Wepon`·`Amor`(장비 팝업, `EquipmentPanel`. `Pet` 팝업·`Pet.prefab`은 11-04 삭제). 장비 탭은 `TabGroup.pagesArePopups`라 다른 팝업과 한 번에 하나만. 하단 꼬마/펫 탭(`Down`)은 10-30 KHD가 삭제.
 - **꼬마 강화(KHD 10-30):** 처음 얻으면 Lv.1, 또 얻으면 조각, 조각 (Lv+1)개로 +1레벨(최대 100, `Equipment.CopiesToNext`와 같음). 공격 배율 = 1레벨 배율 × (1 + 0.05 × (Lv−1)) — 5%는 임시값. 꼬마 고르기에서 꼬마를 누르면 **선택만** 되고 아래 정보 칸 `CharacterDetail`(그림·등급·Lv·조각 막대·배율→다음)의 **편성**으로 칸에 놓음, **합성**·**일괄 합성**으로 레벨업. 미보유도 정보는 보임(편성·합성 막음). 첫 칸 X는 바로 편성 해제.
 - **던전:** 위에 배너(`Banner`, 화면 위에 고정 — 남은 시간 = 다음 한국 00시까지, `DungeonResetTimer`), 그 아래 목록 판(`ListPanel`, 배너 아래를 28 덮음) 안에서 카드 "던전 1~5"가 스크롤. 카드마다 `DungeonEntry`(남은 횟수 `n/2`, 0이면 입장 막힘). **던전 1만 씬 연결**(`InGame`), 2~5는 "해금되지 않음" 덮개(`LockOverlay`, 씬 없음). 횟수는 `DungeonTickets`(던전마다 하루 `PerDay`=2, `Dungeon.<n>.Day/Used`).
-- **뽑기:** 배너("소환" 현판) + 목록 판 안 `GachaPanel` 4종(수확기·방어구·펫·꼬마, 카드 그림 = 요정의 고리, 대표 그림은 고리 가운데). 오른쪽 열(`GachaCardView`): 뽑기 레벨·경험치, 광고 뽑기 · 11회·35회(균사석). **버튼 셋의 횟수·가격·재화·광고 하루 한도는 뽑기상품 시트**(11-02, `GachaPanel.LoadProducts`: 광고 행 → 광고 버튼, 재화 행은 pullCount 순으로 11·35 버튼). 광고 하루 사용 수 = `Gacha.<종류>.AdCount`(한국 00시, `GachaProgress.FreeLeft`; 날짜만 있고 횟수가 없는 옛 세이브는 1회 쓴 것으로). 결과는 `GachaResultPopup`(칸이 하나씩 튀어나옴, 등급 색, NEW!!, 누르면 건너뛰기).
+- **뽑기:** 배너("소환" 현판) + 목록 판 안 `GachaPanel` 3종(수확기·방어구·꼬마 — 11-04 펫 뽑기 칸 `Gacha_Panel1 (2)` 삭제, `GachaUI.prefab`; 카드 그림 = 요정의 고리, 대표 그림은 고리 가운데). 오른쪽 열(`GachaCardView`): 뽑기 레벨·경험치, 광고 뽑기 · 11회·35회(균사석). **버튼 셋의 횟수·가격·재화·광고 하루 한도는 뽑기상품 시트**(11-02, `GachaPanel.LoadProducts`: 광고 행 → 광고 버튼, 재화 행은 pullCount 순으로 11·35 버튼). 광고 하루 사용 수 = `Gacha.<종류>.AdCount`(한국 00시, `GachaProgress.FreeLeft`; 날짜만 있고 횟수가 없는 옛 세이브는 1회 쓴 것으로). 결과는 `GachaResultPopup`(칸이 하나씩 튀어나옴, 등급 색, NEW!!, 누르면 건너뛰기).
 - **팝업:** `PopupGate` — 새 팝업이 열리면 열려 있던 것을 닫음(`UiPopup`·꼬마 고르기·장비 탭·방치 정산). 하단 탭을 바꾸면 모두 닫힘. 그리는 층은 **`PopupLayer.Raise(go, offset)`**(KHD 10-30) — 자기 `Canvas`를 붙여 부모 캔버스 + offset에 그리고 입력도 먼저 받음: 편성 안 팝업 +10(`Panel`), `UiPopup`·뽑기 결과 +100(`Popup`), 토스트 +200(`Toast`, 입력 통과). 그래서 Dim을 누르면 팝업만 닫힘.
 - **재화:** `Wallet`(골드·균사석). `WalletBar`가 `Wallet` 값. 예전 테스트 지급(균사석 50,000, `Wallet.TestGrant`)은 받은 기기에서 한 번 회수(`Wallet.TestReclaimed`).
 - **방치 보상:** `IdleAway` — 탭을 연 동안·앱 밖 시간의 골드를 모아 홈으로 돌아오면 `IdleReportPopup`(오버레이 캔버스 30000).
@@ -471,7 +486,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 **메뉴:** `MoreMush/Data/Reimport Tables` · `MoreMush/Debug/Go To Next Boss Stage` · `MoreMush/Debug/Reset Stage` · `MoreMush/Debug/Run Benchmark` · `MoreMush/Debug/Open Benchmark Folder`
 **PlayerPrefs 키:** `Skill.Level.<index>`, `Stage.Current`, `Stage.FarmLeft`, `Stage.LastNormalScore`, `Stage.LastNormalGold`, `Stage.Cleared`, `Wallet.Gold`, `Wallet.Mycelite`, `Wallet.TestGrant`, `Wallet.TestReclaimed`, `InGame.SpeedIndex`, `Option.BgmVolume`, `Option.SfxVolume`, `Dungeon.<n>.Day`·`Dungeon.<n>.Used`(던전 입장 횟수, 한국 날짜)
-방치형: `Idle.Stage`, `Idle.Lv.<stat>`, `Idle.GoldPerSec`, `Idle.LastSeen`, `Formation.<칸>`·`Formation.Level.<id>`·`Formation.Copies.<id>`·`Formation.MigratedLevel`(예전 `Formation.Owned.<id>`는 한 번 옮기고 지움), `Gacha.*`(광고 뽑기 날짜는 예전 키 `Gacha.<종류>.AdDay` 그대로 + 11-02 하루 사용 수 `Gacha.<종류>.AdCount`), 장비 `Weapon.*`·`Armor.*`·`Pet.*`(`.Level.<i>`·`.Copies.<i>`·`.Equipped` — 장비 시트로 바꿔도 인덱스 0~14 그대로), **세계수 `WorldTree.Save`**(JSON 하나: 단계·나이테·경험치·창고·꼬마 ★·호감도·부탁·제작·장식·보따리).
+방치형: `Idle.Stage`, `Idle.Lv.<stat>`, `Idle.GoldPerSec`, `Idle.LastSeen`, `Formation.<칸>`·`Formation.Level.<id>`·`Formation.Copies.<id>`·`Formation.MigratedLevel`(예전 `Formation.Owned.<id>`는 한 번 옮기고 지움), `Gacha.*`(광고 뽑기 날짜는 예전 키 `Gacha.<종류>.AdDay` 그대로 + 11-02 하루 사용 수 `Gacha.<종류>.AdCount`), 장비 `Weapon.*`·`Armor.*`(`.Level.<i>`·`.Copies.<i>`·`.Equipped`·`.Layout` — 번호 = 장비 시트 itemIndex, 배치가 바뀌면 `Equipment.RemapLayout`이 한 번 옮김. 11-04 펫 삭제로 `Pet.*`·`Gacha.Pet.*`는 안 읽음), **세계수 `WorldTree.Save`**(JSON 하나: 단계·나이테·경험치·창고·꼬마 ★·호감도·부탁·제작·장식·보따리).
 **메뉴 `MoreMush/방치형 진행 초기화`는 `Idle.Stage`와 강화 8종 레벨만 지웁니다** — 지갑·장비·꼬마·뽑기·던전·세계수는 남음. **전부 지우려면 `MoreMush/게임 기록 전체 초기화`**(11-03, `Editor/SaveDataMenu.cs`): 확인 창 → PlayerPrefs 전부 삭제 + 메모리 캐시(`Wallet`·`IdleProgress`·`Formation`·`Equipment`·`WorldTree`·`DailyQuests`·광고 상자) 버림. 플레이 중이면 플레이를 끝낸 뒤 지움(끝날 때 `SaveScheduler`가 메모리 값을 다시 저장하므로). 지우는 코드는 설정 팝업용 `DataResetButton.ClearSaves()`와 같음. 벤치마크 결과 파일(`persistentDataPath/Benchmark`)은 안 지움.
 
 **밸런스 측정기 (`BalanceBot`, InGame 씬 플레이 모드에서 MCP `execute_code`로)**
@@ -545,6 +560,28 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 ---
 
 ## 9. 다음 작업 후보
+
+### 2026-11-04 미완료 (가장 먼저)
+
+**A. 펫 삭제 커밋 (작업 트리, 미커밋)** — 사용자 지시 "펫 기능 없애고 편성 UI는 위 3·아래 2". 끝난 것:
+- 코드: `GachaKind`에서 `Pet` 제거(**`Character = 3` 고정** — 씬·프리팹에 숫자로 저장돼 있어 바꾸면 꼬마 뽑기 칸이 다른 종류가 됨), `Equipment.All = {Weapon, Armor}`, `IdleProgress.AttackMultiplier = 1 + 무기%/100`(펫% 빠짐), `FormationPanel` 펫 칸 코드 삭제, `GachaPanel` 제목, 검증기 장비 종류, 주석 정리(`EquipmentPanel`·`PopupLayer`·`TabGroup`·`GameBalance`).
+- 프리팹·씬: `GGoma.prefab` 펫 칸 삭제·아래 줄 x −200/+200, `GachaUI.prefab` 펫 뽑기 칸 삭제·꼬마 칸 위로·높이 −428, `Main.unity` `Equit/Pet` 삭제·`Equit` TabGroup 탭/닫기 버튼 정리(무기·방어구 2개), `Pet.prefab` 삭제. 누락 참조 0.
+- 표: 장비 펫 12행·뽑기상품 펫 3행(12007~12009, 꼬마 12010~12012 번호는 그대로) 삭제, 데이터 검증 목록에서 Pet 제거, info·상수 설명, 개편 기록. 검증기 0건(1155행).
+- 확인: Unity 컴파일 오류 0, 편성 칸 배치는 프리팹 렌더로 확인. **플레이 모드 확인 전**(편성·장비 탭·뽑기 화면).
+- **커밋할 때 뺄 것:** `Assets/Fonts/LINESeedKR-*.asset`(Unity 재임포트, 커밋 금지 규칙), `Assets/GoogleMobileAds/.../768x1024.prefab`, `ProjectSettings/GvhProjectSettings.xml`(내용 변화 없음), `밸런스설계/test/sim/bin`·`obj` 빌드 결과물.
+
+**B. 펫 삭제 밸런스 보정 (진행 중 멈춤 — `밸런스설계/현황/manager.md` #18~#20)**
+- **#18 test 실측 끝** (`밸런스설계/테스트.md` §13, `test/out/summary_pet.txt`): 시뮬 빌드 복구(`IdsOfGrade` 제거, 장비·뽑기 종류를 dll에서 읽어 펫 있/없 dll 모두 돎). 기준선 `7b17e68` 대비 보통(광고 절반) D1/D3/D7/D30 = 130/250/360/590 → 120/240/360/500, 120일 끝 750 → 590(10/10 시드가 s590 보스에서 20일↑ 막힘). 원인: 공격 배율 끝 26394% → 6388%(후반 펫%가 무기%의 3배), 첫날 광고 뽑기 2종이 무기+펫 → 무기+방어구.
+- **#19 theory 보정안 끝** (`밸런스설계/이론.md` 13절, `theory/pet_sim/`): ① 필수 — 상수 **9081 `weaponEffectMul` = 1.75**, `Equipment.cs` `Config`에 `weaponMul` 추가 후 `BaseOwnPercent` 끝에 `* (Kind == GachaKind.Weapon ? Cfg.weaponMul : 1.0)`(이 한 곳만; `AttackMultiplier`는 고치지 않음), 검증기 `RequiredConsts`에 `("weaponEffectMul", 0.001, false)`. ② 선택(권장) — 스테이지 421~700 `enemyHp`(T열)·`bossHp`(U열) × k(420:1 → 600:0.55 → 700:0.35 로그 보간, 값 `theory/pet_hp_late2.csv`, 사본 생성 `python 밸런스설계/theory/pet_table.py <출력.xlsx> "[[420,1.0],[600,0.55],[700,0.35]]"`). 예측(보통): D1/D3/D7/D30 = 134/260/364/590, 첫 1시간 5분↑ 대기 2회(기준선과 같음), 120일 끝 790.
+- **#20 verify 판정 — 중단됨(11-04 16:24, 사용자 지시).** 남은 것은 스크립트 초안뿐(`verify/pet_analyze.py`·`pet_grade8.py`·`pet_table_v.py`), 검증.md 결론 없음. **다시 시작**: verify 에이전트(`.claude/agents/idle-verify.md`)를 manager#20 그대로 다시 띄운다 — 할 일: 따로 만든 dll(무기 ×1.75)·표 사본으로 test 시뮬 재실측해 theory 예측 재현 여부, `weaponEffectMul`이 `OwnPercent`·`EquipPercent`·`GachaProgress.OwnPercent`·`AttackMultiplier`·장비 화면·`CombatPower`에 한 번씩만 들어가는지, 기준 1·8·D11, 표 체력 단조 증가, 민감도(무기만 뽑는 정책 → 과보정 가능성, 배율 1.5/1.75/2, 후반 체력 있/없).
+- **판정 때 정할 것:** (a) 60분 허들 시작이 기준선 s180 → s250(+39%)으로 목표 ±10% 밖 — theory는 "첫날 뒤 벽이 조금 늦어질 뿐"이라 그대로 두자고 함. 받아들일지 s170~180 체력 보정을 따로 잴지, (b) 무기만 뽑는 플레이어에게 ×1.75가 과보정인지.
+- **통과하면:** 관리자가 위 ①(②)를 표(두 파일 `GameBalance.xlsx`·`GameBalance.bytes` 동일하게)·코드에 적용 → Unity 검증기·컴파일 → test가 적용본으로 다시 재서 예측과 비교 → 사용자 보고 → 커밋.
+- 기존 위반(펫 있을 때도): 첫 1시간 5분↑ 대기 s58~65(기준 6) — 이번 보정 범위 밖, theory#16(v4) 몫.
+
+**C. 확인 못 한 것**
+- 몰입 모드(`ImmersiveMode`)·방어구 그림 10장·편성 3+2 배치의 실기기/플레이 모드 확인.
+- 시뮬 결과물 정리: `밸런스설계/test/out/snap_pet_*`·`stage_pet_*`·`out/pet/`, `test/sim/bin/base/`(기준선 dll) 등 새 파일이 많다 — 커밋할지 `.gitignore`할지 결정.
+
 
 ### 세계수·표 (2026-11-03 기준)
 1. **U1 결정 (사용자):** 세계수 전투 효과를 지금처럼 +2%로 둘지, KHD 방치 곡선에 세계수 효과를 넣고 키울지 (3.3). 정하면 `밸런스설계/세계수/` 흐름(이론 → 적용 → 검증)으로 다시 돌림

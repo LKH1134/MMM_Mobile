@@ -44,7 +44,7 @@ class Tables:
         for r in sorted(_rows(d['장비']), key=lambda r: int(r['itemIndex'])):
             self.equip.setdefault(r['kind'], []).append((int(r['grade']), int(r['sub'])))
         self.dungeon = {int(r['dungeon']): int(r['unlockStage']) for r in _rows(d['던전'])}
-        self.ggoma = [dict(grade=int(r['grade']), mul=float(r['attackMultiplier']), owned=int(r['initialOwned']))
+        self.ggoma = [dict(grade=int(r.get('grade') or 0), mul=float(r['attackMultiplier']), owned=int(r['initialOwned']))
                       for r in _rows(d['꼬마'])]
 
 

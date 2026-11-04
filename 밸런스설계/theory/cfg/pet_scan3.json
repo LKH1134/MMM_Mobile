@@ -1,0 +1,8 @@
+{"out": "out_pet_scan3.json", "skip_base": true,
+ "cases": [
+  {"name": "B 무기×2", "atk_mul": 2},
+  {"name": "B 무기×2.5", "atk_mul": 2.5},
+  {"name": "B 무기×3", "atk_mul": 3},
+  {"name": "C ownBase×2", "own_mul": 2},
+  {"name": "C ownBase×2.5", "own_mul": 2.5}
+ ]}

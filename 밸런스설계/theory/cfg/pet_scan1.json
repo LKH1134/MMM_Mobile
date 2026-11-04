@@ -1,0 +1,10 @@
+{"out": "out_pet_scan1.json", "skip_base": true, "ads": ["보통"],
+ "cases": [
+  {"name": "B 무기×2", "atk_mul": 2},
+  {"name": "B 무기×3", "atk_mul": 3},
+  {"name": "B 무기×4", "atk_mul": 4},
+  {"name": "C ownBase×2", "own_mul": 2},
+  {"name": "C ownBase×3", "own_mul": 3},
+  {"name": "A 체력÷2", "hp_points": [[6, 0.5]]},
+  {"name": "A 체력÷3", "hp_points": [[6, 0.333]]}
+ ]}

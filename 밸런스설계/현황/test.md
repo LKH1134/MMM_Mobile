@@ -1,7 +1,8 @@
 # test 현황
-지금: theory#1 표 사본·시나리오 준비 완료, 관리자 dll(C1~C5) 재빌드 대기 (14:43). 직전: verify#2 타이머 수정·전체 재측정 + verify#3 장착 민감도 완료 (테스트.md §11, 최신). 이전 항목 시각은 실제보다 앞서 적힘 — 기준선(무광고) A 연속 스테이지1000 3.1일·B 3.3일·C 9.8일(벽시계), 무강화 클리어 최대 스테이지 0 (시각 오기: 실제 14:2x 이전)
+지금: 끝: manager#18 펫 삭제 전후 실측 완료 (15:59) — 보통 D1·D3·D7·D30 130/250/360/590 → 120/240/360/500, 첫 1시간 5분↑ 대기 2→4회, 테스트.md §13
 
 ## 공유할 결과
+- 밸런스설계/테스트.md §13 · 펫 삭제 전후(무광고·보통·많이 × 시드10) 도달·첫1시간·허들·공격배율 표, 요약 test/out/summary_pet.txt, 재현 test/run_pet.sh·analyze_pet.py·build/mkproj.py (15:59)
 - 밸런스설계/테스트.md · 시나리오 A/B/C(무광고)+광고 비교+공속 275+정책/fps/alive 민감도, 무강화·최소레벨, 허들 3곳 (시각 오기: 실제 14:2x 이전)
 - 밸런스설계/test/out/summary.txt · 시드 중앙값 표 · 재현: run_all.sh, run_s275.sh, aggregate.py (시각 오기: 실제 14:2x 이전)
 - 시뮬 파라미터: table=<xlsx/bytes> const=k:v speedMax=275 policy=bal|eff|cost dungKills/dungMycRun/dungGrow (던전 훅) (시각 오기: 실제 14:2x 이전)
@@ -23,3 +24,4 @@
 - 시뮬(`test/sim/Driver.cs`, `Program.cs`)에 첫 7일 골드 출처 스냅샷, 던전·뽑기·퀘스트 첫 사용 시각, 첫 1시간(플레이) 강화 횟수를 기록하고 로그에 `첫7일 골드:`와 `첫사용(...)` 두 줄을 추가했다. 확인은 B half 시드 1·10일 단건 실행으로 했다. 지표가 붙는 로그는 이 수정 뒤에 돌린 것부터이고, v1 로그에는 없어서 해당 열이 "-"로 나온다.
 - `test/aggregate_proposal.py`에 "골드 출처 비중"(장기와 첫 7일)과 "첫날 지표"(24h 도달 스테이지, 첫날 최장 벽 플레이 분, 첫 사용, 첫 1시간 강화) 절을 추가했다. v1 로그로 장기 비중과 24h 스테이지·최장 벽은 이미 출력된다.
 - `test/sim/IdleSim.csproj`의 dll 참조를 `Temp/obj/...`에서 `Library/ScriptAssemblies/...`로 바꿨다. 이유는 Unity가 재컴파일하면서 Temp/obj의 dll이 없어졌기 때문이다.
+- [x] manager#18 → 시뮬 복구(장비·뽑기 종류를 dll에서 읽음, 꼬마 뽑기=PickCharacters, 공격 배율=EquipStat.Attack 합) + 기준선 7b17e68 dll·표 빌드 + 펫 전/후 3시나리오×시드10 · 테스트.md §13 · test/out/summary_pet.txt (15:59)
