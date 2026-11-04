@@ -858,6 +858,8 @@ namespace MoreMush.Mobile
 
             // 전투 화면 왼쪽 아이콘 열: 일일 퀘스트 (배너 왼쪽)
             QuestButton.Create(effectLayer, new Vector2(-445f, hudTop - 20f), 100f, font);
+            // 그 아래: 도감 (버튼 100 + 글자 30 + 여백)
+            DexButton.Create(effectLayer, new Vector2(-445f, hudTop - 20f - 150f), 100f, font);
 
             // 전투력: 전투 화면과 강화 목록 사이 가운데. 누르면 세부 통계 창을 열고 닫는다
             var power = MakeImage("Power", effectLayer, white, new Vector2(300f, 84f));

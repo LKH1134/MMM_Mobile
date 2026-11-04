@@ -82,8 +82,8 @@ namespace MoreMush.Mobile
         public static MushroomKind KindOf(string spriteName)
         {
             if (string.IsNullOrEmpty(spriteName)) return MushroomKind.Edible;
-            if (spriteName.StartsWith("독")) return MushroomKind.Toxic;
-            if (spriteName.StartsWith("약용")) return MushroomKind.Medicinal;
+            if (spriteName.StartsWith("Mush_Toxic")) return MushroomKind.Toxic;
+            if (spriteName.StartsWith("Mush_Medicinal")) return MushroomKind.Medicinal;
             return MushroomKind.Edible;
         }
 
