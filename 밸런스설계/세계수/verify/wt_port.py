@@ -109,7 +109,7 @@ class WT:
     # ── 꼬마 뽑기 (기대값) ──
     def kid_pulls(self, n):
         rows = self.T['gacha']
-        cols = ['oddsNormal', 'oddsUncommon', 'oddsRare', 'oddsEpic', 'oddsLegend']
+        cols = ['oddsNormal', 'oddsRare', 'oddsEpic', 'oddsLegend']   # 4등급 (2026-11-04 고급 삭제)
         by_grade = {}
         for k, s in self.kids.items(): by_grade.setdefault(s['row']['grade'], []).append(k)
         left = n

@@ -21,7 +21,7 @@ namespace MoreMush.Mobile.EditorTools
             { "리소스", "index:int key:string type:string path:string" },
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double name:string" },
-            { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsUncommon:double oddsRare:double oddsEpic:double oddsLegend:double" },
+            { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsRare:double oddsEpic:double oddsLegend:double" },
             { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double hpMul:double atkMul:double" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
             { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
@@ -42,7 +42,7 @@ namespace MoreMush.Mobile.EditorTools
         static readonly (string key, double min, bool integer)[] RequiredConsts =
         {
             ("equipMaxLevel", 1, true), ("equipLevelBonus", 0, false), ("equipRatio", 0, false),
-            ("equipSubWeight1", 0, false), ("equipSubWeight2", 0, false), ("equipSubWeight3", 0, false), ("equipTopGradeMul", 0.001, false),
+            ("equipTopGradeMul", 0.001, false),
             ("copiesBase", 0, true), ("copiesPerLevel", 0, true),
             ("ggomaMaxLevel", 1, true), ("ggomaLevelBonus", 0, false), ("dungeonPerDay", 0, true),
             ("offlineCapHours", 0, false), ("offlineMinSeconds", 0, false), ("powerOffenseSeconds", 0, false), ("powerRegenSeconds", 0, false),
@@ -183,7 +183,7 @@ namespace MoreMush.Mobile.EditorTools
             ValidateConsts(tables["상수"], issues);
             ValidateGrades(tables["등급"], issues);
             ValidateGachaLevels(tables["뽑기"], issues);
-            ValidateDungeons(tables["던전"], issues);
+            ValidateDungeons(tables["던전"], issues, checkAssets);
             ValidateQuests(tables["퀘스트"], issues);
             ValidateWorldTree(tables, enemies, issues);
             ValidateImplementedDefinitions(tables, issues);
@@ -194,22 +194,37 @@ namespace MoreMush.Mobile.EditorTools
         static void ValidateImplementedDefinitions(Dictionary<string, List<Row>> tables, List<string> issues)
         {
             var equipment = tables["장비"];
-            var items = new HashSet<string>();
+            // 종류마다: itemIndex 0부터 빈 번호 없이, 등급은 itemIndex 순서로 오름차순, 모든 등급에 1개 이상,
+            // sub는 등급 안에서 0부터 이어진다 (등급마다 장비 수는 달라도 된다: 무기 4/3/2/1)
+            foreach (var kind in new[] { GachaKind.Weapon, GachaKind.Accessory, GachaKind.Pet })
+            {
+                var rows = equipment.Where(r => r.Text("kind") == kind.ToString()).OrderBy(r => r.Int("itemIndex")).ToList();
+                var perGrade = new int[GachaProgress.GradeCount];
+                int prevGrade = 0;
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    var r = rows[i];
+                    int g = r.Int("grade");
+                    if (r.Int("itemIndex") != i) { issues.Add(r.At("itemIndex") + $": {kind} itemIndex는 0부터 빈 번호·겹침 없이 이어져야 한다 ({i}이어야 함)"); continue; }
+                    if (g < 0 || g >= GachaProgress.GradeCount) continue;
+                    if (g < prevGrade) issues.Add(r.At("grade") + ": itemIndex 순서로 등급이 낮아지면 안 된다");
+                    if (r.Int("sub") != perGrade[g]) issues.Add(r.At("sub") + $": 등급 안 단계는 0부터 이어져야 한다 ({perGrade[g]}이어야 함)");
+                    perGrade[g]++;
+                    prevGrade = g;
+                }
+                for (int g = 0; g < GachaProgress.GradeCount; g++)
+                    if (perGrade[g] == 0) issues.Add($"[장비] {kind}에 {g}등급 장비가 없다 (그 등급을 뽑으면 아무것도 안 나온다)");
+            }
             foreach (var r in equipment)
             {
                 string kind = r.Text("kind");
                 if (kind == nameof(GachaKind.Character)) issues.Add(r.At("kind") + ": 꼬마는 꼬마 시트에 정의한다");
                 string stat = kind == nameof(GachaKind.Accessory) ? nameof(EquipStat.Hp) : nameof(EquipStat.Attack);
                 if (r.Text("stat") != stat) issues.Add(r.At("stat") + $": 현재 {kind}의 능력치는 {stat}이다");
-                Between(r, "itemIndex", 0, GachaProgress.GradeCount * Equipment.SubPerGrade - 1, issues);
+                Between(r, "itemIndex", 0, int.MaxValue, issues);
                 Between(r, "grade", 0, GachaProgress.GradeCount - 1, issues);
-                Between(r, "sub", 0, Equipment.SubPerGrade - 1, issues);
-                if (r.Int("itemIndex") != r.Int("grade") * Equipment.SubPerGrade + r.Int("sub")) issues.Add(r.At("itemIndex") + ": grade × 등급당 단계 수 + sub와 다르다");
-                if (!items.Add(kind + ":" + r.Int("itemIndex"))) issues.Add(r.At("itemIndex") + ": 같은 장비 종류의 저장 인덱스가 겹친다");
+                Between(r, "sub", 0, int.MaxValue, issues);
             }
-            foreach (var kind in new[] { GachaKind.Weapon, GachaKind.Accessory, GachaKind.Pet })
-                for (int i = 0; i < GachaProgress.GradeCount * Equipment.SubPerGrade; i++)
-                    if (!items.Contains(kind + ":" + i)) issues.Add($"[장비] {kind} itemIndex {i}가 없다");
 
             var products = new HashSet<string>();
             foreach (var r in tables["뽑기상품"])
@@ -384,17 +399,13 @@ namespace MoreMush.Mobile.EditorTools
                 if (!(v >= min)) issues.Add(r.At("value") + $": {key}는 {min} 이상이어야 한다");
                 if (integer && v != Math.Floor(v)) issues.Add(r.At("value") + $": {key}는 정수여야 한다");
             }
-            if (byKey.ContainsKey("equipSubWeight1") && byKey.ContainsKey("equipSubWeight2") && byKey.ContainsKey("equipSubWeight3"))
-            {
-                double sum = byKey["equipSubWeight1"].Number("value") + byKey["equipSubWeight2"].Number("value") + byKey["equipSubWeight3"].Number("value");
-                if (Math.Abs(sum - 1) > 1e-6) issues.Add($"[상수] equipSubWeight1~3의 합은 1이어야 한다 (지금 {sum})");
-            }
             if (byKey.ContainsKey("copiesBase") && byKey.ContainsKey("copiesPerLevel")
                 && byKey["copiesBase"].Number("value") + byKey["copiesPerLevel"].Number("value") < 1)
                 issues.Add("[상수] copiesBase + copiesPerLevel은 1 이상이어야 한다 (Lv.1→2 조각이 0개가 되지 않게)");
         }
 
-        static void ValidateDungeons(List<Row> rows, List<string> issues)
+        // checkAssets = false: Unity 밖(밸런스 시뮬)에서 부를 때. 빌드 설정은 에디터 안에서만 읽을 수 있어 씬 검사를 건너뛴다
+        static void ValidateDungeons(List<Row> rows, List<string> issues, bool checkAssets)
         {
             var seen = new HashSet<int>();
             foreach (var r in rows)
@@ -406,7 +417,7 @@ namespace MoreMush.Mobile.EditorTools
                 if (!seen.Add(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 던전 번호가 겹친다");
                 string scene = r.Text("scene");
                 bool implemented = IsTrue(r.Text("implemented"));
-                if (implemented && (string.IsNullOrEmpty(scene) || !UnityEditor.EditorBuildSettings.scenes.Any(s => s.enabled && s.path == "Assets/Scenes/" + scene + ".unity")))
+                if (implemented && (string.IsNullOrEmpty(scene) || checkAssets && !UnityEditor.EditorBuildSettings.scenes.Any(s => s.enabled && s.path == "Assets/Scenes/" + scene + ".unity")))
                     issues.Add(r.At("scene") + ": 구현된 던전은 빌드 설정에 포함된 씬이 필요하다");
                 if (!implemented && !string.IsNullOrEmpty(scene)) issues.Add(r.At("scene") + ": 미구현 던전은 연결 씬을 비워 둔다");
             }
@@ -442,7 +453,7 @@ namespace MoreMush.Mobile.EditorTools
         static void ValidateGachaLevels(List<Row> rows, List<string> issues)
         {
             var levels = new HashSet<int>();
-            string[] odds = { "oddsNormal", "oddsUncommon", "oddsRare", "oddsEpic", "oddsLegend" };
+            string[] odds = { "oddsNormal", "oddsRare", "oddsEpic", "oddsLegend" };
             foreach (var r in rows)
             {
                 foreach (string col in odds) Between(r, col, 0, 100, issues);

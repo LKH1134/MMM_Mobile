@@ -15,7 +15,7 @@ class Gear:
 
     def __init__(self):
         self.pulls = {k: 0 for k in self.KINDS + ['Character']}
-        self.copies = {k: [0.0] * 15 for k in self.KINDS}
+        self.copies = {k: [0.0] * len(F.equip_items(k)) for k in self.KINDS}
         self.level = {k: 1 for k in self.KINDS + ['Character']}
         self.exp = {k: 0 for k in self.KINDS + ['Character']}
 
@@ -24,10 +24,9 @@ class Gear:
         if kind != 'Character':
             tbl = F.OV.get('gacha', F.T.gacha)
             odds = tbl[min(self.level[kind], len(tbl)) - 1]['odds']
-            sub = [F.C('equipSubWeight1'), F.C('equipSubWeight2'), F.C('equipSubWeight3')]
-            for g in range(5):
-                for k in range(3):
-                    self.copies[kind][g * 3 + k] += n * odds[g] / 100 * sub[k]
+            # Equipment.PickItems: 뽑힌 등급 안에서 같은 확률
+            for i, (g, _, size) in enumerate(F.equip_items(kind)):
+                self.copies[kind][i] += n * odds[g] / 100 / size
         e = self.exp[kind] + n
         lv = self.level[kind]
         rows = F.OV.get('gacha', F.T.gacha)
@@ -40,7 +39,7 @@ class Gear:
         tot, best = 0.0, 0.0
         bonus = F.C('equipLevelBonus')
         for i, n in enumerate(self.copies[kind]):
-            base = F.base_own_percent(i // 3, i % 3)
+            base = F.equip_base(kind, i)
             if n >= 1:
                 lv = F.level_from_copies(int(n))
                 own = base * (1 + bonus * (lv - 1))

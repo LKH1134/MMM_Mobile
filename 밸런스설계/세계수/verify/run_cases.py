@@ -50,7 +50,7 @@ CASES = [
     ('v2 선물 0', 'feed_v2_a0.5.json', dict(gifts=0)),
     ('v2 부탁 안 함', 'feed_v2_a0.5.json', dict(requests=False)),
     ('v2 가속 씀', 'feed_v2_a0.5.json', dict(rush=True)),
-    ('v2 D4 (등급 해금 뽑기 Lv 1/1/2/4/5 가정)', 'feed_v2_a0.5.json', dict(grade_unlock=[1, 1, 2, 4, 5])),
+    ('v2 D4 (등급 해금 뽑기 Lv 1/2/4/5 가정 (일반·희귀·영웅·전설))', 'feed_v2_a0.5.json', dict(grade_unlock=[1, 2, 4, 5])),
 ]
 if __name__ == '__main__':
     res = {}

@@ -280,7 +280,7 @@ namespace MoreMush.Mobile
     // 등급: 장비 1레벨 보유 효과(%) 기본값
     public class GradeRow : TableRow
     {
-        public int grade;          // 0 일반 ~ 4 전설 (GachaProgress.GradeNames 번호)
+        public int grade;          // 0 일반 · 1 희귀 · 2 영웅 · 3 전설 (GachaProgress.GradeNames 번호)
         public double ownBase;
     }
 
@@ -289,7 +289,7 @@ namespace MoreMush.Mobile
     {
         public int level;
         public int expToNext;      // 최고 레벨은 0
-        public double oddsNormal, oddsUncommon, oddsRare, oddsEpic, oddsLegend;
+        public double oddsNormal, oddsRare, oddsEpic, oddsLegend;
     }
 
     // 업그레이드: 방치형 강화 한 종류 (IdleProgress.Def)

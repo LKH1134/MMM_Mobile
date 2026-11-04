@@ -205,7 +205,7 @@ namespace MoreMush.Mobile
                 var entries = new List<GachaResultPopup.Entry>();
                 var seen = new HashSet<int>();
                 foreach (int i in items)
-                    entries.Add(new GachaResultPopup.Entry { icon = eq.Sprite(i), grade = Equipment.Grade(i), isNew = !eq.IsOwned(i) && seen.Add(i) });
+                    entries.Add(new GachaResultPopup.Entry { icon = eq.Sprite(i), grade = eq.Grade(i), isNew = !eq.IsOwned(i) && seen.Add(i) });
                 GachaProgress.Apply(kind, result);
                 eq.AddItems(items);
                 ShowResult(entries);

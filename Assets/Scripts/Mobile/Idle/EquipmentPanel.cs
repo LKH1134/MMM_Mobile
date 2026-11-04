@@ -356,15 +356,15 @@ namespace MoreMush.Mobile
             int level = Eq.Level(selected), copies = Eq.Copies(selected), need = Equipment.CopiesToNext(level);
             bool have = level > 0, max = level >= Equipment.MaxLevel;
             if (detailIcon != null) { detailIcon.sprite = Eq.Sprite(selected); detailIcon.color = have ? Color.white : Locked; }
-            if (detailName != null) detailName.text = $"[{GachaProgress.GradeNames[Equipment.Grade(selected)]}] {Eq.Names[selected]}";
+            if (detailName != null) detailName.text = $"[{GachaProgress.GradeNames[Eq.Grade(selected)]}] {Eq.Names[selected]}";
             if (detailCount != null) detailCount.text = have ? $"Lv.{level}" : "미보유";
             if (mergeBarFill != null) mergeBarFill.anchorMax = new Vector2(max ? 1f : have ? Mathf.Clamp01(copies / (float)need) : 0f, 1f);
             if (mergeBarText != null) mergeBarText.text = !have ? "뽑기로 얻을 수 있습니다" : max ? "최고 레벨" : $"다음 레벨 조각 {copies}/{need}";
             // 다음 레벨 값도 같이 보여 준다
             string Next(double next) => have && !max ? $"  <size=80%><color=#3A8F2E>→ +{next:0.#}%</color></size>" : "";
             int shown = Mathf.Max(1, level);
-            if (equipStat != null) equipStat.text = $"장착 효과  {Eq.StatName} +{Equipment.EquipPercentAt(selected, shown):0.#}%" + Next(Equipment.EquipPercentAt(selected, level + 1));
-            if (ownStat != null) ownStat.text = $"보유 효과  {Eq.StatName} +{Equipment.OwnPercentAt(selected, shown):0.#}%" + Next(Equipment.OwnPercentAt(selected, level + 1));
+            if (equipStat != null) equipStat.text = $"장착 효과  {Eq.StatName} +{Eq.EquipPercentAt(selected, shown):0.#}%" + Next(Eq.EquipPercentAt(selected, level + 1));
+            if (ownStat != null) ownStat.text = $"보유 효과  {Eq.StatName} +{Eq.OwnPercentAt(selected, shown):0.#}%" + Next(Eq.OwnPercentAt(selected, level + 1));
 
             bool isEquipped = selected == equipped;
             if (equipButton != null) equipButton.interactable = have && !isEquipped;

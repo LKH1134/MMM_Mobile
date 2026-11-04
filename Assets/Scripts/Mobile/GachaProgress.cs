@@ -12,7 +12,7 @@ namespace MoreMush.Mobile
     // 등급 수·확률·경험치 곡선은 임시값이다 (기획 확정 전)
     public static class GachaProgress
     {
-        public const int GradeCount = 5;
+        public const int GradeCount = 4;   // 0 일반 · 1 희귀 · 2 영웅 · 3 전설 (2026-11-04 고급 삭제)
 
         // 최고 레벨 = 뽑기 시트의 행 수. 레벨별 경험치와 등급 확률도 그 시트에서 읽는다
         public static int MaxLevel => GameBalance.GachaLevels.Count;
@@ -51,7 +51,7 @@ namespace MoreMush.Mobile
         {
             var rows = GameBalance.GachaLevels;
             var r = rows[Mathf.Clamp(level, 1, rows.Count) - 1];
-            return new[] { (float)r.oddsNormal, (float)r.oddsUncommon, (float)r.oddsRare, (float)r.oddsEpic, (float)r.oddsLegend };
+            return new[] { (float)r.oddsNormal, (float)r.oddsRare, (float)r.oddsEpic, (float)r.oddsLegend };
         }
 
         // 광고 뽑기: 종류마다 하루 limit번 (뽑기상품 시트 dailyLimit). 던전 입장 횟수와 같이 한국 시각(UTC+9) 00시에 다시 생긴다
