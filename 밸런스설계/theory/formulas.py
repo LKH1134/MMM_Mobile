@@ -39,7 +39,7 @@ class Tables:
         # 등급 4개 (0 일반·1 희귀·2 영웅·3 전설, 2026-11-04 고급 삭제) — 확률 열도 4개
         self.gacha = [dict(exp=int(r['expToNext']), odds=[float(r[k]) for k in GRADE_ODDS]) for r in _rows(d['뽑기'])]
         self.ownBase = [float(r['ownBase']) for r in sorted(_rows(d['등급']), key=lambda r: int(r['grade']))]
-        # 장비 배치: 종류별 itemIndex 순서 (grade, sub). 등급마다 장비 수가 다르다 (무기 4/3/2/1, 방어구·펫 3/3/3/3)
+        # 장비 배치: 종류별 itemIndex 순서 (grade, sub). 등급마다 장비 수가 다르다 (무기·방어구 4/3/2/1, 펫 3/3/3/3)
         self.equip = {}
         for r in sorted(_rows(d['장비']), key=lambda r: int(r['itemIndex'])):
             self.equip.setdefault(r['kind'], []).append((int(r['grade']), int(r['sub'])))

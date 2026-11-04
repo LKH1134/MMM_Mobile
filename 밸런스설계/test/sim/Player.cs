@@ -6,7 +6,7 @@ using MoreMush.Mobile;
 // 플레이어 상태(PlayerPrefs를 쓰는 것들을 시뮬 안에서 들고 있는다). 공식은 실제 코드의 순수 함수를 부른다:
 //   IdleProgress.Value/Cost/CapLevel/ExpectedLevel, Formation.AttackMultiplierAt/IdsOfGrade/CopiesToNext,
 //   Equipment(인스턴스).OwnPercentAt/EquipPercentAt/Grade, Equipment.CopiesToNext, GachaProgress.Odds/ExpToNext
-// 장비 배치(종류별 장비 수·등급)는 장비 시트에서 읽는다 (2026-11-04: 무기 10종 4/3/2/1, 방어구·펫 12종, 4등급)
+// 장비 배치(종류별 장비 수·등급)는 장비 시트에서 읽는다 (2026-11-04: 무기·방어구 10종 4/3/2/1, 펫 12종, 4등급)
 // 상태 옮긴 곳: 레벨 = IdleProgress.cs:81-108(levels), 지갑 = Wallet.cs, 조각·레벨·장착 = Equipment.cs:111-150, Formation.cs:70-100,
 //   뽑기 레벨·경험치 = GachaProgress.cs:Apply(155-170)
 sealed class Player

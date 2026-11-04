@@ -7,7 +7,7 @@ namespace MoreMush.Mobile
     public enum EquipStat { Attack, Hp }
 
     // 장비 (레전드 오브 슬라임식): 무기(수확기)·방어구·펫. 종류·등급·단계는 장비 시트가 정한다 (등급마다 장비 수가 달라도 된다:
-    //   무기 일반 4·희귀 3·영웅 2·전설 1, 방어구·펫 3씩). 저장 번호 = 시트 itemIndex
+    //   무기·방어구 일반 4·희귀 3·영웅 2·전설 1, 펫 3씩). 저장 번호 = 시트 itemIndex
     //   - 뽑기: 등급을 뽑은 뒤 그 등급의 장비 중 하나를 같은 확률로 고른다 (PickItems)
     //   - 처음 얻으면 Lv.1, 같은 장비를 또 얻으면 조각(Copies)으로 쌓인다
     //   - 합성(도감 레벨업): 조각 CopiesToNext(Lv)개를 써서 그 장비의 레벨을 1 올린다 (다른 장비로 바뀌지 않는다, 최대 MaxLevel)
@@ -17,7 +17,7 @@ namespace MoreMush.Mobile
     public class Equipment
     {
         // 예전 배치 (5등급 × 3단계 = 15칸, 고급 있음). 세이브를 새 배치로 옮길 때만 쓴다 (Migrate·RemapLayout)
-        const int OldGradeCount = 5, OldSubPerGrade = 3, LayoutVersion = 2;
+        const int OldGradeCount = 5, OldSubPerGrade = 3, LayoutVersion = 3;   // 3 = 2026-11-04 방어구 10종
 
         // 수치는 상수 시트에서 읽는다 (처음 쓸 때). 이 클래스의 정적 필드는 리소스가 준비되기 전에도 만들어지므로 표를 바로 읽지 않는다
         sealed class Config
@@ -403,14 +403,25 @@ namespace MoreMush.Mobile
             PlayerPrefs.Save();
         }
 
-        // 2026-11-04 배치 변경 (고급 삭제, 무기 10종) 전 세이브를 옮긴다 (한 번만, Migrate 다음):
-        //   예전 번호 i = 등급 × 3 + 단계. 고급(1)은 버린다. 일반 0 → 0, 희귀 2 → 1, 영웅 3 → 2, 전설 4 → 3
+        // 배치가 바뀐 세이브를 지금 장비 시트 배치로 옮긴다 (한 번만, Migrate 다음). 예전 번호 i = 등급 × 3 + 단계
+        //   Layout 0~1 → 3: 2026-11-04 고급 삭제 전 (5등급). 고급(1)은 버린다. 일반 0 → 0, 희귀 2 → 1, 영웅 3 → 2, 전설 4 → 3
+        //   Layout 2 → 3: 방어구만 — 4등급 × 3 (12종)에서 10종(4/3/2/1)으로. 무기·펫은 Layout 2 배치 그대로
         //   새 등급에서 같은 단계 장비로 (새 등급 장비가 적으면 마지막 장비로 모은다: 레벨은 큰 쪽, 조각은 더한다)
         void RemapLayout()
         {
             string versionKey = keyPrefix + ".Layout";
-            if (PlayerPrefs.GetInt(versionKey, 0) >= LayoutVersion) return;
-            int oldCount = OldGradeCount * OldSubPerGrade;
+            int version = PlayerPrefs.GetInt(versionKey, 0);
+            if (version >= LayoutVersion) return;
+            if (version < 2) RemapFrom(OldGradeCount, g => g == 1 ? -1 : g == 0 ? 0 : g - 1);
+            else if (Kind == GachaKind.Accessory) RemapFrom(GachaProgress.GradeCount, g => g);
+            PlayerPrefs.SetInt(versionKey, LayoutVersion);
+            PlayerPrefs.Save();
+        }
+
+        // 예전 배치 (oldGrades등급 × OldSubPerGrade단계) → 지금 배치. newGrade(예전 등급) = 새 등급 (-1 = 버림)
+        void RemapFrom(int oldGrades, Func<int, int> newGrade)
+        {
+            int oldCount = oldGrades * OldSubPerGrade;
             var lv = new int[Count];
             var cp = new int[Count];
             int oldEquipped = PlayerPrefs.GetInt(EquippedKey, -1), equipped = -1;
@@ -419,9 +430,8 @@ namespace MoreMush.Mobile
                 int oldLv = PlayerPrefs.GetInt(LevelKey(i), 0), oldCp = PlayerPrefs.GetInt(CopiesKey(i), 0);
                 PlayerPrefs.DeleteKey(LevelKey(i));
                 PlayerPrefs.DeleteKey(CopiesKey(i));
-                int g = i / OldSubPerGrade;
-                if (g == 1 || oldLv <= 0) continue;
-                int ng = g == 0 ? 0 : g - 1;
+                int ng = newGrade(i / OldSubPerGrade);
+                if (ng < 0 || oldLv <= 0) continue;
                 if (ng >= byGrade.Length || byGrade[ng].Count == 0) continue;
                 var pool = byGrade[ng];
                 int to = pool[Mathf.Min(i % OldSubPerGrade, pool.Count - 1)];
@@ -434,10 +444,8 @@ namespace MoreMush.Mobile
                 if (lv[i] > 0) PlayerPrefs.SetInt(LevelKey(i), lv[i]);
                 if (cp[i] > 0) PlayerPrefs.SetInt(CopiesKey(i), cp[i]);
             }
-            if (equipped < 0) for (int i = Count - 1; i >= 0; i--) if (lv[i] > 0) { equipped = i; break; }   // 장착하던 게 고급이었으면 가진 것 중 마지막(가장 좋은) 것
+            if (equipped < 0) for (int i = Count - 1; i >= 0; i--) if (lv[i] > 0) { equipped = i; break; }   // 장착하던 게 버려졌으면 가진 것 중 마지막(가장 좋은) 것
             PlayerPrefs.SetInt(EquippedKey, equipped);
-            PlayerPrefs.SetInt(versionKey, LayoutVersion);
-            PlayerPrefs.Save();
         }
     }
 }
