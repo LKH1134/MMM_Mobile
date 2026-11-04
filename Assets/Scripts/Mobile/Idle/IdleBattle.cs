@@ -171,7 +171,7 @@ namespace MoreMush.Mobile
                 });
             }
             RefreshGgomas();
-            BuildHud();
+            // [UI 개편 2026-11-04] HUD·퀘스트·도감 버튼은 프리팹 MainHud(MainHudView)가 그린다 — 여기서 만들지 않는다 (UI_REWORK_LOG.md)
             AddView(transform);
             AddView(enemyArea);
             if (ggomaSlots.Length > 0 && ggomaSlots[0] != null) AddView(ggomaSlots[0].parent);
@@ -805,97 +805,9 @@ namespace MoreMush.Mobile
             }
         }
 
-        // ── HUD: 스테이지 · 웨이브(또는 보스) · 진행 막대 · 보스 시간 ──
-
-        void BuildHud()
-        {
-            var root = new GameObject("IdleHud", typeof(RectTransform)).GetComponent<RectTransform>();
-            root.SetParent(effectLayer, false);
-            root.anchorMin = root.anchorMax = new Vector2(0.5f, 1f);
-            root.pivot = new Vector2(0.5f, 1f);
-            root.anchoredPosition = new Vector2(0f, hudTop);
-            root.sizeDelta = new Vector2(560f, 170f);
-
-            // 스테이지 배너: 지도 아이콘 + "챕터 이름 1-6"
-            var banner = MakeImage("Banner", root, white, new Vector2(560f, 84f));
-            banner.preserveAspect = false;
-            banner.color = new Color(0.36f, 0.42f, 0.56f, 0.92f);
-            Place(banner.rectTransform, Vector2.zero, new Vector2(560f, 84f));
-            var map = MakeImage("Map", banner.rectTransform, Resources.Load<Sprite>(MapIcon), new Vector2(64f, 64f));
-            Place(map.rectTransform, new Vector2(-230f, -10f), new Vector2(64f, 64f));
-            stageText = MakeText("Stage", banner.rectTransform, 46f);
-            Place(stageText.rectTransform, new Vector2(30f, -14f), new Vector2(440f, 56f));
-
-            // 진행 막대 (웨이브 눈금 + 끝에 보스 표시). 보스전에는 보스 체력을 보여 준다
-            barFill = MakeBar("Bar", root, new Vector2(-30f, -98f), new Vector2(430f, 26f), NormalFill);
-            barFillImage = barFill.GetComponent<Image>();
-            barFill.parent.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.9f);
-            bossMark = MakeImage("BossMark", root, white, new Vector2(56f, 56f));
-            bossMark.preserveAspect = false;
-            Place(bossMark.rectTransform, new Vector2(250f, -84f), new Vector2(56f, 56f));
-            var bossLabel = MakeText("Text", bossMark.rectTransform, 22f);
-            var blrt = bossLabel.rectTransform;
-            blrt.anchorMin = Vector2.zero;
-            blrt.anchorMax = Vector2.one;
-            blrt.offsetMin = blrt.offsetMax = Vector2.zero;
-            bossLabel.text = "BOSS";
-
-            timerRoot = new GameObject("BossTime", typeof(RectTransform)).GetComponent<RectTransform>();
-            timerRoot.SetParent(root, false);
-            Place(timerRoot, new Vector2(0f, -140f), new Vector2(460f, 40f));
-            timerFill = MakeBar("Bar", timerRoot, Vector2.zero, new Vector2(360f, 14f), new Color(0.35f, 0.75f, 1f));
-            timerFill.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(-40f, -12f);
-            timerText = MakeText("Sec", timerRoot, 30f);
-            Place(timerText.rectTransform, new Vector2(190f, 0f), new Vector2(100f, 40f));
-
-            // 꼬마 무리 체력 막대: 전투 화면 왼쪽 위
-            hpFill = MakeBar("Hp", root, new Vector2(-270f, -262f), new Vector2(390f, 44f), new Color(0.35f, 0.85f, 0.4f));
-            hpText = MakeText("HpText", hpFill.parent, 28f);
-            var hpTextRt = hpText.rectTransform;
-            hpTextRt.anchorMin = Vector2.zero;
-            hpTextRt.anchorMax = Vector2.one;
-            hpTextRt.offsetMin = hpTextRt.offsetMax = Vector2.zero;
-
-            // 전투 화면 왼쪽 아이콘 열: 일일 퀘스트 (배너 왼쪽)
-            QuestButton.Create(effectLayer, new Vector2(-445f, hudTop - 20f), 100f, font);
-            // 그 아래: 도감 (버튼 100 + 글자 30 + 여백)
-            DexButton.Create(effectLayer, new Vector2(-445f, hudTop - 20f - 150f), 100f, font);
-
-            // 전투력: 전투 화면과 강화 목록 사이 가운데. 누르면 세부 통계 창을 열고 닫는다
-            var power = MakeImage("Power", effectLayer, white, new Vector2(300f, 84f));
-            power.preserveAspect = false;
-            power.color = new Color(0.1f, 0.08f, 0.14f, 0.92f);
-            power.raycastTarget = true;
-            Place(power.rectTransform, new Vector2(0f, PowerPillY + 42f), new Vector2(300f, 84f));
-            power.gameObject.AddComponent<Button>().onClick.AddListener(() =>
-            {
-                statsPanel.SetActive(!statsPanel.activeSelf);
-                RefreshPower();
-            });
-            var powerIcon = MakeImage("Icon", power.rectTransform, Resources.Load<Sprite>(PowerIcon), new Vector2(64f, 64f));
-            Place(powerIcon.rectTransform, new Vector2(-100f, -10f), new Vector2(64f, 64f));
-            powerText = MakeText("Text", power.rectTransform, 44f);
-            Place(powerText.rectTransform, new Vector2(30f, -14f), new Vector2(200f, 56f));
-            powerText.color = new Color(1f, 0.9f, 0.5f);
-
-            // 세부 통계 창: 전투력 위
-            var panel = MakeImage("Stats", effectLayer, white, new Vector2(620f, 330f));
-            panel.preserveAspect = false;
-            panel.color = new Color(0.08f, 0.06f, 0.05f, 0.82f);
-            panel.raycastTarget = true;
-            Place(panel.rectTransform, new Vector2(0f, PowerPillY + 42f + 330f), new Vector2(620f, 330f));
-            panel.gameObject.AddComponent<Button>().onClick.AddListener(() => statsPanel.SetActive(false));   // 창을 눌러도 닫힌다
-            statsPanel = panel.gameObject;
-            statsText = MakeText("Text", panel.rectTransform, 26f);
-            statsText.alignment = TextAlignmentOptions.TopLeft;
-            var srt = statsText.rectTransform;
-            srt.anchorMin = Vector2.zero;
-            srt.anchorMax = Vector2.one;
-            srt.offsetMin = new Vector2(20f, 16f);
-            srt.offsetMax = new Vector2(-20f, -16f);
-            statsPanel.SetActive(false);
-            RefreshPower();
-        }
+        // ── HUD ──
+        // [UI 개편 2026-11-04] 예전 코드 HUD(BuildHud: 배너·진행 막대·체력·전투력·통계 창·퀘스트·도감 버튼)는 지웠다.
+        // 화면은 프리팹 MainHud가 맡고, 값은 IdleBattle.Hud.cs의 Hud* 속성으로 읽는다. 아래 Refresh*는 HUD 필드가 비어 있으면 아무것도 하지 않는다
 
         static string StageLabel(int stage)
         {

@@ -19,14 +19,5 @@ namespace MoreMush.Mobile
             int s = Mathf.Max(1, stage) - 1;
             return $"스테이지 {s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}";
         }
-
-        // 코드로 만든 예전 HUD(배너·진행 막대·체력·전투력·통계 창)를 숨긴다. 퀘스트·도감 버튼은 그대로 둔다
-        public void HideLegacyHud()
-        {
-            if (stageText != null && stageText.transform.parent != null && stageText.transform.parent.parent != null)
-                stageText.transform.parent.parent.gameObject.SetActive(false);   // IdleHud (배너·진행 막대·보스 시간·체력)
-            if (powerText != null) powerText.transform.parent.gameObject.SetActive(false);
-            if (statsPanel != null) statsPanel.SetActive(false);
-        }
     }
 }

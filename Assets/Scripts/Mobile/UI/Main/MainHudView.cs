@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 전투 화면 위 가운데 HUD (프리팹 MainHud): 스테이지 제목 · 웨이브 글자 · 웨이브 점(보스전에는 보스 체력 막대) · 꼬마 체력 · 전투력.
-    // 모양은 프리팹에서 고치고, 이 스크립트는 IdleBattle 상태를 읽어 값만 넣는다. 시작할 때 IdleBattle이 코드로 만든 예전 HUD는 숨긴다.
+    // 모양은 프리팹에서 고치고, 이 스크립트는 IdleBattle 상태를 읽어 값만 넣는다.
     // IdleBattle 오브젝트 아래에 두면 홈이 아닐 때 전투 화면과 같이 숨는다
     public class MainHudView : MonoBehaviour
     {
@@ -51,7 +51,6 @@ namespace MoreMush.Mobile
 
         void Start()
         {
-            if (battle != null) battle.HideLegacyHud();
             if (dotTemplate != null) dotTemplate.gameObject.SetActive(false);
             if (statsPanel != null) statsPanel.SetActive(false);
             if (powerButton != null) powerButton.onClick.AddListener(ToggleStats);
@@ -59,12 +58,7 @@ namespace MoreMush.Mobile
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed += OnTabChanged;
             RefreshPower(true);
 
-            // 퀘스트·도감: IdleBattle이 코드로 만든 예전 버튼은 숨기고 이 프리팹의 버튼을 쓴다
-            if (battle != null)
-            {
-                foreach (var b in battle.GetComponentsInChildren<QuestButton>(true)) b.gameObject.SetActive(false);
-                foreach (var b in battle.GetComponentsInChildren<DexButton>(true)) b.gameObject.SetActive(false);
-            }
+            // 퀘스트·도감 버튼 (예전 코드 버튼 QuestButton·DexButton 대신)
             if (questButton != null) questButton.onClick.AddListener(DailyQuestPopup.Open);
             if (dexButton != null) dexButton.onClick.AddListener(() => { if (dexScreen != null) dexScreen.SetActive(true); });
             DailyQuests.Changed += RefreshQuestDot;

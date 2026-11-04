@@ -22,7 +22,7 @@
 
 | 파일 | 바꾼 곳 | 충돌 위험 |
 |---|---|---|
-| `Scripts/Mobile/Idle/IdleBattle.cs` | 클래스 선언 `class` → `partial class` 한 단어. (그 밖에 `MapIcon`·`PowerIcon` 그림 경로 상수 2줄) | **낮음.** 선언 줄·상수 줄을 같이 고치면 충돌. 새 HUD 상태는 새 파일 `IdleBattle.Hud.cs`에서 읽는다 |
+| `Scripts/Mobile/Idle/IdleBattle.cs` | `class` → `partial class`, 그림 경로 상수 2줄, **`Awake`의 `BuildHud();` 호출을 주석으로 바꾸고 `BuildHud()` 메서드(약 90줄)를 지움**. HUD 필드·`RefreshHud`·`RefreshBossBars`·`RefreshPower`·`RefreshHp`는 남겼다(필드가 비어 있으면 바로 돌아간다) | **높음.** 다른 브랜치가 `BuildHud` 안(배너·전투력·퀘스트·도감 버튼 등)을 고쳤으면 수정/삭제 충돌 → 그 변경은 프리팹 `MainHud`(+`MainHudView`)로 옮겨 적용. 새 HUD 상태는 `IdleBattle.Hud.cs`에서 읽는다 |
 | `Scripts/Mobile/UI/StageFrame.cs` | `Apply`: 폭 상한(1316)·높이 고정(2340)을 없애고 안전 영역 끝까지 늘인다 (`Mathf.Max(MinWidth, …)`, `Mathf.Max(DesignHeight, …)`, `sizeDelta` 높이). 상수 `MaxWidth`는 남겨 둠 | **중간.** 아이패드·Z플립에서 화면이 비던 근본 원인. 고정 크기 UI는 가운데, 앵커 UI는 끝에 붙는다. Stage 크기를 2340 고정으로 가정한 코드가 다른 브랜치에 생기면 확인 |
 | `Scripts/Mobile/UI/PopupLayer.cs` | 층 상수 `Panel` 10→30, `AdBox`(5)·`BottomBar`(20) 추가 + 주석 | 중간. 다른 브랜치가 층 값을 바꾸면 충돌 |
 | `Scripts/Mobile/Ads/AdBox.cs` | `SortingOrder` 10050 → `10000 + PopupLayer.AdBox` (팝업·하단 바 아래로) · 상자 그림 경로 | 낮음 (상수 줄) |
@@ -35,6 +35,8 @@
 | `Scripts/Mobile/UI/GachaResultPopup.cs` | 등급 테두리: 등급색 칠 → 등급별 그림 `GradeSprites` | 낮음 |
 | `Scripts/Mobile/WorldTree/UI/TreeUi.cs` | 그림 경로 상수 블록, `Card`·`Button`·`Bar`가 색 대신 그림을 고른다 (`ButtonOn/Alt/Off`·`CardOn/Off` 색 값은 어떤 그림을 쓸지 고르는 데만 씀) | 중간 (세계수 UI 공용 도우미) |
 | `GachaPanel.cs`, `FormationPanel.cs`, `QuestButton.cs`, `DexButton.cs`, `SceneLoader.cs` | 그림 경로 상수 한 줄씩 (`Art/Dream/UI…` → `UI/…`) | 낮음 |
+| `Scripts/Mobile/Quest/QuestButton.cs`, `DexButton.cs` | **삭제** (HUD 왼쪽 버튼은 `MainHud` 프리팹의 `SideButtons`, 동작은 `MainHudView`) | 다른 브랜치가 고쳤으면 수정/삭제 충돌 → `MainHudView`로 옮김 |
+| `Scripts/Mobile/Idle/FormationPanel.cs`, `CharacterDetail.cs`, `EquippedGearView.cs` | **삭제** (편성은 `FormationScreen` 프리팹 + `FormationScreenView`) | **중간.** 편성 기능(합성·편성·자동 편성)을 다른 브랜치가 고쳤으면 `FormationScreenView`로 옮겨 적용 |
 | `Scripts/Mobile/Idle/UpgradePanel.cs` | **삭제** (새 `UpgradeNotebookView`로 대체, 어디서도 안 씀) | 다른 브랜치가 이 파일을 고쳤으면 삭제/수정 충돌 → 새 노트 쪽에 옮겨 적용 |
 
 ## 2. 기존 씬·프리팹 수정
@@ -47,6 +49,8 @@
 | `Prefabs/Mobile/Main/Wepon·Amor·Pet.prefab` | `BottomBand` 추가(`forwardTo` = 기존 `Out`), `Out` 끔, `FitWidth` 끔 + `FitInRegion` 추가 (재화 줄 아래~하단 띠 위에 비율 맞춤) | 낮음 |
 | `Prefabs/Mobile/OptionPopup.prefab` (추가) | `Frame`·`Window`를 새 `Body`로 묶고 `FitInRegion`, `Dim`에 `SafeAreaDock(coverScreen)` | 중간 (계층 변경) |
 | `Scenes/Main.unity` (추가) | `DungeonUI/Viewport`·`GachaUI/Viewport`에 `ScaleToWidth` | 낮음 |
+| `Prefabs/Mobile/Main/GGoma.prefab`, `Char.prefab` | **삭제** (예전 편성 판·꼬마 고르기 창) | 다른 브랜치가 고쳤으면 수정/삭제 충돌 |
+| `Scenes/Main.unity` (연결) | `GGoma`·`Char`·`TopBar`(꺼져 있던 예전 재화 줄) 인스턴스 삭제, `Equit` TabGroup의 펫·무기·방어구 탭 버튼 → `FormationScreen/Book/Body/SideButtons/Pet·Weapon·Armor`, `selectedColor` 흰색 | 높음 (같은 씬) |
 | `Prefabs/Mobile/BottomBar.prefab` | **안 고침** (두 씬에서 각각 덮어씀) | — |
 
 ## 3. 새 파일 (충돌 없음)
@@ -69,7 +73,7 @@
 
 1. **폰트 SDF(`LINESeedKR-*.asset`)는 커밋하지 않는다.** 실행할 때마다 동적 아틀라스에 글자가 추가돼 바뀐다. 되돌릴 때는 Unity를 연 채 `git checkout` 후 그 에셋을 **Reimport** 해야 글자가 깨지지 않는다.
 2. 씬 충돌은 텍스트로 풀지 말고, 한쪽을 받은 뒤 Unity에서 위 표의 변경을 다시 적용한다.
-3. `IdleBattle`이 만든 예전 HUD·퀘스트·도감 버튼은 지우지 않고 `MainHudView`가 숨긴다 → `IdleBattle.BuildHud`를 고친 브랜치와도 합쳐진다.
+3. 예전 코드 HUD(`IdleBattle.BuildHud`)·퀘스트/도감 버튼 스크립트·예전 편성 스크립트는 **지웠다**. 이 파일들을 고친 브랜치와 합칠 때는 변경을 새 프리팹·View 스크립트로 옮긴다.
 
 ---
 
@@ -79,5 +83,6 @@
 |---|---|---|
 | 11-04 | 1차 | 홈 강화 노트·HUD·하단 바 프리팹화, 리소스 교체 |
 | 11-04 | 2차 | 편성(와이어프레임 공방 배치)·도감 새 화면, 코드 그림 경로·색 → 리소스 |
+| 11-04 | 4차-연결 | 예전 UI를 숨기던 방식 → 코드에서 새 프리팹 연결: IdleBattle 예전 HUD 생성 제거, 퀘스트·도감 버튼은 MainHud, Equit 탭은 새 편성 화면 버튼, 예전 편성 스크립트·프리팹 삭제 |
 | 11-04 | 3차-화면 대응 | Stage를 안전 영역 끝까지 늘림, 판·목록은 폰 폭 기준 비율 확대(`ScaleToWidth`, 최대 1.3), 팝업 창은 상단~하단 띠 사이 맞춤(`FitInRegion`), 하단 띠가 부모 확대에도 바닥에 붙게 수정. S26·Z플립7·iPad Pro 13 확인 |
 | 11-04 | 3차-기반 | 층 순서 정리(광고 상자 < 하단 바 < 편성 팝업 < 팝업), 팝업 하단 띠(Side03 + X), 회색 리소스 적용 |

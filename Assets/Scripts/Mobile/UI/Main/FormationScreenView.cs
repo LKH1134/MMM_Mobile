@@ -18,11 +18,8 @@ namespace MoreMush.Mobile
         [SerializeField] FormationCellView slotTemplate;     // 꺼 둔 원본
 
         [Header("옆 버튼")]
-        [SerializeField] Button petButton;
-        [SerializeField] Button weaponButton;
-        [SerializeField] Button armorButton;
+        // 펫·무기·방어구 버튼은 Equit의 TabGroup 탭 버튼으로 씬에서 연결한다 (누르면 TabGroup이 그 창을 연다)
         [SerializeField] Button autoButton;
-        [SerializeField] int petTab = 0, weaponTab = 1, armorTab = 2;   // Equit TabGroup 탭 번호
 
         [Header("꼬마 정보")]
         [SerializeField] Image infoIcon;
@@ -44,13 +41,11 @@ namespace MoreMush.Mobile
 
         readonly List<FormationCellView> slots = new List<FormationCellView>();
         readonly List<FormationCellView> cells = new List<FormationCellView>();
-        TabGroup equipTabs;
         string selectedId;
         int targetSlot = -1;
 
         void Awake()
         {
-            equipTabs = GetComponentInParent<TabGroup>();
             if (slotTemplate != null)
             {
                 slotTemplate.gameObject.SetActive(false);
@@ -79,9 +74,6 @@ namespace MoreMush.Mobile
                     cells.Add(c);
                 }
             }
-            if (petButton != null) petButton.onClick.AddListener(() => OpenEquip(petTab));
-            if (weaponButton != null) weaponButton.onClick.AddListener(() => OpenEquip(weaponTab));
-            if (armorButton != null) armorButton.onClick.AddListener(() => OpenEquip(armorTab));
             if (autoButton != null) autoButton.onClick.AddListener(Formation.AutoArrange);
             if (mergeButton != null) mergeButton.onClick.AddListener(MergeSelected);
             if (mergeAllButton != null) mergeAllButton.onClick.AddListener(MergeAll);
@@ -96,11 +88,6 @@ namespace MoreMush.Mobile
         }
 
         void OnDisable() => Formation.Changed -= Refresh;
-
-        void OpenEquip(int tab)
-        {
-            if (equipTabs != null) equipTabs.Select(tab);
-        }
 
         string FirstShown()
         {
