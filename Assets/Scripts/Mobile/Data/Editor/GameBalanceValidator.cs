@@ -15,7 +15,7 @@ namespace MoreMush.Mobile.EditorTools
         {
             { "적", "index:int key:string name:string hpCoefficient:double resourceId:int value:int requestCount:int" },
             { "보스", "index:int key:string name:string hpCoefficient:double resourceId:int" },
-            { "꼬마", "index:int key:string name:string grade:int attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int favoriteIds:int[] bonusEffect:TreeEffect bonusValue:double evoStage:int" },
+            { "꼬마", "index:int key:string name:string attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int favoriteIds:int[] bonusEffect:TreeEffect bonusValue:double evoStage:int evoResourceIds:int[] evoCell:int" },
             { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int valueExponent:double valueDivisor:double" },
             { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double enemyHp:double bossHp:double" },
             { "리소스", "index:int key:string type:string path:string" },
@@ -27,6 +27,7 @@ namespace MoreMush.Mobile.EditorTools
             { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
             { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
             { "꼬마진화", "index:int key:string star:int mycelite:int needLevel:int" },
+            { "꼬마스킬", "index:int key:string owner:string stage:int effect:GgomaSkillEffect value:double name:string" },
             { "호감도", "index:int key:string level:int need:int" },
             { "장식", "index:int key:string name:string owner:string grade:int zone:TreeZone effect:TreeEffect value:double resourceId:int" },
             { "장식등급", "index:int key:string name:string grade:int goldKills:int mycelite:int hours:double" },
@@ -44,7 +45,8 @@ namespace MoreMush.Mobile.EditorTools
             ("equipMaxLevel", 1, true), ("equipLevelBonus", 0, false), ("equipRatio", 0, false),
             ("equipSubWeight1", 0, false), ("equipSubWeight2", 0, false), ("equipSubWeight3", 0, false), ("equipTopGradeMul", 0.001, false),
             ("copiesBase", 0, true), ("copiesPerLevel", 0, true),
-            ("ggomaMaxLevel", 1, true), ("ggomaLevelBonus", 0, false), ("dungeonPerDay", 0, true),
+            ("ggomaMaxLevel", 1, true), ("ggomaLevelBonus", 0, false),
+            ("ggomaSplashRadius", 0, false), ("enemyToxicRate", 0, false), ("enemyMedicinalRate", 0, false), ("ggomaEvoLevel2", 1, true), ("ggomaEvoLevel3", 1, true), ("ggomaEvoMul2", 0.001, false), ("ggomaEvoMul3", 0.001, false), ("dungeonPerDay", 0, true),
             ("offlineCapHours", 0, false), ("offlineMinSeconds", 0, false), ("powerOffenseSeconds", 0, false), ("powerRegenSeconds", 0, false),
             ("levelsPerStage", 0, true), ("expSpeedPerStage", 0, false), ("expRegenRatio", 0, false), ("expCritChanceRatio", 0, false),
             ("expCritDamageRatio", 0, false), ("expAdvancedAttackRatio", 0, false), ("expNormalDamageDivisor", 1, true),
@@ -58,7 +60,7 @@ namespace MoreMush.Mobile.EditorTools
             ("tributePreferMul", 0, false), ("giftFavoriteMul", 0, false), ("giftMaxCount", 1, true),
             ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
             ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
-            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("kidEvoLevelGradeMul", 0.001, false), ("treeQuestDaily", 1, true),
+            ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("treeQuestDaily", 1, true),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
             ("offlineGoldRate", 0, false), ("speedCostRampFromLv", 0, true), ("speedCostRamp", 0, false),
             ("dungeonSweepMul", 0, false),
@@ -127,7 +129,10 @@ namespace MoreMush.Mobile.EditorTools
             foreach (var r in tables["꼬마"])
             {
                 Positive(r, "attackMultiplier", issues);
-                Between(r, "grade", 0, GachaProgress.GradeCount - 1, issues);
+                Between(r, "evoCell", 0, Formation.EvoCellCount - 1, issues);
+                var evo = r.Ids("evoResourceIds").ToList();
+                if (evo.Count != Formation.EvoStageCount) issues.Add(r.At("evoResourceIds") + $": 진화 그림 시트는 {Formation.EvoStageCount}개여야 한다");
+                foreach (int id in evo) if (!resources.ContainsKey(id)) issues.Add(r.At("evoResourceIds") + $": 리소스 {id}가 없다");
                 Between(r, "initialOwned", 0, int.MaxValue, issues);
                 Between(r, "defaultSlot", -1, Formation.SlotCount - 1, issues);
                 int slot = r.Int("defaultSlot");
@@ -328,6 +333,16 @@ namespace MoreMush.Mobile.EditorTools
             }
             if (stars.Count == 0 || stars.Min() != 0 || stars.Max() != stars.Count - 1) issues.Add("[꼬마진화] star는 0부터 빠짐없이 이어져야 한다");
 
+            // 꼬마스킬: 주인 꼬마가 있어야 하고, 단계는 진화 1~3
+            var mascotKeys = new HashSet<string>(tables["꼬마"].Select(r => r.Text("key")));
+            foreach (var r in tables["꼬마스킬"])
+            {
+                if (!mascotKeys.Contains(r.Text("owner"))) issues.Add(r.At("owner") + ": 꼬마 " + r.Text("owner") + "가 없다");
+                Between(r, "stage", 1, Formation.EvoStageCount, issues);
+                Positive(r, "value", issues);
+                if (string.IsNullOrWhiteSpace(r.Text("name"))) issues.Add(r.At("name") + ": 스킬 이름이 비어 있다");
+            }
+
             var levels = new HashSet<int>();
             foreach (var r in tables["호감도"])
             {
@@ -389,6 +404,9 @@ namespace MoreMush.Mobile.EditorTools
                 double sum = byKey["equipSubWeight1"].Number("value") + byKey["equipSubWeight2"].Number("value") + byKey["equipSubWeight3"].Number("value");
                 if (Math.Abs(sum - 1) > 1e-6) issues.Add($"[상수] equipSubWeight1~3의 합은 1이어야 한다 (지금 {sum})");
             }
+            if (byKey.ContainsKey("enemyToxicRate") && byKey.ContainsKey("enemyMedicinalRate")
+                && byKey["enemyToxicRate"].Number("value") + byKey["enemyMedicinalRate"].Number("value") > 1)
+                issues.Add("[상수] enemyToxicRate + enemyMedicinalRate는 1 이하여야 한다 (나머지가 식용 버섯)");
             if (byKey.ContainsKey("copiesBase") && byKey.ContainsKey("copiesPerLevel")
                 && byKey["copiesBase"].Number("value") + byKey["copiesPerLevel"].Number("value") < 1)
                 issues.Add("[상수] copiesBase + copiesPerLevel은 1 이상이어야 한다 (Lv.1→2 조각이 0개가 되지 않게)");
@@ -512,6 +530,7 @@ namespace MoreMush.Mobile.EditorTools
             if (type == "IdleStat") return Enum.TryParse<IdleStat>(raw, out var stat) && Enum.IsDefined(typeof(IdleStat), stat);
             if (type == "Currency") return Enum.TryParse<Currency>(raw, out var currency) && Enum.IsDefined(typeof(Currency), currency);
             if (type == "TreeEffect") return Enum.TryParse<TreeEffect>(raw, out var effect) && Enum.IsDefined(typeof(TreeEffect), effect);
+            if (type == "GgomaSkillEffect") return Enum.TryParse<GgomaSkillEffect>(raw, out var skill) && Enum.IsDefined(typeof(GgomaSkillEffect), skill);
             if (type == "TreeZone") return Enum.TryParse<TreeZone>(raw, out var zone) && Enum.IsDefined(typeof(TreeZone), zone);
             if (type == "GachaKind") return Enum.TryParse<GachaKind>(raw, out var kind) && Enum.IsDefined(typeof(GachaKind), kind);
             if (type == "EquipStat") return Enum.TryParse<EquipStat>(raw, out var equip) && Enum.IsDefined(typeof(EquipStat), equip);

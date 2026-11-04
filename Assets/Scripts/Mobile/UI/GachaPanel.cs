@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
 {
     // 뽑기 패널: 광고 뽑기(11회, 광고를 끝까지 보면, 하루 한 번 — 한국 00시에 다시) · 재화 뽑기(11회) · 재화 뽑기(35회).
     // 11회·35회는 보너스 포함 (10+1, 30+5) — 비용은 10회분·30회분. 비용·재화는 임시값이다 (기획 확정 전)
-    // kind = Character면 등급을 뽑은 뒤 그 등급의 꼬마로 바꿔 Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다.
+    // kind = Character면 뽑은 개수만큼 꼬마를 같은 확률로 골라(등급 없음) Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다.
     // 뽑은 뒤에는 GachaResultPopup으로 무엇이 나왔는지 칸을 하나씩 띄워 보여 준다.
     // 오른쪽 열은 GachaCardView로 꾸민다: 뽑기 레벨·경험치 막대 + 무료 소환(초록) · 재화 소환 11회/35회(보라, 재화 아이콘·가격)
     public class GachaPanel : MonoBehaviour
@@ -81,11 +81,11 @@ namespace MoreMush.Mobile
         const string GemIcon = "Art/Dream/Icons/gem";
         const string GoldIcon = "Art/Dream/Icons/gold";
 
-        // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 영웅 꼬마
+        // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 별똥 꼬마 3단계
         void ShowPreview()
         {
             if (previewFrame == null) return;
-            var sprite = kind == GachaKind.Character ? Formation.Icon(PreviewCharacter)
+            var sprite = kind == GachaKind.Character ? Formation.Icon(PreviewCharacter, Formation.EvoStageCount)
                 : Equipment.Of(kind) is Equipment eq ? eq.Sprite(eq.Count - 1) : null;
             if (sprite == null) return;
             var img = new GameObject("Preview", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
@@ -193,7 +193,7 @@ namespace MoreMush.Mobile
                 var entries = new List<GachaResultPopup.Entry>();
                 var seen = new HashSet<string>();
                 foreach (var id in ids)
-                    entries.Add(new GachaResultPopup.Entry { icon = Formation.Icon(id), grade = Formation.Grade(id), isNew = !Formation.IsOwned(id) && seen.Add(id) });
+                    entries.Add(new GachaResultPopup.Entry { icon = Formation.Icon(id), grade = 0, label = Formation.Name(id), isNew = !Formation.IsOwned(id) && seen.Add(id) });
                 GachaProgress.Apply(kind, result);
                 Formation.AddOwned(ids);
                 ShowResult(entries);

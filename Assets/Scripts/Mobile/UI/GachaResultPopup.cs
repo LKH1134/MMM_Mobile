@@ -14,7 +14,8 @@ namespace MoreMush.Mobile
         public struct Entry
         {
             public Sprite icon;
-            public int grade;       // GachaProgress.GradeNames 번호
+            public int grade;       // GachaProgress.GradeNames 번호 (빛 색)
+            public string label;    // 칸 위 글자. 비우면 등급 이름 (꼬마는 등급이 없어 이름을 넣는다)
             public bool isNew;
         }
 
@@ -138,7 +139,7 @@ namespace MoreMush.Mobile
             Stretch(icon.rectTransform, size * 0.16f);
 
             var grade = NewText("Grade", root, size * 0.15f, new Color(color.r * 0.6f, color.g * 0.6f, color.b * 0.6f));
-            grade.text = GachaProgress.GradeNames[Mathf.Clamp(e.grade, 0, GachaProgress.GradeCount - 1)];
+            grade.text = !string.IsNullOrEmpty(e.label) ? e.label : GachaProgress.GradeNames[Mathf.Clamp(e.grade, 0, GachaProgress.GradeCount - 1)];
             grade.fontStyle = FontStyles.Bold;
             grade.alignment = TextAlignmentOptions.TopLeft;
             Stretch(grade.rectTransform, size * 0.07f);

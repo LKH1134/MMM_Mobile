@@ -28,6 +28,7 @@ namespace MoreMush.Mobile
         static TreeStageRow[] treeStages;
         static BlessRow[] blessings;
         static KidStarRow[] kidStars;
+        static GgomaSkillRow[] ggomaSkills;
         static AffinityRow[] affinityLevels;
         static DecoRow[] decos;
         static DecoGradeRow[] decoGrades;
@@ -42,7 +43,7 @@ namespace MoreMush.Mobile
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트",
-            EnemySheet = "적", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", AffinitySheet = "호감도",
+            EnemySheet = "적", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
             EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", HarvestTierSheet = "수확등급", TreeQuestSheet = "의뢰";
 
@@ -65,6 +66,7 @@ namespace MoreMush.Mobile
             treeStages = null;
             blessings = null;
             kidStars = null;
+            ggomaSkills = null;
             affinityLevels = null;
             decos = null;
             decoGrades = null;
@@ -110,6 +112,7 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<TreeStageRow> TreeStages { get { Ensure(); return treeStages; } }
         public static IReadOnlyList<BlessRow> Blessings { get { Ensure(); return blessings; } }
         public static IReadOnlyList<KidStarRow> KidStars { get { Ensure(); return kidStars; } }
+        public static IReadOnlyList<GgomaSkillRow> GgomaSkills { get { Ensure(); return ggomaSkills; } }
         public static IReadOnlyList<AffinityRow> AffinityLevels { get { Ensure(); return affinityLevels; } }
         public static IReadOnlyList<DecoRow> Decos { get { Ensure(); return decos; } }
         public static IReadOnlyList<DecoGradeRow> DecoGrades { get { Ensure(); return decoGrades; } }
@@ -208,6 +211,7 @@ namespace MoreMush.Mobile
             treeStages = ToSorted(Read(new DataTable<TreeStageRow>(TreeSheet, 9301, 9399), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
             blessings = ToSorted(Read(new DataTable<BlessRow>(BlessSheet, 9401, 9499), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
             kidStars = ToSorted(Read(new DataTable<KidStarRow>(KidStarSheet, 9501, 9599), sheets, issues), (a, b) => a.star.CompareTo(b.star));
+            ggomaSkills = ToArray(Read(new DataTable<GgomaSkillRow>(GgomaSkillSheet, 16001, 16999), sheets, issues));
             affinityLevels = ToSorted(Read(new DataTable<AffinityRow>(AffinitySheet, 9601, 9699), sheets, issues), (a, b) => a.level.CompareTo(b.level));
             decos = ToArray(Read(new DataTable<DecoRow>(DecoSheet, 9701, 9799), sheets, issues));
             decoGrades = ToSorted(Read(new DataTable<DecoGradeRow>(DecoGradeSheet, 9801, 9899), sheets, issues), (a, b) => a.grade.CompareTo(b.grade));
@@ -312,8 +316,7 @@ namespace MoreMush.Mobile
     // 꼬마: Formation이 쓰는 꼬마 한 종
     public class MascotRow : TableRow
     {
-        public int grade;
-        public double attackMultiplier;
+        public double attackMultiplier;   // 진화 1단계 배율 (2·3단계는 상수 ggomaEvoMul2·3을 곱한다)
         public int initialOwned;   // 새 저장 데이터의 시작 레벨 (기본 편성 꼬마 = 1)
         public int defaultSlot;    // 0~4 = 기본 편성 칸, -1 = 미편성
         public int resourceId;
@@ -321,6 +324,8 @@ namespace MoreMush.Mobile
         public TreeEffect bonusEffect;   // 세계수 특기: 진화 ★(+장식 세트)마다 bonusValue씩
         public double bonusValue;
         public int evoStage;       // ★n 진화는 세계수 evoStage + n 단계부터
+        public int[] evoResourceIds;     // 진화 1·2·3단계 그림 시트 (리소스.index). 꼬마 8종이 4×2 칸으로 잘려 있다
+        public int evoCell;        // 그 시트의 칸 번호 0~7
     }
 
     // 스테이지: 한 행 = 스테이지 하나 (1부터 이어진다)
@@ -397,6 +402,15 @@ namespace MoreMush.Mobile
         public int stage;
         public TreeEffect effect;
         public double value;
+    }
+
+    // 꼬마스킬: 꼬마 패시브 스킬 한 개. 그 꼬마의 진화 단계가 stage 이상이면 켜진다 (GgomaSkills)
+    public class GgomaSkillRow : TableRow
+    {
+        public string owner;       // 꼬마.key
+        public int stage;          // 해금 진화 단계 1~3
+        public GgomaSkillEffect effect;
+        public double value;       // 비율 (0.25 = 25%). CritChance는 확률 +값
     }
 
     // 꼬마진화: ★ 단계 (0 = 진화 전)

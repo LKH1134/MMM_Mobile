@@ -74,15 +74,16 @@ namespace MoreMush.Mobile
             Changed?.Invoke();
         }
 
-        // 꼬마 뽑기: 등급별 개수(Roll 결과)를 그 등급의 꼬마들로 바꾼다 (등급 안에서는 같은 확률). 저장은 Formation.AddOwned
+        // 꼬마 뽑기: 꼬마는 등급이 없다 — Roll 결과의 개수만 쓰고, 한 번마다 모든 꼬마 중 같은 확률로 고른다. 저장은 Formation.AddOwned
         public static List<string> PickCharacters(int[] result)
         {
-            var ids = new List<string>();
-            for (int g = 0; g < GradeCount; g++)
+            int count = 0;
+            foreach (int n in result) count += n;
+            var ids = new List<string>(count);
+            for (int i = 0; i < count; i++)
             {
-                var pool = Formation.IdsOfGrade(g);
-                if (pool.Count == 0) continue;
-                for (int i = 0; i < result[g]; i++) ids.Add(pool[UnityEngine.Random.Range(0, pool.Count)]);
+                string id = Formation.RandomId();
+                if (id != "") ids.Add(id);
             }
             return ids;
         }

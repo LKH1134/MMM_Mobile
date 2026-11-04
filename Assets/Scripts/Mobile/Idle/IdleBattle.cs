@@ -24,6 +24,7 @@ namespace MoreMush.Mobile
 
         [Header("임시 리소스 (Resources 경로)")]
         [SerializeField] string enemyFolder = "Art/Dream/Characters/Critters/Mushrooms";
+        [SerializeField] string kindFolder = "Art/Dream/Characters/Enumy";     // 독버섯·약용버섯 군락 시트 (적 시트 mushroom_tx·md행 = 세계수 창고). 식용 군락은 쓰지 않는다
         [SerializeField] string bossFolder = "Art/Dream/Characters/Critters/Bosses";
         [SerializeField] string[] extraBossSprites = { "Art/Dream/Characters/Grandpa/grandpa_ref" };   // 폴더 밖 보스 그림 (Resources 경로, 확장자 없이)
         [SerializeField] string harvesterFolder = "Art/Dream/Harvesters";
@@ -48,13 +49,14 @@ namespace MoreMush.Mobile
             public Image img;
             public double hp, maxHp, incoming;
             public bool boss, dead;
+            public MushroomKind kind;   // 그림 이름으로 정한다 (꼬마 스킬 식용·독성·약용 피해)
             public float bob, flash, age, deadT;
             public Vector2 home;
             public long gold;
             public int gen;             // 풀에서 다시 꺼낼 때마다 +1 — 날아가던 수확기가 다른 적을 맞히지 않게
         }
 
-        class Shot { public RectTransform rt; public Image img; public Enemy target; public int gen; public Vector2 from, to; public float t, spin; public double dmg; public bool crit; }
+        class Shot { public RectTransform rt; public Image img; public Enemy target; public int gen; public Vector2 from, to; public float t, spin; public double dmg, splash; public bool crit; }
         class Popup { public TMP_Text text; public Vector2 pos; public float t, life; }
 
         readonly List<Ggoma> ggomas = new List<Ggoma>();
@@ -67,6 +69,7 @@ namespace MoreMush.Mobile
         readonly List<Enemy> pick = new List<Enemy>();
 
         Sprite[] enemySprites, bossSprites, harvesterSprites;
+        Sprite[] toxicSprites, medicinalSprites;    // 일반 적 중 독성·약용 버섯 (상수 enemyToxicRate·enemyMedicinalRate 비율로 나온다)
         Sprite white;
 
         int stage, wave;            // wave: 1..WavesPerStage = 일반, WavesPerStage+1 = 보스
@@ -130,6 +133,9 @@ namespace MoreMush.Mobile
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
             enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
+            var kinds = Resources.LoadAll<Sprite>(kindFolder);
+            toxicSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Toxic);
+            medicinalSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Medicinal);
             var bosses = new List<Sprite>(Resources.LoadAll<Sprite>(bossFolder));
             foreach (var path in extraBossSprites)
             {
@@ -516,7 +522,7 @@ namespace MoreMush.Mobile
                 if (g.timer > 0f) continue;
                 var target = PickTarget();
                 if (target == null) { g.timer = 0.1f; continue; }
-                g.timer += 1f / Mathf.Max(0.05f, rate);
+                g.timer += 1f / Mathf.Max(0.05f, rate * (float)GgomaSkills.SpeedMul(Formation.Get(g.slot)));   // 꼬마 스킬 공격 속도
                 g.punch = 1f;
                 Throw(g, target);
             }
@@ -533,8 +539,10 @@ namespace MoreMush.Mobile
 
         void Throw(Ggoma g, Enemy target)
         {
-            double dmg = IdleProgress.FinalAttack * Formation.AttackMultiplier(Formation.Get(g.slot));   // 꼬마마다 공격 배율
-            bool crit = Random.value < IdleProgress.FinalCritChance;
+            string id = Formation.Get(g.slot);
+            double dmg = IdleProgress.FinalAttack * Formation.AttackMultiplier(id);   // 꼬마마다 공격 배율
+            dmg *= GgomaSkills.AttackMul(id, GgomaSkills.TeamAttack()) * GgomaSkills.TargetMul(id, target.boss, target.kind);   // 꼬마 스킬
+            bool crit = Random.value < IdleProgress.FinalCritChance + GgomaSkills.Self(id, GgomaSkillEffect.CritChance);
             if (crit) dmg *= IdleProgress.FinalCritDamage;
             if (!target.boss) dmg *= IdleProgress.Value(IdleStat.NormalEnemyDamage);   // 후반 강화: 보스가 아닌 적에게만
 
@@ -549,6 +557,7 @@ namespace MoreMush.Mobile
             s.t = 0f;
             s.spin = Random.Range(540f, 900f);
             s.dmg = dmg;
+            s.splash = GgomaSkills.Self(id, GgomaSkillEffect.Splash);
             s.crit = crit;
             target.incoming += dmg;
             shots.Add(s);
@@ -575,11 +584,29 @@ namespace MoreMush.Mobile
                 s.rt.localEulerAngles = new Vector3(0f, 0f, -s.spin * s.t * flightTime);
                 if (s.t < 1f) continue;
 
-                if (same) Hit(s.target, s.dmg, s.crit);
+                if (same)
+                {
+                    Vector2 at = ToLayer(s.target.rt.position);
+                    Hit(s.target, s.dmg, s.crit);
+                    if (s.splash > 0) Splash(s.target, at, s.dmg * s.splash);
+                }
                 s.rt.gameObject.SetActive(false);
                 freeShots.Push(s);
                 shots.RemoveAt(i);
             }
+        }
+
+        // 꼬마 스킬 범위 피해: 맞은 자리 둘레의 다른 적에게 (보스·일반 같이). Hit이 다음 웨이브를 부를 수 있어 대상을 먼저 모은다
+        readonly List<Enemy> splashTargets = new List<Enemy>();
+
+        void Splash(Enemy center, Vector2 at, double dmg)
+        {
+            float r = (float)GameBalance.Const("ggomaSplashRadius");
+            splashTargets.Clear();
+            foreach (var e in enemies)
+                if (e != center && !e.dead && (ToLayer(e.rt.position) - at).sqrMagnitude <= r * r) splashTargets.Add(e);
+            foreach (var e in splashTargets) Hit(e, dmg, false);
+            splashTargets.Clear();
         }
 
         // ── 적 ──
@@ -587,7 +614,7 @@ namespace MoreMush.Mobile
         Enemy Spawn(bool isBoss, Vector2 local)
         {
             var e = freeEnemies.Count > 0 ? freeEnemies.Pop() : NewEnemy();
-            var sprites = isBoss ? bossSprites : enemySprites;
+            var sprites = isBoss ? bossSprites : PickEnemyPool();
             // 보스는 스테이지 순서대로 돌아가며 나온다 (같은 스테이지를 다시 해도 같은 보스). 일반 적은 무작위
             int pickIndex = isBoss ? (stage - 1) % Mathf.Max(1, sprites.Length) : Random.Range(0, Mathf.Max(1, sprites.Length));
             e.img.sprite = sprites.Length > 0 ? sprites[pickIndex] : white;
@@ -595,6 +622,7 @@ namespace MoreMush.Mobile
             e.rt.sizeDelta = new Vector2(size, size);
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
             e.boss = isBoss;
+            e.kind = GgomaSkills.KindOf(e.img.sprite != null ? e.img.sprite.name : null);
             e.maxHp = e.hp = isBoss ? IdleProgress.BossHp(stage) : IdleProgress.EnemyHp(stage, wave);
             e.gold = IdleProgress.ClampToLong((isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage)) * WorldTree.Mul(TreeEffect.KillGold), 1);
             e.incoming = 0;
@@ -611,6 +639,16 @@ namespace MoreMush.Mobile
             SetHp(e);
             enemies.Add(e);
             return e;
+        }
+
+        // 일반 적 그림 묶음: 독성·약용은 상수 비율대로, 나머지는 식용 (그림이 없으면 식용)
+        Sprite[] PickEnemyPool()
+        {
+            float r = Random.value;
+            float toxic = (float)GameBalance.Const("enemyToxicRate"), medicinal = (float)GameBalance.Const("enemyMedicinalRate");
+            if (r < toxic && toxicSprites != null && toxicSprites.Length > 0) return toxicSprites;
+            if (r >= toxic && r < toxic + medicinal && medicinalSprites != null && medicinalSprites.Length > 0) return medicinalSprites;
+            return enemySprites;
         }
 
         Enemy NewEnemy()

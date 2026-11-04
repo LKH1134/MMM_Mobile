@@ -226,7 +226,11 @@ namespace MoreMush.Mobile
                 // 꼬마 뽑기로 아직 못 얻은 꼬마는 어둡게 (눌러서 정보는 볼 수 있다)
                 bool owned = Formation.IsOwned(p.id);
                 bool picked = p.id == selectedId;
-                if (p.icon != null) p.icon.color = owned ? Color.white : new Color(0.25f, 0.25f, 0.25f);
+                if (p.icon != null)
+                {
+                    p.icon.sprite = Formation.Icon(p.id);     // 레벨이 오르면 진화 단계 그림이 바뀐다 (BuildPicks는 처음 한 번만 넣는다)
+                    p.icon.color = owned ? Color.white : new Color(0.25f, 0.25f, 0.25f);
+                }
                 int lv = Formation.Level(p.id);
                 p.name.text = owned ? $"{Formation.Name(p.id)} <size=80%>Lv.{lv}</size>" : Formation.Name(p.id);
                 if (!owned) { p.badge.text = "미보유"; p.bg.color = picked ? new Color(0.85f, 0.78f, 0.45f) : new Color(0.6f, 0.6f, 0.6f); continue; }
