@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    public enum GachaKind { Weapon, Accessory, Pet, Character }   // Weapon·Accessory(방어구)·Pet = 장비 (Equipment), Character = 꼬마 (Formation)
+    // Weapon·Accessory(방어구) = 장비 (Equipment), Character = 꼬마 (Formation).
+    // 2 = 펫 (2026-11-04 삭제). 씬·프리팹에 숫자로 저장돼 있어 Character는 3 그대로 둔다
+    public enum GachaKind { Weapon = 0, Accessory = 1, Character = 3 }
 
     // 뽑기 종류별 레벨·경험치·보유 수와 무료 뽑기 사용 기록. PlayerPrefs에 저장한다 (세이브 구조가 생기면 옮긴다).
     // 경험치는 뽑은 개수만큼 오른다 (11뽑이면 +11). 레벨이 오를수록 높은 등급 확률이 커진다.
@@ -30,7 +32,7 @@ namespace MoreMush.Mobile
         public static int Owned(GachaKind k, int grade) => Mathf.Max(0, PlayerPrefs.GetInt(OwnedKey(k, grade), 0));
 
         // 보유 효과(%) 1레벨 기준값 (등급별, 등급 시트 ownBase). 장비마다 단계·레벨을 반영한 값은 Equipment가 셈한다.
-        // 무기·펫 = 공격력 %, 장신구(방어구) = 체력 % (IdleProgress가 쓴다)
+        // 무기 = 공격력 %, 방어구 = 체력 % (IdleProgress가 쓴다)
         public static double OwnBase(int grade)
         {
             var grades = GameBalance.Grades;    // 시트 행이 등급 수보다 적어도 넘지 않게 (검증기가 막지만 런타임에서도)

@@ -8,7 +8,7 @@ namespace MoreMush.Mobile
     // 순서는 부모 캔버스 순서 + offset (Main 캔버스 순서가 10000이라 고정값이면 뒤로 숨는다)
     public static class PopupLayer
     {
-        public const int Panel = 10;      // 편성 안 팝업 (꼬마 고르기·무기·방어구·펫)
+        public const int Panel = 10;      // 편성 안 팝업 (꼬마 고르기·무기·방어구)
         public const int Popup = 100;     // UiPopup·뽑기 결과
         public const int Toast = 200;     // 안내 문구: 어떤 팝업 위에도 보인다
 

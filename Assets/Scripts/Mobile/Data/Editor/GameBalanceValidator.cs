@@ -201,7 +201,7 @@ namespace MoreMush.Mobile.EditorTools
             var equipment = tables["장비"];
             // 종류마다: itemIndex 0부터 빈 번호 없이, 등급은 itemIndex 순서로 오름차순, 모든 등급에 1개 이상,
             // sub는 등급 안에서 0부터 이어진다 (등급마다 장비 수는 달라도 된다: 무기 4/3/2/1)
-            foreach (var kind in new[] { GachaKind.Weapon, GachaKind.Accessory, GachaKind.Pet })
+            foreach (var kind in new[] { GachaKind.Weapon, GachaKind.Accessory })
             {
                 var rows = equipment.Where(r => r.Text("kind") == kind.ToString()).OrderBy(r => r.Int("itemIndex")).ToList();
                 var perGrade = new int[GachaProgress.GradeCount];

@@ -5,12 +5,12 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 장비 화면 (Wepon·Amor·Pet 프리팹): 위 = 고른 장비 정보·장착·합성(도감 레벨업), 가운데 = 장비 칸(Equipment 순서), 아래 = 보유 효과·소환·일괄 합성.
+    // 장비 화면 (Wepon·Amor 프리팹): 위 = 고른 장비 정보·장착·합성(도감 레벨업), 가운데 = 장비 칸(Equipment 순서), 아래 = 보유 효과·소환·일괄 합성.
     // 프리팹 안 오브젝트는 이름으로 찾는다 (Up / mid / Down). 칸 버튼에는 그림·장수·장착 표시를 코드로 붙인다.
-    // 위쪽에 정보 칸이 없는 프리팹(Pet)은 Wepon과 같은 배치로 코드에서 만든다 (원래 있던 위쪽 오브젝트는 숨긴다)
+    // 위쪽에 정보 칸이 없는 프리팹은 Wepon과 같은 배치로 코드에서 만든다 (원래 있던 위쪽 오브젝트는 숨긴다)
     public class EquipmentPanel : MonoBehaviour
     {
-        [SerializeField] GachaKind kind = GachaKind.Weapon;     // Weapon · Accessory(방어구) · Pet
+        [SerializeField] GachaKind kind = GachaKind.Weapon;     // Weapon · Accessory(방어구)
         [SerializeField] TMP_FontAsset font;
         [SerializeField] Toast toastPrefab;         // 안내 문구 — 처음 쓸 때 캔버스 맨 위에 하나 만든다 (없으면 콘솔에만)
 
@@ -82,7 +82,7 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 위쪽 정보 칸이 없는 프리팹(Pet): 원래 오브젝트를 숨기고 Wepon과 같은 배치(Up 가운데 기준)로 만든다.
+        // 위쪽 정보 칸이 없는 프리팹: 원래 오브젝트를 숨기고 Wepon과 같은 배치(Up 가운데 기준)로 만든다.
         // 이름을 Wepon과 같게 붙여 Build가 그대로 찾는다
         void BuildDetail(Transform up)
         {

@@ -6,14 +6,14 @@ namespace MoreMush.Mobile
 {
     public enum EquipStat { Attack, Hp }
 
-    // 장비 (레전드 오브 슬라임식): 무기(수확기)·방어구·펫. 종류·등급·단계는 장비 시트가 정한다 (등급마다 장비 수가 달라도 된다:
-    //   무기·방어구 일반 4·희귀 3·영웅 2·전설 1, 펫 3씩). 저장 번호 = 시트 itemIndex
+    // 장비 (레전드 오브 슬라임식): 무기(수확기)·방어구. 종류·등급·단계는 장비 시트가 정한다 (등급마다 장비 수가 달라도 된다:
+    //   무기·방어구 일반 4·희귀 3·영웅 2·전설 1). 저장 번호 = 시트 itemIndex
     //   - 뽑기: 등급을 뽑은 뒤 그 등급의 장비 중 하나를 같은 확률로 고른다 (PickItems)
     //   - 처음 얻으면 Lv.1, 같은 장비를 또 얻으면 조각(Copies)으로 쌓인다
     //   - 합성(도감 레벨업): 조각 CopiesToNext(Lv)개를 써서 그 장비의 레벨을 1 올린다 (다른 장비로 바뀌지 않는다, 최대 MaxLevel)
     //   - 보유 효과: 가진 장비마다 Stat OwnPercent(i)% = 1레벨 값 × (1 + LevelBonus × (Lv − 1))
     //   - 장착 효과: 장착한 장비 하나만 Stat EquipPercent(i)% (보유 효과 × EquipRatio, 레벨 반영)
-    // 무기·펫 = 공격력, 방어구 = 체력 (IdleProgress.AttackMultiplier / HpMultiplier). 이름·그림·수치는 임시값이다
+    // 무기 = 공격력, 방어구 = 체력 (IdleProgress.AttackMultiplier / HpMultiplier). 이름·그림·수치는 임시값이다
     public class Equipment
     {
         // 예전 배치 (5등급 × 3단계 = 15칸, 고급 있음). 세이브를 새 배치로 옮길 때만 쓴다 (Migrate·RemapLayout)
@@ -39,9 +39,9 @@ namespace MoreMush.Mobile
         // 이름·그림·등급·단계는 장비 시트(종류별 itemIndex 순서). 저장 키 앞부분은 여기
         public static readonly Equipment Weapon = new Equipment(GachaKind.Weapon, "Weapon", "무기", EquipStat.Attack);
         public static readonly Equipment Armor = new Equipment(GachaKind.Accessory, "Armor", "방어구", EquipStat.Hp);
-        public static readonly Equipment Pet = new Equipment(GachaKind.Pet, "Pet", "펫", EquipStat.Attack);
+        // 펫(Pet)은 2026-11-04 삭제. 저장 키 Pet.* 는 쓰지 않는다
 
-        public static readonly Equipment[] All = { Weapon, Armor, Pet };
+        public static readonly Equipment[] All = { Weapon, Armor };
 
         public static Equipment Of(GachaKind kind)
         {
@@ -50,7 +50,7 @@ namespace MoreMush.Mobile
         }
 
         public readonly GachaKind Kind;
-        public readonly string Title;               // 화면 이름 (무기·방어구·펫)
+        public readonly string Title;               // 화면 이름 (무기·방어구)
         public readonly EquipStat Stat;
         string[] names, spritePaths;                // 장비 시트에서 처음 쓸 때 읽는다 (null = 아직)
         int[] grades, subs, gradeSizes;             // 장비별 등급·등급 안 단계, 등급별 장비 수
@@ -405,7 +405,7 @@ namespace MoreMush.Mobile
 
         // 배치가 바뀐 세이브를 지금 장비 시트 배치로 옮긴다 (한 번만, Migrate 다음). 예전 번호 i = 등급 × 3 + 단계
         //   Layout 0~1 → 3: 2026-11-04 고급 삭제 전 (5등급). 고급(1)은 버린다. 일반 0 → 0, 희귀 2 → 1, 영웅 3 → 2, 전설 4 → 3
-        //   Layout 2 → 3: 방어구만 — 4등급 × 3 (12종)에서 10종(4/3/2/1)으로. 무기·펫은 Layout 2 배치 그대로
+        //   Layout 2 → 3: 방어구만 — 4등급 × 3 (12종)에서 10종(4/3/2/1)으로. 무기는 Layout 2 배치 그대로
         //   새 등급에서 같은 단계 장비로 (새 등급 장비가 적으면 마지막 장비로 모은다: 레벨은 큰 쪽, 조각은 더한다)
         void RemapLayout()
         {

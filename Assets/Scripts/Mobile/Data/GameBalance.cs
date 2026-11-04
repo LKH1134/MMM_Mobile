@@ -457,7 +457,7 @@ namespace MoreMush.Mobile
         public double hours;
     }
 
-    // 장비: 무기·방어구·펫 한 종. itemIndex = 저장 키 번호 (grade × 등급당 단계 + sub)
+    // 장비: 무기·방어구 한 종. itemIndex = 저장 키 번호 (grade × 등급당 단계 + sub)
     public class EquipmentRow : TableRow
     {
         public GachaKind kind;
