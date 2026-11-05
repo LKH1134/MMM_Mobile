@@ -116,8 +116,8 @@ namespace MoreMush.Mobile
             rt.offsetMax = new Vector2(-20f, -2f);
             if (label != null) t.font = label.font;
             t.color = Color.white;              // Name 띠는 카드 그림 위 반투명 어두운 리본
-            t.outlineWidth = 0.2f;
-            t.outlineColor = new Color32(40, 28, 20, 255);
+            // [UI 개편 11-05] 외곽선은 아래 OutlineText(공용 재질)로. 여기서 outlineWidth를 쓰면 예전 폰트 재질 복사본이 남아
+            //   새 폰트 글자를 엉뚱한 아틀라스에서 읽어 글자가 조각나 겹친다
             t.fontStyle = FontStyles.Bold;
             t.alignment = TextAlignmentOptions.Center;
             t.enableAutoSizing = true;
@@ -125,6 +125,7 @@ namespace MoreMush.Mobile
             t.fontSizeMax = 40f;
             t.textWrappingMode = TextWrappingModes.NoWrap;
             t.raycastTarget = false;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 공용 바깥 외곽선
             return t;
         }
 

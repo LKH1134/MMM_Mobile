@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // [UI 개편 2026-11-05] 방치 정산 팝업의 화면 조각 (프리팹 Resources/UI/Prefabs/IdleReportPopup).
+    // [UI 개편 2026-11-05] 방치 정산 팝업의 화면 조각 (프리팹 Prefabs/Mobile/UI/Main/Resources/IdleReportPopup).
     // 값 채우기·버튼 동작은 IdleReportPopup이 한다. 프리팹이 없으면 IdleReportPopup이 예전처럼 코드로 만든다.
     // 비어 있는 칸은 건너뛴다 (예: 균사석 줄을 지워도 된다)
     public class IdleReportView : MonoBehaviour

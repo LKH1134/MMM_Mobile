@@ -3,14 +3,14 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 팝업형 화면의 하단 띠 (와이어프레임: 화면 아래 어두운 바 가운데 X). 프리팹 Resources/UI/Prefabs/PopupBottomBand.
+    // 팝업형 화면의 하단 띠 (와이어프레임: 화면 아래 어두운 바 가운데 X). 프리팹 Prefabs/Mobile/UI/Common/Resources/PopupBottomBand.
     // 하단 공용 바 자리를 UI_PP_Under_Side03으로 덮고, 가운데 X를 누르면 팝업을 닫는다:
     //   Closing을 건 코드 팝업이면 그것, forwardTo가 있으면 그 버튼(기존 닫기), 부모에 UiPopup이 있으면 Close(), 아니면 closeTarget(비우면 부모)을 끈다.
     // 자리: 부모가 어디에 있든(가운데 창 안이어도) 하단 공용 바와 똑같이 —
     //   좌우 = 화면 끝, 아래 = 화면 맨 아래(홈바 자리까지), 위 = 안전 영역 아래 끝 + barHeight(Stage 단위). X는 안전 영역 쪽 가운데
     public class PopupBottomBand : MonoBehaviour
     {
-        public const string PrefabPath = "UI/Prefabs/PopupBottomBand";
+        public const string PrefabPath = "PopupBottomBand";   // Assets/Prefabs/Mobile/UI/Common/Resources/PopupBottomBand.prefab
 
         [SerializeField] Button closeButton;
         [SerializeField] GameObject closeTarget;

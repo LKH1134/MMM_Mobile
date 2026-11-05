@@ -209,6 +209,7 @@ namespace MoreMush.Mobile
             t.textWrappingMode = TextWrappingModes.NoWrap;
             t.raycastTarget = false;
             if (font != null) t.font = font;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
             return t;
         }
 

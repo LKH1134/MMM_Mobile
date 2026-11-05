@@ -137,6 +137,7 @@ namespace MoreMush.Mobile
                 var t = NewText("Text (TMP)", img.transform, 30f);
                 t.text = label;
                 t.color = Color.white;
+                OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
                 var trt = t.rectTransform;
                 trt.anchorMin = Vector2.zero;
                 trt.anchorMax = Vector2.one;

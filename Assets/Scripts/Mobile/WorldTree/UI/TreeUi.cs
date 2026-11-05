@@ -129,6 +129,7 @@ namespace MoreMush.Mobile
             var t = Text(rt, label, 34f, Color.white, font, TextAlignmentOptions.Center);
             t.fontStyle = FontStyles.Bold;
             t.overflowMode = TextOverflowModes.Overflow;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
             Place(t.rectTransform, Vector2.zero, Vector2.one, new Vector2(8f, 4f), new Vector2(-8f, -4f));
             return b;
         }

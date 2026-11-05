@@ -91,9 +91,8 @@ namespace MoreMush.Mobile
             for (int i = 0; i < kindTabs.Length; i++)
             {
                 if (kindTabs[i] == null) continue;
-                if (kindTabs[i].image != null) kindTabs[i].image.sprite = i == kind ? tabOn : tabOff;
-                var label = kindTabs[i].GetComponentInChildren<TMP_Text>();
-                if (label != null) label.color = i == kind ? Color.white : UiSkin.Ink;   // 초록 탭 = 흰 글자, 베이지 탭 = 진한 글자
+                // 탭 그림은 프리팹의 tabOn/tabOff (11-05: 고른 탭 In_Color_Green · 나머지 In_Color_Grey). 글자 색·외곽선은 프리팹 그대로 둔다
+                if (kindTabs[i].image != null && tabOn != null && tabOff != null) kindTabs[i].image.sprite = i == kind ? tabOn : tabOff;
             }
             if (sortLabel != null) sortLabel.text = ascending ? "레어도 ↑" : "레어도 ↓";
             if (goldKnob != null && goldToggle != null)

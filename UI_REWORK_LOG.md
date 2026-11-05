@@ -28,6 +28,7 @@
 | 레벨 띠 | `UI_Btn_Beige` 작은 띠, 진한 글자 |
 | 버튼 | 주 버튼 `UI_Btn_Green` 높이 120~132 흰 글자(외곽선) 44 / 보조 `UI_Btn_Beige` 높이 96~100 진한 글자 38 / 누를 수 없음 = `UI_Btn_Grey` (SpriteSwap, `UiSkin.GreyWhenDisabled`) |
 | 글자 | 제목 56 · 구역 36 · 본문 32 · 작은 글자 26, 모두 Bold, 넘치면 자동 축소 |
+| 흰 글자 외곽선 (11-05) | 갈색 **바깥** 외곽선(글자 안으로 파고들지 않음). 폰트 `Resources/UI/Fonts/LINESeedKR-Bd SDF Wide`(여백 20) + 재질 `LINESeedKR-Bd Wide Outline S·M·L` — 글자 크기(자동 축소면 최대 크기) **32 미만 S 2px · 32~47 M 4px · 48 이상 L 6px**. 코드로 만드는 글자는 `OutlineText.Apply(t)`·`ApplyIfWhite(t)` (**흰 글자는 무조건 외곽선**). 외곽선 글자에 `outlineWidth`를 따로 쓰지 않는다(예전 폰트 재질 복사본이 생겨 글자가 조각난다). 재질은 Face Dilate = Outline Width(바깥으로만), 가짜 굵게(`_WeightBold`) 0 — 폰트가 이미 Bd라 덧굵게 하면 외곽선과 뭉친다. 두 줄 이상·자동 축소로 실제 글자가 작아지는 칸은 한 단계 얇은 재질 + 글자·줄 간격(예: 방치 정산 "광고 보고 2배 보상" = S, 간격 4·줄 14) |
 | 여백 | 화면 좌우 30 · 칸 사이 16 |
 
 ---
@@ -53,6 +54,8 @@
 | `Scripts/Mobile/WorldTree/UI/TreeUi.cs` | 그림 경로 상수 블록, `Card`·`Button`·`Bar`가 색 대신 그림을 고른다 (`ButtonOn/Alt/Off`·`CardOn/Off` 색 값은 어떤 그림을 쓸지 고르는 데만 씀) | 중간 (세계수 UI 공용 도우미) |
 | `EquipmentPanel.cs`·`GachaCardView.cs`·`DailyQuestPopup.cs`·`AdBoxPopup.cs`·`IdleReportPopup.cs`·`TreeUi.cs` (추가) | 버튼을 만든 줄 뒤에 `UiSkin.GreyWhenDisabled(…)` 한 줄씩, `EquipmentPanel.SelectedSprite` → `InnerLine1` | 낮음 |
 | `UI/GachaCardView.cs` (추가) | `Style`: 제목 40·자동 축소, 아래 줄 아이콘 56·가격 38 | 낮음 |
+| `UI/GachaPanel.cs`·`Ads/AdBoxPopup.cs`·`Quest/DailyQuestPopup.cs`·`UI/PowerSaveMode.cs`·`InGame/InGameTutorial.cs`·`WorldTree/UI/TreeUi.cs`·`Idle/EquipmentPanel.cs`·`Idle/IdleReportPopup.cs` (10차-보완) | 흰 글자를 만드는 줄 뒤에 `OutlineText.ApplyIfWhite(t)` 한 줄씩. `GachaPanel.CreateTitle`은 `outlineWidth`·`outlineColor` 두 줄 삭제(글자 조각남 원인) | 낮음 (한 줄 추가) |
+| `UI/GachaCardView.cs` (10차) | `Outline()`: `OutlineText.Apply(t)` 먼저, 새 재질이 없을 때만 예전 `outlineWidth 0.2` | 낮음 |
 | `Idle/EquipmentPanel.cs` (추가) | `FitDetailText`: 이름 폭을 정보 칸 안으로 제한 | 낮음 |
 | `Prefabs/Mobile/QuestPopup.prefab` (7차) | **주간 `Quest_1~3`·일일 `Daily_1~6` 칸 안을 새로 짬** (Name·PortraitBox/IconBox·Portrait/Icon·NpcName·Desc/QuestIcon·Desc/Text·Bar/Fill·Progress·CompleteBtn/Label), 탭 `Icon` 삭제 | **중간.** 의뢰 칸 프리팹을 고친 브랜치와 충돌 → 새 칸 이름 기준으로 다시 적용 |
 | `Prefabs/Mobile/Main/DungeonUI·GachaUI.prefab` (7차) | 배너 `TitleMemo`·`TitlePlaque` 삭제 → `ListPanel/Tab` 추가, `Page`·`Viewport` 위 여백, 던전 입장 버튼 안 `LevelText` | 중간 |
@@ -87,7 +90,29 @@
 - 스크립트 `Scripts/Mobile/UI/Main/`: `MainHudView`, `UpgradeNotebookView`, `UpgradeRowView`, `SafeAreaDock`, `TabIconLift`, `FormationScreenView`, `FormationCellView`, `DexScreenView`, `PopupBottomBand`, `BottomBarLayer`, `FitInRegion`, `ScaleToWidth`, `UiSkin`, `ScaleChildren`, `TopBarView`, `QuestScreenView`(+`PopupGate`), `QuestCardView`, `QuitGameButton` / `Scripts/Mobile/Idle/IdleReportView.cs` / `Scripts/Mobile/Idle/IdleBattle.Hud.cs`
 - 프리팹 `Prefabs/Mobile/UI/Main/`: `MainHud`, `UpgradeNotebook`, `UpgradeRow`, `FormationScreen`, `DexScreen`, `QuestScreen` / `Resources/UI/Prefabs/PopupBottomBand`, `Resources/UI/Prefabs/IdleReportPopup`
 - 리소스 `Resources/UI/` (+ `.meta`의 Sprite·9-slice 설정, `UI_PP_Under_Base01/02`는 왼쪽·오른쪽 면 두 조각)
-- 머티리얼 `Fonts/LINESeedKR-Bd SDF Outline(.mat)`, `… Outline Thick.mat`
+- 머티리얼 `Fonts/LINESeedKR-Bd SDF Outline(.mat)`, `… Outline Thick.mat` (10차부터 안 씀, 남겨 둠)
+- 폰트 `Resources/UI/Fonts/LINESeedKR-Bd SDF Wide.asset` + 재질 `LINESeedKR-Bd Wide Outline S·M·L.mat`, 스크립트 `UI/Main/OutlineText.cs`, 에디터 전용 `Editor/FontReimportRefresh.cs`(폰트를 다시 가져오면 글자를 다시 그림)
+
+## 3-0. UI 프리팹 위치 (11-05 정리, `Assets/Prefabs/Mobile/` 아래)
+
+화면별로 묶었다. 파일은 Unity에서 옮겨 GUID가 그대로라 씬·프리팹 연결은 바뀌지 않는다 (모든 씬·중첩 프리팹에서 끊긴 연결 0 확인). **이 문서의 위쪽(이전) 기록은 옛 경로로 적혀 있다** — 아래 표로 찾는다.
+
+| 새 위치 | 프리팹 | 옛 위치 |
+|---|---|---|
+| `UI/Common/` (여러 씬 공용) | `TopBar` · `BottomBar` · `Toast` · `ConfirmPopup` · `OptionPopup` · `CollectPopup` | `Prefabs/Mobile/` 바로 아래 |
+| `UI/Main/` (홈) | `MainHud` · `UpgradeNotebook` · `UpgradeRow` · `QuestScreen`(일일 의뢰) · `DexScreen`(도감) | 그대로 |
+| `UI/Main/Formation/` (편성 탭) | `FormationScreen` · `Wepon`(무기) · `Amor`(방어구) · `Pet` | `UI/Main/`, `Main/` |
+| `UI/Main/Dungeon/` | `DungeonUI` | `Main/` |
+| `UI/Main/Gacha/` | `GachaUI` · `Gacha_Panel1`(뽑기 카드) | `Main/`, `Gacha_Panel/` |
+| `UI/WorldTree/` (세계수 시트) | `GrowPopup` · `SkinPopup` · `KidPopup` · `CraftPopup` · `QuestPopup`(의뢰) | `WorldTree/`, `Prefabs/Mobile/` |
+| `UI/InGame/` (던전 전투 화면) | `ResultPopup`(수확 완료) · `InGameOptionPopup` | `Prefabs/Mobile/` |
+| `InGame/` (UI 아님, 그대로) | `Harvester` · `Mushroom_Single` · `Mushroom_Cluster` | — |
+| `UI/Common/Resources/` (코드가 이름으로 읽음: `Resources.Load("PopupBottomBand")`) | `PopupBottomBand`(팝업 하단 띠 X) | `Assets/Resources/UI/Prefabs/` |
+| `UI/Main/Resources/` (코드가 이름으로 읽음: `Resources.Load("IdleReportPopup")`) | `IdleReportPopup`(방치 정산) | `Assets/Resources/UI/Prefabs/` |
+
+- `Resources` 폴더 안 두 프리팹은 **파일 이름을 바꾸면 안 된다** (코드가 이름으로 찾는다: `PopupBottomBand.PrefabPath`·`IdleReportPopup.PrefabPath`). 같은 이름을 다른 `Resources` 폴더에 또 만들지 않는다.
+- 파일 이름(`Wepon`·`Amor` 철자 포함)은 바꾸지 않았다 — 씬 오브젝트 이름·다른 브랜치와 맞추기 위해.
+- **합칠 때:** 다른 브랜치가 옛 위치의 프리팹을 고쳤으면 git이 대개 "이름 바뀜(rename)"으로 알아서 합친다. 옛 위치에 같은 이름의 **새** 프리팹을 만든 브랜치가 있으면 위치가 갈라지므로 이 표의 새 위치로 옮긴다. `UI_REWORK_GUIDE.md`·`HANDOFF.md`·`AGENT_WORKLOG.md`(다른 작업자 문서)의 경로는 옛 경로 그대로다.
 
 ## 3-1. 화면 크기 대응 방식
 
@@ -120,7 +145,8 @@ UI 개편이 게임 수치·규칙을 바꾸지 않았는지 코드·씬·프리
 ## 4-1. 커밋할 때 주의사항 · 권장사항
 
 **커밋 전에 꼭**
-1. **폰트 SDF 되돌리기**: `Assets/Fonts/LINESeedKR-Bd SDF.asset`·`LINESeedKR-Rg SDF.asset`이 바뀌어 있으면 플레이 중 글자가 추가된 것이다. `git checkout -- "Assets/Fonts/LINESeedKR-Bd SDF.asset" "Assets/Fonts/LINESeedKR-Rg SDF.asset"` 후 Unity에서 두 에셋을 **Reimport**. (Bd SDF는 1차 커밋 `e5f128e`에 한 번 들어갔다 — 새 글자가 필요해서가 아니면 다시 넣지 않는다)
+1. **폰트 SDF 되돌리기**: `Assets/Fonts/LINESeedKR-Bd SDF.asset`·`LINESeedKR-Rg SDF.asset`·`Assets/Resources/UI/Fonts/LINESeedKR-Bd SDF Wide.asset`이 바뀌어 있으면 플레이 중 글자가 추가된 것이다. `git checkout -- "Assets/Fonts/LINESeedKR-Bd SDF.asset" "Assets/Fonts/LINESeedKR-Rg SDF.asset"` 후 Unity에서 두 에셋을 **Reimport**. (Bd SDF는 1차 커밋 `e5f128e`에 한 번 들어갔다 — 새 글자가 필요해서가 아니면 다시 넣지 않는다)
+   - 되돌리면 글자 자리(아틀라스 좌표)가 바뀌어, 에디터에 이미 그려진 글자가 **한 단어가 조각나 2~3개씩 겹쳐** 보일 수 있다(실행하면 다시 그려져 정상). `Editor/FontReimportRefresh.cs`가 폰트를 다시 가져올 때 그 폰트 글자를 모두 다시 그린다. 그래도 남으면 그 프리팹·씬을 닫았다 다시 연다.
 2. **씬을 저장한 상태로**: 플레이 모드를 끄고, 씬이 dirty가 아닌지 확인. 플레이 중 바뀐 값이 저장되지 않게 한다.
 3. **스크린샷 폴더 넣지 않기**: MCP 스크린샷이 `Assets/Screenshots`에 생기면 지운다(`.meta` 포함).
 4. **`.codex/`는 넣지 않는다** (개인 도구 설정).
@@ -149,6 +175,9 @@ UI 개편이 게임 수치·규칙을 바꾸지 않았는지 코드·씬·프리
 |---|---|---|
 | 11-04 | 1차 | 홈 강화 노트·HUD·하단 바 프리팹화, 리소스 교체 |
 | 11-04 | 2차 | 편성(와이어프레임 공방 배치)·도감 새 화면, 코드 그림 경로·색 → 리소스 |
+| 11-05 | 11차 | UI 프리팹 폴더 정리(3-0장): 화면별 `UI/Common`·`UI/Main`(+`Formation`·`Dungeon`·`Gacha`)·`UI/WorldTree`·`UI/InGame`로 20개 이동, 빈 폴더 `Main`·`Gacha_Panel`·`WorldTree` 삭제. GUID 유지, 끊긴 연결 0, 실행 오류 0. 하단 띠·방치 정산 프리팹도 `UI/Common/Resources`·`UI/Main/Resources`로(읽는 경로 `PopupBottomBand.cs`·`IdleReportPopup.cs` 한 줄씩), `Assets/Resources/UI/Prefabs` 삭제 |
+| 11-05 | 10차-보완 | **흰 글자는 무조건 외곽선**: 프리팹·씬의 흰 글자 79개(설정 ON/OFF·구역 칩, 장비 창 버튼, 던전 칩, 뽑기 카드 제목, 도감 탭, 편성, Start 버전 글자)에 크기별 재질, 코드로 만드는 흰 글자는 `OutlineText.ApplyIfWhite`(광고 상자 창·예전 의뢰 창·뽑기 카드 레벨·막대 숫자·뽑기 제목·세계수 시트 버튼·절전 모드·전투 튜토리얼·장비/방치 정산 예전 화면). 전투 숫자(`IdleBattle`)는 원래 외곽선이 있어 그대로. **글자 조각남 원인 2가지 수정**: ① `GachaPanel.CreateTitle`이 `outlineWidth`로 예전 폰트 재질 복사본을 만든 뒤 새 폰트로 바뀌어 다른 아틀라스를 읽음 → `outlineWidth` 줄 삭제 ② 동적 폰트 되돌린 뒤 에디터의 낡은 글자 → `FontReimportRefresh`. 실행 중 Main·WorldTree 글자 1,700여 개에서 폰트·재질 불일치 0, 외곽선 없는 흰 글자 0 확인. 도감 탭: `DexScreenView`가 탭 그림을 `tabOn/tabOff`(예전 `Btn_Green/Beige`)로 덮던 것 → 프리팹 값을 사용자 그림(`In_Color_Green/Grey`)으로, 탭 글자색을 코드에서 바꾸지 않음 |
+| 11-05 | 10차 | 흰 글자 외곽선을 바깥 외곽선 2·4·6px로(0-1장): 여백 넓힌 새 폰트 `LINESeedKR-Bd SDF Wide`(샘플 64·여백 20·2048 다중 아틀라스)와 재질 S·M·L, 예전 `LINESeedKR-Bd SDF Outline(Thick)` 재질을 쓰던 글자 전부(프리팹 13개·Main 하단 바·WorldTree 하단 바·옆 버튼) 교체, `GachaCardView.Outline` → `OutlineText.Apply`. 상단 바 세계수 레벨 흰 글자 + 갈색 외곽선. 예전 외곽선 재질은 다른 브랜치용으로 남김(지우지 않음) |
 | 11-05 | 9차 | 방치 정산 팝업을 규격 프리팹으로(`Resources/UI/Prefabs/IdleReportPopup` + 새 `IdleReportView`): 갈색 틀·노란 탭·속지, 골드·균사석 줄(아이콘 + 굵은 값, 앱 밖 보상 작은 글자), 처치·스테이지 줄, 2배 적용 표시, 확인 초록·광고 하늘색. 설정 팝업: 토글·손잡이에 입혀 있던 색(회색 `B8B8B8`·주황 `FFAD40`·`FFF7E6`)을 빼고 그림 그대로, 구역 사이 여백(음향·언어·알림 구역 간격 50, 구역 제목 칩이 구역 위 끝에 걸치게), 알림 칸 간격, UID를 창 안(버튼 위)으로, 버튼 여백. S26·iPad 확인 |
 | 11-05 | 8차-정리 | 게임 진행 영향 점검(3-2장) → 일일 의뢰·도감 화면 `PopupGate` 복구. 씬 덮어쓰기 정리(Main: 무기·방어구·펫·던전·뽑기·강화 노트·설정·하단 바·HUD·위 바, WorldTree: 하단 바·위 바), 던전·뽑기 배너 `ScaleChildren` 빈 칸 제거, 강화 노트 회색 버튼 그림을 프리팹에 지정, 안 쓰는 `GridFitWidth` 삭제, 도감 아래 버튼 간격. 커밋 주의사항(4-1장) |
 | 11-05 | 7차 | 광고 상자를 Main 카메라 캔버스에 붙여 팝업 아래로(`AdBox.BindCamera`). 가운데 팝업 노란 탭을 틀 위로 40 튀어나오게(탭 +40~−130, 속지가 아래를 덮음; 설정·도감·일일 의뢰·통계·수확 완료·장비 창·수집·전투 설정). 장비 창 정보 칸 410→530(창 1660→1780, 목록·요약 아래로, 버튼 글자 40·44). 던전·뽑기: 배너 제목 메모 → 목록 판 위 노란 탭, 스크롤 잘림을 베이지 속지 위 끝에 맞춤(Viewport 위 −510, Page 위 −70), 설명 판 위로, 던전 레벨을 입장 버튼 안(`LevelText`)으로. 일일 의뢰 카드·버튼 폭을 좁아진 창(892)에 맞춤, 도감 격자 가운데·좌우 여백(`ScaleToWidth` 1100)·아래 버튼 간격. 세계수 의뢰 시트(`QuestPopup`): 탭 아이콘 지우고 제목 가운데, 주간 카드(의뢰인 그림 칸·말풍선 안 의뢰 아이콘·달성도 막대·완료 버튼 오른쪽), 일일 카드(일일 의뢰 창과 같은 구성: 이름·그림 칸·말풍선·완료 버튼·막대), 탭 선택 그림 `Btn_Yellow`. S26 확인, 의뢰 시트는 iPad도 확인 |

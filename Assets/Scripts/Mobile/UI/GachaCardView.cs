@@ -157,6 +157,9 @@ namespace MoreMush.Mobile
         // 밝은 버튼 그림 위에서도 흰 글자가 읽히게 진한 갈색 외곽선
         static void Outline(TMP_Text t)
         {
+            // [UI 개편 2026-11-05] 공용 바깥 외곽선 재질(크기별 2·4·6px)로. 재질 리소스가 없으면 예전처럼 글자마다 외곽선
+            OutlineText.Apply(t);
+            if (t.fontSharedMaterial != null && t.fontSharedMaterial.name.StartsWith("LINESeedKR-Bd Wide Outline")) return;
             t.outlineWidth = 0.2f;
             t.outlineColor = TextOutline;
         }
@@ -186,6 +189,7 @@ namespace MoreMush.Mobile
             t.alignment = TextAlignmentOptions.Center;
             t.raycastTarget = false;
             t.textWrappingMode = TextWrappingModes.NoWrap;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선 (레벨·막대 숫자)
             return t;
         }
 

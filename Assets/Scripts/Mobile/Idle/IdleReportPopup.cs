@@ -53,7 +53,7 @@ namespace MoreMush.Mobile
             gameObject.SetActive(true);
         }
 
-        const string PrefabPath = "UI/Prefabs/IdleReportPopup";
+        const string PrefabPath = "IdleReportPopup";   // Assets/Prefabs/Mobile/UI/Main/Resources/IdleReportPopup.prefab
         IdleReportView view;
 
         void Bind(IdleReportView v)
@@ -190,6 +190,7 @@ namespace MoreMush.Mobile
             var text = NewText("Text", img.transform, size);
             text.text = label;
             text.color = Color.white;
+            OutlineText.ApplyIfWhite(text);   // [UI 개편 11-05] 흰 글자는 외곽선 (프리팹이 없을 때의 예전 화면)
             Stretch(text.rectTransform);
             return button;
         }
