@@ -66,7 +66,7 @@ namespace MoreMush.Mobile
         readonly List<Enemy> pick = new List<Enemy>();
 
         Sprite[] enemySprites, harvesterSprites;
-        readonly Dictionary<int, Sprite> bossSprites = new Dictionary<int, Sprite>();   // 보스 리소스 ID → 그림 (표: 스테이지.bossId → 보스.resourceId)
+        readonly Dictionary<int, Sprite> bossSprites = new Dictionary<int, Sprite>();   // 보스.index → 그림 (표: 스테이지.bossId → 보스.resourceId 시트의 cell 조각)
         Sprite[] toxicSprites, medicinalSprites;    // 일반 적 중 독성·약용 버섯 (상수 enemyToxicRate·enemyMedicinalRate 비율로 나온다)
         Sprite white;
 
@@ -130,7 +130,8 @@ namespace MoreMush.Mobile
 
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
-            var kinds = Resources.LoadAll<Sprite>(kindFolder);
+            // 보스로 쓰는 조각(보스 시트 resourceId + cell)은 일반 적으로 나오지 않게 뺀다
+            var kinds = System.Array.FindAll(Resources.LoadAll<Sprite>(kindFolder), sp => !GameBalance.IsBossSprite(sp.name));
             enemySprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Edible);
             toxicSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Toxic);
             medicinalSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Medicinal);
@@ -638,26 +639,19 @@ namespace MoreMush.Mobile
             return e;
         }
 
-        // 스테이지의 보스 그림 (스테이지.bossId → 보스.resourceId → 리소스.path). 리소스 ID마다 한 번만 읽는다
+        // 스테이지의 보스 그림 (스테이지.bossId → 보스.resourceId 시트의 cell 조각). 보스마다 한 번만 읽는다
         Sprite BossSprite(int stageNumber)
         {
-            var boss = GameBalance.Boss(GameBalance.Stage(stageNumber).bossId);
-            int id = boss != null ? boss.resourceId : 0;
-            if (bossSprites.TryGetValue(id, out var cached)) return cached;
-            string path = id != 0 ? GameBalance.ResourcePath(id) : null;
-            var sp = path != null ? FirstCell(path) : null;
-            if (sp == null) Debug.LogWarning($"[IdleBattle] 보스 그림 없음: 스테이지 {stageNumber} bossId {GameBalance.Stage(stageNumber).bossId} → 리소스 {id} '{path}'");
-            bossSprites[id] = sp;
+            int bossId = GameBalance.Stage(stageNumber).bossId;
+            if (bossSprites.TryGetValue(bossId, out var cached)) return cached;
+            var boss = GameBalance.Boss(bossId);
+            string path = boss != null ? GameBalance.ResourcePath(boss.resourceId) : null;
+            string cell = GameBalance.BossSpriteName(boss);
+            Sprite sp = null;
+            if (path != null) foreach (var s in Resources.LoadAll<Sprite>(path)) if (s.name == cell) { sp = s; break; }
+            if (sp == null) Debug.LogWarning($"[IdleBattle] 보스 그림 없음: 스테이지 {stageNumber} bossId {bossId} → '{path}' 조각 '{cell}'");
+            bossSprites[bossId] = sp;
             return sp;
-        }
-
-        // 시트(여러 칸)면 "_0" 칸, 한 장짜리면 그 그림
-        static Sprite FirstCell(string path)
-        {
-            var all = Resources.LoadAll<Sprite>(path);
-            if (all == null || all.Length == 0) return null;
-            foreach (var sp in all) if (sp.name.EndsWith("_0")) return sp;
-            return all[0];
         }
 
         // 일반 적 그림 묶음: 독성·약용은 상수 비율대로, 나머지는 식용 (그림이 없으면 식용)

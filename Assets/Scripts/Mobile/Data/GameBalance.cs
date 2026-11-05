@@ -26,6 +26,7 @@ namespace MoreMush.Mobile
         static QuestRow[] quests;
         static EnemyRow[] enemies;
         static Dictionary<int, BossRow> bosses;
+        static HashSet<string> bossSpriteNames;
         static TreeStageRow[] treeStages;
         static BlessRow[] blessings;
         static KidStarRow[] kidStars;
@@ -169,6 +170,20 @@ namespace MoreMush.Mobile
             return bosses.TryGetValue(index, out var row) ? row : null;
         }
 
+        // 보스 그림 조각 이름 ("시트이름_cell"). 시트를 못 찾으면 null
+        public static string BossSpriteName(BossRow boss)
+        {
+            string path = boss != null && resources.TryGetValue(boss.resourceId, out var p) ? p : null;
+            return path != null ? path.Substring(path.LastIndexOf('/') + 1) + "_" + boss.cell : null;
+        }
+
+        // 보스로 쓰는 그림 조각인지 — 일반 적·창고 아이콘에서 뺀다
+        public static bool IsBossSprite(string spriteName)
+        {
+            Ensure();
+            return spriteName != null && bossSpriteNames.Contains(spriteName);
+        }
+
         // 리소스.index → Resources 경로 (없으면 null)
         public static string ResourcePath(int id)
         {
@@ -242,7 +257,13 @@ namespace MoreMush.Mobile
             dungeons = new Dictionary<int, DungeonRow>();
             foreach (var row in dungeonRows) dungeons[row.dungeon] = row;
             bosses = new Dictionary<int, BossRow>();
-            foreach (var row in bossRows) bosses[row.index] = row;
+            bossSpriteNames = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var row in bossRows)
+            {
+                bosses[row.index] = row;
+                string name = BossSpriteName(row);
+                if (name != null) bossSpriteNames.Add(name);
+            }
 
             for (int i = 0; i < stages.Length; i++)
                 if (stages[i].stage != i + 1)
@@ -388,7 +409,8 @@ namespace MoreMush.Mobile
     // 보스: 방치 전투 보스 한 종. 스테이지.bossId가 고른다 (IdleBattle이 그림을 쓴다)
     public class BossRow : TableRow
     {
-        public int resourceId;
+        public int resourceId;     // 그림 시트 (리소스.index)
+        public int cell;           // 시트의 조각 번호 ("시트이름_cell")
     }
 
     // 적: 일반 적 버섯 한 종. 처치하면 세계수 창고에 쌓인다 (WorldTree.AddHarvest)

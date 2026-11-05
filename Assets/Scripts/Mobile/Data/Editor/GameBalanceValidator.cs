@@ -13,7 +13,7 @@ namespace MoreMush.Mobile.EditorTools
         static readonly Dictionary<string, string> Schemas = new Dictionary<string, string>
         {
             { "적", "index:int key:string name:string resourceId:int value:int requestCount:int" },
-            { "보스", "index:int key:string name:string resourceId:int" },
+            { "보스", "index:int key:string name:string resourceId:int cell:int" },
             { "꼬마", "index:int key:string name:string attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int favoriteIds:int[] bonusEffect:TreeEffect bonusValue:double evoStage:int evoResourceIds:int[] evoCell:int" },
             { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int valueExponent:double valueDivisor:double" },
             { "스테이지", "index:int key:string stage:int enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double enemyHp:double bossHp:double" },
@@ -122,6 +122,17 @@ namespace MoreMush.Mobile.EditorTools
 
             foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드", "세계수", "장식", "장비" })
                 foreach (var r in tables[name]) Reference(r, "resourceId", resources, issues);
+
+            // 보스 그림 조각: resourceId 시트에 "시트이름_cell" 조각이 있어야 한다. 같은 조각을 두 보스가 쓰면 안 된다
+            var bossCells = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var r in tables["보스"])
+            {
+                if (!resources.TryGetValue(r.Int("resourceId"), out var res)) continue;
+                string path = res.Text("path");
+                string cell = path.Substring(path.LastIndexOf('/') + 1) + "_" + r.Int("cell");
+                if (!bossCells.Add(cell)) issues.Add(r.At("cell") + $": 조각 '{cell}'을 다른 보스도 쓴다");
+                if (checkAssets && !Resources.LoadAll<Sprite>(path).Any(s => s.name == cell)) issues.Add(r.At("cell") + $": '{path}'에 조각 '{cell}'이 없다");
+            }
 
             var slots = new HashSet<int>();
             foreach (var r in tables["꼬마"])

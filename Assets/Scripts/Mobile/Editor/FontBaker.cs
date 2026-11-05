@@ -84,6 +84,18 @@ namespace MoreMush.Mobile
         static string Bake(TMP_FontAsset font, string chars)
         {
             var so = new SerializedObject(font);
+            // 정적 폰트는 원본 글꼴 연결(m_SourceFontFile)이 비어 있다 — 생성 설정의 GUID로 ttf를 다시 연결한다.
+            // 비어 있으면 TMP가 생성 설정(옛 90pt·여백 9)으로 글꼴을 다시 읽어 크기가 어긋난다
+            var source = so.FindProperty("m_SourceFontFile");
+            if (source.objectReferenceValue == null)
+            {
+                string guid = so.FindProperty("m_CreationSettings.sourceFontFileGUID").stringValue;
+                source.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Font>(AssetDatabase.GUIDToAssetPath(guid));
+            }
+            so.FindProperty("m_CreationSettings.pointSize").intValue = SamplingPointSize;
+            so.FindProperty("m_CreationSettings.padding").intValue = Padding;
+            so.FindProperty("m_CreationSettings.atlasWidth").intValue = AtlasSize;
+            so.FindProperty("m_CreationSettings.atlasHeight").intValue = AtlasSize;
             so.FindProperty("m_AtlasPopulationMode").intValue = (int)AtlasPopulationMode.Dynamic;   // 굽는 동안만 동적
             so.FindProperty("m_AtlasWidth").intValue = AtlasSize;
             so.FindProperty("m_AtlasHeight").intValue = AtlasSize;
@@ -91,6 +103,7 @@ namespace MoreMush.Mobile
             so.FindProperty("m_IsMultiAtlasTexturesEnabled").boolValue = true;
             so.FindProperty("m_ClearDynamicDataOnBuild").boolValue = false;
             so.ApplyModifiedPropertiesWithoutUndo();
+            if (font.sourceFontFile == null) throw new System.InvalidOperationException($"[FontBaker] {font.name}: 원본 글꼴(ttf)을 찾지 못했다");
 
             FontEngine.InitializeFontEngine();
             FontEngine.LoadFontFace(font.sourceFontFile, SamplingPointSize);
@@ -110,6 +123,11 @@ namespace MoreMush.Mobile
             EditorUtility.SetDirty(mat);
             EditorUtility.SetDirty(font);
             foreach (var tex in font.atlasTextures) if (tex != null) EditorUtility.SetDirty(tex);
+
+            // 예전 굽기에서 남은 아틀라스 텍스처(지금 페이지가 아닌 것)를 파일에서 뺀다 (한 장 1MB)
+            var used = new HashSet<Texture2D>(font.atlasTextures.Where(t => t != null));
+            foreach (var sub in AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(font)))
+                if (sub is Texture2D tex && !used.Contains(tex)) AssetDatabase.RemoveObjectFromAsset(tex);
             return missing ?? "";
         }
 
