@@ -74,6 +74,7 @@ namespace MoreMush.Mobile
             GachaCardView.Layout(freeButton, coinButton11, coinButton35);
             expRow = GachaCardView.BuildExp((RectTransform)transform, font);
             freeText = GachaCardView.Style(freeButton, freeLabel, GachaCardView.FreeSprite, GachaCardView.FreeColor, null, font);
+            GachaCardView.OneLine(freeText);   // [UI 개편 2026-11-05] "광고 보고 11회 소환" 한 줄
             coin11Text = GachaCardView.Style(coinButton11, coinLabel11, GachaCardView.CoinSprite, GachaCardView.CoinColor, CostIcon(smallProduct), font);
             coin35Text = GachaCardView.Style(coinButton35, coinLabel35, GachaCardView.CoinSprite, GachaCardView.CoinColor, CostIcon(bigProduct), font);
         }
@@ -279,8 +280,10 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             bool free = FreeAvailable;
-            string freeSub = !free ? "내일 다시" : AdLimit > 1 ? $"광고 시청 ({GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit})" : "광고 시청";
-            SetButton(freeText, adProduct != null ? $"{adProduct.pullCount}회 소환" : "-", freeSub);
+            // [UI 개편 2026-11-05] 한 줄 "광고 보고 11회 소환"(앞은 연한 노랑·뒤는 흰색). 다 보면 이름은 그대로 두고 버튼만 회색(interactable)
+            string freeTitle = adProduct == null ? "-"
+                : $"<color=#FFF2BF>광고 보고</color> {adProduct.pullCount}회 소환" + (AdLimit > 1 && free ? $" <size=70%>({GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit})</size>" : "");
+            SetButton(freeText, freeTitle, "");
             SetButton(coin11Text, smallProduct != null ? $"{smallProduct.pullCount}회 소환" : "-", smallProduct != null ? Wallet.Format(smallProduct.price) : "");
             SetButton(coin35Text, bigProduct != null ? $"{bigProduct.pullCount}회 소환" : "-", bigProduct != null ? Wallet.Format(bigProduct.price) : "");
 

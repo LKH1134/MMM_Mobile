@@ -24,9 +24,11 @@ namespace MoreMush.Mobile
 
         // 오른쪽 열 (카드 오른쪽 끝 기준, 버튼 앵커는 프리팹 그대로 오른쪽 가운데)
         const float ColumnX = -276f, ColumnWidth = 474f;
-        const float ExpY = 102f, ExpHeight = 46f;
-        const float FreeY = 22f, FreeHeight = 92f;
-        const float CoinY = -110f, CoinHeight = 150f, CoinWidth = 232f, CoinGap = 10f;
+        // [UI 개편 2026-11-05] 경험치 줄을 제목 띠(Name, 카드 가운데 위 162)와 같은 줄로 올리고, 광고 버튼도 그만큼(60) 위로,
+        //   남은 자리만큼 균사석 소환 버튼을 위로 늘림 (예전: ExpY 102 · FreeY 22 · CoinY -110 · CoinHeight 150)
+        const float ExpY = 162f, ExpHeight = 46f;
+        const float FreeY = 82f, FreeHeight = 92f;
+        const float CoinY = -80f, CoinHeight = 210f, CoinWidth = 232f, CoinGap = 10f;
 
         public static void Layout(Button free, Button coin11, Button coin35)
         {
@@ -146,12 +148,41 @@ namespace MoreMush.Mobile
                 icon.sprite = costIcon;
                 icon.preserveAspect = true;
                 var le = icon.gameObject.AddComponent<LayoutElement>();
-                le.preferredWidth = le.preferredHeight = 56f;
+                le.preferredWidth = le.preferredHeight = CostIconSize;   // [UI 개편 2026-11-05] 56 → 80 (균사석 소환 버튼이 높아져서)
             }
             text.sub = NewText("Value", sub, font, 38f, new Color(1f, 0.95f, 0.75f));
             text.sub.fontStyle = FontStyles.Bold;
             Outline(text.sub);
+            // [UI 개편 2026-11-05] 재화 아이콘이 없는 버튼(광고·무료)은 버튼 좌우 끝, 세로 가운데에 잎
+            if (costIcon == null) { Leaf(rt, "UI/UI_Sticker_Leaf_L_Beige", 0f); Leaf(rt, "UI/UI_Sticker_Leaf_R_Beige", 1f); }
             return text;
+        }
+
+        const float LeafSize = 56f, LeafInset = 26f;
+        const float CostIconSize = 80f;
+
+        // [UI 개편 2026-11-05] 광고 소환 버튼: 아래 줄 없이 "광고 보고 11회 소환" 한 줄을 버튼 가운데에 (잎 사이)
+        public static void OneLine(ButtonText text)
+        {
+            if (text == null || text.title == null) return;
+            if (text.sub != null) text.sub.transform.parent.gameObject.SetActive(false);
+            text.title.textWrappingMode = TextWrappingModes.NoWrap;   // 넘치면 줄바꿈 대신 자동 축소
+            var trt = text.title.rectTransform;
+            trt.anchorMin = Vector2.zero;
+            trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(LeafInset + LeafSize, 0f);
+            trt.offsetMax = new Vector2(-(LeafInset + LeafSize), -4f);
+        }
+
+        static void Leaf(RectTransform button, string sprite, float side)
+        {
+            var leaf = NewImage(side < 0.5f ? "Leaf_L" : "Leaf_R", button, null, Color.white);
+            leaf.sprite = Resources.Load<Sprite>(sprite);
+            leaf.preserveAspect = true;
+            var r = leaf.rectTransform;
+            r.anchorMin = r.anchorMax = r.pivot = new Vector2(side, 0.5f);
+            r.anchoredPosition = new Vector2(side < 0.5f ? LeafInset : -LeafInset, 0f);
+            r.sizeDelta = new Vector2(LeafSize, LeafSize);
         }
 
         // 밝은 버튼 그림 위에서도 흰 글자가 읽히게 진한 갈색 외곽선
