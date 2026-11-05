@@ -120,12 +120,13 @@ namespace MoreMush.Mobile
                     var fi = c.barFill.GetComponent<Image>();
                     if (fi != null && fi.sprite == null) fi.sprite = Resources.Load<Sprite>(barFillSprite);
                 }
-                // 받을 수 있으면 "의뢰 완료" 버튼, 받았으면 회색 "완료", 진행 중이면 버튼 대신 막대만
+                // 받을 수 있으면 "의뢰 완료" 버튼, 받았으면 버튼 바탕 없이 "완료" 글자만 (11-05), 진행 중이면 버튼 대신 막대만
                 if (c.button != null)
                 {
                     c.button.gameObject.SetActive(can || claimed);
                     c.button.interactable = can;
                     c.button.image.sprite = Resources.Load<Sprite>(can ? claimSprite : doneSprite);
+                    c.button.image.enabled = can;     // 받은 뒤에는 회색 바탕을 그리지 않는다
                 }
                 if (c.buttonText != null) c.buttonText.text = claimed ? "완료" : "의뢰 완료";
             }
