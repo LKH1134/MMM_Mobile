@@ -29,7 +29,10 @@ namespace MoreMush.Mobile
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             var popup = go.AddComponent<IdleReportPopup>();
             popup.font = font;
-            popup.Build();
+            // [UI 개편 2026-11-05] 화면은 프리팹(규격 틀·노란 탭·속지)으로. 없으면 예전처럼 코드로 만든다 (UI_REWORK_LOG.md)
+            var prefab = Resources.Load<IdleReportView>(PrefabPath);
+            if (prefab != null) popup.Bind(Instantiate(prefab, go.transform, false));
+            else popup.Build();
             go.SetActive(false);
             return popup;
         }
@@ -39,16 +42,59 @@ namespace MoreMush.Mobile
             report = r;
             doubled = false;
             Render();
-            doubleButton.interactable = true;
-            doubleButton.gameObject.SetActive(r.gold + r.offlineGold + r.mycelite > 0);
+            if (doubleButton != null)
+            {
+                doubleButton.interactable = true;
+                doubleButton.gameObject.SetActive(r.gold + r.offlineGold + r.mycelite > 0);
+            }
             AdService.Initialize();
             AdService.Prepare();            // 누를 때 광고가 준비돼 있게
             PopupGate.Opened(this, Hide);
             gameObject.SetActive(true);
         }
 
+        const string PrefabPath = "UI/Prefabs/IdleReportPopup";
+        IdleReportView view;
+
+        void Bind(IdleReportView v)
+        {
+            view = v;
+            var rt = (RectTransform)v.transform;
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            if (v.okButton != null) v.okButton.onClick.AddListener(Hide);
+            doubleButton = v.doubleButton;
+            if (doubleButton != null)
+            {
+                UiSkin.GreyWhenDisabled(doubleButton);
+                doubleButton.onClick.AddListener(WatchForDouble);
+            }
+        }
+
+        void RenderView()
+        {
+            var r = report;
+            long m = doubled ? 2 : 1;
+            if (view.timeText != null) view.timeText.text = "자리를 비운 동안 " + FormatTime(r.seconds + r.offlineSeconds);
+            if (view.goldText != null) view.goldText.text = "+" + Wallet.Format((r.gold + r.offlineGold) * m);
+            if (view.goldSubText != null)
+            {
+                view.goldSubText.gameObject.SetActive(r.offlineGold > 0);
+                view.goldSubText.text = $"(앱 밖 {FormatTime(r.offlineSeconds)} +{Wallet.Format(r.offlineGold * m)})";
+            }
+            if (view.myceliteRow != null) view.myceliteRow.SetActive(r.mycelite > 0);
+            if (view.myceliteText != null) view.myceliteText.text = "+" + Wallet.Format(r.mycelite * m);
+            var info = new System.Collections.Generic.List<string>();
+            if (r.kills > 0) info.Add($"처치 {r.kills:N0}마리");
+            if (r.stages > 0) info.Add($"스테이지 +{r.stages} → {IdleBattle.HudStageLabel(IdleProgress.Stage).Replace("스테이지 ", "")}");   // HUD와 같은 "7-7" 표기
+            if (view.infoRow != null) view.infoRow.SetActive(info.Count > 0);
+            if (view.infoText != null) view.infoText.text = string.Join("  ·  ", info);
+            if (view.doubledRow != null) view.doubledRow.SetActive(doubled);
+        }
+
         void Render()
         {
+            if (view != null) { RenderView(); return; }
             var r = report;
             long m = doubled ? 2 : 1;
             var sb = new System.Text.StringBuilder();

@@ -45,6 +45,7 @@
 | `Scripts/Mobile/Quest/DailyQuestPopup.cs` | 그림 경로 상수 블록, `Refresh`의 버튼 그림/글자색 2줄, `BuildUi` 제목 색·닫기 버튼 숨김 + `PopupBottomBand.Attach`, `BuildRow` 줄 바탕·막대 그림, `NewButton` 인자 `Color tint` → `string sprite` | **높음.** 퀘스트 창 레이아웃을 다른 브랜치가 고치면 `BuildUi`·`BuildRow`·`NewButton`에서 충돌 |
 | `Scripts/Mobile/Ads/AdBoxPopup.cs` | 그림 경로 상수, 제목 색 → 흰색, 취소/광고 버튼 색 → `UI_Btn_Red`/`UI_Btn_Sky`, `NewButton(… Color tint …)` → `(… string sprite …)` | 중간 (`NewButton` 시그니처) |
 | `Scripts/Mobile/Idle/IdleReportPopup.cs` | `NewButton(… Color tint …)` → `(… string spritePath …)`, 확인 `UI_Btn_Green`·2배 `UI_Btn_Sky` | 중간 |
+| `Scripts/Mobile/Idle/IdleReportPopup.cs` (9차) | `Create`: 프리팹 `Resources/UI/Prefabs/IdleReportPopup`(`IdleReportView`)이 있으면 그것을 띄우고 `Bind`, 없으면 예전 `Build()`. `RenderView()` 추가(시간·골드·앱 밖·균사석·처치·스테이지 칸을 따로 채움, 스테이지는 HUD와 같은 "7-7" 표기), `Show`의 2배 버튼 null 확인. 보상 계산·광고 2배 지급은 그대로 | 중간. `Create`·`Render`·`Show`를 고친 브랜치와 충돌 |
 | `Scripts/Mobile/Idle/EquipmentPanel.cs` | 색 상수 3개 → 그림 경로 상수, `BuildMergeBar` 막대 그림, `Refresh` 칸 바탕 그림(고른/장착/보통), 못 얻은 장비 회색 칠 제거 | 중간 (`Refresh` 안 칸 그리기) |
 | `Scripts/Mobile/Idle/CharacterDetail.cs` | 색 상수 → 그림 경로 상수, 막대 그림, 스킬 칸 그림(해금 초록/잠금 회색), 못 얻은 꼬마 회색 칠 제거 | 중간 |
 | `Scripts/Mobile/UI/GachaCardView.cs` | 재화 버튼 `UI_Btn_Sky`, `CoinColor` 흰색, 막대 색 흰색 | 낮음 |
@@ -83,8 +84,8 @@
 
 ## 3. 새 파일 (충돌 없음)
 
-- 스크립트 `Scripts/Mobile/UI/Main/`: `MainHudView`, `UpgradeNotebookView`, `UpgradeRowView`, `SafeAreaDock`, `TabIconLift`, `FormationScreenView`, `FormationCellView`, `DexScreenView`, `PopupBottomBand`, `BottomBarLayer`, `FitInRegion`, `ScaleToWidth`, `UiSkin`, `ScaleChildren`, `TopBarView`, `QuestScreenView`(+`PopupGate`), `QuestCardView`, `QuitGameButton` / `Scripts/Mobile/Idle/IdleBattle.Hud.cs`
-- 프리팹 `Prefabs/Mobile/UI/Main/`: `MainHud`, `UpgradeNotebook`, `UpgradeRow`, `FormationScreen`, `DexScreen`, `QuestScreen` / `Resources/UI/Prefabs/PopupBottomBand`
+- 스크립트 `Scripts/Mobile/UI/Main/`: `MainHudView`, `UpgradeNotebookView`, `UpgradeRowView`, `SafeAreaDock`, `TabIconLift`, `FormationScreenView`, `FormationCellView`, `DexScreenView`, `PopupBottomBand`, `BottomBarLayer`, `FitInRegion`, `ScaleToWidth`, `UiSkin`, `ScaleChildren`, `TopBarView`, `QuestScreenView`(+`PopupGate`), `QuestCardView`, `QuitGameButton` / `Scripts/Mobile/Idle/IdleReportView.cs` / `Scripts/Mobile/Idle/IdleBattle.Hud.cs`
+- 프리팹 `Prefabs/Mobile/UI/Main/`: `MainHud`, `UpgradeNotebook`, `UpgradeRow`, `FormationScreen`, `DexScreen`, `QuestScreen` / `Resources/UI/Prefabs/PopupBottomBand`, `Resources/UI/Prefabs/IdleReportPopup`
 - 리소스 `Resources/UI/` (+ `.meta`의 Sprite·9-slice 설정, `UI_PP_Under_Base01/02`는 왼쪽·오른쪽 면 두 조각)
 - 머티리얼 `Fonts/LINESeedKR-Bd SDF Outline(.mat)`, `… Outline Thick.mat`
 
@@ -148,6 +149,7 @@ UI 개편이 게임 수치·규칙을 바꾸지 않았는지 코드·씬·프리
 |---|---|---|
 | 11-04 | 1차 | 홈 강화 노트·HUD·하단 바 프리팹화, 리소스 교체 |
 | 11-04 | 2차 | 편성(와이어프레임 공방 배치)·도감 새 화면, 코드 그림 경로·색 → 리소스 |
+| 11-05 | 9차 | 방치 정산 팝업을 규격 프리팹으로(`Resources/UI/Prefabs/IdleReportPopup` + 새 `IdleReportView`): 갈색 틀·노란 탭·속지, 골드·균사석 줄(아이콘 + 굵은 값, 앱 밖 보상 작은 글자), 처치·스테이지 줄, 2배 적용 표시, 확인 초록·광고 하늘색. 설정 팝업: 토글·손잡이에 입혀 있던 색(회색 `B8B8B8`·주황 `FFAD40`·`FFF7E6`)을 빼고 그림 그대로, 구역 사이 여백(음향·언어·알림 구역 간격 50, 구역 제목 칩이 구역 위 끝에 걸치게), 알림 칸 간격, UID를 창 안(버튼 위)으로, 버튼 여백. S26·iPad 확인 |
 | 11-05 | 8차-정리 | 게임 진행 영향 점검(3-2장) → 일일 의뢰·도감 화면 `PopupGate` 복구. 씬 덮어쓰기 정리(Main: 무기·방어구·펫·던전·뽑기·강화 노트·설정·하단 바·HUD·위 바, WorldTree: 하단 바·위 바), 던전·뽑기 배너 `ScaleChildren` 빈 칸 제거, 강화 노트 회색 버튼 그림을 프리팹에 지정, 안 쓰는 `GridFitWidth` 삭제, 도감 아래 버튼 간격. 커밋 주의사항(4-1장) |
 | 11-05 | 7차 | 광고 상자를 Main 카메라 캔버스에 붙여 팝업 아래로(`AdBox.BindCamera`). 가운데 팝업 노란 탭을 틀 위로 40 튀어나오게(탭 +40~−130, 속지가 아래를 덮음; 설정·도감·일일 의뢰·통계·수확 완료·장비 창·수집·전투 설정). 장비 창 정보 칸 410→530(창 1660→1780, 목록·요약 아래로, 버튼 글자 40·44). 던전·뽑기: 배너 제목 메모 → 목록 판 위 노란 탭, 스크롤 잘림을 베이지 속지 위 끝에 맞춤(Viewport 위 −510, Page 위 −70), 설명 판 위로, 던전 레벨을 입장 버튼 안(`LevelText`)으로. 일일 의뢰 카드·버튼 폭을 좁아진 창(892)에 맞춤, 도감 격자 가운데·좌우 여백(`ScaleToWidth` 1100)·아래 버튼 간격. 세계수 의뢰 시트(`QuestPopup`): 탭 아이콘 지우고 제목 가운데, 주간 카드(의뢰인 그림 칸·말풍선 안 의뢰 아이콘·달성도 막대·완료 버튼 오른쪽), 일일 카드(일일 의뢰 창과 같은 구성: 이름·그림 칸·말풍선·완료 버튼·막대), 탭 선택 그림 `Btn_Yellow`. S26 확인, 의뢰 시트는 iPad도 확인 |
 | 11-05 | 6차 | 팝업 틀 통일: 갈색 틀(`Out_Wood`)과 속지(`Out_Paper1`) 사이에 노란 탭(`Under_Tag_Yellow`) 제목 — 설정·도감·의뢰·업그레이드 통계·수확 완료·장비 창 / 아래 시트(성장·꾸미기·꼬마·공방·의뢰·편성)는 표지 `Side02`·속지 `Side01` 사이 노란 탭. 장비 창 구조 정돈(창 960×1660 세로형, 틀·탭·속지가 창 안, 장비 칸 4열, 펫 정보 칸을 무기와 같은 구조로), 팝업 좌우 여백 70. 던전·뽑기 카드 좌우 56·간격 30. 뽑기 버튼 글자·아이콘·가격 확대(`GachaCardView.Style`). 위 공용 바 통일: `TopBar` 프리팹을 세계수 화면 모양으로 + `TopBarView`(레벨·골드·균사석), Main의 `WalletBar`·`OptionButton`을 `TopBar`로 교체, 던전·뽑기 배너 제목을 바 아래로 |
