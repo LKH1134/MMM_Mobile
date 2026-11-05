@@ -150,6 +150,54 @@ UI 개편이 게임 수치·규칙을 바꾸지 않았는지 코드·씬·프리
 2. 씬 충돌은 텍스트로 풀지 말고, 한쪽을 받은 뒤 Unity에서 위 표의 변경을 다시 적용한다.
 3. 예전 코드 HUD(`IdleBattle.BuildHud`)·퀘스트/도감 버튼 스크립트·예전 편성 스크립트는 **지웠다**. 이 파일들을 고친 브랜치와 합칠 때는 변경을 새 프리팹·View 스크립트로 옮긴다.
 
+## 4-0. main에 합칠 때 (11-05 밤 기준: 갈라진 곳 `c59443c`, main `c6d8675`)
+
+갈라진 뒤 **main에 34커밋**이 쌓였다(펫 삭제, 던전 소탕 삭제, 폰트 정적 굽기, 그림 교체·미사용 리소스 185개 삭제, BGM, 개발자 모드 등). PJS는 UI 개편 전부. 두 쪽이 같은 파일을 많이 고쳤으므로 **PJS를 main에 바로 합치지 말고**, 새 브랜치에서 main을 PJS 쪽으로 받아(`git merge main`) Unity에서 풀고 확인한 뒤 PR로 main에 넣는다.
+
+**1. main이 지운 기능 — main 쪽을 따른다**
+| main 커밋 | 내용 | PJS에서 할 일 |
+|---|---|---|
+| `08bb82b`·`d29c186` 펫 삭제 | `Pet.prefab` 삭제, `GachaKind.Pet`·`Equipment.Pet`·편성 6번째 펫 칸 제거, 편성 칸 위 3·아래 2 | `UI/Main/Formation/Pet.prefab` 삭제, 편성 `SideButtons`의 펫 버튼 삭제(무기·방어구만), 뽑기 `GachaUI`의 펫 카드 삭제, Main 씬의 Pet 인스턴스 삭제. 펫을 부르는 PJS 코드가 있으면 컴파일 오류로 드러난다 |
+| `344f7fb` 던전 소탕 삭제 | `ResultPopup.cs` 소탕 부분 삭제 | `ResultPopup.cs`는 main 것을 받고 PJS의 `BuildAutoRow` 체크 상자 그림 2줄만 다시 넣는다 |
+| `c1e73d8`·`21f5ded` 미사용·임시 리소스 삭제 | 그림 185개가량 삭제·교체 | 합친 뒤 PJS 프리팹에 빠진 그림(빈 칸·흰 네모)이 없는지 전체 검사 |
+| (old path) `CollectPopup.prefab` 삭제 | 예전 도감 | PJS의 `UI/Common/CollectPopup.prefab`도 삭제 (6-1장의 미사용 항목도 같이 해결) |
+
+**2. 폰트 — main의 정적 아틀라스를 받는다**
+- main `970fa52`·`772656a`가 `LINESeedKR-Bd/Rg SDF`를 정적 아틀라스로 굽고 재질 ScaleRatio를 다시 계산했다(플레이 중 HUD 글자 사라짐 대응). **폰트 에셋·재질은 main 것을 받는다.** PJS는 이 둘을 커밋하지 않았다(1차 `e5f128e` 한 번 제외).
+- PJS의 **`Resources/UI/Fonts/LINESeedKR-Bd SDF Wide`(+ Outline S·M·L·Red 재질)는 아직 동적**이다. 같은 "글자 사라짐"이 날 수 있으니 합친 뒤 main과 같은 방법으로 정적으로 굽는 것을 권장(여백 20이라 재질 ScaleRatio도 다시 계산). 굽고 나면 4-1장의 "폰트 되돌리기"는 필요 없어진다.
+
+**3. PJS가 옮긴 프리팹을 main이 옛 위치에서 고침** (11차 폴더 정리 — 내용이 많이 달라 git이 이름 바뀜으로 못 맞출 수 있다 → "수정/삭제 충돌"로 나오면 **PJS의 새 위치 파일을 남기고** main의 작은 변경을 Unity에서 손으로 다시 넣는다)
+| main에서 고친 옛 위치 | main 변경 | 새 위치에 다시 넣을 것 |
+|---|---|---|
+| `Main/DungeonUI.prefab` | 던전 카드 그림 교체(`6c040da`)·배너(`9c18676`) — 그림 비율(AspectRatioFitter 2.86 → 2.35) | `UI/Main/Dungeon/DungeonUI`의 카드 `Art` 비율·배너 그림 |
+| `Main/GachaUI.prefab` | 펫 카드 삭제로 목록 높이 1762 → 1334(1732 → 1304), 배너 교체(`a2f0768`) | `UI/Main/Gacha/GachaUI`에서 펫 카드 삭제 후 높이 같은 식으로 |
+| `OptionPopup.prefab` | `08b2ebb` BGM 슬라이더에 `BgmVolumeSlider` 컴포넌트 | `UI/Common/OptionPopup`의 `SoundBgm/Slider`에 같은 컴포넌트(던전 변형 `InGameOptionPopup`은 기본을 따라오는지 확인) |
+| `QuestPopup`·`WorldTree/GrowPopup`·`WorldTree/KidPopup` | 임시 버섯 그림 → 새 그림(GUID 교체) | 세 프리팹에서 빠진 그림 확인. 꼬마 시트는 PJS에서 새로 만들어 해당 그림을 안 쓸 수 있음 |
+| `Main/GGoma.prefab` | 펫 칸 삭제로 위치 | PJS에서 예전 편성 프리팹은 이미 안 씀(4장 3번) — 삭제 유지 |
+
+**4. 둘 다 고친 코드** — 합칠 때 양쪽 변경을 모두 살린다
+| 파일 | main | PJS (1장 표) |
+|---|---|---|
+| `Idle/IdleBattle.cs` | 전투 크기·간격, 보스 10종 | 예전 코드 HUD 제거 — **충돌 위험 높음** |
+| `Idle/EquipmentPanel.cs` | 펫 삭제, `Equipment.Grade` → `Eq.Grade` | 칸 그림·정보 칸 — 21차에 `mid`·`Down` 구조(안쪽 판 그림을 그 자체로) |
+| `UI/GachaPanel.cs` | 펫 삭제 | 광고 버튼 한 줄·횟수 |
+| `UI/GachaResultPopup.cs` | 등급 색 줄 삭제 | 칸 모양 다시 그림 |
+| `Ads/AdBox.cs` | 상자 그림 = 달 꼬마, 광고 균사석 = 상수 시트 | `BindCamera()` 두 줄 |
+| `UI/PopupLayer.cs` | 주석(펫) | — |
+| `WorldTree/UI/TreeDecoPanel.cs` | 꾸미기 탭 숫자 = 만든 장식 수/전체 | 견본 경로 + `BuildByCode` — main의 탭 숫자 계산을 견본 경로(`ZoneTab` 글자)에도 넣는다 |
+| `Idle/FormationPanel.cs` | 펫 칸 삭제 | PJS는 새 편성 화면(`FormationScreenView`)을 씀 |
+
+**5. 씬** (`Main`·`WorldTree`·`Start`) — 텍스트로 병합하지 않는다
+- main 변경은 작다: Main = 펫 인스턴스·연결 삭제, WorldTree = 세계수 그림·비율(`0.4378`), Start = 로딩 배경 그림. **PJS 씬을 받고 이 몇 가지만 Unity에서 다시 넣는 것**이 쉽다.
+- BGM(`9f09db1`)·개발자 모드(`3b32267`)가 씬 오브젝트를 쓰는지 main 씬에서 확인하고, 쓰면 PJS 씬에도 추가.
+
+**6. 합친 뒤 확인 순서**
+1. 컴파일 오류 0 (펫 참조)
+2. Missing Script·빈 그림 검사 — 모든 UI 프리팹·씬
+3. 폰트: Wide 글자·외곽선이 정상인지, 플레이 중 글자가 사라지지 않는지
+4. 화면: 홈·편성(무기·방어구)·던전·뽑기(카드 3장)·세계수 시트 5개·설정 — S26·Z플립7·iPad Pro 13
+5. 버튼 눌림(21차처럼 보이는 모든 버튼 가운데를 눌러 그 버튼이 받는지)
+
 ## 4-1. 커밋할 때 주의사항 · 권장사항
 
 **커밋 전에 꼭**
