@@ -28,7 +28,7 @@ namespace MoreMush.Mobile
 
         [Header("크기·연출")]
         [SerializeField] float ggomaSize = 169f;
-        [SerializeField] float enemySize = 143f;
+        [SerializeField] float enemySize = 121f;
         [SerializeField] float bossSize = 560f;
         [SerializeField] float harvesterSize = 64f;
         // flightTime·waveDelay·enemyAttackDelay는 방치전투 시트 값을 쓴다 (Awake에서 덮어씀, 인스펙터 값은 표가 없을 때만)
