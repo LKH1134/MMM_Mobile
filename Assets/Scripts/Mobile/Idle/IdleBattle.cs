@@ -24,7 +24,6 @@ namespace MoreMush.Mobile
 
         [Header("리소스 (Resources 경로)")]
         [SerializeField] string kindFolder = "Art/Dream/Characters/Enumy";     // 식용·독버섯·약용버섯 군락 시트 (적 시트 mushroom_ed·tx·md행 = 세계수 창고)
-        [SerializeField] string[] bossPaths = { "Art/Dream/Characters/Enumy/Mush_Toxic_Legend_Colony", "Art/Dream/Characters/Grandpa/grandpa_ref" };   // 보스 그림 (Resources 경로, 확장자 없이). 시트면 첫 칸(_0)
         [SerializeField] string harvesterFolder = "Art/Dream/Harvesters";
 
         [Header("크기·연출")]
@@ -66,7 +65,8 @@ namespace MoreMush.Mobile
         readonly Stack<Popup> freePopups = new Stack<Popup>();
         readonly List<Enemy> pick = new List<Enemy>();
 
-        Sprite[] enemySprites, bossSprites, harvesterSprites;
+        Sprite[] enemySprites, harvesterSprites;
+        readonly Dictionary<int, Sprite> bossSprites = new Dictionary<int, Sprite>();   // 보스 리소스 ID → 그림 (표: 스테이지.bossId → 보스.resourceId)
         Sprite[] toxicSprites, medicinalSprites;    // 일반 적 중 독성·약용 버섯 (상수 enemyToxicRate·enemyMedicinalRate 비율로 나온다)
         Sprite white;
 
@@ -134,17 +134,8 @@ namespace MoreMush.Mobile
             enemySprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Edible);
             toxicSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Toxic);
             medicinalSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Medicinal);
-            var bosses = new List<Sprite>();
-            foreach (var path in bossPaths)
-            {
-                var sp = string.IsNullOrEmpty(path) ? null : FirstCell(path);
-                if (sp != null) bosses.Add(sp);
-                else Debug.LogWarning($"[IdleBattle] 보스 그림 없음: Resources/{path}");
-            }
-            bossSprites = bosses.ToArray();
             harvesterSprites = Resources.LoadAll<Sprite>(harvesterFolder);
             if (enemySprites.Length == 0) Debug.LogWarning($"[IdleBattle] 식용 적 그림 없음: Resources/{kindFolder}");
-            if (bossSprites.Length == 0) bossSprites = enemySprites;
 
             if (hidePlaceholders)
             {
@@ -612,10 +603,17 @@ namespace MoreMush.Mobile
         Enemy Spawn(bool isBoss, Vector2 local)
         {
             var e = freeEnemies.Count > 0 ? freeEnemies.Pop() : NewEnemy();
-            var sprites = isBoss ? bossSprites : PickEnemyPool();
-            // 보스는 스테이지 순서대로 돌아가며 나온다 (같은 스테이지를 다시 해도 같은 보스). 일반 적은 무작위
-            int pickIndex = isBoss ? (stage - 1) % Mathf.Max(1, sprites.Length) : Random.Range(0, Mathf.Max(1, sprites.Length));
-            e.img.sprite = sprites.Length > 0 ? sprites[pickIndex] : white;
+            if (isBoss)
+            {
+                // 보스 그림 = 스테이지.bossId → 보스.resourceId (표). 못 찾으면 식용 적 그림
+                var sp = BossSprite(stage);
+                e.img.sprite = sp != null ? sp : enemySprites.Length > 0 ? enemySprites[0] : white;
+            }
+            else
+            {
+                var sprites = PickEnemyPool();
+                e.img.sprite = sprites.Length > 0 ? sprites[Random.Range(0, sprites.Length)] : white;
+            }
             float size = isBoss ? bossSize : enemySize;
             e.rt.sizeDelta = new Vector2(size, size);
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
@@ -638,6 +636,19 @@ namespace MoreMush.Mobile
             SetHp(e);
             enemies.Add(e);
             return e;
+        }
+
+        // 스테이지의 보스 그림 (스테이지.bossId → 보스.resourceId → 리소스.path). 리소스 ID마다 한 번만 읽는다
+        Sprite BossSprite(int stageNumber)
+        {
+            var boss = GameBalance.Boss(GameBalance.Stage(stageNumber).bossId);
+            int id = boss != null ? boss.resourceId : 0;
+            if (bossSprites.TryGetValue(id, out var cached)) return cached;
+            string path = id != 0 ? GameBalance.ResourcePath(id) : null;
+            var sp = path != null ? FirstCell(path) : null;
+            if (sp == null) Debug.LogWarning($"[IdleBattle] 보스 그림 없음: 스테이지 {stageNumber} bossId {GameBalance.Stage(stageNumber).bossId} → 리소스 {id} '{path}'");
+            bossSprites[id] = sp;
+            return sp;
         }
 
         // 시트(여러 칸)면 "_0" 칸, 한 장짜리면 그 그림

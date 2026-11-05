@@ -42,7 +42,7 @@ namespace MoreMush.Mobile
         // 설정은 처음 쓸 때 읽는다 (이 객체가 만들어질 때는 표를 아직 안 읽었을 수 있다)
         float intervalSeconds, staySeconds;
         long goldKills;
-        const long AdMycelite = 90;     // 상자 광고 균사석: 스테이지와 상관없이 고정
+        static long AdMycelite => GameBalance.ConstInt("adBoxMycelite");     // 상자 광고 균사석: 스테이지와 상관없이 고정 (상수 시트)
         bool configured;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

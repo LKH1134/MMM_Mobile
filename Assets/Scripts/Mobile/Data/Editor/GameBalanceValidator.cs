@@ -12,11 +12,11 @@ namespace MoreMush.Mobile.EditorTools
         static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
         static readonly Dictionary<string, string> Schemas = new Dictionary<string, string>
         {
-            { "적", "index:int key:string name:string hpCoefficient:double resourceId:int value:int requestCount:int" },
-            { "보스", "index:int key:string name:string hpCoefficient:double resourceId:int" },
+            { "적", "index:int key:string name:string resourceId:int value:int requestCount:int" },
+            { "보스", "index:int key:string name:string resourceId:int" },
             { "꼬마", "index:int key:string name:string attackMultiplier:double initialOwned:int defaultSlot:int resourceId:int favoriteIds:int[] bonusEffect:TreeEffect bonusValue:double evoStage:int evoResourceIds:int[] evoCell:int" },
             { "업그레이드", "index:int key:string stat:IdleStat name:string baseValue:double perLevel:double valueMode:string price:long priceExponent:double priceDivisor:double priceScale:double maxLevel:int currency:Currency unlockStat:IdleStat unlockLevel:int resourceId:int capEvery:int capStep:int valueExponent:double valueDivisor:double" },
-            { "스테이지", "index:int key:string stage:int stageCoefficient:double enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double enemyHp:double bossHp:double" },
+            { "스테이지", "index:int key:string stage:int enemyIds:int[] bossId:int wavesPerStage:int bossTime:double enemyCountBase:int enemyCountPerWave:int enemyCountPerStage:int enemyCountMax:int enemyGold:long bossGold:long bossMycelite:long enemyAttack:double bossAttack:double enemyHp:double bossHp:double" },
             { "리소스", "index:int key:string type:string path:string" },
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double name:string" },
@@ -33,7 +33,7 @@ namespace MoreMush.Mobile.EditorTools
             { "의뢰", "index:int key:string name:string period:string kind:string target:int exp:int desc:string" },
             { "장비", "index:int key:string name:string kind:GachaKind stat:EquipStat itemIndex:int grade:int sub:int resourceId:int" },
             { "뽑기상품", "index:int key:string name:string kind:GachaKind pullCount:int price:long currency:Currency dailyLimit:int requiresAd:bool" },
-            { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int chapterName:string flightTime:double waveDelay:double enemyAttackDelay:double" },
+            { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int flightTime:double waveDelay:double enemyAttackDelay:double" },
             { "수확전투", "index:int key:string dungeon:int scope:string field:string dataType:string value:double" },
             { "수확등급", "index:int key:string tier:MushroomTier hpMultiplier:int scoreMultiplier:double" },
         };
@@ -54,7 +54,7 @@ namespace MoreMush.Mobile.EditorTools
             ("enemyAtkHpRate", 0, false), ("enemyAtkRegenRate", 0, false), ("bossAtkHpRate", 0, false),
             ("goldBase", 0, false), ("goldStep", 0.001, false), ("goldExp", 0, false), ("bossGoldMul", 0, true),
             ("mycelBase", 0, true), ("mycelStageDiv", 1, true),
-            ("adBoxIntervalHours", 0.001, false), ("adBoxStaySeconds", 1, false), ("adBoxGoldKills", 0, true), ("adBoxMyceliteBosses", 0, true),
+            ("adBoxIntervalHours", 0.001, false), ("adBoxStaySeconds", 1, false), ("adBoxGoldKills", 0, true), ("adBoxMycelite", 0, true),
             ("treeRingMax", 1, true), ("treeRingGrowth", 1, false), ("treeHarvestPerKill", 0, false),
             ("tributePreferMul", 0, false), ("giftFavoriteMul", 0, false), ("giftMaxCount", 1, true),
             ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
@@ -111,17 +111,17 @@ namespace MoreMush.Mobile.EditorTools
                     || path.StartsWith("Assets/") || path.StartsWith("Resources/") || System.IO.Path.HasExtension(path))
                     issues.Add(r.At("path") + ": Resources 상대 경로를 확장자 없이 적는다");
                 string type = r.Text("type");
-                if (type != "Sprite" && type != "Prefab") issues.Add(r.At("type") + ": Sprite 또는 Prefab이어야 한다");
+                if (type != "Sprite" && type != "Prefab" && type != "AudioClip") issues.Add(r.At("type") + ": Sprite·Prefab·AudioClip 중 하나여야 한다");
                 else if (checkAssets)
                 {
-                    UnityEngine.Object asset = type == "Sprite" ? (UnityEngine.Object)Resources.Load<Sprite>(path) : Resources.Load<GameObject>(path);
+                    UnityEngine.Object asset = type == "Sprite" ? Resources.Load<Sprite>(path)
+                        : type == "AudioClip" ? (UnityEngine.Object)Resources.Load<AudioClip>(path) : Resources.Load<GameObject>(path);
                     if (asset == null) issues.Add(r.At("path") + $": {type} 리소스 '{path}'를 찾지 못했다");
                 }
             }
 
             foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드", "세계수", "장식", "장비" })
                 foreach (var r in tables[name]) Reference(r, "resourceId", resources, issues);
-            foreach (var r in tables["적"].Concat(tables["보스"])) Positive(r, "hpCoefficient", issues);
 
             var slots = new HashSet<int>();
             foreach (var r in tables["꼬마"])
@@ -172,7 +172,7 @@ namespace MoreMush.Mobile.EditorTools
             var stages = new HashSet<int>();
             foreach (var r in tables["스테이지"])
             {
-                foreach (string col in new[] { "stage", "stageCoefficient", "wavesPerStage", "bossTime", "enemyCountBase", "enemyCountMax", "enemyGold", "bossGold" }) Positive(r, col, issues);
+                foreach (string col in new[] { "stage", "wavesPerStage", "bossTime", "enemyCountBase", "enemyCountMax", "enemyGold", "bossGold" }) Positive(r, col, issues);
                 foreach (string col in new[] { "enemyCountPerWave", "enemyCountPerStage", "bossMycelite", "enemyAttack", "bossAttack", "enemyHp", "bossHp" }) Between(r, col, 0, double.MaxValue, issues);
                 if (!stages.Add(r.Int("stage"))) issues.Add(r.At("stage") + ": 스테이지 번호가 겹친다");
                 if (r.Int("enemyCountBase") > r.Int("enemyCountMax")) issues.Add(r.At("enemyCountMax") + ": 시작 적 수보다 작다");
