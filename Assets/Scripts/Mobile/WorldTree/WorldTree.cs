@@ -43,7 +43,10 @@ namespace MoreMush.Mobile
             public string questDay = "", questWeek = "";
             public List<Quest> questDaily = new List<Quest>();
             public List<Quest> questWeekly = new List<Quest>();
+            public int enemyRev;        // 적 ID 개편 차수 (1 = 11-05 식용 10종 → 5등급)
         }
+
+        const int EnemyRev = 1;
 
         static SaveData data;
         static bool pending;
@@ -81,11 +84,32 @@ namespace MoreMush.Mobile
                 try { data = JsonUtility.FromJson<SaveData>(json); }
                 catch (Exception e) { Debug.LogError("[WorldTree] 저장 데이터를 읽지 못해 새로 시작한다: " + e.Message); }
             }
-            if (data == null) data = new SaveData();
+            if (data == null) data = new SaveData { enemyRev = EnemyRev };
+            if (data.enemyRev < EnemyRev) MigrateEnemies();
             data.stage = Mathf.Clamp(data.stage, 1, MaxStage);
             data.ring = Mathf.Clamp(data.ring, 1, RingMax);
             TrimPlacedToSlots();
             bonusDirty = true;
+        }
+
+        // 11-05 전 세이브: 식용 10종(1001~1010)을 두 종씩 한 등급(1001~1005)으로 합친다 — 창고 개수는 더하고, 부탁·종류 퀘스트 버섯은 바꾼다
+        static void MigrateEnemies()
+        {
+            int Map(int id) => id >= 1001 && id <= 1010 ? 1001 + (id - 1001) / 2 : id;
+            var merged = new List<StoreEntry>();
+            foreach (var s in data.store)
+            {
+                int id = Map(s.enemy);
+                var have = merged.Find(m => m.enemy == id);
+                if (have != null) have.count += s.count;
+                else merged.Add(new StoreEntry { enemy = id, count = s.count });
+            }
+            data.store = merged;
+            foreach (var r in data.requests) r.enemy = Map(r.enemy);
+            foreach (var q in data.questDaily) q.arg = Map(q.arg);
+            foreach (var q in data.questWeekly) q.arg = Map(q.arg);
+            data.enemyRev = EnemyRev;
+            pending = true;
         }
 
         // 자리별로 지금 단계 칸 수보다 많이 놓인 장식은 뒤에 놓은 것부터 빼서 보유 목록으로 돌린다 (칸 수가 줄어든 표·옛 세이브)

@@ -22,11 +22,9 @@ namespace MoreMush.Mobile
         [SerializeField] bool hidePlaceholders = true;      // 칸·영역에 임시로 넣어 둔 그림을 숨긴다
         [SerializeField] TabGroup homeTabs;                 // Main 하단바 — 열린 탭이 없을 때(홈)만 전투를 보인다 (비우면 늘 보인다)
 
-        [Header("임시 리소스 (Resources 경로)")]
-        [SerializeField] string enemyFolder = "Art/Dream/Characters/Critters/Mushrooms";
-        [SerializeField] string kindFolder = "Art/Dream/Characters/Enumy";     // 독버섯·약용버섯 군락 시트 (적 시트 mushroom_tx·md행 = 세계수 창고). 식용 군락은 쓰지 않는다
-        [SerializeField] string bossFolder = "Art/Dream/Characters/Critters/Bosses";
-        [SerializeField] string[] extraBossSprites = { "Art/Dream/Characters/Grandpa/grandpa_ref" };   // 폴더 밖 보스 그림 (Resources 경로, 확장자 없이)
+        [Header("리소스 (Resources 경로)")]
+        [SerializeField] string kindFolder = "Art/Dream/Characters/Enumy";     // 식용·독버섯·약용버섯 군락 시트 (적 시트 mushroom_ed·tx·md행 = 세계수 창고)
+        [SerializeField] string[] bossPaths = { "Art/Dream/Characters/Enumy/Mush_Toxic_Legend_Colony", "Art/Dream/Characters/Grandpa/grandpa_ref" };   // 보스 그림 (Resources 경로, 확장자 없이). 시트면 첫 칸(_0)
         [SerializeField] string harvesterFolder = "Art/Dream/Harvesters";
 
         [Header("크기·연출")]
@@ -132,20 +130,20 @@ namespace MoreMush.Mobile
 
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
-            enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
             var kinds = Resources.LoadAll<Sprite>(kindFolder);
+            enemySprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Edible);
             toxicSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Toxic);
             medicinalSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Medicinal);
-            var bosses = new List<Sprite>(Resources.LoadAll<Sprite>(bossFolder));
-            foreach (var path in extraBossSprites)
+            var bosses = new List<Sprite>();
+            foreach (var path in bossPaths)
             {
-                var sp = string.IsNullOrEmpty(path) ? null : Resources.Load<Sprite>(path);
+                var sp = string.IsNullOrEmpty(path) ? null : FirstCell(path);
                 if (sp != null) bosses.Add(sp);
                 else Debug.LogWarning($"[IdleBattle] 보스 그림 없음: Resources/{path}");
             }
             bossSprites = bosses.ToArray();
             harvesterSprites = Resources.LoadAll<Sprite>(harvesterFolder);
-            if (enemySprites.Length == 0) Debug.LogWarning($"[IdleBattle] 적 그림 없음: Resources/{enemyFolder}");
+            if (enemySprites.Length == 0) Debug.LogWarning($"[IdleBattle] 식용 적 그림 없음: Resources/{kindFolder}");
             if (bossSprites.Length == 0) bossSprites = enemySprites;
 
             if (hidePlaceholders)
@@ -622,7 +620,8 @@ namespace MoreMush.Mobile
             e.rt.sizeDelta = new Vector2(size, size);
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
             e.boss = isBoss;
-            e.kind = GgomaSkills.KindOf(e.img.sprite != null ? e.img.sprite.name : null);
+            // 보스는 그림이 독버섯 군락이어도 식용으로 친다 (꼬마 스킬의 독·약용 배율을 보스에 걸지 않는다 — 옛 보스 그림과 같은 밸런스)
+            e.kind = isBoss ? MushroomKind.Edible : GgomaSkills.KindOf(e.img.sprite != null ? e.img.sprite.name : null);
             e.maxHp = e.hp = isBoss ? IdleProgress.BossHp(stage) : IdleProgress.EnemyHp(stage, wave);
             e.gold = IdleProgress.ClampToLong((isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage)) * WorldTree.Mul(TreeEffect.KillGold), 1);
             e.incoming = 0;
@@ -639,6 +638,15 @@ namespace MoreMush.Mobile
             SetHp(e);
             enemies.Add(e);
             return e;
+        }
+
+        // 시트(여러 칸)면 "_0" 칸, 한 장짜리면 그 그림
+        static Sprite FirstCell(string path)
+        {
+            var all = Resources.LoadAll<Sprite>(path);
+            if (all == null || all.Length == 0) return null;
+            foreach (var sp in all) if (sp.name.EndsWith("_0")) return sp;
+            return all[0];
         }
 
         // 일반 적 그림 묶음: 독성·약용은 상수 비율대로, 나머지는 식용 (그림이 없으면 식용)
