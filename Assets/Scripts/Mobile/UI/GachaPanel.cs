@@ -282,7 +282,7 @@ namespace MoreMush.Mobile
             bool free = FreeAvailable;
             // [UI 개편 2026-11-05] 한 줄 "광고 보고 11회 소환"(앞은 연한 노랑·뒤는 흰색). 다 보면 이름은 그대로 두고 버튼만 회색(interactable)
             string freeTitle = adProduct == null ? "-"
-                : $"<color=#FFF2BF>광고 보고</color> {adProduct.pullCount}회 소환" + (AdLimit > 1 && free ? $" <size=70%>({GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit})</size>" : "");
+                : $"<color=#FFF2BF>광고 보고</color> {adProduct.pullCount}회 소환" + (AdLimit > 0 ? $" {AdLimit - GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit}" : "");   // 본 횟수/하루 횟수 (안 봤으면 0/n, 다 보면 n/n·회색)
             SetButton(freeText, freeTitle, "");
             SetButton(coin11Text, smallProduct != null ? $"{smallProduct.pullCount}회 소환" : "-", smallProduct != null ? Wallet.Format(smallProduct.price) : "");
             SetButton(coin35Text, bigProduct != null ? $"{bigProduct.pullCount}회 소환" : "-", bigProduct != null ? Wallet.Format(bigProduct.price) : "");

@@ -182,9 +182,10 @@ namespace MoreMush.Mobile
                     name = (t.Find("Name") ?? t.Find("Title"))?.GetComponent<TMP_Text>(),
                     npc = t.Find("NpcName")?.GetComponent<TMP_Text>(),
                     // 홈 일일 의뢰 카드 이름도 받는다: Title · IconBox/Icon · Desc(글자) · Reward · Claim · Bar/Text
-                    desc = (t.Find("Desc/Text") ?? t.Find("Desc"))?.GetComponent<TMP_Text>(),
+                    // [UI 개편 2026-11-05] 주간 카드의 Desc·Reward는 안쪽 칸 InfoBox 아래로 옮겼다 (InfoBox/… 도 찾는다)
+                    desc = (t.Find("Desc/Text") ?? t.Find("Desc") ?? t.Find("InfoBox/Desc"))?.GetComponent<TMP_Text>(),
                     progress = (t.Find("Progress") ?? t.Find("Bar/Text"))?.GetComponent<TMP_Text>(),
-                    reward = t.Find("Reward")?.GetComponent<TMP_Text>(),
+                    reward = (t.Find("Reward") ?? t.Find("InfoBox/Reward"))?.GetComponent<TMP_Text>(),
                     portrait = (t.Find("Portrait") ?? t.Find("Icon") ?? t.Find("IconBox/Icon"))?.GetComponent<Image>(),
                     // [UI 개편 2026-11-05] 일일 칸도 CompleteBtn이 있으면 그 버튼으로 받는다 (없으면 예전처럼 Desc를 눌러 받기)
                     button = (t.Find("CompleteBtn") ?? t.Find("Claim") ?? (isWeekly ? null : t.Find("Desc")))?.GetComponent<Button>(),

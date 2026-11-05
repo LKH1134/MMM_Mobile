@@ -166,12 +166,14 @@ namespace MoreMush.Mobile
         {
             if (text == null || text.title == null) return;
             if (text.sub != null) text.sub.transform.parent.gameObject.SetActive(false);
-            text.title.textWrappingMode = TextWrappingModes.NoWrap;   // 넘치면 줄바꿈 대신 자동 축소
+            text.title.textWrappingMode = TextWrappingModes.NoWrap;   // 넘치면 줄바꿈 대신 자동 축소 (잘리지 않게 최소 16까지)
+            text.title.overflowMode = TextOverflowModes.Overflow;
+            text.title.fontSizeMin = 16f;
             var trt = text.title.rectTransform;
             trt.anchorMin = Vector2.zero;
             trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(LeafInset + LeafSize, 0f);
-            trt.offsetMax = new Vector2(-(LeafInset + LeafSize), -4f);
+            trt.offsetMin = new Vector2(LeafInset + LeafSize - 6f, 0f);   // 잎 바로 안쪽까지 글자 자리
+            trt.offsetMax = new Vector2(-(LeafInset + LeafSize - 6f), -4f);
         }
 
         static void Leaf(RectTransform button, string sprite, float side)

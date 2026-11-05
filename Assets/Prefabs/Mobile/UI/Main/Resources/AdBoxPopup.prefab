@@ -162,7 +162,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6887134796615034486}
   - component: {fileID: 3459599811993040071}
-  - component: {fileID: 9013137558535359001}
   m_Layer: 0
   m_Name: MycelitePair
   m_TagString: Untagged
@@ -217,20 +216,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &9013137558535359001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2076589773863171867}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
-  m_HorizontalFit: 2
-  m_VerticalFit: 0
 --- !u!1 &2572295963407280178
 GameObject:
   m_ObjectHideFlags: 0
@@ -1291,7 +1276,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1728448172206232847}
   - component: {fileID: 6772164119909270341}
-  - component: {fileID: 408451824786628498}
   m_Layer: 0
   m_Name: GoldPair
   m_TagString: Untagged
@@ -1346,20 +1330,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &408451824786628498
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7014674780599308424}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
-  m_HorizontalFit: 2
-  m_VerticalFit: 0
 --- !u!1 &7183413280388236252
 GameObject:
   m_ObjectHideFlags: 0
@@ -1907,7 +1877,7 @@ MonoBehaviour:
   m_Spacing: 56
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 0
+  m_ChildControlWidth: 1
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
