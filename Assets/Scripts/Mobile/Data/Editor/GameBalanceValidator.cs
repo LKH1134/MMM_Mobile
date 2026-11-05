@@ -62,7 +62,6 @@ namespace MoreMush.Mobile.EditorTools
             ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("treeQuestDaily", 1, true),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
             ("offlineGoldRate", 0, false), ("speedCostRampFromLv", 0, true), ("speedCostRamp", 0, false),
-            ("dungeonSweepMul", 0, false),
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
             ("harvestHpRateExp", 0, false),
             ("harvestFarmRounds", 1, true), ("harvestCycleLength", 1, true), ("offlineRateMinSeconds", 0.001, false),

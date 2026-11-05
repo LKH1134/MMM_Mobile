@@ -359,7 +359,7 @@ namespace MoreMush.Mobile
         public int unlockStage;    // 이 스테이지에 진입해야 열린다 (0 = 처음부터)
         public string scene;       // 입장 씬 (DungeonEntry가 읽는다). 미구현 던전은 빈 문자열
         public bool implemented;   // false면 입장 버튼을 막는다
-        public int baseStage;      // 레벨 1의 기준 스테이지 (레벨 L = baseStage + stageStep × (L − 1)). 방치 스테이지가 낮으면 소탕 (DungeonRewards)
+        public int baseStage;      // 레벨 1의 기준 스테이지 (레벨 L = baseStage + stageStep × (L − 1)) (DungeonRewards)
         public int stageStep;
         public int rewardKills;    // 깨면 골드 = 기준 스테이지 적 처치 골드 × 이 값
         public int rewardMyc;      // 깨면 균사석 = 이 값 × (1 + rewardGrowth × (L − 1))
