@@ -14,7 +14,7 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_FontAsset font;
         [SerializeField] Toast toastPrefab;         // 안내 문구 — 처음 쓸 때 캔버스 맨 위에 하나 만든다 (없으면 콘솔에만)
 
-        class Slot { public Button button; public Image bg, icon; public TMP_Text count, badge; }
+        class Slot { public Button button; public Image bg, icon; public TMP_Text count, badge; public Sprite normal; }   // normal = 프리팹에 놓은 칸 그림 [UI 개편 11-05]
 
         readonly List<Slot> slots = new List<Slot>();
         Image detailIcon;
@@ -354,7 +354,9 @@ namespace MoreMush.Mobile
                     : lv >= Equipment.MaxLevel ? $"Lv.{lv} MAX"
                     : $"Lv.{lv} <size=80%>({Eq.Copies(i)}/{Equipment.CopiesToNext(lv)})</size>";
                 s.badge.text = i == equipped ? "<color=#3A8F2E>장착</color>" : "";
-                s.bg.sprite = Resources.Load<Sprite>(i == selected ? SelectedSprite : i == equipped ? EquippedSprite : SlotSprite);
+                // [UI 개편 11-05] 보통 칸은 프리팹에 놓은 그림 그대로 (없을 때만 SlotSprite). 고른 칸·장착 칸만 바꿔 낀다
+                if (s.normal == null && s.bg != null) s.normal = s.bg.sprite != null ? s.bg.sprite : Resources.Load<Sprite>(SlotSprite);
+                s.bg.sprite = i == selected ? Resources.Load<Sprite>(SelectedSprite) : i == equipped ? Resources.Load<Sprite>(EquippedSprite) : s.normal;
                 s.bg.type = Image.Type.Sliced;
                 s.bg.color = Color.white;
             }
