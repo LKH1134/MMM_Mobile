@@ -112,6 +112,8 @@ namespace MoreMush.Mobile
 
             ad.OnAdFullScreenContentClosed += () => Release(ad, "광고 닫힘");
             ad.OnAdFullScreenContentFailed += error => Release(ad, $"광고 표시 실패: {error?.GetMessage()}");
+            // 광고가 나오는 동안 게임 소리(BGM)를 멈춘다. 닫히거나 표시에 실패하면 Release가 다시 켠다
+            AudioListener.pause = true;
             ad.Show(_ =>
             {
                 // 광고를 끝까지 본 사람의 보상이 다른 처리의 예외에 막히지 않게 보상을 먼저, 나머지는 따로 지킨다
@@ -128,6 +130,7 @@ namespace MoreMush.Mobile
 
         static void Release(RewardedAd ad, string message)
         {
+            AudioListener.pause = false;
             ad.Destroy();
             Report(message);
             LoadRewarded();
