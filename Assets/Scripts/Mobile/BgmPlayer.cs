@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 namespace MoreMush.Mobile
 {
     // 메인 BGM. Start(로딩 화면)가 끝나고 다음 씬이 처음 열리면 재생을 시작하고, 이후 씬이 바뀌어도 끊지 않고 반복한다.
-    // 씬에 따로 둘 것은 없다 (처음 쓸 때 DontDestroyOnLoad 오브젝트를 만든다). 음량은 옵션 배경음 슬라이더(InGameOption.BgmKey)
+    // 씬에 따로 둘 것은 없다 (처음 쓸 때 DontDestroyOnLoad 오브젝트를 만든다). 음량은 옵션 배경음 슬라이더(BgmVolumeSlider, 저장 키 InGameOption.BgmKey)
     public static class BgmPlayer
     {
         const string ClipPath = "Audio/Bgm/GlowingWoodland";
@@ -51,10 +51,19 @@ namespace MoreMush.Mobile
             if (!source.isPlaying) source.Play();
         }
 
-        // 옵션 슬라이더가 바뀌면 부른다
-        public static void ApplyVolume()
+        public static float Volume => Mathf.Clamp01(PlayerPrefs.GetFloat(InGameOption.BgmKey, 1f));
+
+        // 옵션 배경음 슬라이더(BgmVolumeSlider)가 부른다: 저장하고 바로 반영
+        public static void SetVolume(float v)
         {
-            if (source != null) source.volume = Mathf.Clamp01(PlayerPrefs.GetFloat(InGameOption.BgmKey, 1f));
+            PlayerPrefs.SetFloat(InGameOption.BgmKey, Mathf.Clamp01(v));
+            SaveScheduler.MarkDirty();
+            ApplyVolume();
+        }
+
+        static void ApplyVolume()
+        {
+            if (source != null) source.volume = Volume;
         }
     }
 }
