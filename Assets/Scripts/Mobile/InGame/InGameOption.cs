@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // InGame 옵션 팝업 내용. 배경음·효과음 슬라이더(값만 저장한다 — 소리 연결은 추후), 로비(Main)로 돌아가기.
+    // InGame 옵션 팝업 내용. 배경음 슬라이더(BgmPlayer 음량)·효과음 슬라이더(값만 저장 — 효과음 연결은 추후), 로비(Main)로 돌아가기.
     // 닫기는 UiPopup의 CloseButton이 맡는다
     public class InGameOption : MonoBehaviour
     {
@@ -19,16 +19,16 @@ namespace MoreMush.Mobile
 
         void Awake()
         {
-            Bind(bgmSlider, BgmKey);
-            Bind(sfxSlider, SfxKey);
+            Bind(bgmSlider, BgmKey, BgmPlayer.ApplyVolume);
+            Bind(sfxSlider, SfxKey, null);
             if (lobbyButton != null) lobbyButton.onClick.AddListener(GoLobby);
         }
 
-        static void Bind(Slider slider, string key)
+        static void Bind(Slider slider, string key, System.Action changed)
         {
             if (slider == null) return;
             slider.SetValueWithoutNotify(PlayerPrefs.GetFloat(key, 1f));
-            slider.onValueChanged.AddListener(v => { PlayerPrefs.SetFloat(key, v); SaveScheduler.MarkDirty(); });
+            slider.onValueChanged.AddListener(v => { PlayerPrefs.SetFloat(key, v); SaveScheduler.MarkDirty(); changed?.Invoke(); });
         }
 
         public void GoLobby()
