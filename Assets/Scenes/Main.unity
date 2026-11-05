@@ -331,8 +331,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 300, y: -571.7}
-  m_SizeDelta: {x: 460, y: 287.3}
+  m_AnchoredPosition: {x: 290, y: -520}
+  m_SizeDelta: {x: 500, y: 380}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &107349710
 MonoBehaviour:
@@ -433,8 +433,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -361, y: -533.7}
-  m_SizeDelta: {x: 231.8, y: 361.9}
+  m_AnchoredPosition: {x: -361, y: -530}
+  m_SizeDelta: {x: 380, y: 520}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &263011677
 MonoBehaviour:
@@ -519,7 +519,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 58, y: -130.95}
+  m_AnchoredPosition: {x: 95, y: -170}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &469936156
@@ -737,7 +737,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -58, y: 65.475}
+  m_AnchoredPosition: {x: -95, y: 85}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &732697893
@@ -1630,7 +1630,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 58, y: 130.95}
+  m_AnchoredPosition: {x: 95, y: 170}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1136229613
@@ -1705,7 +1705,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 58, y: 0}
+  m_AnchoredPosition: {x: 95, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1147350523
@@ -1856,9 +1856,6 @@ MonoBehaviour:
   hidePlaceholders: 1
   homeTabs: {fileID: 0}
   kindFolder: Art/Dream/Characters/Enumy
-  bossPaths:
-  - Art/Dream/Characters/Enumy/Mush_Toxic_Legend_Colony
-  - Art/Dream/Characters/Grandpa/grandpa_ref
   harvesterFolder: Art/Dream/Harvesters
   ggomaSize: 169
   enemySize: 143
@@ -2846,7 +2843,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -58, y: -65.47499}
+  m_AnchoredPosition: {x: -95, y: -85}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1463426291
@@ -3427,7 +3424,6 @@ MonoBehaviour:
   - {fileID: 420734982}
   - {fileID: 1079906520}
   - {fileID: 1022538863}
-  petSlot: {fileID: 0}
   charPopup: {fileID: 1681239015}
   charGrid: {fileID: 1606137581}
   closeButton: {fileID: 7556006495141526538}
