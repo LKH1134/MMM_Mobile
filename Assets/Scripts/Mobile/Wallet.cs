@@ -59,6 +59,9 @@ namespace MoreMush.Mobile
             return true;
         }
 
+        // 개발자 모드(DevMode) 전용: 잔액을 그대로 정한다
+        public static void DevSet(Currency currency, long value) => Set(currency, value);
+
         static void Set(Currency currency, long value)
         {
             value = System.Math.Max(0, value);
