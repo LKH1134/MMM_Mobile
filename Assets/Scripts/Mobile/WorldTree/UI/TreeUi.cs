@@ -16,6 +16,7 @@ namespace MoreMush.Mobile
         public static readonly Color ButtonOn = new Color(0.40f, 0.80f, 0.55f, 1f);
         public static readonly Color ButtonAlt = new Color(0.95f, 0.65f, 0.30f, 1f);
         public static readonly Color ButtonOff = new Color(0.72f, 0.70f, 0.68f, 1f);
+        public static readonly Color ButtonBlue = new Color(0.35f, 0.80f, 0.95f, 1f);   // [UI 개편 11-05] 하늘색 버튼 (진화 등)
         public static readonly Color CardOn = new Color(1f, 0.97f, 0.88f, 1f);
         public static readonly Color CardOff = new Color(0.86f, 0.84f, 0.80f, 1f);
 
@@ -25,6 +26,8 @@ namespace MoreMush.Mobile
         const string ButtonSprite = "UI/UI_Btn_Green";              // ButtonOn
         const string ButtonAltSprite = "UI/UI_Btn_Yellow";          // ButtonAlt
         const string ButtonOffSprite = "UI/UI_Btn_Grey";            // ButtonOff · 누를 수 없음 (회색)
+        const string ButtonBlueSprite = "UI/UI_Btn_Sky";            // ButtonBlue
+        public const string CardBeigeSprite = "UI/UI_PP_In_Color_Beige1";   // [UI 개편 11-05] 성장 시트 카드 바탕
         const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
         const string BarGreenSprite = "UI/UI_PP_Bar_Gauge_Green";
         const string BarYellowSprite = "UI/UI_PP_Bar_Gauge_Yellow";
@@ -64,11 +67,11 @@ namespace MoreMush.Mobile
         }
 
         // 목록 한 줄 (종이 카드). 안의 조각은 Place로 자리를 잡는다
-        public static RectTransform Card(Transform list, float height, bool active = true)
+        public static RectTransform Card(Transform list, float height, bool active = true, string sprite = null)
         {
             var rt = New("Card", list);
             var img = rt.gameObject.AddComponent<Image>();
-            img.sprite = Load(active ? CardSprite : CardOffSprite);
+            img.sprite = Load(active ? (sprite ?? CardSprite) : CardOffSprite);   // [UI 개편 11-05] sprite = 켜진 카드 바탕을 바꿀 때
             img.type = Image.Type.Sliced;
             img.color = Color.white;
             img.raycastTarget = false;
@@ -118,7 +121,7 @@ namespace MoreMush.Mobile
             rt.anchoredPosition = new Vector2(-right, 0f);
             var img = rt.gameObject.AddComponent<Image>();
             var want = interactable ? (tint ?? ButtonOn) : ButtonOff;
-            img.sprite = Load(want == ButtonAlt ? ButtonAltSprite : want == ButtonOff ? ButtonOffSprite : ButtonSprite);
+            img.sprite = Load(want == ButtonAlt ? ButtonAltSprite : want == ButtonOff ? ButtonOffSprite : want == ButtonBlue ? ButtonBlueSprite : ButtonSprite);
             img.type = Image.Type.Sliced;
             img.color = Color.white;
             var b = rt.gameObject.AddComponent<UnityEngine.UI.Button>();

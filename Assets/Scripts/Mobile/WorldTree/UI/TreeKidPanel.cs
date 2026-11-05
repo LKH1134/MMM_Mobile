@@ -7,7 +7,82 @@ namespace MoreMush.Mobile
     // 꼬마 시트: 오늘의 부탁(창고 버섯 → 골드·호감도)과 주간 상자, 가진 꼬마마다 호감도(선물)·등급(★)·진화·특기
     public class TreeKidPanel : TreePanel
     {
+        // [UI 개편 2026-11-05] 카드 모양은 프리팹 KidPopup의 Sheet/Content/Templates에서 고친다 (자식 이름을 지켜야 값이 들어간다).
+        //   Header: (글자)   Empty: Text   RequestCard: Icon · Text · Sub · Button   WeekCard: Title · Desc · Button
+        //   KidCard: Icon · Title · Affinity · Bar/Fill · Bonus · Evolve · GiftButton · EvolveButton
+        static readonly string[] TemplateNames = { "Header", "Empty", "RequestCard", "WeekCard", "KidCard" };
+
         protected override void Build()
+        {
+            if (!HasTemplates(TemplateNames)) { BuildByCode(); return; }
+
+            SetText(Use("Header"), null, "오늘의 부탁");
+            var requests = WorldTree.Requests;
+            if (requests.Count == 0) SetText(Use("Empty"), "Text", "꼬마가 생기면 부탁을 해요");
+            for (int i = 0; i < requests.Count; i++)
+            {
+                var r = requests[i];
+                int index = i;
+                var card = Use("RequestCard");
+                CardOff(card, r.done);
+                SetIcon(card, "Icon", Formation.Icon(r.kid));
+                long have = WorldTree.StoreCount(r.enemy);
+                SetText(card, "Text", $"{Formation.Name(r.kid)}: {WorldTree.EnemyName(r.enemy)} {r.count}개 주세요");
+                SetText(card, "Sub", r.done ? "고마워요!" : TreeUi.Check(have >= r.count, $"창고 {Wallet.Format(have)}/{r.count}") + $"  ·  보상 {Gold(WorldTree.RequestGold)} · 호감도 +{GameBalance.ConstInt("requestAffinity")}");
+                SetButton(card, "Button", r.done ? "완료" : "들어주기", !r.done && WorldTree.CanDoRequest(index), () =>
+                {
+                    if (WorldTree.DoRequest(index)) Toast($"{Formation.Name(r.kid)}의 부탁을 들어줬어요!");
+                });
+            }
+            var week = Use("WeekCard");
+            SetText(week, "Title", $"주간 상자  {Mathf.Min(WorldTree.WeekDone, WorldTree.WeekGoal)}/{WorldTree.WeekGoal}");
+            SetText(week, "Desc", $"이번 주 부탁 {WorldTree.WeekGoal}번 → {Mycelite(WorldTree.WeekMycelite)}");
+            SetButton(week, "Button", WorldTree.WeekClaimed ? "받음" : "받기", WorldTree.CanClaimWeek, () =>
+            {
+                if (WorldTree.ClaimWeek()) Toast($"{Mycelite(WorldTree.WeekMycelite)}을 받았어요!");
+            });
+
+            SetText(Use("Header"), null, "꼬마");
+            bool any = false;
+            foreach (var id in WorldTree.OwnedKids) { any = true; KidCardFromTemplate(id); }
+            if (!any) SetText(Use("Empty"), "Text", "뽑기에서 꼬마를 데려오세요");
+        }
+
+        void KidCardFromTemplate(string id)
+        {
+            var row = WorldTree.KidRow(id);
+            int star = WorldTree.Star(id);
+            var card = Use("KidCard");
+            SetIcon(card, "Icon", Formation.Icon(id));
+            SetText(card, "Title", $"{Formation.Name(id)}  Lv {Formation.Level(id)}  " + TreeUi.Colored(TreeUi.Stars(star, WorldTree.MaxStar), new Color(0.95f, 0.65f, 0.1f)));
+            int affLv = WorldTree.AffinityLevel(id);
+            var (have, need) = WorldTree.AffinityProgress(id);
+            SetText(card, "Affinity", need > 0 ? $"호감도 Lv {affLv}  ({have}/{need})" : $"호감도 Lv {affLv} (최고)");
+            SetBar(card, "Bar/Fill", need > 0 ? have / (float)need : 1f);
+            var sb = new StringBuilder();
+            int step = WorldTree.KidStep(id);
+            if (row != null) sb.Append("특기: ").Append(WorldTree.EffectText(row.bonusEffect, row.bonusValue * step)).Append(step == 0 ? " (진화하면)" : "");
+            if (WorldTree.DecoSetComplete(id)) sb.Append(TreeUi.Colored("  장식 세트!", TreeUi.Good));
+            SetText(card, "Bonus", sb.ToString());
+            SetText(card, "Evolve", star >= WorldTree.MaxStar ? TreeUi.Colored("최고 등급", TreeUi.Good)
+                : "진화: " + TreeUi.Check(Formation.Level(id) >= WorldTree.EvoLevelNeeded(id), $"Lv {WorldTree.EvoLevelNeeded(id)}") + "  "
+                  + TreeUi.Check(WorldTree.Stage >= WorldTree.EvoStageNeeded(id), $"세계수 {WorldTree.EvoStageNeeded(id)}단계") + "  "
+                  + TreeUi.Check(Wallet.CanAfford(Currency.Mycelite, WorldTree.EvoMyceliteCost(id)), Mycelite(WorldTree.EvoMyceliteCost(id))));
+            var (giftEnemy, giftCount) = WorldTree.GiftPick(id);
+            bool canGift = giftCount > 0 && affLv < WorldTree.MaxAffinityLevel;
+            SetButton(card, "GiftButton", canGift ? $"선물\n+{WorldTree.GiftValue(id, giftEnemy, giftCount)}" : "선물", canGift, () =>
+            {
+                int gain = WorldTree.Gift(id);
+                if (gain > 0) Toast($"{Formation.Name(id)} 호감도 +{gain}");
+            });
+            SetButton(card, "EvolveButton", star >= WorldTree.MaxStar ? "진화" : $"진화 ★{star + 1}", WorldTree.CanKidEvolve(id) == WorldTree.KidFail.None, () =>
+            {
+                if (WorldTree.KidEvolve(id)) Toast($"{Formation.Name(id)}가 ★{WorldTree.Star(id)}로 진화했어요!");
+            });
+        }
+
+        // 견본이 없을 때: 예전 코드 화면
+        void BuildByCode()
         {
             // 부탁
             TreeUi.Header(list, "오늘의 부탁", font);
