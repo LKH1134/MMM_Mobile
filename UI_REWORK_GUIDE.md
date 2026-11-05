@@ -3,7 +3,7 @@
 > 대상: 유니티 초보자. 기준 와이어프레임 `20261023_모바일UI와이어프레임.pdf` (박지수)
 > 원칙: **기존 코드는 고치지 않는다.** 코드가 꼭 필요한 곳은 ⚠️로 표시했고, 손대기 전에 먼저 묻는다.
 >
-> **⚠️ 2026-11-02 메모: 이 가이드는 10-23 판 플레이 시절 기록입니다.** 지금은 `Main`(방치형)이 허브이고 WorldTree는 하단바 세계수로 들어가는 세계수 전용 씬입니다(바구니 → 수확 보따리 `TreeBagButton`, 시트 내용은 `TreePanel`들이 코드로 채움, `WorldTreeGrowth.cs` 없음). 현재 구조는 `HANDOFF.md` 3.1·3.3을 보세요. (11-03: 아래 2-4의 `BossBadgeLabel`은 쓰지 않아 삭제, 도감 `CollectPopup`은 프리팹만 남음)
+> **⚠️ 2026-11-02 메모: 이 가이드는 10-23 판 플레이 시절 기록입니다.** 지금은 `Main`(방치형)이 허브이고 WorldTree는 하단바 세계수로 들어가는 세계수 전용 씬입니다(바구니 → 수확 보따리 `TreeBagButton`, 시트 내용은 `TreePanel`들이 코드로 채움, `WorldTreeGrowth.cs` 없음). 현재 구조는 `HANDOFF.md` 3.1·3.3을 보세요. (11-03: 아래 2-4의 `BossBadgeLabel`은 쓰지 않아 삭제. 수확 보따리도 11-03 KHD가 제거.) **11-05:** 도감 `CollectPopup` 프리팹 삭제, 폰트는 LINESeedKR Bd/Rg **정적 아틀라스**(1-3은 옛 내용 — 새 글자는 메뉴 `MoreMush/Fonts/Bake Static Atlases`로 다시 굽기), 옵션 배경음 슬라이더 = 실제 BGM 음량(`BgmVolumeSlider`), 세계수 나무 그림은 `Tree01~04`(`WorldTreeView.stageSizes`로 단계마다 커짐 — 아래 4장 2-2의 그림 규칙은 옛 안).
 
 ---
 
@@ -246,7 +246,7 @@ Unity에서 작업할 때마다 **Ctrl+S(씬 저장)**를 습관처럼 누르세
 - ⚠️ **어느 프리팹이 어느 화면에서 열리는지:** 로비의 공방 = `WorldTree/CraftPopup.prefab`, 업그레이드 화면의 공방 = `WorkshopPopup.prefab`. 씬마다 연결된 프리팹은 로비 `Canvas`의 World Tree Screen → Menus / 업그레이드 `Canvas`의 Skill Tree Screen에서 확인.
 
 ### 3-8. 설정 (`OptionPopup`, `InGameOptionPopup`) — 와이어프레임 12
-- ② BGM/SFX 슬라이더: `InGameOptionPopup`에 이미 있음(`InGameOption` 컴포넌트). 같은 컴포넌트를 `OptionPopup`에도 붙이면 로비에서도 슬라이더가 저장됩니다 ✅ (소리 자체는 아직 연결 안 됨)
+- ② BGM/SFX 슬라이더: `InGameOptionPopup`에 이미 있음(`InGameOption` 컴포넌트). 같은 컴포넌트를 `OptionPopup`에도 붙이면 로비에서도 슬라이더가 저장됩니다 ✅ (11-05: 배경음 슬라이더는 `OptionPopup`의 `BgmVolumeSlider`가 실제 BGM 음량에 연결. 효과음은 아직 없음)
 - ⑫ 인게임의 "로비로 돌아가기" = `InGameOption`의 세계수로 버튼 ✅
 - ⑬ 계속하기 = `CloseBtn` ✅
 - ⑭ 버전, ⑯ UID 글자 칸 ✅(고정 글자)
