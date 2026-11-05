@@ -79,3 +79,7 @@ crashlytics-build.properties
 *.keystore
 *.jks
 *.slnx
+
+# 밸런스 시뮬레이터 빌드 결과물 (11-05 추적 제외)
+/밸런스설계/test/sim/bin/
+/밸런스설계/test/sim/obj/

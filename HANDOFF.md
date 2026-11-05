@@ -580,13 +580,13 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 **C. 확인 못 한 것**
 - 몰입 모드(`ImmersiveMode`)·방어구 그림 10장·편성 3+2 배치의 실기기/플레이 모드 확인.
-- 시뮬 결과물 정리: `밸런스설계/test/out/snap_pet_*`·`stage_pet_*`·`out/pet/`, `test/sim/bin/base/`(기준선 dll) 등 새 파일이 많다 — 커밋할지 `.gitignore`할지 결정.
+- 시뮬 결과물 정리: `밸런스설계/test/out/snap_pet_*`·`stage_pet_*`·`out/pet/`, `test/sim/bin/base/`(기준선 dll) 등 새 파일이 많다 — 커밋할지 `.gitignore`할지 결정. → 11-05: `test/sim/bin`·`obj`는 git 추적에서 빼고 `.gitignore`에 넣음(파일은 디스크에 남음). `test/out/` 결과물은 그대로
 
 
 ### 세계수·표 (2026-11-03 기준)
 1. **U1 결정 (사용자):** 세계수 전투 효과를 지금처럼 +2%로 둘지, KHD 방치 곡선에 세계수 효과를 넣고 키울지 (3.3). 정하면 `밸런스설계/세계수/` 흐름(이론 → 적용 → 검증)으로 다시 돌림
 0. **KHD v3 머지 뒤 확인 (11-03):** Unity에서 `Reimport Tables`로 검증기 통과 확인, 컴파일 확인. (세계수 재검증은 11-03 끝 — v4 통과, 3.3)
-2. **KHD 쪽 정리:** 시뮬레이터 빌드 결과물(`밸런스설계/test/sim/bin·obj`, 약 45MB) git 제외 검토(8장 "정리"). `adGachaPulls`를 지웠으므로(KHD v3의 `밸런스설계/tools/apply_v3.py`도 이 상수를 씀) 아직 이 상수를 읽는 KHD 스크립트 — `밸런스설계/test/sim/Driver.cs`·`test/make_proposal_xlsx.py`·`theory/progress.py`·`theory/proposal.py`·`verify/proposal_port.py` — 는 뽑기상품 시트 광고 행 `pullCount`(지금 4)로 바꿔야 다시 돈다(세계수 쪽 `idle_feed.py`·`feed.py`는 11-03 고침). KHD 재현 명령 `run_v3d.py`는 머지된 700행 표에서 `KeyError 711`로 멈춤(옛 1000행 전제). 49일 뒤 보스 균사석 되먹임 폭주도 KHD 몫
+2. **KHD 쪽 정리:** 시뮬레이터 빌드 결과물(`밸런스설계/test/sim/bin·obj`, 약 45MB) git 제외 ✅ 11-05(8장 "정리"). `adGachaPulls`를 지웠으므로(KHD v3의 `밸런스설계/tools/apply_v3.py`도 이 상수를 씀) 아직 이 상수를 읽는 KHD 스크립트 — `밸런스설계/test/sim/Driver.cs`·`test/make_proposal_xlsx.py`·`theory/progress.py`·`theory/proposal.py`·`verify/proposal_port.py` — 는 뽑기상품 시트 광고 행 `pullCount`(지금 4)로 바꿔야 다시 돈다(세계수 쪽 `idle_feed.py`·`feed.py`는 11-03 고침). KHD 재현 명령 `run_v3d.py`는 머지된 700행 표에서 `KeyError 711`로 멈춤(옛 1000행 전제). 49일 뒤 보스 균사석 되먹임 폭주도 KHD 몫
 3. **세계수 실기기 확인:** 시트 팝업 스크롤·버튼 터치, 1080 폭에서 잘림, 장식 배치 그림 위치
 4. **세계수 아트:** 나무·장식은 PC판 그림 그대로, 시트 내용 UI는 코드로 만든 임시 모양
 4-1. **던전 1 수확 판 (KHD 참고, 11-03 실측, 우선):** 스킬 구매 UI가 없어 레벨 5부터 한 판(15초)에 버섯 1~3개만 캔다(레벨 1은 ~11개). 판 보상·재미 확인 필요
