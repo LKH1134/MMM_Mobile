@@ -563,17 +563,17 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 ### 2026-11-04 미완료 (가장 먼저)
 
-**A. 펫 삭제 커밋 (작업 트리, 미커밋)** — 사용자 지시 "펫 기능 없애고 편성 UI는 위 3·아래 2". 끝난 것:
+**A. 펫 삭제 커밋 — ✅ 커밋됨 (`08bb82b`, 문서 `9caca14`)** — 사용자 지시 "펫 기능 없애고 편성 UI는 위 3·아래 2". 끝난 것:
 - 코드: `GachaKind`에서 `Pet` 제거(**`Character = 3` 고정** — 씬·프리팹에 숫자로 저장돼 있어 바꾸면 꼬마 뽑기 칸이 다른 종류가 됨), `Equipment.All = {Weapon, Armor}`, `IdleProgress.AttackMultiplier = 1 + 무기%/100`(펫% 빠짐), `FormationPanel` 펫 칸 코드 삭제, `GachaPanel` 제목, 검증기 장비 종류, 주석 정리(`EquipmentPanel`·`PopupLayer`·`TabGroup`·`GameBalance`).
 - 프리팹·씬: `GGoma.prefab` 펫 칸 삭제·아래 줄 x −200/+200, `GachaUI.prefab` 펫 뽑기 칸 삭제·꼬마 칸 위로·높이 −428, `Main.unity` `Equit/Pet` 삭제·`Equit` TabGroup 탭/닫기 버튼 정리(무기·방어구 2개), `Pet.prefab` 삭제. 누락 참조 0.
 - 표: 장비 펫 12행·뽑기상품 펫 3행(12007~12009, 꼬마 12010~12012 번호는 그대로) 삭제, 데이터 검증 목록에서 Pet 제거, info·상수 설명, 개편 기록. 검증기 0건(1155행).
 - 확인: Unity 컴파일 오류 0, 편성 칸 배치는 프리팹 렌더로 확인. **플레이 모드 확인 전**(편성·장비 탭·뽑기 화면).
 - **커밋할 때 뺄 것:** `Assets/Fonts/LINESeedKR-*.asset`(Unity 재임포트, 커밋 금지 규칙), `Assets/GoogleMobileAds/.../768x1024.prefab`, `ProjectSettings/GvhProjectSettings.xml`(내용 변화 없음), `밸런스설계/test/sim/bin`·`obj` 빌드 결과물.
 
-**B. 펫 삭제 밸런스 보정 (진행 중 멈춤 — `밸런스설계/현황/manager.md` #18~#20)**
+**B. 펫 삭제 밸런스 보정 — ✅ 11-05 적용 (미커밋)** · verify#20 조건부 통과(`밸런스설계/검증.md` P절), 사용자가 60분 허들 s180→s250 수용 → ①+② 적용: 상수 9081 `weaponEffectMul` 1.75, `Equipment.BaseOwnPercent` 무기만 곱함, 검증기 상수, 스테이지 421~700 체력(`밸런스설계/tools/apply_pet_fix.py`). Unity 검증기 1156행 OK·컴파일 오류 0. 남은 것: (선택) test가 적용본으로 재실측, 플레이 모드에서 장비 화면 수치 확인. 아래는 경과 기록
 - **#18 test 실측 끝** (`밸런스설계/테스트.md` §13, `test/out/summary_pet.txt`): 시뮬 빌드 복구(`IdsOfGrade` 제거, 장비·뽑기 종류를 dll에서 읽어 펫 있/없 dll 모두 돎). 기준선 `7b17e68` 대비 보통(광고 절반) D1/D3/D7/D30 = 130/250/360/590 → 120/240/360/500, 120일 끝 750 → 590(10/10 시드가 s590 보스에서 20일↑ 막힘). 원인: 공격 배율 끝 26394% → 6388%(후반 펫%가 무기%의 3배), 첫날 광고 뽑기 2종이 무기+펫 → 무기+방어구.
 - **#19 theory 보정안 끝** (`밸런스설계/이론.md` 13절, `theory/pet_sim/`): ① 필수 — 상수 **9081 `weaponEffectMul` = 1.75**, `Equipment.cs` `Config`에 `weaponMul` 추가 후 `BaseOwnPercent` 끝에 `* (Kind == GachaKind.Weapon ? Cfg.weaponMul : 1.0)`(이 한 곳만; `AttackMultiplier`는 고치지 않음), 검증기 `RequiredConsts`에 `("weaponEffectMul", 0.001, false)`. ② 선택(권장) — 스테이지 421~700 `enemyHp`(T열)·`bossHp`(U열) × k(420:1 → 600:0.55 → 700:0.35 로그 보간, 값 `theory/pet_hp_late2.csv`, 사본 생성 `python 밸런스설계/theory/pet_table.py <출력.xlsx> "[[420,1.0],[600,0.55],[700,0.35]]"`). 예측(보통): D1/D3/D7/D30 = 134/260/364/590, 첫 1시간 5분↑ 대기 2회(기준선과 같음), 120일 끝 790.
-- **#20 verify 판정 — 중단됨(11-04 16:24, 사용자 지시).** 남은 것은 스크립트 초안뿐(`verify/pet_analyze.py`·`pet_grade8.py`·`pet_table_v.py`), 검증.md 결론 없음. **다시 시작**: verify 에이전트(`.claude/agents/idle-verify.md`)를 manager#20 그대로 다시 띄운다 — 할 일: 따로 만든 dll(무기 ×1.75)·표 사본으로 test 시뮬 재실측해 theory 예측 재현 여부, `weaponEffectMul`이 `OwnPercent`·`EquipPercent`·`GachaProgress.OwnPercent`·`AttackMultiplier`·장비 화면·`CombatPower`에 한 번씩만 들어가는지, 기준 1·8·D11, 표 체력 단조 증가, 민감도(무기만 뽑는 정책 → 과보정 가능성, 배율 1.5/1.75/2, 후반 체력 있/없).
+- **#20 verify 판정 — 11-05 재실행, 조건부 통과.** (이하 11-04 중단 당시 기록) 남은 것은 스크립트 초안뿐(`verify/pet_analyze.py`·`pet_grade8.py`·`pet_table_v.py`), 검증.md 결론 없음. **다시 시작**: verify 에이전트(`.claude/agents/idle-verify.md`)를 manager#20 그대로 다시 띄운다 — 할 일: 따로 만든 dll(무기 ×1.75)·표 사본으로 test 시뮬 재실측해 theory 예측 재현 여부, `weaponEffectMul`이 `OwnPercent`·`EquipPercent`·`GachaProgress.OwnPercent`·`AttackMultiplier`·장비 화면·`CombatPower`에 한 번씩만 들어가는지, 기준 1·8·D11, 표 체력 단조 증가, 민감도(무기만 뽑는 정책 → 과보정 가능성, 배율 1.5/1.75/2, 후반 체력 있/없).
 - **판정 때 정할 것:** (a) 60분 허들 시작이 기준선 s180 → s250(+39%)으로 목표 ±10% 밖 — theory는 "첫날 뒤 벽이 조금 늦어질 뿐"이라 그대로 두자고 함. 받아들일지 s170~180 체력 보정을 따로 잴지, (b) 무기만 뽑는 플레이어에게 ×1.75가 과보정인지.
 - **통과하면:** 관리자가 위 ①(②)를 표(두 파일 `GameBalance.xlsx`·`GameBalance.bytes` 동일하게)·코드에 적용 → Unity 검증기·컴파일 → test가 적용본으로 다시 재서 예측과 비교 → 사용자 보고 → 커밋.
 - 기존 위반(펫 있을 때도): 첫 1시간 5분↑ 대기 s58~65(기준 6) — 이번 보정 범위 밖, theory#16(v4) 몫.

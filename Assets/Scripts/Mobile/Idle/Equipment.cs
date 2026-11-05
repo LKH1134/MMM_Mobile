@@ -25,6 +25,7 @@ namespace MoreMush.Mobile
             public readonly int maxLevel = GameBalance.ConstInt("equipMaxLevel");
             public readonly double levelBonus = GameBalance.Const("equipLevelBonus");     // 레벨마다 효과 +20% (1레벨 값 기준)
             public readonly double equipRatio = GameBalance.Const("equipRatio");          // 장착 효과 = 보유 효과 × 이 배수
+            public readonly double weaponMul = GameBalance.Const("weaponEffectMul");      // 무기 효과 배율 (펫 삭제로 빠진 공격% 보정, 방어구는 1)
             public readonly double topGradeMul = GameBalance.Const("equipTopGradeMul");   // 마지막 등급은 다음 등급이 없어 기본값 × 이 배수까지 잇는다
             public readonly int copiesBase = GameBalance.ConstInt("copiesBase");
             public readonly int copiesPerLevel = GameBalance.ConstInt("copiesPerLevel");
@@ -253,7 +254,8 @@ namespace MoreMush.Mobile
             int g = Grade(i);
             double from = GachaProgress.OwnBase(g);
             double to = g + 1 < GachaProgress.GradeCount ? GachaProgress.OwnBase(g + 1) : from * Cfg.topGradeMul;
-            return from * Math.Pow(to / from, Sub(i) / (double)Math.Max(1, GradeSize(g)));
+            return from * Math.Pow(to / from, Sub(i) / (double)Math.Max(1, GradeSize(g)))
+                   * (Kind == GachaKind.Weapon ? Cfg.weaponMul : 1.0);   // 펫 삭제 보정: 무기만 × weaponEffectMul
         }
 
         static double LevelMultiplier(int lv) => lv > 0 ? 1 + LevelBonus * (lv - 1) : 0;

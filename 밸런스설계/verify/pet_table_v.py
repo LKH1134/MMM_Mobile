@@ -3,6 +3,7 @@
 #   - 상수 시트 끝에 9081 weaponEffectMul 행을 더한다 (값 '-'이면 안 더함)
 #   - 스테이지 시트 enemyHp·bossHp 열 × k(s): k 점 사이는 ln k 를 s에 대해 선형 보간, 첫 점 앞 1, 끝 점 뒤 끝 값
 #   - 출력은 "stage,k,enemyHp_old,enemyHp_new,bossHp_old,bossHp_new" csv(같은 이름 .csv)도 남긴다
+#   --boss=170:1.3,180:1.3 : 그 스테이지 bossHp만 추가로 × (쟁점 (a) s170~180 측정용, 11-05)
 #   --check: 1~700 enemyHp·bossHp 단조 증가(감소 0곳) 확인
 import sys, re, json, math, zipfile
 
@@ -42,7 +43,13 @@ def kfun(pts):
     return f
 
 
+BOSS = {}
+
+
 def main():
+    for a in sys.argv:
+        if a.startswith('--boss='):
+            BOSS.update({int(x.split(':')[0]): float(x.split(':')[1]) for x in a[7:].split(',')})
     src, dst, wm, pts = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
     z = zipfile.ZipFile(src)
     paths = sheet_paths(z)
@@ -82,8 +89,9 @@ def main():
         k = f(s)
         e0, b0 = num(body, ce, rn), num(body, cb, rn)
         e1, b1 = e0, b0
-        if abs(k - 1) > 1e-12:
-            e1 = float('%.6g' % (e0 * k)); b1 = float('%.6g' % (b0 * k))
+        bm = BOSS.get(s, 1.0)
+        if abs(k - 1) > 1e-12 or bm != 1.0:
+            e1 = float('%.6g' % (e0 * k)); b1 = float('%.6g' % (b0 * k * bm))
             for col, v in ((ce, e1), (cb, b1)):
                 body = re.sub(r'(<c r="%s%d"[^>]*><v>)[^<]*(</v></c>)' % (col, rn), lambda mm: mm.group(1) + repr(v) + mm.group(2), body, count=1)
         series[s] = (e1, b1)

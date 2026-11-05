@@ -1,4 +1,4 @@
-# 기준 8 확인 (manager#20): Equipment.cs:251-256 BaseOwnPercent·259 LevelMultiplier·262/266 Own/Equip 를 옮겨, 무기 배율 m 에서
+# 기준 8 확인 (manager#20, 11-05 고침: m은 무기에만): Equipment.cs:251-256 BaseOwnPercent·259 LevelMultiplier·262/266 Own/Equip 를 옮겨, 무기 배율 m 에서
 # 장비 순서(등급·단계)대로 "다음 장비 Lv1 보유 > 이전 장비 최대 레벨 보유"가 지켜지는지(등급 경계) 본다. 표는 xlsx 직접 읽기.
 import sys, re, zipfile
 src = sys.argv[1]; ms = [float(x) for x in sys.argv[2:]] or [1.0, 1.75]
@@ -27,7 +27,7 @@ for kind in sorted(set(r.get('kind', r.get('gachaKind', '')) for r in E)):
     for m in ms:
         def base(r):
             g = int(r['grade']); f = own[g]; to = own[g + 1] if g + 1 < len(own) else f * C['equipTopGradeMul']
-            return f * (to / f) ** (int(r['sub']) / max(1, size[g])) * m
+            return f * (to / f) ** (int(r['sub']) / max(1, size[g])) * (m if kind == 'Weapon' else 1.0)   # Equipment.cs 제안: 무기만 × weaponEffectMul
         LM = lambda lv: 1 + C['equipLevelBonus'] * (lv - 1)
         mx = int(C['equipMaxLevel'])
         vals = [(int(r['itemIndex']), int(r['grade']), int(r['sub']), base(r)) for r in items]

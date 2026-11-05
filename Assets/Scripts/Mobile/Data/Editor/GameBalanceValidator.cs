@@ -43,7 +43,7 @@ namespace MoreMush.Mobile.EditorTools
         static readonly (string key, double min, bool integer)[] RequiredConsts =
         {
             ("equipMaxLevel", 1, true), ("equipLevelBonus", 0, false), ("equipRatio", 0, false),
-            ("equipTopGradeMul", 0.001, false),
+            ("equipTopGradeMul", 0.001, false), ("weaponEffectMul", 0.001, false),
             ("copiesBase", 0, true), ("copiesPerLevel", 0, true),
             ("ggomaMaxLevel", 1, true), ("ggomaLevelBonus", 0, false),
             ("ggomaSplashRadius", 0, false), ("enemyToxicRate", 0, false), ("enemyMedicinalRate", 0, false), ("ggomaEvoLevel2", 1, true), ("ggomaEvoLevel3", 1, true), ("ggomaEvoMul2", 0.001, false), ("ggomaEvoMul3", 0.001, false), ("dungeonPerDay", 0, true),
