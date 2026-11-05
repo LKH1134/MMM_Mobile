@@ -70,8 +70,6 @@ namespace MoreMush.Mobile
 
         public float ComboMul => fever > 0f ? 1f + s.FeverCombo : 1f;          // 피버 중 콤보 계수 배율
         public float ScoreMul => acorn > 0f ? s.Base.acornScoreMul : 1f;      // 도토리를 모두 밝힌 동안 점수 배율
-        public bool Fever => fever > 0f;
-        public bool Wisdom => wisdom > 0f;
         public event System.Action<Harvester> Healed;  // 약손이 걸렸다 (포자 디버프 제거는 디버프 쪽에서 듣는다)
 
         void Awake()

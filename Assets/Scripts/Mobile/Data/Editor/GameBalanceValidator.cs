@@ -9,7 +9,6 @@ namespace MoreMush.Mobile.EditorTools
     // 통합 표의 편집 계약. 에디터 임포트 단계에서 구조·참조·수치 범위를 검사한다 (게임은 이 검사를 통과한 bytes만 읽는다, GameBalance).
     public static class GameBalanceValidator
     {
-        public const string WorkbookName = "GameBalance";
         static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
         static readonly Dictionary<string, string> Schemas = new Dictionary<string, string>
         {

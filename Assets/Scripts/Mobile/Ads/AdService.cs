@@ -187,16 +187,6 @@ namespace MoreMush.Mobile
             return PlayerPrefs.GetInt(TodayKey(placement), 0);
         }
 
-        public static int TodayAll
-        {
-            get
-            {
-                int sum = 0;
-                foreach (var p in AdPlacement.All) sum += Today(p);
-                return sum;
-            }
-        }
-
         public static int Total(string placement) => PlayerPrefs.GetInt(TotalKey(placement), 0);
 
         // 광고를 본 날 하루 평균 시청 수 (본 날이 없으면 0)

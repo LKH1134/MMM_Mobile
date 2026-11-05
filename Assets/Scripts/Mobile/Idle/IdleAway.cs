@@ -29,8 +29,6 @@ namespace MoreMush.Mobile
         static Report current;
         static double sessionGold, sessionSeconds;
 
-        public static bool Away => current != null;
-
         // 홈을 떠날 때
         public static void Begin()
         {

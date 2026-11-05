@@ -14,7 +14,6 @@ namespace MoreMush.Mobile
 
         public static double CritChance => IdleProgress.FinalCritChance;
         public static double CritDamage => IdleProgress.FinalCritDamage;
-        public static double CritFactor => 1 + CritChance * (CritDamage - 1);
 
         // 편성된 꼬마 전원의 초당 피해 (꼬마마다 공격력 × 공격 배율 × 초당 투척 수 × 치명타 기대값)
         // 꼬마 스킬 중 늘 붙는 공격력·공격 속도·치명타 확률도 꼬마마다 곱한다 (보스·버섯 종류·범위 피해는 상황에 따라 달라 뺀다)

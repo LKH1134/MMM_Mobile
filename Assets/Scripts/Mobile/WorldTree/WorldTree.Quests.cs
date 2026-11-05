@@ -37,17 +37,6 @@ namespace MoreMush.Mobile
         public static bool QuestDone(Quest q) => QuestRowOf(q) is TreeQuestRow r && q.prog >= r.target;
         public static bool QuestClaimable(Quest q) => !q.claimed && QuestDone(q);
 
-        public static int QuestClaimableCount
-        {
-            get
-            {
-                int n = 0;
-                foreach (var q in DailyQuests) if (QuestClaimable(q)) n++;
-                foreach (var q in WeeklyQuests) if (QuestClaimable(q)) n++;
-                return n;
-            }
-        }
-
         // 설명 글: 표 desc의 {n} = 목표, {m} = 지정한 적 이름
         public static string QuestText(Quest q)
         {

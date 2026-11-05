@@ -103,8 +103,6 @@ namespace MoreMush.Mobile
             }
         }
 
-        public static IReadOnlyList<StoreEntry> Store => D.store;
-
         static void AddStore(int enemy, long n)
         {
             foreach (var s in D.store)
