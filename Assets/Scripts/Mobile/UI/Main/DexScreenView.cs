@@ -73,12 +73,14 @@ namespace MoreMush.Mobile
         void OnEnable()
         {
             PopupLayer.Raise(gameObject, PopupLayer.Popup);   // 팝업 층: 하단 공용 바·광고 상자보다 위
+            PopupGate.Opened(this, () => gameObject.SetActive(false));   // 다른 팝업과 같게: 광고 상자 시간 멈춤 · 뒤로가기로 닫힘
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed += CloseOnTab;
             Refresh();
         }
 
         void OnDisable()
         {
+            PopupGate.Closed(this);
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= CloseOnTab;
         }
 

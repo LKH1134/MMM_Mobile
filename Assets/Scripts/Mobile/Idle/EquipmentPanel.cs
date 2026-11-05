@@ -165,6 +165,8 @@ namespace MoreMush.Mobile
             if (t == null) return;
             var rt = t.rectTransform;
             float left = rt.anchoredPosition.x - rt.sizeDelta.x * rt.pivot.x;
+            // [UI 개편] 창 폭이 좁아져도 정보 칸 오른쪽 밖으로 나가지 않게 (부모 가운데 기준 좌표)
+            if (rt.parent is RectTransform p) width = Mathf.Min(width, p.rect.width * 0.5f - 24f - left);
             rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
             rt.anchoredPosition = new Vector2(left + width * rt.pivot.x, rt.anchoredPosition.y);
             t.textWrappingMode = TextWrappingModes.NoWrap;

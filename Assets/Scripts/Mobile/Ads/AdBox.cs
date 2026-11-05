@@ -65,6 +65,23 @@ namespace MoreMush.Mobile
             SceneManager.sceneLoaded += (s, m) => instance.OnSceneLoaded(s, m);
             AdService.Status += instance.OnAdStatus;
             if (instance.inMain) AdService.Initialize();
+            instance.BindCamera();
+        }
+
+        // [UI 개편 2026-11-05] Main 캔버스는 Screen Space - Camera라서, 오버레이 캔버스는 정렬 순서와 상관없이 늘 그 위에 그려진다
+        // (상자가 도감·의뢰 팝업 위로 보이던 원인). 씬의 카메라 캔버스와 같은 카메라에 붙여 sortingOrder로 층을 맞춘다
+        void BindCamera()
+        {
+            var canvas = GetComponent<Canvas>();
+            foreach (var c in FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (c == canvas || !c.isRootCanvas || c.renderMode != RenderMode.ScreenSpaceCamera || c.worldCamera == null) continue;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = c.worldCamera;
+                canvas.planeDistance = c.planeDistance;
+                return;
+            }
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         }
 
         // 광고 진행 상황(불러오는 중·실패·닫힘)을 열려 있는 창에 보여 준다
@@ -89,7 +106,8 @@ namespace MoreMush.Mobile
             if (mode != LoadSceneMode.Single) return;
             popup?.Close();     // 창이 열린 채 씬이 바뀌면 PopupGate가 잡힌 채 남아 뒤로가기·다른 창이 막힌다
             inMain = scene.name == MainNavigation.MainScene;
-            if (inMain) AdService.Initialize();         // 상자를 누를 때 광고가 준비돼 있게 Main에 들어오면 미리 불러 둔다
+            BindCamera();
+            if (inMain) AdService.Initialize();        // 상자를 누를 때 광고가 준비돼 있게 Main에 들어오면 미리 불러 둔다
             if (!inMain) HideChest();
         }
 

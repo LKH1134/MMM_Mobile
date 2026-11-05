@@ -39,6 +39,8 @@ namespace MoreMush.Mobile
         void OnEnable()
         {
             PopupLayer.Raise(gameObject, PopupLayer.Popup);
+            // 예전 DailyQuestPopup과 같게 팝업으로 알린다: 열린 동안 광고 상자 시간이 멈추고, 뒤로가기·다른 팝업이 열리면 닫힌다
+            PopupGate.Opened(this, () => gameObject.SetActive(false));
             DailyQuests.Changed += Refresh;
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed += CloseOnTab;
             Refresh();
@@ -46,6 +48,7 @@ namespace MoreMush.Mobile
 
         void OnDisable()
         {
+            PopupGate.Closed(this);
             DailyQuests.Changed -= Refresh;
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= CloseOnTab;
         }

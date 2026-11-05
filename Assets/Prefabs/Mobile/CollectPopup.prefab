@@ -12847,6 +12847,7 @@ MonoBehaviour:
   closeButton: {fileID: 1730869665136515518}
   duration: 0.25
   overhang: 160
+  sortingOffset: 100
 --- !u!1 &6082460695513249055
 GameObject:
   m_ObjectHideFlags: 0
@@ -18904,6 +18905,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: OptionPopup
       objectReference: {fileID: 0}
+    - target: {fileID: 2539854978185177236, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 170
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539854978185177236, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 40
+      objectReference: {fileID: 0}
     - target: {fileID: 7668174412231387352, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -18983,6 +18992,18 @@ PrefabInstance:
     - target: {fileID: 7668174412231387352, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8079298820615870177, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8079298820615870177, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 140
+      objectReference: {fileID: 0}
+    - target: {fileID: 8079298820615870177, guid: ace7c816fbc5ac7439edd91d0cc5ee7d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -76
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

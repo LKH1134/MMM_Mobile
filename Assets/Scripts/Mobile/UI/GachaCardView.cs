@@ -115,24 +115,27 @@ namespace MoreMush.Mobile
             text.title = label != null ? label : NewText("Title", rt, font, 32f, Color.white);
             if (font != null) text.title.font = font;
             text.title.color = Color.white;
-            text.title.fontSize = 32f;
+            // [UI 개편] 버튼 글자·아이콘·가격을 크게 (넘치면 자동 축소)
+            text.title.fontSize = 40f;
             text.title.fontStyle = FontStyles.Bold;
-            text.title.enableAutoSizing = false;
+            text.title.enableAutoSizing = true;
+            text.title.fontSizeMax = 40f;
+            text.title.fontSizeMin = 24f;
             text.title.alignment = TextAlignmentOptions.Center;
             Outline(text.title);
             var trt = text.title.rectTransform;
-            trt.anchorMin = new Vector2(0f, 0.5f);
+            trt.anchorMin = new Vector2(0f, 0.48f);
             trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(6f, 0f);
-            trt.offsetMax = new Vector2(-6f, -4f);
+            trt.offsetMin = new Vector2(10f, 0f);
+            trt.offsetMax = new Vector2(-10f, -6f);
 
             // 아래 줄: [아이콘] 가격 — 가운데 정렬로 묶는다
             var sub = new GameObject("Sub", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(ContentSizeFitter)).GetComponent<RectTransform>();
             sub.SetParent(rt, false);
-            sub.anchorMin = sub.anchorMax = new Vector2(0.5f, 0.25f);
-            sub.sizeDelta = new Vector2(0f, 44f);
+            sub.anchorMin = sub.anchorMax = new Vector2(0.5f, 0.26f);
+            sub.sizeDelta = new Vector2(0f, 60f);
             var layout = sub.GetComponent<HorizontalLayoutGroup>();
-            layout.spacing = 6f;
+            layout.spacing = 10f;
             layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlWidth = layout.childControlHeight = true;
             layout.childForceExpandWidth = layout.childForceExpandHeight = false;
@@ -143,9 +146,10 @@ namespace MoreMush.Mobile
                 icon.sprite = costIcon;
                 icon.preserveAspect = true;
                 var le = icon.gameObject.AddComponent<LayoutElement>();
-                le.preferredWidth = le.preferredHeight = 40f;
+                le.preferredWidth = le.preferredHeight = 56f;
             }
-            text.sub = NewText("Value", sub, font, 30f, new Color(1f, 0.95f, 0.75f));
+            text.sub = NewText("Value", sub, font, 38f, new Color(1f, 0.95f, 0.75f));
+            text.sub.fontStyle = FontStyles.Bold;
             Outline(text.sub);
             return text;
         }
