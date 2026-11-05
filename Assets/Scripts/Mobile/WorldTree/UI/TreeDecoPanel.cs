@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    // 꾸미기 시트: 뿌리·줄기·가지·수관 탭. 고른 자리의 칸 수와 그 자리 장식 목록(놓기·빼기). 장식은 공방에서 만든다
+    // 꾸미기 시트: 뿌리·줄기·가지·수관 탭(만든 장식 수/전체 장식 수). 고른 자리의 칸 수와 그 자리 장식 목록(놓기·빼기). 장식은 공방에서 만든다
     public class TreeDecoPanel : TreePanel
     {
         TreeZone zone = TreeZone.Root;
@@ -20,7 +20,15 @@ namespace MoreMush.Mobile
                 var z = zones[i];
                 var holder = TreeUi.New(z.ToString(), tabs);
                 TreeUi.Place(holder, new Vector2(w * i, 0f), new Vector2(w * (i + 1), 1f), new Vector2(6f, 0f), new Vector2(-6f, 0f));
-                var b = TreeUi.Button(holder, $"{WorldTree.ZoneName(z)}\n<size=24>{WorldTree.PlacedIn(z).Count}/{WorldTree.ZoneSlots(z)}</size>", true, () =>
+                // 탭 숫자 = 그 자리 장식 중 만든 수 / 그 자리 장식 전체 수
+                int made = 0, total = 0;
+                foreach (var d in GameBalance.Decos)
+                {
+                    if (d.zone != z) continue;
+                    total++;
+                    if (WorldTree.OwnsDeco(d.key)) made++;
+                }
+                var b = TreeUi.Button(holder, $"{WorldTree.ZoneName(z)}\n<size=24>{made}/{total}</size>", true, () =>
                 {
                     zone = z;
                     Rebuild();
