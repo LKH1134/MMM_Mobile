@@ -49,6 +49,10 @@
 | `Scripts/Mobile/UI/GachaResultPopup.cs` | 등급 테두리: 등급색 칠 → 등급별 그림 `GradeSprites` | 낮음 |
 | `Scripts/Mobile/WorldTree/UI/TreeUi.cs` | 그림 경로 상수 블록, `Card`·`Button`·`Bar`가 색 대신 그림을 고른다 (`ButtonOn/Alt/Off`·`CardOn/Off` 색 값은 어떤 그림을 쓸지 고르는 데만 씀) | 중간 (세계수 UI 공용 도우미) |
 | `EquipmentPanel.cs`·`GachaCardView.cs`·`DailyQuestPopup.cs`·`AdBoxPopup.cs`·`IdleReportPopup.cs`·`TreeUi.cs` (추가) | 버튼을 만든 줄 뒤에 `UiSkin.GreyWhenDisabled(…)` 한 줄씩, `EquipmentPanel.SelectedSprite` → `InnerLine1` | 낮음 |
+| `InGame/ResultPopup.cs` | `BuildAutoRow`: 체크 상자·체크 색 → 그림 (2줄 추가) | 낮음 |
+| `WorldTree/UI/TreeUi.cs` (추가) | `Text`: 글자 1.15배·Bold·자동 축소, `ScrollList` 간격 | 낮음 |
+| `EquipmentPanel.cs` (추가) | `NewText`: 글자 1.25배·Bold·자동 축소 | 낮음 |
+| `Prefabs/Mobile/Main/DungeonUI·GachaUI.prefab`, `Gacha_Panel/Gacha_Panel1.prefab`, `Prefabs/Mobile/WorldTree/*Popup.prefab`, `Prefabs/Mobile/QuestPopup.prefab` | 그림·제목 메모·하단 띠 (위 진행 기록) | 중간 (세계수 시트 구조: Tab 순서·Page·BottomBand 추가) |
 | `GachaPanel.cs`, `FormationPanel.cs`, `QuestButton.cs`, `DexButton.cs`, `SceneLoader.cs` | 그림 경로 상수 한 줄씩 (`Art/Dream/UI…` → `UI/…`) | 낮음 |
 | `Scripts/Mobile/Quest/QuestButton.cs`, `DexButton.cs` | **삭제** (HUD 왼쪽 버튼은 `MainHud` 프리팹의 `SideButtons`, 동작은 `MainHudView`) | 다른 브랜치가 고쳤으면 수정/삭제 충돌 → `MainHudView`로 옮김 |
 | `Scripts/Mobile/Idle/FormationPanel.cs`, `CharacterDetail.cs`, `EquippedGearView.cs` | **삭제** (편성은 `FormationScreen` 프리팹 + `FormationScreenView`) | **중간.** 편성 기능(합성·편성·자동 편성)을 다른 브랜치가 고쳤으면 `FormationScreenView`로 옮겨 적용 |
@@ -70,7 +74,7 @@
 
 ## 3. 새 파일 (충돌 없음)
 
-- 스크립트 `Scripts/Mobile/UI/Main/`: `MainHudView`, `UpgradeNotebookView`, `UpgradeRowView`, `SafeAreaDock`, `TabIconLift`, `FormationScreenView`, `FormationCellView`, `DexScreenView`, `PopupBottomBand`, `BottomBarLayer`, `FitInRegion`, `ScaleToWidth`, `GridFitWidth`(지금 안 씀), `UiSkin`, `QuestScreenView`, `QuestCardView`, `QuitGameButton` / `Scripts/Mobile/Idle/IdleBattle.Hud.cs`
+- 스크립트 `Scripts/Mobile/UI/Main/`: `MainHudView`, `UpgradeNotebookView`, `UpgradeRowView`, `SafeAreaDock`, `TabIconLift`, `FormationScreenView`, `FormationCellView`, `DexScreenView`, `PopupBottomBand`, `BottomBarLayer`, `FitInRegion`, `ScaleToWidth`, `GridFitWidth`(지금 안 씀), `UiSkin`, `ScaleChildren`, `QuestScreenView`, `QuestCardView`, `QuitGameButton` / `Scripts/Mobile/Idle/IdleBattle.Hud.cs`
 - 프리팹 `Prefabs/Mobile/UI/Main/`: `MainHud`, `UpgradeNotebook`, `UpgradeRow`, `FormationScreen`, `DexScreen`, `QuestScreen` / `Resources/UI/Prefabs/PopupBottomBand`
 - 리소스 `Resources/UI/` (+ `.meta`의 Sprite·9-slice 설정, `UI_PP_Under_Base01/02`는 왼쪽·오른쪽 면 두 조각)
 - 머티리얼 `Fonts/LINESeedKR-Bd SDF Outline(.mat)`, `… Outline Thick.mat`
@@ -98,6 +102,8 @@
 |---|---|---|
 | 11-04 | 1차 | 홈 강화 노트·HUD·하단 바 프리팹화, 리소스 교체 |
 | 11-04 | 2차 | 편성(와이어프레임 공방 배치)·도감 새 화면, 코드 그림 경로·색 → 리소스 |
+| 11-05 | 5차-화면별 ④ | 던전·뽑기 배너 안 제목·설명을 폭 비율로 키움(`ScaleChildren`), 세계수 카드 글자 1.15배·굵게·간격 `UiSkin.Gap`(`TreeUi.Text`·`ScrollList`), 수확 완료 창(`ResultPopup.prefab`: 틀·속지·메모 제목·버튼) · 다음 레벨 자동 도전 체크 상자를 그림으로(`ResultPopup.cs`), 전투 설정 창 예전 그림 교체 |
+| 11-05 | 5차-화면별 ③ | 던전(제목 메모·설명 속지·카드 `Paper1`·칩 갈색·잠금 회색), 뽑기(제목 메모, 카드 바탕 `Beige2`, 판 속지) — 씬 덮어쓰기 되돌리고 프리팹에 반영. 세계수 시트 5개(성장·꾸미기·꼬마·공방·의뢰 `QuestPopup`): 표지+속지, 메모 제목+새 아이콘, 공용 하단 띠(`forwardTo` = 기존 닫기), 예전 CloseBar 그림 끔. 장비 창 코드 글자 1.25배·굵게. 설정 BGM/SFX 줄, 의뢰 카드 확인 |
 | 11-04 | 5차-화면별 ② | 일일 의뢰 새 화면(`QuestScreen` 프리팹 + `QuestScreenView`·`QuestCardView`, 2열 카드·주간/일일 버튼, HUD 의뢰 버튼이 연결 — 없으면 예전 `DailyQuestPopup`), 설정(갈색 구역 칩 음향·알림 설정, 계속하기/게임 종료 버튼 + `QuitGameButton`, BGM/SFX 줄 정리), 도감 탭 글자색 |
 | 11-04 | 5차-화면별 ① | 공통 규격 `UiSkin`. 편성(칸 줄 5칸·버튼 줄·정보 구역·목록 칩), 무기·방어구·펫 창(틀·속지·정보/목록 구역, 프리팹 자체에 리소스 반영 + 씬 덮어쓰기 되돌림), 비활성 버튼 회색 그림(프리팹·코드 팝업 전부) |
 | 11-04 | 4차-연결 | 예전 UI를 숨기던 방식 → 코드에서 새 프리팹 연결: IdleBattle 예전 HUD 생성 제거, 퀘스트·도감 버튼은 MainHud, Equit 탭은 새 편성 화면 버튼, 예전 편성 스크립트·프리팹 삭제 |
@@ -106,13 +112,11 @@
 
 ---
 
-## 6. 다음에 이어서 할 일 (11-04 중단 지점)
+## 6. 다음에 이어서 할 일 (11-05 오후 기준)
 
 | 순서 | 화면 | 남은 것 |
 |---|---|---|
-| 1 | 던전 · 뽑기 | 제목·판을 공통 규격(메모 제목·속지)으로, 목록 칸 정리 |
-| 2 | 세계수 창들 (성장·꾸미기·꼬마·공방·의뢰) | 아래에서 올라오는 시트 — 플레이에서 열어 목업과 비교 (에디터 백그라운드면 애니메이션이 멈춰 확인 어려움 → 창을 켜 둔 상태에서 직접 확인) |
-| 3 | 장비 창 글자 | `EquipmentPanel`이 코드로 만드는 칸 글자(`Lv.5 (7/6)`)·효과 줄이 작다 |
-| 4 | 설정 창 | BGM/SFX 줄 수정 후 화면 확인 안 함. 데이터 관리(불러오기·저장) 구역은 기능이 없어 비움 |
-| 5 | 일일 의뢰 | 카드 글자 위치 조정 후 화면 확인 안 함. 주간 의뢰는 시스템이 없어 회색 버튼 |
-| 6 | 공통 | iPad·Z플립에서 이번 화면들(의뢰·설정) 다시 확인 |
+| 1 | 전투 통계 | 게임에 화면이 없음 (와이어프레임 09) |
+| 2 | 세트 보너스 | 게임에 화면이 없음 (와이어프레임 11) |
+| 3 | 수확 완료 | 와이어프레임 08의 도감 기록·신종 발견·스테이지 표시는 데이터가 없어 틀만 맞춤 |
+| 4 | 전투(InGame) HUD | 이번 개편 범위 밖, 손대지 않음 |

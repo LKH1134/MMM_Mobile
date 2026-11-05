@@ -393,7 +393,12 @@ namespace MoreMush.Mobile
             var t = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
             t.transform.SetParent(parent, false);
             if (font != null) t.font = font;
-            t.fontSize = size;
+            // [UI 개편] 칸 글자가 작아 1.25배·굵게, 넘치면 자동 축소 (UiSkin 글자 규격)
+            t.fontStyle = FontStyles.Bold;
+            t.enableAutoSizing = true;
+            t.fontSizeMax = size * 1.25f;
+            t.fontSizeMin = size * 0.75f;
+            t.fontSize = size * 1.25f;
             t.color = new Color(0.25f, 0.2f, 0.15f);
             t.alignment = TextAlignmentOptions.Center;
             t.raycastTarget = false;

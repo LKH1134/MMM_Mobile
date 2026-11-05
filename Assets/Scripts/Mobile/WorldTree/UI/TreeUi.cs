@@ -51,7 +51,7 @@ namespace MoreMush.Mobile
             content.pivot = new Vector2(0.5f, 1f);
             content.offsetMin = content.offsetMax = Vector2.zero;
             var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 16f;
+            layout.spacing = UiSkin.Gap;   // [UI 개편] 공통 간격
             layout.padding = new RectOffset(0, 0, 8, 24);
             layout.childControlHeight = true;
             layout.childControlWidth = true;
@@ -93,7 +93,12 @@ namespace MoreMush.Mobile
             var t = New("Text", parent).gameObject.AddComponent<TextMeshProUGUI>();
             if (font != null) t.font = font;
             t.text = text;
-            t.fontSize = size;
+            // [UI 개편] 세계수 카드 글자: 1.15배·굵게, 넘치면 자동 축소 (UiSkin 글자 규격)
+            t.fontStyle = FontStyles.Bold;
+            t.enableAutoSizing = true;
+            t.fontSizeMax = size * 1.15f;
+            t.fontSizeMin = size * 0.7f;
+            t.fontSize = size * 1.15f;
             t.color = color;
             t.alignment = align;
             t.raycastTarget = false;
