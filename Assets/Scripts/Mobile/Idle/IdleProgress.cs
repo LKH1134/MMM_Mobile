@@ -93,12 +93,13 @@ namespace MoreMush.Mobile
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        public static void ReloadLevels() => levels = null;
+        public static void ReloadLevels() { levels = null; stage = 0; }
 
+        static int stage;   // 0 = 아직 안 읽음
         public static int Stage
         {
-            get => Mathf.Max(1, PlayerPrefs.GetInt("Idle.Stage", 1));
-            set { PlayerPrefs.SetInt("Idle.Stage", Mathf.Max(1, value)); SaveScheduler.MarkDirty(); Changed?.Invoke(); }   // 초반엔 몇 초마다 오른다 — 파일 쓰기는 SaveScheduler가 모아서 (앱을 내릴 때도 저장)
+            get { if (stage <= 0) stage = Mathf.Max(1, PlayerPrefs.GetInt("Idle.Stage", 1)); return stage; }   // 처치마다 읽힌다 — 메모리에 둔다 (안드로이드 PlayerPrefs 읽기는 JNI)
+            set { stage = Mathf.Max(1, value); PlayerPrefs.SetInt("Idle.Stage", stage); SaveScheduler.MarkDirty(); Changed?.Invoke(); }   // 초반엔 몇 초마다 오른다 — 파일 쓰기는 SaveScheduler가 모아서 (앱을 내릴 때도 저장)
         }
 
         public static int Level(IdleStat stat)

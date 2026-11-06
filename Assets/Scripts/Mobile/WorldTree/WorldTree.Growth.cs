@@ -81,7 +81,17 @@ namespace MoreMush.Mobile
         public static string EnemyName(int index) => Enemy(index)?.name ?? index.ToString();
 
         // 적 아이콘 (창고·의뢰). 군락 시트면 보스로 쓰지 않는 첫 조각 (보스 조각은 일반 적 그림으로 쓰지 않는다)
+        static readonly Dictionary<int, Sprite> enemySprites = new Dictionary<int, Sprite>();   // 1초마다 칸마다 불린다 — 시트 전체 LoadAll을 한 번만
+
         public static Sprite EnemySprite(int index)
+        {
+            if (enemySprites.TryGetValue(index, out var cached)) return cached;
+            var sp0 = FindEnemySprite(index);
+            enemySprites[index] = sp0;
+            return sp0;
+        }
+
+        static Sprite FindEnemySprite(int index)
         {
             var e = Enemy(index);
             string path = e != null ? GameBalance.ResourcePath(e.resourceId) : null;

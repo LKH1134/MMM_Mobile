@@ -7,7 +7,7 @@ namespace MoreMush.Mobile
     // 뽑기·합성·편성처럼 드물고 중요한 쓰기는 지금처럼 바로 PlayerPrefs.Save()를 불러도 된다 (그때 밀린 값도 같이 저장된다)
     public class SaveScheduler : MonoBehaviour
     {
-        const float FlushInterval = 5f;
+        const float FlushInterval = 15f;   // 전투가 늘 dirty를 세우므로 사실상 이 주기로 파일 전체를 다시 쓴다. 뒤로 갈 때·끝날 때는 바로 저장
 
         static bool dirty;
         static SaveScheduler instance;

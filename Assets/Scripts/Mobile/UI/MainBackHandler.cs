@@ -26,6 +26,7 @@ namespace MoreMush.Mobile
 
         static void Quit()
         {
+            SaveScheduler.Flush();      // 메모리에만 있는 값(세계수 JSON 등)까지 저장
             PlayerPrefs.Save();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;

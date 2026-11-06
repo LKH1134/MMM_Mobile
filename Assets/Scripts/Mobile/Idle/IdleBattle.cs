@@ -210,6 +210,7 @@ namespace MoreMush.Mobile
                 SaveScheduler.Flush();      // SaveScheduler의 OnApplicationPause가 이보다 먼저 불렸어도 여기 값까지 저장되게
                 return;
             }
+            if (AdService.IsShowing) { IdleAway.MarkSeen(); return; }   // 광고를 보느라 잠깐 뒤로 간 것 — 앱 밖 보상·정산 창 없음
             IdleAway.ApplyOffline();
             if (atHome) ShowReport();
         }

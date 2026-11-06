@@ -71,6 +71,7 @@ namespace MoreMush.Mobile
             nextEnsureTicks = 0;
             bonusDirty = true;
             enemyBySprite = null;
+            enemySprites.Clear();
             SaveScheduler.BeforeFlush -= WritePending;
             SaveScheduler.BeforeFlush += WritePending;
         }
