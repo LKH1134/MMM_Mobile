@@ -77,10 +77,18 @@ namespace MoreMush.Mobile
                 return BeginIdle(dungeon);
             }
             if (!DungeonTickets.CanEnterWithAd(dungeon)) return false;
+            string credit = "Dungeon." + dungeon;
+            if (AdCredits.TryUse(credit))   // 지난번에 광고를 다 보고도 못 들어간 입장
+            {
+                if (!DungeonTickets.TryUseAd(dungeon)) return false;
+                return BeginIdle(dungeon);
+            }
             return AdService.ShowRewarded(AdPlacement.Dungeon, () =>
             {
-                // 광고를 보는 사이 씬이 바뀌어 방치 전투가 없으면 광고 입장을 쓰지 않는다
-                if (!CanStartIdle || !DungeonTickets.TryUseAd(dungeon)) return;
+                // 광고를 보는 사이 씬이 바뀌어 방치 전투가 없으면 → 다음 한 번 광고 없이 들어가게 남긴다
+                if (!CanStartIdle) { AdCredits.Add(credit); return; }
+                // 광고를 보는 사이 00시가 지나 오늘 입장 횟수가 다시 찼으면 그 횟수로 들어간다
+                if (!DungeonTickets.TryUseAd(dungeon) && !DungeonTickets.TryUse(dungeon)) { AdCredits.Add(credit); return; }
                 BeginIdle(dungeon);
             });
         }

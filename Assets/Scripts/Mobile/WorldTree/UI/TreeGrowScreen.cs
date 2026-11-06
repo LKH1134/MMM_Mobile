@@ -101,17 +101,19 @@ namespace MoreMush.Mobile
 
         void MarkDirty() => dirty = true;
 
-        // 창고 수는 처치마다 바뀌므로 1초마다도 다시 쓴다
+        // 값이 바뀌면 바로, 아니면 5초마다 다시 쓴다 (세계수 씬에서만 열려 처치로 창고 수가 바뀌지 않는다)
         void LateUpdate()
         {
             tick -= Time.unscaledDeltaTime;
             if (!dirty && tick > 0f) return;
-            tick = 1f;
+            tick = 5f;
             Refresh();
         }
 
         void Refresh()
         {
+            bool changed = dirty || !refreshedOnce;   // 1초 틱만으로는 목록을 다시 만들지 않는다 (값이 바뀐 때만)
+            refreshedOnce = true;
             dirty = false;
             var row = WorldTree.CurrentRow;
             bool max = WorldTree.IsMaxStage;
@@ -168,8 +170,10 @@ namespace MoreMush.Mobile
             if (blessCount != null) blessCount.text = $"세계수의 가호 <size=70%>({got}/{all})</size>";   // 칸 제목 줄 (자세한 건 목록)
             if (blessNext != null) blessNext.text = next != null ? $"다음 {next.stage}단계: {WorldTree.EffectText(next.effect, next.value)}" : "모든 가호를 받았어요";
 
-            if (listPanel != null && listPanel.activeSelf) FillList();
+            if (changed && listPanel != null && listPanel.activeSelf) FillList();   // 목록은 통째로 다시 만든다 — 바뀌었을 때만
         }
+
+        bool refreshedOnce;
 
         // 비용 줄이 숨겨지면(최대 등) 버튼 글자를 세로 가운데로, 다시 보이면 프리팹 자리(위쪽)로
         Vector2? ringLabelMin;

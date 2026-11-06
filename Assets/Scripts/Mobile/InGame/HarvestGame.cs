@@ -170,10 +170,19 @@ namespace MoreMush.Mobile
                 DungeonGold = reward.gold;
                 DungeonMycelite = reward.mycelite;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
-                WorldTree.QuestDungeon();
+                try { WorldTree.QuestDungeon(); }
+                catch (System.Exception e) { Debug.LogException(e); }   // 세계수 의뢰가 실패해도 결과 창은 뜨게
             }
-            GameOver?.Invoke(TotalGold);
-            if (!Simulating) StartCoroutine(ShowResult());
+            try { GameOver?.Invoke(TotalGold); }
+            catch (System.Exception e) { Debug.LogException(e); }
+            if (!Simulating) StartCoroutine(ShowResult());   // 결과 창이 안 뜨면 입력이 꺼진 채 나갈 길이 없다 — 위 단계 예외와 상관없이 띄운다
+        }
+
+        // 판 도중 앱이 뒤로 가면(전화·알림) 옵션 창을 열어 멈춘다 — 돌아왔을 때 배속 그대로 흘러가 있지 않게
+        void OnApplicationPause(bool paused)
+        {
+            if (!paused || Finished || Simulating || hud == null) return;
+            hud.OpenOption();
         }
 
         IEnumerator ShowResult()

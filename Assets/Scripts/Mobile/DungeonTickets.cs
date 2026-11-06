@@ -13,7 +13,7 @@ namespace MoreMush.Mobile
 
         public static event Action Changed;
 
-        public static DateTime KstNow => DateTime.UtcNow + Kst;
+        public static DateTime KstNow => GameClock.UtcNow + Kst;   // 게임 시계: 기기 시계를 되돌려도 뒤로 가지 않는다
         public static string Today => KstNow.ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture);   // 기기 달력(불기·이슬람력)과 상관없이 서기
 
         // 저장된 날짜(yyyyMMdd)보다 오늘이 뒤면 새날. 기기 시계를 되돌렸다 맞추는 것으로는 다시 채워지지 않게 '다른 날'이 아니라 '뒤의 날'만 본다.

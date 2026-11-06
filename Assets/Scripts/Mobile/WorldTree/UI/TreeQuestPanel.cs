@@ -73,14 +73,18 @@ namespace MoreMush.Mobile
 
         void MarkDirty() => dirty = true;
 
-        // 진행은 처치마다 메모리만 바뀌므로(Changed 없음) 1초마다 다시 쓴다
+        // 남은 시간 글자는 1초마다, 카드 전체는 값이 바뀌면 바로·아니면 5초마다 (세계수 씬에서만 열려 처치로 진행이 바뀌지 않는다)
+        const float CardsEvery = 5f;
+        float cardsIn;
+
         void LateUpdate()
         {
             tick -= Time.unscaledDeltaTime;
+            cardsIn -= Time.unscaledDeltaTime;
             if (!dirty && tick > 0f) return;
             tick = 1f;
-            dirty = false;
-            Refresh();
+            if (dirty || cardsIn <= 0f) { dirty = false; Refresh(); return; }
+            RefreshRemain();
         }
 
         bool showingWeekly = true;
@@ -97,14 +101,20 @@ namespace MoreMush.Mobile
             Refresh();
         }
 
+        void RefreshRemain()
+        {
+            if (remain == null) return;
+            var left = showingWeekly ? WorldTree.UntilWeekReset : DungeonTickets.UntilReset;
+            remain.text = left.TotalDays >= 1
+                ? $"남은 시간 {(int)left.TotalDays}일 {left.Hours:00}:{left.Minutes:00}:{left.Seconds:00}"
+                : $"남은 시간 {left.Hours:00}:{left.Minutes:00}:{left.Seconds:00}";
+        }
+
         void Refresh()
         {
             if (weekly == null) return;
-            var left = showingWeekly ? WorldTree.UntilWeekReset : DungeonTickets.UntilReset;
-            if (remain != null)
-                remain.text = left.TotalDays >= 1
-                    ? $"남은 시간 {(int)left.TotalDays}일 {left.Hours:00}:{left.Minutes:00}:{left.Seconds:00}"
-                    : $"남은 시간 {left.Hours:00}:{left.Minutes:00}:{left.Seconds:00}";
+            cardsIn = CardsEvery;
+            RefreshRemain();
             Fill(weekly, WorldTree.WeeklyQuests, true);
             Fill(daily, WorldTree.DailyQuests, false);
         }

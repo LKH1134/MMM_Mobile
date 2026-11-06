@@ -84,7 +84,7 @@ namespace MoreMush.Mobile
             if (BackButton.SceneHandler == (System.Action)OpenOption) BackButton.SceneHandler = null;
         }
 
-        void OpenOption() => optionPopup.Get(transform).Open();
+        public void OpenOption() { if (!optionPopup.IsOpen) optionPopup.Get(transform).Open(); }
 
         // "한 번 더하기"로 같은 씬을 다시 읽으면 옛 HUD의 OnDestroy(1배속으로 되돌림)가 새 HUD의 Awake 뒤에 올 수 있다 — 한 번 더 건다
         void Start() => ApplyTimeScale();
@@ -139,8 +139,9 @@ namespace MoreMush.Mobile
         public void SetCombo(int value)
         {
             combo = value;
-            comboRoot.SetActive(combo >= 2);
-            comboText.text = combo.ToString();
+            bool show = combo >= 2;
+            if (comboRoot.activeSelf != show) comboRoot.SetActive(show);
+            if (show) comboText.SetText("{0}", combo);     // 수확마다 불린다 — 문자열을 만들지 않는다
         }
 
         public void TogglePause()

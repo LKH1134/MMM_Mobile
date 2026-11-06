@@ -34,6 +34,8 @@ namespace MoreMush.Mobile
         {
             PlayerPrefs.DeleteAll();
             PlayerPrefs.Save();
+            LocalBackup.DeleteAll();       // 백업 파일도 (안 지우면 다음 실행에 옛 세계수가 되살아난다)
+            GameClock.Reload();
             IdleProgress.ReloadLevels();   // 메모리에 둔 강화 레벨·잔액도 버린다
             Wallet.Reload();
             Formation.Reload();

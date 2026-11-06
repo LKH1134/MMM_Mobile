@@ -128,7 +128,7 @@ namespace MoreMush.Mobile
                 for (int l = 1; l <= level; l++)
                 {
                     long price = Price(skill, l, out var c);
-                    if (c == currency) sum += price;
+                    if (c == currency) sum = IdleProgress.SaturatingAdd(sum, price);
                 }
             }
             return sum;

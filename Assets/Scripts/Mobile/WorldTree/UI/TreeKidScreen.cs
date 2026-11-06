@@ -73,12 +73,15 @@ namespace MoreMush.Mobile
 
         void MarkDirty() => dirty = true;
 
-        // 창고 수는 처치마다 바뀌므로 1초마다 다시 쓴다
+        // 값이 바뀌면(Changed) 바로, 아니면 SafetyTick마다 다시 쓴다. 이 창은 세계수 씬에서만 열려 처치로 창고 수가 바뀌지 않는다 —
+        // 1초마다 통째로 다시 쓰던 것을 줄였다 (주기는 자정 넘김 같은 놓친 변화만 잡는다)
+        const float SafetyTick = 5f;
+
         void LateUpdate()
         {
             tick -= Time.unscaledDeltaTime;
             if (!dirty && tick > 0f) return;
-            tick = 1f;
+            tick = SafetyTick;
             dirty = false;
             Refresh();
         }

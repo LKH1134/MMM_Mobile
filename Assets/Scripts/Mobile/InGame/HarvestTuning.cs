@@ -15,7 +15,7 @@ namespace MoreMush.Mobile
     {
         const BindingFlags Fields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-        static Transform holder;     // 꺼진 보관함 (씬과 함께 사라진다)
+        static Transform holder;     // 꺼진 보관함 (만든 씬과 함께 사라진다)
 
         // 지금 씬의 던전 번호 (던전 시트에 없으면 0 = 표 값 없음).
         // 벽돌깨기 던전 1~3은 같은 씬을 쓰므로 들어온 던전(DungeonSession.Current)이 이 씬이면 그 번호
@@ -92,13 +92,17 @@ namespace MoreMush.Mobile
         }
 
         // 프리팹의 표 값 복사본. 원본 프리팹 에셋은 바꾸지 않는다
-        public static T Template<T>(T prefab, string scope) where T : Component
+        // owner = 복사본을 쓸 컴포넌트. 보관함은 owner와 같은 씬에 둔다 — 재도전으로 같은 씬을 다시 열 때 옛 씬의 보관함이
+        // 아직 살아 있으면 새 복사본이 옛 씬과 함께 지워져 판을 시작하지 못하던 것을 막는다
+        public static T Template<T>(T prefab, string scope, Component owner) where T : Component
         {
             if (prefab == null) return null;
-            if (holder == null)
+            var scene = owner.gameObject.scene;
+            if (holder == null || holder.gameObject.scene != scene)
             {
                 var go = new GameObject("HarvestTuningTemplates");
                 go.SetActive(false);
+                if (scene.IsValid()) UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, scene);
                 holder = go.transform;
             }
             var copy = Object.Instantiate(prefab, holder, false);

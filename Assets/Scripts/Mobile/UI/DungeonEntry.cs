@@ -137,10 +137,17 @@ namespace MoreMush.Mobile
         // 광고 하나는 한 번만 보여 주므로 두 번 눌러도 두 번 들어가지 않는다. 결과 팝업도 같은 길로 들어간다
         public static bool EnterWithAd(int dungeon, string scene)
         {
+            string credit = "Dungeon." + dungeon;
+            if (AdCredits.Has(credit) && !SceneLoader.IsLoading)   // 지난번에 광고를 다 보고도 못 들어간 입장
+            {
+                if (DungeonSession.LoadHarvest(dungeon, scene)) { AdCredits.TryUse(credit); DungeonTickets.TryUseAd(dungeon); }
+                return true;
+            }
             return AdService.ShowRewarded(AdPlacement.Dungeon, () =>
             {
-                if (!DungeonTickets.CanEnterWithAd(dungeon) || SceneLoader.IsLoading) return;
-                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonTickets.TryUseAd(dungeon);
+                if (SceneLoader.IsLoading || !DungeonSession.LoadHarvest(dungeon, scene)) { AdCredits.Add(credit); return; }   // 지금 못 들어간다 → 다음 한 번 광고 없이
+                // 광고를 보는 사이 00시가 지나 오늘 입장 횟수가 다시 찼으면 광고 입장 대신 그 횟수를 쓴다
+                if (!DungeonTickets.TryUseAd(dungeon)) DungeonTickets.TryUse(dungeon);
             });
         }
 

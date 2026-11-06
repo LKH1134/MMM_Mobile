@@ -37,9 +37,9 @@ namespace MoreMush.Mobile
             new Color(0.8f, 0.5f, 1f),          // 영웅
             new Color(1f, 0.8f, 0.3f),          // 전설
         };
-        static readonly string[] GradeSprites =   // 일반 · 고급 · 희귀 · 영웅 · 전설
+        static readonly string[] GradeSprites =   // 일반 · 희귀 · 영웅 · 전설 (등급 표 4단계 — GradeColors와 같은 순서)
         {
-            "UI/UI_PP_In_Color_Beige2", "UI/UI_PP_In_Color_Green", "UI/UI_PP_In_Color_Blue", "UI/UI_PP_In_Color_Red", "UI/UI_PP_In_Color_Yellow",
+            "UI/UI_PP_In_Color_Beige2", "UI/UI_PP_In_Color_Blue", "UI/UI_PP_In_Color_Red", "UI/UI_PP_In_Color_Yellow",
         };
         static readonly Color TextColor = new Color(0.25f, 0.2f, 0.15f);
         static readonly Color NewColor = new Color(1f, 0.45f, 0.5f);

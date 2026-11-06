@@ -116,9 +116,9 @@ namespace MoreMush.Mobile
                 var barRect = (RectTransform)bar.transform;
                 barRect.sizeDelta = new Vector2(HarvestTuning.Number("Bar", "width", barRect.sizeDelta.x), HarvestTuning.Number("Bar", "height", barRect.sizeDelta.y));
             }
-            harvesterPrefab = HarvestTuning.Template(harvesterPrefab, "Harvester");
-            clusterPrefab = HarvestTuning.Template(clusterPrefab, "Cluster");
-            singlePrefab = HarvestTuning.Template(singlePrefab, "Single");
+            harvesterPrefab = HarvestTuning.Template(harvesterPrefab, "Harvester", this);
+            clusterPrefab = HarvestTuning.Template(clusterPrefab, "Cluster", this);
+            singlePrefab = HarvestTuning.Template(singlePrefab, "Single", this);
         }
 
         // 씬에 놓인 바의 원래 길이·자리. HarvestGame.Awake가 이 Awake보다 먼저 Configure를 부를 수 있어 처음 쓸 때 한 번 저장한다
@@ -529,6 +529,7 @@ namespace MoreMush.Mobile
                 if (cells.Count >= stats.Colonies) break;
             }
             mushroomSize = Mathf.Max(mushroomSize, minMushroomSize);
+            if (cells == null) cells = GridCells(Footprint(mushroomSize));   // minMushroomSize가 1보다 크면 위 루프가 한 번도 안 돈다
 
             // 칸을 섞어 앞에서부터 쓴다
             for (int i = cells.Count - 1; i > 0; i--)

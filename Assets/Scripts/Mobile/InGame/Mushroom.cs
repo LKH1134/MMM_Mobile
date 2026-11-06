@@ -105,7 +105,7 @@ namespace MoreMush.Mobile
         public void Heal(int amount)
         {
             if (!Alive || amount <= 0) return;
-            Hp = Mathf.Min(MaxHp, Hp + amount);
+            Hp = (int)System.Math.Min(MaxHp, (long)Hp + amount);   // 최대 체력이 int 끝 근처여도 넘치지 않게
             ShowHp();
         }
 

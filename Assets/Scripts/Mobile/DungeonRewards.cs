@@ -101,6 +101,7 @@ namespace MoreMush.Mobile
         {
             if (r.gold > 0) Wallet.Add(Currency.Gold, r.gold);
             if (r.mycelite > 0) Wallet.Add(Currency.Mycelite, r.mycelite);
+            if (r.gold > 0 || r.mycelite > 0) SaveScheduler.Flush();   // 드문 보상 — 입장 횟수는 이미 저장됐으니 보상도 바로 (강제 종료 때 횟수만 쓰이지 않게)
             return r;
         }
     }

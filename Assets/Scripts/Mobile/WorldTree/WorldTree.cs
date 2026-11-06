@@ -79,11 +79,17 @@ namespace MoreMush.Mobile
         static void Load()
         {
             string json = PlayerPrefs.GetString(SaveKey, "");
-            data = null;
-            if (json.Length > 0)
+            data = Parse(json, out bool broken);
+            if (data == null)
             {
-                try { data = JsonUtility.FromJson<SaveData>(json); }
-                catch (Exception e) { Debug.LogError("[WorldTree] 저장 데이터를 읽지 못해 새로 시작한다: " + e.Message); }
+                // 비었거나 깨졌다 → 기기 안 백업 파일에서 되살린다. 깨진 원문은 따로 남긴다 (조사용)
+                if (broken) LocalBackup.Keep(BackupName + ".corrupt", json);
+                if (LocalBackup.TryRead(BackupName, out var backup) && (data = Parse(backup, out _)) != null)
+                {
+                    Debug.LogWarning("[WorldTree] 저장 데이터가 " + (broken ? "깨져" : "없어") + " 백업 파일에서 되살렸다");
+                    pending = true;     // 다음 저장 때 PlayerPrefs에도 다시 쓴다
+                }
+                else if (broken) Debug.LogError("[WorldTree] 저장 데이터를 읽지 못했고 백업도 없어 새로 시작한다");
             }
             if (data == null) data = new SaveData { enemyRev = EnemyRev };
             if (data.enemyRev < EnemyRev) MigrateEnemies();
@@ -91,6 +97,23 @@ namespace MoreMush.Mobile
             data.ring = Mathf.Clamp(data.ring, 1, RingMax);
             TrimPlacedToSlots();
             bonusDirty = true;
+        }
+
+        const string BackupName = "worldtree";   // LocalBackup 파일 이름
+
+        // 빈 문자열이면 null (broken = false), 읽지 못하면 null (broken = true)
+        static SaveData Parse(string json, out bool broken)
+        {
+            broken = false;
+            if (string.IsNullOrEmpty(json)) return null;
+            try
+            {
+                var d = JsonUtility.FromJson<SaveData>(json);
+                if (d != null) return d;
+            }
+            catch (Exception e) { Debug.LogWarning("[WorldTree] 저장 JSON 읽기 실패: " + e.Message); }
+            broken = true;
+            return null;
         }
 
         // 11-05 전 세이브: 식용 10종(1001~1010)을 두 종씩 한 등급(1001~1005)으로 합친다 — 창고 개수는 더하고, 부탁·종류 퀘스트 버섯은 바꾼다
@@ -137,19 +160,33 @@ namespace MoreMush.Mobile
             SaveScheduler.MarkDirty();
         }
 
-        // 바로 저장 (드물고 중요한 쓰기)
+        // 버튼 처리 뒤: 세이브 값을 바로 PlayerPrefs에 넣고(지갑도 바로 넣으므로 둘이 같이 저장된다) 파일 쓰기는 SaveScheduler에 맡긴다.
+        // 예전엔 누를 때마다 PlayerPrefs.Save + 백업 파일 쓰기를 해서 나이테 성장처럼 자주 누르는 버튼에서 끊겼다.
+        // 앱이 뒤로 가거나 끝날 때는 SaveScheduler가 바로 저장한다
         static void SaveNow()
         {
             pending = true;
-            WritePending();
-            PlayerPrefs.Save();
+            WritePrefs();
+            SaveScheduler.MarkDirty();
         }
 
-        static void WritePending()
+        static bool backupPending;      // 백업 파일은 SaveScheduler가 저장할 때만 쓴다
+
+        static void WritePrefs()
         {
             if (!pending || data == null) return;
             pending = false;
             PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(data));
+            backupPending = true;
+        }
+
+        // SaveScheduler.BeforeFlush: 밀린 세이브를 PlayerPrefs에, 바뀐 게 있으면 백업 파일도
+        static void WritePending()
+        {
+            WritePrefs();
+            if (!backupPending || data == null) return;
+            backupPending = false;
+            LocalBackup.Write(BackupName, PlayerPrefs.GetString(SaveKey, ""));   // PlayerPrefs가 깨지거나 사라질 때 되살릴 사본
         }
 
         // 값이 바뀐 뒤: 효과 다시 계산·저장 예약·화면 갱신
@@ -161,7 +198,7 @@ namespace MoreMush.Mobile
         }
 
         // ── 시간 (KST 날짜·주) ──
-        static long NowTicks => DateTime.UtcNow.Ticks;
+        static long NowTicks => GameClock.NowTicks;   // 시계를 되돌려도 제작·쿨타임이 뒤로 가지 않게
         static string Today => DungeonTickets.Today;
 
         // 이번 주(월요일 시작) 첫날

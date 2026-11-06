@@ -13,11 +13,24 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform fill;      // 진행 바 안쪽 채움. 앵커 x 최대값으로 길이를 늘린다
         [SerializeField] string nextScene = "";
         [SerializeField] float minDuration = 2f;  // 로딩이 빨라도 이만큼은 보여 준다
+        [SerializeField] float consentCheckTimeout = 6f;   // 광고 동의 정보 확인을 이만큼까지만 기다린다 (오프라인 등). 양식이 떠 있으면 답할 때까지 기다린다
 
         void Start() => StartCoroutine(Run());
 
         IEnumerator Run()
         {
+            // 게임 표(밸런스)를 여기서 미리 읽는다 — 홈 화면이 뜨는 순간 멈칫하지 않게. 읽지 못하면 안내하고 멈춘다 (깨진 채로 홈에 가지 않게)
+            Show(0f);
+            yield return null;      // 0% 화면을 한 번 그린 뒤 읽는다
+            if (!GameBalance.Preload(out _))
+            {
+                if (percentText != null) { percentText.enableAutoSizing = true; percentText.fontSizeMin = 18f; percentText.textWrappingMode = TextWrappingModes.Normal; }
+                if (percentText != null) percentText.text = "게임 데이터를 읽지 못했어요\n앱을 다시 실행해 주세요";
+                yield break;
+            }
+
+            // 광고 동의를 여기서 시작한다: 처음 실행한 동의 지역(EEA·영국 등) 사용자에게 로딩 화면 위로 동의 양식이 뜬다
+            AdService.Initialize();
             AsyncOperation op = null;
             if (!string.IsNullOrEmpty(nextScene) && Application.CanStreamedLevelBeLoaded(nextScene))
             {
@@ -36,6 +49,15 @@ namespace MoreMush.Mobile
                 float real = op == null ? 1f : Mathf.Clamp01(op.progress / 0.9f);
                 shown = Mathf.Min(real, t / Mathf.Max(0.01f, minDuration));
                 Show(shown);
+                yield return null;
+            }
+
+            // 동의 양식이 떠 있으면 답할 때까지, 아직 확인 중이면 consentCheckTimeout까지 기다린 뒤 넘어간다
+            float waited = 0f;
+            while (AdService.Consent == AdService.ConsentStep.FormShowing
+                   || (AdService.Consent == AdService.ConsentStep.Checking && waited < consentCheckTimeout))
+            {
+                waited += Time.unscaledDeltaTime;
                 yield return null;
             }
 

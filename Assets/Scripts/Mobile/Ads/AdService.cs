@@ -1,6 +1,7 @@
 using System;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Common;
+using GoogleMobileAds.Ump.Api;
 using UnityEngine;
 
 namespace MoreMush.Mobile
@@ -55,13 +56,44 @@ namespace MoreMush.Mobile
             LoadRewarded();
         }
 
+        // 1) 광고 동의(UMP): 동의가 필요한 지역(EEA·영국·스위스 등)이면 AdMob 콘솔 "개인 정보 보호 및 메시지"에 만든 동의 양식을 띄운다.
+        //    지난 실행에서 이미 동의 정보가 있으면 양식을 기다리지 않고 바로 광고 SDK를 시작한다.
+        //    양식이 없거나(콘솔에 안 만듦) 오류가 나도 광고 SDK는 시작한다 — 그 지역에선 광고가 제한될 수 있다.
+        // 2) 광고 SDK 시작 → 리워드 광고 불러오기
         public static void Initialize()
         {
             if (initialized) return;
             initialized = true;
+            MobileAdsEventExecutor.Initialize();    // OnMain이 쓰는 메인 스레드 실행기 (동의 콜백이 광고 SDK 시작보다 먼저 온다)
 
-            // 광고 콜백은 SDK(안드로이드 UI 스레드)에서 온다 → OnMain으로 Unity 메인 스레드에 넘겨 처리한다
-            // (예전 RaiseAdEventsOnUnityMainThread는 SDK 10.7부터 폐기 예정 — CHANGELOG 권장 방식)
+            Consent = ConsentStep.Checking;
+            ConsentInformation.Update(new ConsentRequestParameters(), updateError => OnMain(() =>
+            {
+                if (updateError != null) Report($"광고 동의 정보 확인 실패: {updateError.Message}");
+                // 아직 동의를 받지 않은 동의 지역 사용자(= 처음 실행)면 양식이 뜬다 → 답할 때까지 기다린다
+                if (updateError == null && ConsentInformation.ConsentStatus == ConsentStatus.Required) Consent = ConsentStep.FormShowing;
+                ConsentForm.LoadAndShowConsentFormIfRequired(formError => OnMain(() =>
+                {
+                    if (formError != null) Report($"광고 동의 양식 실패: {formError.Message}");
+                    Consent = ConsentStep.Done;
+                    StartSdk();
+                }));
+            }));
+            if (ConsentInformation.CanRequestAds()) StartSdk();     // 지난 실행의 동의로 바로 시작 (양식 결과를 기다리지 않음)
+        }
+
+        static bool sdkStarted;
+
+        public enum ConsentStep { NotStarted, Checking, FormShowing, Done }
+        // 시작 화면(StartLoading)이 본다: 양식이 떠 있는 동안은 다음 씬으로 넘어가지 않는다
+        public static ConsentStep Consent { get; private set; }
+
+        // 광고 콜백은 SDK(안드로이드 UI 스레드)에서 온다 → OnMain으로 Unity 메인 스레드에 넘겨 처리한다
+        // (예전 RaiseAdEventsOnUnityMainThread는 SDK 10.7부터 폐기 예정 — CHANGELOG 권장 방식)
+        static void StartSdk()
+        {
+            if (sdkStarted) return;
+            sdkStarted = true;
             MobileAds.Initialize(_ => OnMain(() =>
             {
                 sdkReady = true;
@@ -69,6 +101,16 @@ namespace MoreMush.Mobile
                 LoadRewarded();
             }));
         }
+
+        // 동의 지역 사용자가 동의를 바꿀 수 있는 입구가 필요한지 (옵션 화면의 "광고 개인정보 설정" 버튼을 이때만 보인다)
+        public static bool PrivacyOptionsRequired =>
+            initialized && ConsentInformation.PrivacyOptionsRequirementStatus == PrivacyOptionsRequirementStatus.Required;
+
+        public static void ShowPrivacyOptions() =>
+            ConsentForm.ShowPrivacyOptionsForm(error => OnMain(() =>
+            {
+                if (error != null) Report($"광고 개인정보 설정 실패: {error.Message}");
+            }));
 
         static void OnMain(Action action) => MobileAdsEventExecutor.ExecuteInUpdate(action);
 
@@ -248,6 +290,31 @@ namespace MoreMush.Mobile
                 PlayerPrefs.SetString(DayKey, DungeonTickets.Today);
                 PlayerPrefs.SetInt(DaysKey, PlayerPrefs.GetInt(DaysKey, 0) + 1);
             }
+        }
+    }
+
+    // 광고를 끝까지 봤는데 그 순간 보상을 줄 수 없었을 때(광고 보는 사이 창이 닫힘·씬 로딩 중 등) 남기는 "광고 없이 한 번" 크레딧.
+    // 다음에 같은 버튼을 누르면 광고 없이 바로 쓴다 — 본 광고의 보상이 사라지지 않게
+    public static class AdCredits
+    {
+        static string Key(string what) => "AdCredit." + what;
+
+        public static void Add(string what)
+        {
+            PlayerPrefs.SetInt(Key(what), PlayerPrefs.GetInt(Key(what), 0) + 1);
+            PlayerPrefs.Save();
+            Debug.Log($"[AdCredits] 광고 보상을 지금 줄 수 없어 다음 한 번으로 남겼다: {what}");
+        }
+
+        public static bool Has(string what) => PlayerPrefs.GetInt(Key(what), 0) > 0;
+
+        public static bool TryUse(string what)
+        {
+            int n = PlayerPrefs.GetInt(Key(what), 0);
+            if (n <= 0) return false;
+            if (n == 1) PlayerPrefs.DeleteKey(Key(what)); else PlayerPrefs.SetInt(Key(what), n - 1);
+            SaveScheduler.MarkDirty();
+            return true;
         }
     }
 }

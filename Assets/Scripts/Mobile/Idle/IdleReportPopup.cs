@@ -57,11 +57,15 @@ namespace MoreMush.Mobile
 
         // 알림만 보여 준다 (방치 화면 던전 결과 등): 제목·본문 + 확인. 2배 버튼은 숨긴다
         public bool IsOpen => gameObject.activeSelf;
-        string pendingTitle, pendingBody;   // 정산 창이 열려 있을 때 온 알림 — 닫은 뒤 보여 준다
+        string pendingTitle, pendingBody;
+        System.Action closed;   // 지금 안내가 닫힐 때 할 일   // 정산 창이 열려 있을 때 온 알림 — 닫은 뒤 보여 준다
 
-        public void ShowMessage(string heading, string message)
+        // onClosed: 확인으로(또는 다른 팝업에 밀려) 닫힐 때 한 번 (오류 안내 뒤 다시 시작 등)
+        public void ShowMessage(string heading, string message, System.Action onClosed = null)
         {
-            if (IsOpen) { pendingTitle = heading; pendingBody = message; return; }
+            if (IsOpen && onClosed == null) { pendingTitle = heading; pendingBody = message; return; }
+            if (IsOpen) { report = null; pendingTitle = pendingBody = null; }   // 닫힐 때 할 일이 있는 안내는 지금 띄운다
+            closed = onClosed;
             report = null;
             SetTitle(heading);
             SetMessageMode(true);
@@ -192,6 +196,9 @@ namespace MoreMush.Mobile
             PopupGate.Closed(this);
             report = null;
             gameObject.SetActive(false);
+            var onClosed = closed;
+            closed = null;
+            if (onClosed != null) { onClosed(); return; }
             if (pendingBody == null) return;
             string t = pendingTitle, b = pendingBody;
             pendingTitle = pendingBody = null;
