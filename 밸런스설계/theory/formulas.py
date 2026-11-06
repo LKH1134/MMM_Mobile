@@ -36,14 +36,19 @@ class Tables:
         self.tableMax = max(self.stage)
         self.quests = [dict(kind=r['kind'], target=int(r['target']), goldKills=int(r['goldKills']), myc=int(r['mycelite']))
                        for r in _rows(d['퀘스트'])]
-        self.gacha = [dict(exp=int(r['expToNext']), odds=[float(r[k]) for k in
-                      ('oddsNormal', 'oddsUncommon', 'oddsRare', 'oddsEpic', 'oddsLegend')]) for r in _rows(d['뽑기'])]
-        self.ownBase = [float(r['ownBase']) for r in _rows(d['등급'])]
+        # 등급 4개 (0 일반·1 희귀·2 영웅·3 전설, 2026-11-04 고급 삭제) — 확률 열도 4개
+        self.gacha = [dict(exp=int(r['expToNext']), odds=[float(r[k]) for k in GRADE_ODDS]) for r in _rows(d['뽑기'])]
+        self.ownBase = [float(r['ownBase']) for r in sorted(_rows(d['등급']), key=lambda r: int(r['grade']))]
+        # 장비 배치: 종류별 itemIndex 순서 (grade, sub). 등급마다 장비 수가 다르다 (무기·방어구 4/3/2/1, 펫 3/3/3/3)
+        self.equip = {}
+        for r in sorted(_rows(d['장비']), key=lambda r: int(r['itemIndex'])):
+            self.equip.setdefault(r['kind'], []).append((int(r['grade']), int(r['sub'])))
         self.dungeon = {int(r['dungeon']): int(r['unlockStage']) for r in _rows(d['던전'])}
-        self.ggoma = [dict(grade=int(r['grade']), mul=float(r['attackMultiplier']), owned=int(r['initialOwned']))
+        self.ggoma = [dict(grade=int(r.get('grade') or 0), mul=float(r['attackMultiplier']), owned=int(r['initialOwned']))
                       for r in _rows(d['꼬마'])]
 
 
+GRADE_ODDS = ('oddsNormal', 'oddsRare', 'oddsEpic', 'oddsLegend')
 T = Tables()
 OV = {}
 
@@ -231,11 +236,26 @@ def run_units(s):
 
 
 # ── 장비 (보유 효과) ──
-def base_own_percent(grade, sub):
+def base_own_percent(grade, sub, size):
+    """Equipment.BaseOwnPercent: 등급 기본값 사이를 그 등급 장비 수(size)로 나눠 잇는다"""
     ob = OV.get('ownBase', T.ownBase)
     frm = ob[grade]
     to = ob[grade + 1] if grade + 1 < len(ob) else frm * C('equipTopGradeMul')
-    return frm * (to / frm) ** (sub / 3)
+    return frm * (to / frm) ** (sub / max(1, size))
+
+
+def equip_items(kind):
+    """장비 시트 배치 → [(grade, sub, 그 등급 장비 수)] (itemIndex 순서)"""
+    items = T.equip[kind]
+    size = {}
+    for g, _ in items:
+        size[g] = size.get(g, 0) + 1
+    return [(g, s, size[g]) for g, s in items]
+
+
+def equip_base(kind, i):
+    g, s, n = equip_items(kind)[i]
+    return base_own_percent(g, s, n)
 
 
 def level_from_copies(n):

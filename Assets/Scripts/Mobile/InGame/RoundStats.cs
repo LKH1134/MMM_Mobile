@@ -98,8 +98,6 @@ namespace MoreMush.Mobile
         public float RewardRate => Stage != null && Stage.rewardRate > 0f ? Stage.rewardRate : 1f;
         // 일반 버섯 체력 배율 (Stage.xlsx mushHpMul). 보스 체력(BossHp)엔 곱하지 않는다
         public float MushHpMul => Stage != null && Stage.mushHpMul > 0f ? Stage.mushHpMul : 1f;
-        public bool AnyBarBuff => PowerAttack > 0 || HasteDuration > 0f || PierceDuration > 0f || HomingDuration > 0f
-                                  || FeverDuration > 0f || WisdomRate > 0f || HealDuration > 0f;
         // 분열로 한꺼번에 있을 수 있는 최대 수 (던지는 수확기마다 한 번씩) — 이만큼 미리 만들어 둔다
         public int MaxSplit => SplitDuration > 0f ? (1 + ExtraHarvesters) * Base.splitCount : 0;
 

@@ -185,8 +185,8 @@ namespace MoreMush.Mobile
             return d.multiply ? d.baseValue * (1 + d.perLevel * lv) : d.baseValue + d.perLevel * lv;
         }
 
-        // 보유 효과까지 더한 실제 값: 무기·펫 → 공격력 %, 장신구 → 체력·체력 재생 %
-        public static double AttackMultiplier => 1 + (GachaProgress.OwnPercent(GachaKind.Weapon) + GachaProgress.OwnPercent(GachaKind.Pet)) / 100.0;
+        // 보유 효과까지 더한 실제 값: 무기 → 공격력 %, 방어구 → 체력·체력 재생 %
+        public static double AttackMultiplier => 1 + GachaProgress.OwnPercent(GachaKind.Weapon) / 100.0;
         public static double HpMultiplier => 1 + GachaProgress.OwnPercent(GachaKind.Accessory) / 100.0;
         // 세계수 효과(가호·꼬마 특기·장식)도 여기서 곱한다 (WorldTree.Bonus)
         public static double FinalAttack => Value(IdleStat.Attack) * AttackMultiplier * Value(IdleStat.AdvancedAttack) * WorldTree.Mul(TreeEffect.Attack);
@@ -221,8 +221,8 @@ namespace MoreMush.Mobile
             public readonly double critDamageRatio = GameBalance.Const("expCritDamageRatio");
             public readonly double advancedAttackRatio = GameBalance.Const("expAdvancedAttackRatio");
             public readonly int normalDamageDivisor = GameBalance.ConstInt("expNormalDamageDivisor");
-            public readonly double attackMulPerStage = GameBalance.Const("expAttackMulPerStage");   // 무기+펫 보유 효과 (스테이지 1000 ≈ ×13)
-            public readonly double hpMulPerStage = GameBalance.Const("expHpMulPerStage");           // 장신구 보유 효과 (스테이지 1000 ≈ ×8)
+            public readonly double attackMulPerStage = GameBalance.Const("expAttackMulPerStage");   // 무기 보유 효과 (스테이지 1000 ≈ ×13)
+            public readonly double hpMulPerStage = GameBalance.Const("expHpMulPerStage");           // 방어구 보유 효과 (스테이지 1000 ≈ ×8)
             public readonly double enemyHpHits = GameBalance.Const("enemyHpHits");
             public readonly double enemyHpWaveGrowth = GameBalance.Const("enemyHpWaveGrowth");
             public readonly double bossKillSeconds = GameBalance.Const("bossKillSeconds");

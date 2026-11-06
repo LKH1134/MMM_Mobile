@@ -1,0 +1,42 @@
+info 183 184 diff rows 6
+   105 ['등급', 'ownBase', '무기·펫은 공격력 %, 방어구는 체력 %. 장비의 단계(3단계)는 이 값과 다음 등급 값 사이를 같은 비율로 잇는다.', 'double · 2'] -> ['등급', 'ownBase', '무기는 공격력 %, 방어구는 체력 %. 장비의 단계(3단계)는 이 값과 다음 등급 값 사이를 같은 비율로 잇는다.', 'double · 2']
+   122 ['장비', 'kind', 'Weapon=무기, Accessory=방어구, Pet=펫. 꼬마는 꼬마 시트에 있다.', 'GachaKind · Weapon'] -> ['장비', 'kind', 'Weapon=무기, Accessory=방어구 (Pet=펫은 2026-11-04 삭제). 꼬마는 꼬마 시트에 있다.', 'GachaKind · Weapon']
+   123 ['장비', 'stat', '무기·펫은 Attack, 방어구는 Hp.', 'EquipStat · Attack'] -> ['장비', 'stat', '무기는 Attack, 방어구는 Hp.', 'EquipStat · Attack']
+   124 ['장비', 'itemIndex', '종류마다 0~14. 기존 Weapon/Armor/Pet.Level.<i> 저장 데이터의 i이며 함부로 바꾸지 않는다.', 'int · 0'] -> ['장비', 'itemIndex', '종류마다 0~14. 기존 Weapon/Armor.Level.<i> 저장 데이터의 i이며 함부로 바꾸지 않는다.', 'int · 0']
+   131 ['뽑기상품', 'kind', 'Weapon/Accessory/Pet/Character. 등급 확률은 기존 뽑기 시트를 공통 사용한다.', 'GachaKind · Weapon'] -> ['뽑기상품', 'kind', 'Weapon/Accessory/Character. 등급 확률은 기존 뽑기 시트를 공통 사용한다.', 'GachaKind · Weapon']
+   161 ['장비', '효과 계산', '개별 장비 이름·그림·종류·저장 인덱스·등급·등급 내 단계. 등급마다 장비 수가 달라도 된다 (무기·방어구 4/3/2/1, 펫 3/3/3/3). 보유 효과는 등급.ownBase 사이를 sub/(그 등급 장비 수) 비율로 보간하고 equipLevelBonus, equipRatio를 적용한다. 뽑힌 등급 안에서는 같은 확률로 고른다.', '상수·등급에 있는 효과 값을 중복 입력하지 않는다'] -> ['장비', '효과 계산', '개별 장비 이름·그림·종류·저장 인덱스·등급·등급 내 단계. 등급마다 장비 수가 달라도 된다 (무기·방어구 4/3/2/1). 보유 효과는 등급.ownBase 사이를 sub/(그 등급 장비 수) 비율로 보간하고 equipLevelBonus, equipRatio를 적용한다. 뽑힌 등급 안에서는 같은 확률로 고른다.', '상수·등급에 있는 효과 값을 중복 입력하지 않는다']
+적 23 23 diff rows 0
+보스 5 5 diff rows 0
+꼬마 11 11 diff rows 0
+업그레이드 11 11 diff rows 0
+스테이지 703 703 diff rows 0
+리소스 125 125 diff rows 0
+상수 79 79 diff rows 2
+   3 [9001, 'equipMaxLevel', 100, '장비 최대 레벨 (무기·방어구·펫 공통)'] -> [9001, 'equipMaxLevel', 100, '장비 최대 레벨 (무기·방어구 공통)']
+   23 [9024, 'expAttackMulPerStage', 0.012, '기대 성장: 무기·펫 보유 효과 배율 = 1 + 이 값 × 스테이지'] -> [9024, 'expAttackMulPerStage', 0.012, '기대 성장: 무기 보유 효과 배율 = 1 + 이 값 × 스테이지']
+등급 8 8 diff rows 0
+뽑기 13 13 diff rows 0
+던전 8 8 diff rows 0
+퀘스트 8 8 diff rows 0
+세계수 11 11 diff rows 0
+가호 11 11 diff rows 0
+꼬마진화 7 7 diff rows 0
+꼬마스킬 27 27 diff rows 0
+호감도 13 13 diff rows 0
+장식 27 27 diff rows 0
+장식등급 6 6 diff rows 0
+의뢰 10 10 diff rows 0
+장비 48 36 diff rows 12
+   23 [11021, 'pet_00', '아기 송이', 'Pet', 'Attack', 0, 0, 0] -> [None, None, None, None, None, None, None, None]
+   24 [11022, 'pet_01', '아기 표고', 'Pet', 'Attack', 1, 0, 1] -> [None, None, None, None, None, None, None, None]
+   25 [11023, 'pet_02', '아기 팽이', 'Pet', 'Attack', 2, 0, 2] -> [None, None, None, None, None, None, None, None]
+   26 [11024, 'pet_03', '날쌘 버섯', 'Pet', 'Attack', 3, 1, 0] -> [None, None, None, None, None, None, None, None]
+   27 [11025, 'pet_04', '단단 버섯', 'Pet', 'Attack', 4, 1, 1] -> [None, None, None, None, None, None, None, None]
+   28 [11026, 'pet_05', '반짝 버섯', 'Pet', 'Attack', 5, 1, 2] -> [None, None, None, None, None, None, None, None]
+뽑기상품 15 12 diff rows 3
+   9 [12007, 'pet_paid11', '펫 뽑기 11회', 'Pet', 11, 100, 'Mycelite', 0] -> [12010, 'character_paid11', '꼬마 뽑기 11회', 'Character', 11, 100, 'Mycelite', 0]
+   10 [12008, 'pet_paid35', '펫 뽑기 35회', 'Pet', 35, 300, 'Mycelite', 0] -> [12011, 'character_paid35', '꼬마 뽑기 35회', 'Character', 35, 300, 'Mycelite', 0]
+   11 [12009, 'pet_ad', '펫 뽑기 11회 (광고)', 'Pet', 11, 0, 'Mycelite', 1] -> [12012, 'character_ad', '꼬마 뽑기 11회 (광고)', 'Character', 11, 0, 'Mycelite', 1]
+방치전투 4 4 diff rows 0
+수확전투 77 77 diff rows 0
+수확등급 6 6 diff rows 0

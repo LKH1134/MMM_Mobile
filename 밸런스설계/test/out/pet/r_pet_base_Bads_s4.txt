@@ -1,0 +1,18 @@
+[종류] 장비 종류=Weapon(Attack),Accessory(Hp),Pet(Attack) 뽑기 종류(GachaKind 값)=0,1,2,3 펫있음=True
+[dll] C:\Project\MMM_Mobile\밸런스설계\test\sim\bin\base\Assembly-CSharp.dll · 2026-11-04 15:53:50
+[조건] name=Bads continuous=False quests=True ads=True offline=True sess=7/13/20h x 1h killedEachAway=True home=0.7 fps=60 dt=0.05 seed=4 maxDays=120 stuckDays=20 dungeon=True dungeonFlatMyc/day=0 구간= 보스도전퀘스트=False 던전광고율=0 광고 시청률: 상자 1 정산2배 1 (번갈아, 누적 올림 규칙), 광고뽑기 종류 [0,1,2,3], 던전광고 2/일 policy=bal gacha=on equip=best table=base.bytes const=- dungeonKills/myc/grow=0/0/0 speedMaxLv=275
+[끝] maxDays · 최종 스테이지 780 · 벽시계 120.33일 · 플레이 361.0시간 · 실행 11.2s
+stage,wallHours,wallDays,playHours
+10,7.03,0.29,0.03
+50,7.27,0.30,0.27
+100,13.44,0.56,1.44
+200,44.68,1.86,5.68
+300,85.02,3.54,10.02
+400,151.21,6.30,18.21
+500,343.42,14.31,42.42
+1000,미도달,,
+첫7일 골드: 전투=2.928E+013 앱밖=2.044E+014 퀘스트상자=4.657E+013 던전=0.000E+000
+첫사용(벽시계 분): 던전=420.0 뽑기=420.0 퀘스트=420.0 · 첫1시간 강화=2151
+재화 합계: 처치골드=5.521E+015 앱밖=3.846E+016 퀘스트골드=5.362E+015 상자골드=3.309E+015 던전골드=0.000E+000 | 균사석 보스=1558 퀘스트=36200 상자=2520 던전=0 | 광고 1096회(상자 252) 뽑기 9746회 · 일수 121
+던전: 입장 1192회 (레벨 미달 실패 881회) · 퀘스트 균사석 합 36200 · 하루 평균 299.2
+최종 강화 Lv: 9685,9685,5811,275,1000,1428,911,393 · 편성 1.86,1.86,1.86,1.86,1.86 · 장비% Weapon=6518 Accessory=6514 Pet=20299 공격배율%=26817 · 뽑기 Lv 10,10,10,10

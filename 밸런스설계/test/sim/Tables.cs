@@ -48,9 +48,13 @@ static class Tables
         Set("mascots", Rows<MascotRow>(sheets, "꼬마", 3001, 3999, issues));
         Set("stages", Rows<StageRow>(sheets, "스테이지", 5001, 6999, issues).OrderBy(r => r.stage).ToArray());
         Set("resources", Rows<ResourceRow>(sheets, "리소스", 7001, 7999, issues).ToDictionary(r => r.index, r => r.path));
-        Set("dungeonUnlock", Rows<DungeonRow>(sheets, "던전", 9101, 9199, issues).ToDictionary(r => r.dungeon, r => r.unlockStage));
+        var dungeonRows = Rows<DungeonRow>(sheets, "던전", 9101, 9199, issues);
+        Set("dungeons", dungeonRows.ToDictionary(r => r.dungeon));
+        Set("dungeonList", dungeonRows);
+        Set("equipment", Rows<EquipmentRow>(sheets, "장비", 11001, 11999, issues));   // Equipment가 종류별 장비 수·등급·단계를 읽는다
         Set("quests", Rows<QuestRow>(sheets, "퀘스트", 9201, 9299, issues));
         Set("loaded", true);
+        Equipment.ReloadAll();      // 표를 바꿔 읽으면 장비 배치·상수를 다시 읽게 (table= 주입)
         Dungeons.Clear();
         {
             var sh = sheets["던전"];
@@ -62,7 +66,7 @@ static class Tables
                     var c = sh[r];
                     if (c.Length <= ci("baseStage") || string.IsNullOrWhiteSpace(c[0])) continue;
                     double D(string n) => double.TryParse(c[ci(n)], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
-                    Dungeons.Add(new DungeonSpec { dungeon = (int)D("dungeon"), unlockStage = (int)D("unlockStage"), baseStage = (int)D("baseStage"), stageStep = (int)D("stageStep"), currency = c[ci("currency")], hpMul = D("hpMul"), rewardKills = (long)D("rewardKills"), rewardMyc = (long)D("rewardMyc"), rewardGrowth = D("rewardGrowth") });
+                    Dungeons.Add(new DungeonSpec { dungeon = (int)D("dungeon"), unlockStage = (int)D("unlockStage"), baseStage = (int)D("baseStage"), stageStep = (int)D("stageStep"), currency = ci("currency") >= 0 && ci("currency") < c.Length ? c[ci("currency")] : "",   /* currency 열은 지금 표에 없다 */ hpMul = D("hpMul"), rewardKills = (long)D("rewardKills"), rewardMyc = (long)D("rewardMyc"), rewardGrowth = D("rewardGrowth") });
                 }
         }
         int real = issues.Count(i => !(i.Contains("기본값으로 둔다")));

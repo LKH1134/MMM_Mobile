@@ -39,7 +39,8 @@ def load_current():
     T['enemies'] = [dict(index=int(r['index']), name=r['name'], value=int(r['value']), requestCount=int(r['requestCount']))
                     for r in _rows(d['적'])]
     T['const'] = {r['key']: float(r['value']) for r in _rows(d['상수'])}
-    T['gacha'] = [[float(r[k]) for k in ('oddsNormal', 'oddsUncommon', 'oddsRare', 'oddsEpic', 'oddsLegend')] + [int(r['expToNext'])]
+    # 등급 4개 (0 일반·1 희귀·2 영웅·3 전설, 2026-11-04 고급 삭제): [확률 4개..., expToNext] — 경험치는 마지막 칸
+    T['gacha'] = [[float(r[k]) for k in ('oddsNormal', 'oddsRare', 'oddsEpic', 'oddsLegend')] + [int(r['expToNext'])]
                   for r in _rows(d['뽑기'])]
     T['kidEvoLevelGradeMul'] = T['const'].get('kidEvoLevelGradeMul')     # K1 (v1부터 코드·상수에 있음; 없으면 None)
     return T

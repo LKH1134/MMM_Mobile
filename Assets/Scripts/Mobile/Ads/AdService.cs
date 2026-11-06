@@ -100,6 +100,12 @@ namespace MoreMush.Mobile
         // placement = 어느 배치의 광고인지 (끝까지 본 수를 배치별로 센다, AdStats)
         public static bool ShowRewarded(string placement, Action onReward)
         {
+            if (DevMode.SkipAds)
+            {
+                // 개발자 모드: 광고 없이 끝까지 본 것으로
+                Rewarded(placement, onReward);
+                return true;
+            }
             if (!IsReady)
             {
                 Report("아직 광고가 준비되지 않았습니다");
@@ -112,22 +118,27 @@ namespace MoreMush.Mobile
 
             ad.OnAdFullScreenContentClosed += () => Release(ad, "광고 닫힘");
             ad.OnAdFullScreenContentFailed += error => Release(ad, $"광고 표시 실패: {error?.GetMessage()}");
-            ad.Show(_ =>
-            {
-                // 광고를 끝까지 본 사람의 보상이 다른 처리의 예외에 막히지 않게 보상을 먼저, 나머지는 따로 지킨다
-                try { onReward?.Invoke(); }
-                catch (Exception e) { Debug.LogException(e); }
-                try { DailyQuests.Add(QuestKind.Ad); }
-                catch (Exception e) { Debug.LogException(e); }
-                try { AdStats.Record(placement); }
-                catch (Exception e) { Debug.LogException(e); }
-                Report("보상 지급");
-            });
+            // 광고가 나오는 동안 게임 소리(BGM)를 멈춘다. 닫히거나 표시에 실패하면 Release가 다시 켠다
+            AudioListener.pause = true;
+            ad.Show(_ => Rewarded(placement, onReward));
             return true;
+        }
+
+        // 광고를 끝까지 본 사람의 보상이 다른 처리의 예외에 막히지 않게 보상을 먼저, 나머지는 따로 지킨다
+        static void Rewarded(string placement, Action onReward)
+        {
+            try { onReward?.Invoke(); }
+            catch (Exception e) { Debug.LogException(e); }
+            try { DailyQuests.Add(QuestKind.Ad); }
+            catch (Exception e) { Debug.LogException(e); }
+            try { AdStats.Record(placement); }
+            catch (Exception e) { Debug.LogException(e); }
+            Report("보상 지급");
         }
 
         static void Release(RewardedAd ad, string message)
         {
+            AudioListener.pause = false;
             ad.Destroy();
             Report(message);
             LoadRewarded();
@@ -185,16 +196,6 @@ namespace MoreMush.Mobile
         {
             RollDay(false);
             return PlayerPrefs.GetInt(TodayKey(placement), 0);
-        }
-
-        public static int TodayAll
-        {
-            get
-            {
-                int sum = 0;
-                foreach (var p in AdPlacement.All) sum += Today(p);
-                return sum;
-            }
         }
 
         public static int Total(string placement) => PlayerPrefs.GetInt(TotalKey(placement), 0);

@@ -11,6 +11,9 @@ static class Program
     const string TablePath = @"C:\Project\MMM_Mobile\Assets\Resources\Tables\GameBalance.bytes";
     static string Out = @"C:\Project\MMM_Mobile\밸런스설계\test\out";
 
+    // 광고 뽑기 우선순서: 무기(0)·펫(2)·방어구(1)·꼬마(3) 중 이 dll에 있는 종류 앞에서 n개
+    static int[] AdKinds(int n) => new[] { 0, 2, 1, 3 }.Where(k => Player.Kinds.Contains(k)).Take(n).ToArray();
+
     static string Arg(string[] a, string k, string def) { foreach (var x in a) if (x.StartsWith(k + "=")) return x.Substring(k.Length + 1); return def; }
 
     static int Main(string[] args)
@@ -147,7 +150,7 @@ static class Program
             p.dungeonOn = true;
             p.dungeonReward = (L, stg) => { double mul = 1 + dg * (L - 1); return ((double)IdleProgress.EnemyGold(stg) * dk * mul, (long)(dm * mul)); };
         }
-        if (adsHalf) { p.chestRate = 0.5; p.doubleRate = 0.5; p.gachaKinds = new[] { 0, 2 }; p.dungeonAd = 1; }   // 광고 절반: 상자 50%·정산2배 세션 50%·광고 뽑기 2종(무기·펫)·던전 광고 1/일
+        if (adsHalf) { p.chestRate = 0.5; p.doubleRate = 0.5; p.gachaKinds = AdKinds(2); p.dungeonAd = 1; }   // 광고 절반: 상자 50%·정산2배 세션 50%·광고 뽑기 종류 중 앞 2종(우선순서 무기·펫·방어구·꼬마 중 dll에 있는 것: 펫 있음 = 무기+펫, 펫 없음 = 무기+방어구)·던전 광고 1/일
         if (adsOn)   // 시청률·종류·던전 광고 덮어쓰기 (theory의 구간별 시청률용): chestRate= doubleRate= adKinds=0,2 dungAd=
         {
             p.chestRate = double.Parse(Arg(a, "chestRate", p.chestRate.ToString()));
@@ -161,7 +164,7 @@ static class Program
             double r = seg == "none" ? 0 : seg == "light" ? 0.25 : seg == "half" ? 0.5 : 1.0;
             adsOn = r > 0; p.seg = seg;
             p.chestRate = r; p.doubleRate = r; p.dungeonAdRate = r;
-            p.gachaKinds = new[] { 0, 2, 1, 3 }.Take((int)Math.Round(4 * r)).ToArray();
+            p.gachaKinds = AdKinds((int)Math.Round(Player.Kinds.Length * r));   // 종류 수(펫 있음 4·없음 3) × 시청률 반올림
             p.dungeonAd = 2;
         }
         p.dungeonSheet = Tables.Dungeons.Count > 0 && Arg(a, "dungeon", "on") == "on";
@@ -176,6 +179,7 @@ static class Program
             p.sessLenH = hours / sess;
             p.sessStartH = sess == 1 ? new[] { 20.0 } : sess == 2 ? new[] { 8.0, 20.0 } : new[] { 7.0, 13.0, 20.0 };
         }
+        Console.WriteLine($"[종류] 장비 종류={string.Join(",", Equipment.All.Select(e => e.Kind + "(" + e.Stat + ")"))} 뽑기 종류(GachaKind 값)={string.Join(",", Player.Kinds)} 펫있음={Player.HasPet}");
         { var asm = typeof(GameBalance).Assembly.Location; Console.WriteLine($"[dll] {asm} · {File.GetLastWriteTime(asm):yyyy-MM-dd HH:mm:ss}"); }
         Console.WriteLine("[조건] " + p + " policy=" + Player.Policy + " gacha=" + (Player.NoGacha ? "off" : "on") + " equip=" + (Player.EquipGame ? "game(처음 묶음만 자동 장착)" : "best") + " table=" + System.IO.Path.GetFileName(Arg(a, "table", TablePath)) + " const=" + Arg(a, "const", "-") + " dungeonKills/myc/grow=" + dk + "/" + dm + "/" + dg + " speedMaxLv=" + IdleProgress.Defs[(int)IdleStat.Speed].maxLv);
         var sw = Stopwatch.StartNew();
@@ -184,6 +188,7 @@ static class Program
         Directory.CreateDirectory(Out);
         string tag = Arg(a, "tag", name);
         sc.WriteCsv(Path.Combine(Out, "stage_" + tag + ".csv"));
+        sc.WriteSnap(Path.Combine(Out, "snap_" + tag + ".csv"));
         double[] marks = { 10, 50, 100, 200, 300, 400, 500, 1000 };
         Console.WriteLine($"[끝] {sc.endReason} · 최종 스테이지 {sc.P.stage} · 벽시계 {sc.wall / 86400:F2}일 · 플레이 {sc.play / 3600:F1}시간 · 실행 {sw.Elapsed.TotalSeconds:F1}s");
         Console.WriteLine("stage,wallHours,wallDays,playHours");
@@ -197,6 +202,6 @@ static class Program
         Console.WriteLine($"첫사용(벽시계 분): 던전={(sc.firstDungeon < 0 ? -1 : sc.firstDungeon / 60):F1} 뽑기={(sc.firstPull < 0 ? -1 : sc.firstPull / 60):F1} 퀘스트={(sc.firstQuest < 0 ? -1 : sc.firstQuest / 60):F1} · 첫1시간 강화={sc.upg1h}");
         Console.WriteLine($"재화 합계: 처치골드={sc.totKillGold:E3} 앱밖={sc.totOfflineGold:E3} 퀘스트골드={sc.totQuestGold:E3} 상자골드={sc.totChestGold:E3} 던전골드={sc.totDungeonGold:E3} | 균사석 보스={sc.totBossMyc} 퀘스트={sc.totQuestMyc} 상자={sc.totChestMyc} 던전={sc.totDungeonMyc} | 광고 {sc.adViews}회(상자 {sc.chestCount}) 뽑기 {sc.P.pulls}회 · 일수 {sc.dayCount}");
         Console.WriteLine($"던전: 입장 {sc.dungeonRuns}회 (레벨 미달 실패 {sc.dungeonFails}회) · 퀘스트 균사석 합 {sc.totQuestMyc} · 하루 평균 {sc.totQuestMyc / Math.Max(1.0, sc.dayCount):F1}");
-        Console.WriteLine($"최종 강화 Lv: {string.Join(",", sc.P.lv)} · 편성 {string.Join(",", sc.P.slotMul.Select(x => x.ToString("F2")))} · 장비% 무기={sc.P.eqPct[0]:F0} 방어구={sc.P.eqPct[1]:F0} 펫={sc.P.eqPct[2]:F0} · 뽑기 Lv {string.Join(",", sc.P.gLv)}");
+        Console.WriteLine($"최종 강화 Lv: {string.Join(",", sc.P.lv)} · 편성 {string.Join(",", sc.P.slotMul.Select(x => x.ToString("F2")))} · 장비% {string.Join(" ", Enumerable.Range(0, Player.EqN).Select(e => Player.EqName(e) + "=" + sc.P.eqPct[e].ToString("F0")))} 공격배율%={sc.P.atkPctSum:F0} · 뽑기 Lv {string.Join(",", sc.P.gLv)}");
     }
 }

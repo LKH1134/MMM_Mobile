@@ -8,7 +8,7 @@ namespace MoreMush.Mobile
     // 강화(IdleProgress)·꼬마(Formation)·장비(Equipment)·뽑기(GachaProgress)·던전 횟수·앱 밖 보상·전투력의 수치가 여기서 나온다.
     // 표가 없거나 필수 시트가 비면 숫자를 지어내지 않고 예외를 던진다 (임포터가 구조를 검증한 표만 bytes로 복사한다).
     // 읽는 시점은 처음 쓸 때다 — SubsystemRegistration에 도는 Reload 훅이 이 클래스를 건드려도 리소스를 읽지 않는다.
-    // 적·보스의 hpCoefficient, 스테이지의 stageCoefficient·enemyIds·bossId는 아직 게임이 읽지 않는다 (체력은 IdleProgress 수식).
+    // 스테이지의 enemyIds는 아직 게임이 읽지 않는다 (적 그림은 IdleBattle이 Enumy 폴더에서 종류 비율로 뽑는다). 체력은 IdleProgress 수식.
     public static class GameBalance
     {
         public const string ResourceName = "Tables/GameBalance";
@@ -25,6 +25,8 @@ namespace MoreMush.Mobile
         static Dictionary<int, DungeonRow> dungeons;
         static QuestRow[] quests;
         static EnemyRow[] enemies;
+        static Dictionary<int, BossRow> bosses;
+        static HashSet<string> bossSpriteNames;
         static TreeStageRow[] treeStages;
         static BlessRow[] blessings;
         static KidStarRow[] kidStars;
@@ -43,7 +45,7 @@ namespace MoreMush.Mobile
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트",
-            EnemySheet = "적", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
+            EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
             EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", HarvestTierSheet = "수확등급", TreeQuestSheet = "의뢰";
 
@@ -161,6 +163,27 @@ namespace MoreMush.Mobile
             return dungeons.TryGetValue(dungeon, out var row) ? row : null;
         }
 
+        // 보스.index의 행 (없으면 null)
+        public static BossRow Boss(int index)
+        {
+            Ensure();
+            return bosses.TryGetValue(index, out var row) ? row : null;
+        }
+
+        // 보스 그림 조각 이름 ("시트이름_cell"). 시트를 못 찾으면 null
+        public static string BossSpriteName(BossRow boss)
+        {
+            string path = boss != null && resources.TryGetValue(boss.resourceId, out var p) ? p : null;
+            return path != null ? path.Substring(path.LastIndexOf('/') + 1) + "_" + boss.cell : null;
+        }
+
+        // 보스로 쓰는 그림 조각인지 — 일반 적·창고 아이콘에서 뺀다
+        public static bool IsBossSprite(string spriteName)
+        {
+            Ensure();
+            return spriteName != null && bossSpriteNames.Contains(spriteName);
+        }
+
         // 리소스.index → Resources 경로 (없으면 null)
         public static string ResourcePath(int id)
         {
@@ -208,6 +231,7 @@ namespace MoreMush.Mobile
             dungeonList = ToArray(dungeonRows);
             quests = ToArray(Read(new DataTable<QuestRow>(QuestSheet, 9201, 9299), sheets, issues));
             enemies = ToArray(Read(new DataTable<EnemyRow>(EnemySheet, 1001, 1999), sheets, issues));
+            var bossRows = Read(new DataTable<BossRow>(BossSheet, 2001, 2999), sheets, issues);
             treeStages = ToSorted(Read(new DataTable<TreeStageRow>(TreeSheet, 9301, 9399), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
             blessings = ToSorted(Read(new DataTable<BlessRow>(BlessSheet, 9401, 9499), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
             kidStars = ToSorted(Read(new DataTable<KidStarRow>(KidStarSheet, 9501, 9599), sheets, issues), (a, b) => a.star.CompareTo(b.star));
@@ -232,6 +256,14 @@ namespace MoreMush.Mobile
             foreach (var row in resourceRows) resources[row.index] = row.path;
             dungeons = new Dictionary<int, DungeonRow>();
             foreach (var row in dungeonRows) dungeons[row.dungeon] = row;
+            bosses = new Dictionary<int, BossRow>();
+            bossSpriteNames = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var row in bossRows)
+            {
+                bosses[row.index] = row;
+                string name = BossSpriteName(row);
+                if (name != null) bossSpriteNames.Add(name);
+            }
 
             for (int i = 0; i < stages.Length; i++)
                 if (stages[i].stage != i + 1)
@@ -284,7 +316,7 @@ namespace MoreMush.Mobile
     // 등급: 장비 1레벨 보유 효과(%) 기본값
     public class GradeRow : TableRow
     {
-        public int grade;          // 0 일반 ~ 4 전설 (GachaProgress.GradeNames 번호)
+        public int grade;          // 0 일반 · 1 희귀 · 2 영웅 · 3 전설 (GachaProgress.GradeNames 번호)
         public double ownBase;
     }
 
@@ -293,7 +325,7 @@ namespace MoreMush.Mobile
     {
         public int level;
         public int expToNext;      // 최고 레벨은 0
-        public double oddsNormal, oddsUncommon, oddsRare, oddsEpic, oddsLegend;
+        public double oddsNormal, oddsRare, oddsEpic, oddsLegend;
     }
 
     // 업그레이드: 방치형 강화 한 종류 (IdleProgress.Def)
@@ -332,9 +364,8 @@ namespace MoreMush.Mobile
     public class StageRow : TableRow
     {
         public int stage;
-        public double stageCoefficient;     // 아직 게임이 읽지 않는다
         public int[] enemyIds;              // 아직 게임이 읽지 않는다
-        public int bossId;                  // 아직 게임이 읽지 않는다
+        public int bossId;                  // 보스.index — 방치 전투 보스 그림 (IdleBattle)
         public int wavesPerStage;
         public double bossTime;
         public int enemyCountBase, enemyCountPerWave, enemyCountPerStage, enemyCountMax;
@@ -359,7 +390,7 @@ namespace MoreMush.Mobile
         public int unlockStage;    // 이 스테이지에 진입해야 열린다 (0 = 처음부터)
         public string scene;       // 입장 씬 (DungeonEntry가 읽는다). 미구현 던전은 빈 문자열
         public bool implemented;   // false면 입장 버튼을 막는다
-        public int baseStage;      // 레벨 1의 기준 스테이지 (레벨 L = baseStage + stageStep × (L − 1)). 방치 스테이지가 낮으면 소탕 (DungeonRewards)
+        public int baseStage;      // 레벨 1의 기준 스테이지 (레벨 L = baseStage + stageStep × (L − 1)) (DungeonRewards)
         public int stageStep;
         public int rewardKills;    // 깨면 골드 = 기준 스테이지 적 처치 골드 × 이 값
         public int rewardMyc;      // 깨면 균사석 = 이 값 × (1 + rewardGrowth × (L − 1))
@@ -375,10 +406,16 @@ namespace MoreMush.Mobile
         public string path;
     }
 
+    // 보스: 방치 전투 보스 한 종. 스테이지.bossId가 고른다 (IdleBattle이 그림을 쓴다)
+    public class BossRow : TableRow
+    {
+        public int resourceId;     // 그림 시트 (리소스.index)
+        public int cell;           // 시트의 조각 번호 ("시트이름_cell")
+    }
+
     // 적: 일반 적 버섯 한 종. 처치하면 세계수 창고에 쌓인다 (WorldTree.AddHarvest)
     public class EnemyRow : TableRow
     {
-        public double hpCoefficient;   // 아직 게임이 읽지 않는다
         public int resourceId;
         public int value;          // 공물 경험치·선물 호감도 기본값 (1마리당)
         public int requestCount;   // 꼬마 부탁 1건에 요구하는 수
@@ -457,7 +494,7 @@ namespace MoreMush.Mobile
         public double hours;
     }
 
-    // 장비: 무기·방어구·펫 한 종. itemIndex = 저장 키 번호 (grade × 등급당 단계 + sub)
+    // 장비: 무기·방어구 한 종. itemIndex = 저장 키 번호 (grade × 등급당 단계 + sub)
     public class EquipmentRow : TableRow
     {
         public GachaKind kind;
@@ -482,7 +519,6 @@ namespace MoreMush.Mobile
     {
         public int formationSlots;     // Formation.SlotCount와 같아야 한다 (검증기)
         public int stagesPerChapter;
-        public string chapterName;
         public double flightTime, waveDelay, enemyAttackDelay;
     }
 

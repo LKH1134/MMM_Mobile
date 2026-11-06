@@ -167,13 +167,6 @@ namespace MoreMush.Mobile
             PlayerPrefs.Save();
         }
 
-        // 보스에 진 뒤 결과 팝업에서 "파밍"을 고르면: FarmRounds판 일반 판을 돈 뒤 재도전
-        public static void ChooseFarm()
-        {
-            PlayerPrefs.SetInt(FarmKey, FarmRounds);
-            PlayerPrefs.Save();
-        }
-
         static void Advance()
         {
             int current = Current;

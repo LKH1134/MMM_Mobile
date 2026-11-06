@@ -29,7 +29,7 @@ sealed class Params
     public string seg = "";
     public bool dungeonSheet = false;                 // 던전 시트 새 열 사용
     public double chestRate = 1, doubleRate = 1;     // 광고 시청률 0~1: 광고 상자(나온 것 중)·정산 2배(앞 공백이 있는 세션 중). 번갈아(누적 올림 규칙: 0.5면 1·3·5번째를 봄)
-    public int[] gachaKinds = { 0, 1, 2, 3 };         // 광고 뽑기를 보는 뽑기 종류 (0 무기 1 방어구 2 펫 3 꼬마)
+    public int[] gachaKinds = Player.Kinds;           // 광고 뽑기를 보는 뽑기 종류 (GachaKind 값: 0 무기 1 방어구 [2 펫: 있는 dll만] 3 꼬마). 기본 = 전부
     public double dungeonMycDailyFlat = 0;  // 민감도용: 매일 고정 균사석 추가
     public override string ToString() =>
         $"name={name} continuous={continuous} quests={quests} ads={ads} offline={offline} sess={(continuous ? "24h" : string.Join("/", sessStartH) + "h x " + sessLenH + "h")} killedEachAway={killedEachAway} home={homeFraction} fps={fps} dt={dt} seed={seed} maxDays={maxDays} stuckDays={stuckDays} dungeon={dungeonOn} dungeonFlatMyc/day={dungeonMycDailyFlat} 구간={seg} 보스도전퀘스트={bossQuest} 던전광고율={dungeonAdRate} 광고 시청률: 상자 {chestRate} 정산2배 {doubleRate} (번갈아, 누적 올림 규칙), 광고뽑기 종류 [{string.Join(",", gachaKinds)}], 던전광고 {dungeonAd}/일";
@@ -70,6 +70,20 @@ sealed class Scenario
     public double[] snap7; public double firstDungeon = -1, firstPull = -1, firstQuest = -1; public int upg1h;
     public int dungeonRuns, dungeonFails;
     double lastStageUpPlay;
+    // 시점별 스냅샷(펫 전후 비교용): 벽시계 시각마다 스테이지·장비%·공격 배율·균사석·뽑기
+    public sealed class Snap { public string label; public double wall, play; public int stage; public double[] eq; public double atkPct; public long pulls, myc; public int[] gLv; public long mycGain; }
+    public List<Snap> snaps = new List<Snap>();
+    static readonly double[] SnapAt = new[] { 0.25, 0.5, 1, 2, 4, 8, 12 }.Select(h => h * 3600).Concat(new[] { 1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60, 90, 120 }.Select(d => d * 86400.0)).ToArray();
+    int snapIdx;
+    void TakeSnap()
+    {
+        while (snapIdx < SnapAt.Length && wall >= SnapAt[snapIdx])
+        {
+            P.Refresh();
+            double w = SnapAt[snapIdx++];
+            snaps.Add(new Snap { label = w < 86400 ? (w / 3600).ToString("0.##") + "h" : "D" + (w / 86400).ToString("0"), wall = wall, play = play, stage = P.stage, eq = (double[])P.eqPct.Clone(), atkPct = P.atkPctSum, pulls = P.pulls, myc = P.myc, gLv = (int[])P.gLv.Clone(), mycGain = totBossMyc + totQuestMyc + totChestMyc + totDungeonMyc });
+        }
+    }
 
     public Scenario(Params p)
     {
@@ -271,6 +285,7 @@ sealed class Scenario
                 wall += prm.dt; play += prm.dt; sessSec += prm.dt;
                 if (snap7 == null && wall >= 7 * 86400) snap7 = new[] { totKillGold, totOfflineGold, totQuestGold + totChestGold, totDungeonGold };
                 if (firstPull < 0 && P.pulls > 0) firstPull = wall;
+                if (snapIdx < SnapAt.Length && wall >= SnapAt[snapIdx]) TakeSnap();
                 homeAcc += prm.dt * prm.homeFraction;
                 if (prm.ads && homeAcc >= GameBalance.Const("adBoxIntervalHours") * 3600)
                 {
@@ -297,6 +312,17 @@ sealed class Scenario
     }
 
     // 스테이지별 CSV (stage, 도달 벽시계 초, 플레이 초, 시도·실패, 진입 시 능력 비율, 레벨)
+    public void WriteSnap(string path)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("label,wallSec,playSec,stage,atkPct,hpPct,pulls,mycHeld,mycGainedTotal,gLvW,gLvA,gLvC," + string.Join(",", Enumerable.Range(0, Player.EqN).Select(e => "eq" + Player.EqName(e))));
+        foreach (var s in snaps)
+            sb.AppendLine(string.Join(",", new[] { s.label, s.wall.ToString("F0", CultureInfo.InvariantCulture), s.play.ToString("F0", CultureInfo.InvariantCulture), s.stage.ToString(), s.atkPct.ToString("F1", CultureInfo.InvariantCulture),
+                (s.eq.Select((v, e) => (v, e)).Where(x => Equipment.All[x.e].Stat != EquipStat.Attack).Sum(x => x.v)).ToString("F1", CultureInfo.InvariantCulture),
+                s.pulls.ToString(), s.myc.ToString(), s.mycGain.ToString(), s.gLv[0].ToString(), s.gLv[1].ToString(), s.gLv[3].ToString() }.Concat(s.eq.Select(v => v.ToString("F1", CultureInfo.InvariantCulture)))));
+        File.WriteAllText(path, sb.ToString());
+    }
+
     public void WriteCsv(string path)
     {
         var sb = new StringBuilder();

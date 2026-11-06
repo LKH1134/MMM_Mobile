@@ -6,7 +6,7 @@ namespace MoreMush.Mobile
 {
     // 던전 목록 카드 하나: 지금 레벨과 오늘 남은 입장 횟수 "n/2"를 보여 주고, 입장하기를 누르면 하나 쓰고 씬을 연다.
     // 입장 횟수를 다 쓰면 버튼이 "광고 보고 입장 (n/2)"로 바뀌고, 광고를 끝까지 보면 광고 입장을 하나 쓰고 연다 (하루 DungeonTickets.AdPerDay번).
-    // 레벨이 방치 진행보다 앞서면(DungeonRewards.IsCapped) 씬을 열지 않고 "소탕하기" — 횟수(또는 광고)를 쓰고 마지막으로 깬 레벨 보상의 일부를 준다.
+    // 소탕은 없다 — 레벨과 상관없이 매번 씬을 열어 직접 플레이한다.
     // 둘 다 없거나 아직 해금 전이면 입장 버튼을 막는다. scene이 비어 있으면(아직 없는 던전) 횟수만 보여 준다.
     // 해금 조건은 던전 시트(스테이지 n 진입). 카드 안의 LockOverlay를 해금 전에만 켜고 LockText에 조건을 적는다.
     // 레벨 문구는 카드 안 "LevelText"가 있으면 거기, 없으면 남은 횟수 위에 하나 만들어 쓴다 (프리팹을 고치지 않아도 되게)
@@ -97,12 +97,6 @@ namespace MoreMush.Mobile
         void Enter()
         {
             if (string.IsNullOrEmpty(scene) || SceneLoader.IsLoading) return;
-            if (DungeonRewards.IsCapped(dungeon))
-            {
-                // 레벨이 방치 진행보다 앞섰다: 싸우지 않고 소탕 (DungeonRewards)
-                if (!DungeonRewards.TrySweep(dungeon, ShowSwept) && buttonLabel != null) buttonLabel.text = "광고 준비 중…";
-                return;
-            }
             if (DungeonTickets.CanEnter(dungeon))
             {
                 // 씬을 못 열면(빌드 설정에 없음) 횟수를 쓰지 않는다
@@ -110,12 +104,6 @@ namespace MoreMush.Mobile
             }
             else if (DungeonTickets.CanEnterWithAd(dungeon) && !EnterWithAd(dungeon, scene) && buttonLabel != null)
                 buttonLabel.text = "광고 준비 중…";
-        }
-
-        // 소탕 결과는 다음 갱신(횟수·스테이지가 바뀔 때)까지 버튼에 남긴다
-        void ShowSwept(long gold)
-        {
-            if (buttonLabel != null) buttonLabel.text = $"소탕 +{Wallet.Format(gold)}";
         }
 
         // 긴 문구는 줄이고, 짧은 문구는 원래 크기 그대로
@@ -148,14 +136,9 @@ namespace MoreMush.Mobile
             if (lockText != null && !unlocked) lockText.text = UnlockMessage();
             if (levelText != null) levelText.text = unlocked ? $"레벨 {DungeonTickets.Level(dungeon)}" : "";
             if (countText != null) countText.text = $"{left}/{DungeonTickets.PerDay}";
-            bool capped = unlocked && DungeonRewards.IsCapped(dungeon), blocked = capped && !DungeonRewards.CanSweep(dungeon);
             if (buttonLabel != null)
-            {
-                if (blocked) buttonLabel.text = $"스테이지 {DungeonRewards.Stage(dungeon, DungeonTickets.Level(dungeon))} 필요";
-                else if (byAd) buttonLabel.text = capped ? $"광고 보고 소탕 ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})" : $"광고 보고 입장 ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})";
-                else buttonLabel.text = capped ? "소탕하기" : enterLabel;
-            }
-            if (enterButton != null) enterButton.interactable = unlocked && !blocked && (left > 0 || byAd) && !string.IsNullOrEmpty(scene);
+                buttonLabel.text = byAd ? $"광고 보고 입장 ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})" : enterLabel;
+            if (enterButton != null) enterButton.interactable = unlocked && (left > 0 || byAd) && !string.IsNullOrEmpty(scene);
         }
 
         string UnlockMessage()

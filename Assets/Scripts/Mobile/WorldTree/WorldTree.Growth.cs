@@ -80,11 +80,22 @@ namespace MoreMush.Mobile
 
         public static string EnemyName(int index) => Enemy(index)?.name ?? index.ToString();
 
+        // 적 아이콘 (창고·의뢰). 군락 시트면 보스로 쓰지 않는 첫 조각 (보스 조각은 일반 적 그림으로 쓰지 않는다)
         public static Sprite EnemySprite(int index)
         {
             var e = Enemy(index);
             string path = e != null ? GameBalance.ResourcePath(e.resourceId) : null;
-            return path != null ? Resources.Load<Sprite>(path) : null;
+            if (path == null) return null;
+            Sprite best = null;
+            int bestCell = int.MaxValue;
+            foreach (var sp in Resources.LoadAll<Sprite>(path))
+            {
+                if (GameBalance.IsBossSprite(sp.name)) continue;
+                int us = sp.name.LastIndexOf('_');
+                int cell = us > 0 && int.TryParse(sp.name.Substring(us + 1), out int c) ? c : -1;
+                if (cell < bestCell) { best = sp; bestCell = cell; }
+            }
+            return best;
         }
 
         public static long StoreCount(int enemy)
@@ -102,8 +113,6 @@ namespace MoreMush.Mobile
                 return n;
             }
         }
-
-        public static IReadOnlyList<StoreEntry> Store => D.store;
 
         static void AddStore(int enemy, long n)
         {

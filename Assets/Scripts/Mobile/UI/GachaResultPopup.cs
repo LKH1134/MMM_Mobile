@@ -29,7 +29,6 @@ namespace MoreMush.Mobile
         static readonly Color[] GradeColors =
         {
             new Color(0.85f, 0.85f, 0.85f),     // 일반
-            new Color(0.55f, 0.85f, 0.45f),     // 고급
             new Color(0.45f, 0.7f, 1f),         // 희귀
             new Color(0.8f, 0.5f, 1f),          // 영웅
             new Color(1f, 0.8f, 0.3f),          // 전설

@@ -51,11 +51,12 @@ class Tables:
         self.upgrades = {r['stat']: r for r in _sheet_rows(find('priceExponent'))}
         self.stages = _sheet_rows(find('wavesPerStage'))
         self.stages.sort(key=lambda r: r['stage'])
-        self.consts = {r['key']: float(r['value']) for r in _sheet_rows(find('value'))}
+        self.consts = {r['key']: float(r['value']) for r in _sheet_rows(wb['상수'] if '상수' in names else find('#desc'))}
         self.mascots = _sheet_rows(find('attackMultiplier'))
         self.grades = _sheet_rows(find('ownBase'))
         self.quests = _sheet_rows(find('goldKills'))
         self.dungeons = _sheet_rows(find('unlockStage'))
+        self.equipment = _sheet_rows(find('itemIndex'))
 
 
 T = Tables()
@@ -265,37 +266,49 @@ if __name__ == '__main__':
     print('퀘스트 균사석/일', quest_mycelite_per_day(), '35뽑 가격', GACHA_COST35)
 
 
-# ── 장비 (Idle/Equipment.cs:18 SubPerGrade 3, :210-225) ──
-SUB_PER_GRADE = 3
+# ── 장비 (Idle/Equipment.cs BaseOwnPercent) — 배치는 장비 시트: 종류별 itemIndex 순서 (grade, sub), 등급마다 장비 수가 다르다 ──
+GRADE_COUNT = 4   # GachaProgress.GradeCount (0 일반·1 희귀·2 영웅·3 전설)
 
 
-def own_base(grade):  # GachaProgress.cs:34-38
+def own_base(grade):  # GachaProgress.OwnBase
     gs = sorted(T.grades, key=lambda r: r['grade'])
-    return float(gs[clamp(grade, 0, min(5, len(gs)) - 1)]['ownBase'])
+    return float(gs[clamp(grade, 0, min(GRADE_COUNT, len(gs)) - 1)]['ownBase'])
 
 
-def equip_base_percent(i):  # Equipment.cs:210-216
-    g, sub = i // SUB_PER_GRADE, i % SUB_PER_GRADE
+def equip_layout(kind='Weapon'):
+    """[(grade, sub, 그 등급 장비 수)] itemIndex 순서"""
+    rows = sorted((r for r in T.equipment if r['kind'] == kind), key=lambda r: r['itemIndex'])
+    size = {}
+    for r in rows:
+        size[r['grade']] = size.get(r['grade'], 0) + 1
+    return [(r['grade'], r['sub'], size[r['grade']]) for r in rows]
+
+
+def equip_base_percent(i, kind='Weapon'):
+    g, sub, n = equip_layout(kind)[i]
     frm = own_base(g)
-    to = own_base(g + 1) if g + 1 < 5 else frm * C('equipTopGradeMul')
-    return frm * math.pow(to / frm, sub / SUB_PER_GRADE)
+    to = own_base(g + 1) if g + 1 < GRADE_COUNT else frm * C('equipTopGradeMul')
+    return frm * math.pow(to / frm, sub / max(1, n))
 
 
 def equip_level_mul(lv):  # :218
     return 1 + C('equipLevelBonus') * (lv - 1) if lv > 0 else 0
 
 
-def equip_own_percent(i, lv):  # :222
-    return equip_base_percent(i) * equip_level_mul(lv)
+def equip_own_percent(i, lv, kind='Weapon'):
+    return equip_base_percent(i, kind) * equip_level_mul(lv)
 
 
 def criterion8():
     """기준 8: 등급 g의 가장 좋은 장비 최대 레벨 < 등급 g+1 이상 가장 약한 장비 Lv1 인지 (보유 효과; 장착 = 보유 × equipRatio라 순서 같음)"""
     mx = CI('equipMaxLevel')
+    lay = equip_layout('Weapon')
+    top = {g: max(i for i, (gg, _, _) in enumerate(lay) if gg == g) for g in range(GRADE_COUNT)}
+    low = {g: min(i for i, (gg, _, _) in enumerate(lay) if gg == g) for g in range(GRADE_COUNT)}
     rows = []
-    for g in range(4):
-        low_top = equip_own_percent(g * 3 + 2, mx)
-        for h in range(g + 1, 5):
-            hi_l1 = equip_own_percent(h * 3, 1)
+    for g in range(GRADE_COUNT - 1):
+        low_top = equip_own_percent(top[g], mx)
+        for h in range(g + 1, GRADE_COUNT):
+            hi_l1 = equip_own_percent(low[h], 1)
             rows.append((g, h, low_top, hi_l1, hi_l1 > low_top))
     return rows

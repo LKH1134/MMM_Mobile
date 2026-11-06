@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
         const float ChestSize = 230f;
         const float TargetX = 0.22f, TargetY = 0.13f;   // 상자가 머무는 자리: 캔버스 중심에서 폭·높이의 비율 (오른쪽 위쪽)
         const float BobHeight = 18f, BobSpeed = 2.4f;
-        const string ChestIcon = "Art/Dream/Characters/Critters/Ggomas/icon_chest";   // 임시 그림
+        const string ChestKid = "chest";      // 임시 그림: 달 꼬마 1단계 (꼬마 진화 시트)
         const float EditorIntervalSeconds = 2f;         // 유니티 에디터에서는 표의 간격 대신 바로 나온다 (테스트용)
 
         static AdBox instance;
@@ -42,7 +42,7 @@ namespace MoreMush.Mobile
         // 설정은 처음 쓸 때 읽는다 (이 객체가 만들어질 때는 표를 아직 안 읽었을 수 있다)
         float intervalSeconds, staySeconds;
         long goldKills;
-        const long AdMycelite = 90;     // 상자 광고 균사석: 스테이지와 상관없이 고정
+        static long AdMycelite => GameBalance.ConstInt("adBoxMycelite");     // 상자 광고 균사석: 스테이지와 상관없이 고정 (상수 시트)
         bool configured;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -216,7 +216,7 @@ namespace MoreMush.Mobile
             chest.anchorMin = chest.anchorMax = new Vector2(0.5f, 0.5f);
             chest.sizeDelta = new Vector2(ChestSize, ChestSize);
             var image = go.GetComponent<Image>();
-            image.sprite = Resources.Load<Sprite>(ChestIcon);
+            image.sprite = Formation.Icon(ChestKid, 1);
             image.preserveAspect = true;
             go.GetComponent<Button>().onClick.AddListener(OpenPopup);
             popup = new AdBoxPopup(transform, image.sprite, font);

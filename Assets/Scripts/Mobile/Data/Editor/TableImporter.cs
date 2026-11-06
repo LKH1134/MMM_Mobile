@@ -66,6 +66,19 @@ namespace MoreMush.Mobile.EditorTools
             }
 
             Debug.Log($"[TableImporter] {name}: {rows}행 OK");
+            WarnMissingGlyphs(name, bytes);
+        }
+
+        // 폰트는 정적 아틀라스라(FontBaker) 표에 새 글자가 들어오면 화면에 □로 나온다 — 다시 굽도록 알린다
+        static void WarnMissingGlyphs(string name, byte[] bytes)
+        {
+            var text = new System.Text.StringBuilder();
+            foreach (var sheet in XlsxReader.Read(bytes))
+                foreach (var row in sheet.Value)
+                    foreach (var cell in row) text.Append(cell);
+            string missing = FontBaker.MissingCharacters(text.ToString());
+            if (missing.Length > 0)
+                Debug.LogWarning($"[TableImporter] {name}: 폰트에 없는 글자 {missing.Length}개 — 메뉴 MoreMush/Fonts/Bake Static Atlases를 다시 돌린다: {missing}");
         }
 
         // 새 표를 추가하면 여기에도 한 줄 추가한다. 등록되지 않은 이름이면 -1

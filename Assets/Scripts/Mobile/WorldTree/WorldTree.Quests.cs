@@ -6,7 +6,7 @@ namespace MoreMush.Mobile
 {
     // 의뢰 (일일·주간): PC MoreMustMush Game.Quests를 방치형에 맞게 옮겼다. 완료하고 받으면 세계수 경험치.
     // 일일 = 의뢰 시트 daily 행에서 하루(KST) treeQuestDaily개를 뽑는다, 주간 = weekly 행 전부 (월요일 시작). 날짜는 '뒤의 날'만 새로 뽑는다 (DungeonTickets.IsNewDay).
-    // 종류(kind): stage 보스 도전(보스가 나올 때 — 벽에서 막혀도 센다, 메인 일일 퀘스트 Stage와 같음) · kill 일반 적 처치 · species 지정한 적 처치 · dungeon 던전 1 판 수(소탕 포함) · daily 일일 의뢰 받은 수.
+    // 종류(kind): stage 보스 도전(보스가 나올 때 — 벽에서 막혀도 센다, 메인 일일 퀘스트 Stage와 같음) · kill 일반 적 처치 · species 지정한 적 처치 · dungeon 던전 1 판 수 · daily 일일 의뢰 받은 수.
     // 진행은 라이브 플레이만 센다 (앱 밖 정산분 제외, 창고 버섯과 같음). 의뢰마다 의뢰인 꼬마(가진 꼬마 중) 하나를 정해 화면에 보여 준다
     public static partial class WorldTree
     {
@@ -36,17 +36,6 @@ namespace MoreMush.Mobile
 
         public static bool QuestDone(Quest q) => QuestRowOf(q) is TreeQuestRow r && q.prog >= r.target;
         public static bool QuestClaimable(Quest q) => !q.claimed && QuestDone(q);
-
-        public static int QuestClaimableCount
-        {
-            get
-            {
-                int n = 0;
-                foreach (var q in DailyQuests) if (QuestClaimable(q)) n++;
-                foreach (var q in WeeklyQuests) if (QuestClaimable(q)) n++;
-                return n;
-            }
-        }
 
         // 설명 글: 표 desc의 {n} = 목표, {m} = 지정한 적 이름
         public static string QuestText(Quest q)
@@ -150,7 +139,7 @@ namespace MoreMush.Mobile
         // 방치 전투에서 보스에게 도전했다 (보스가 나올 때, IdleBattle.StartWave)
         public static void QuestStage() => AddQuest("stage", 0, 1);
 
-        // 던전 1(수확 판)을 한 판 했다 (HarvestGame) 또는 소탕했다 (DungeonRewards) — 입장 횟수를 쓴 것만.
+        // 던전 1(수확 판)을 한 판 했다 (HarvestGame) — 입장 횟수를 쓴 것만.
         // PC는 '한 판 콤보'였으나 모바일 던전 1은 레벨 5부터 한 판에 1~3개만 캐서 콤보가 닿지 않는다 (11-03 실측)
         public static void QuestDungeon() => AddQuest("dungeon", 0, 1);
 

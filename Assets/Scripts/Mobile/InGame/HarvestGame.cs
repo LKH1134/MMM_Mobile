@@ -25,13 +25,11 @@ namespace MoreMush.Mobile
         [SerializeField] RoundBase roundBase = new RoundBase();
 
         double score;
-        double yield;
 
         public RoundStats Stats { get; private set; }
         public RoundBase Base => roundBase;
         // 무한 스테이지에서 점수가 long을 넘으면 (long) 변환이 음수가 돼 보상이 사라진다 — 9e18에서 멈춘다
         public long Score => IdleProgress.ClampToLong(score);
-        public long Yield => IdleProgress.ClampToLong(yield);
         // 점수를 바꾼 골드 (보스를 못 잡았으면 failGold배)
         public long Gold => IdleProgress.ClampToLong(score * Stats.GoldMul * (Stats.BossRound && Finished && !BossKilled && Stats.Boss.failGold > 0f ? Stats.Boss.failGold : 1f));
         public long BonusGold { get; private set; }  // 보스 처치 보상 골드
@@ -46,7 +44,7 @@ namespace MoreMush.Mobile
         public bool StageCleared => Stats.BossRound ? BossKilled : !FarmRound;
         public int MyceliteEarned { get; private set; }   // 이번 판 첫 클리어 균사석 (측정기는 스스로 센다)
         public int StageNumber { get; private set; }      // = 던전 1 레벨 (DungeonTickets.Level)
-        public long DungeonGold { get; private set; }     // 판 골드에 더해 주는 던전 레벨 보상 (DungeonRewards: 깨면 그 레벨, 못 깨면 소탕)
+        public long DungeonGold { get; private set; }     // 판 골드에 더해 주는 던전 레벨 보상 (DungeonRewards: 깼을 때만 그 레벨 보상)
         const int Dungeon = 1;
         public bool Simulating { get; set; }
         public bool FinalRush => Stats.FinalRushBonus > 0f && hud.TimerStarted && hud.Remaining <= Stats.FinalRushSeconds;
@@ -71,7 +69,7 @@ namespace MoreMush.Mobile
         // 판 준비 (Awake에서 한 번, 측정기는 판마다 다시 부른다). bossRound면 그 스테이지의 보스, 아니면 일반·파밍 판
         public void Prepare(int stageNumber, bool bossRound, long referenceScore, long referenceGold)
         {
-            score = yield = 0;
+            score = 0;
             bossDealt = 0f;
             HarvestCount = 0;
             Finished = BossKilled = false;
@@ -119,7 +117,6 @@ namespace MoreMush.Mobile
                 if (field.AnyBossAlive()) return;   // 분신이 남았다
                 BossKilled = true;
                 score += Stats.Boss.reward * Stats.ScoreMul * Stats.RewardRate;
-                yield += Stats.Boss.drop * Stats.YieldMul(MushroomTier.Legendary) * Stats.RewardRate;
                 hud.SetScore(Score);
                 Finish();
                 return;
@@ -135,9 +132,6 @@ namespace MoreMush.Mobile
             if (Stats.TripleChance > 0f && Random.value < Stats.TripleChance) gain *= 3f;
             score += gain;
 
-            double items = m.Drop * Stats.YieldMul(m.Tier) * rush * Stats.RewardRate;
-            if (m.Golden) items *= Stats.GoldenYield;
-            yield += items;
 
             HarvestCount++;
             hud.SetScore(Score);
@@ -149,7 +143,6 @@ namespace MoreMush.Mobile
             if (!Stats.BossRound || BossKilled) return;
             BossKilled = true;
             score += Stats.Boss.reward * Stats.ScoreMul * Stats.RewardRate;
-            yield += Stats.Boss.drop * Stats.YieldMul(MushroomTier.Legendary) * Stats.RewardRate;
             if (Finished) BonusGold = IdleProgress.ClampToLong((double)System.Math.Max(Gold, ReferenceGold) * Stats.Base.bossRewardMul);
         }
 
@@ -166,7 +159,7 @@ namespace MoreMush.Mobile
                 Wallet.Add(Currency.Gold, TotalGold);
                 MyceliteEarned = StageProgress.FirstClearGem(Stats.Stage, Stats.Boss, StageCleared, StageProgress.Cleared);
                 if (MyceliteEarned > 0) Wallet.Add(Currency.Mycelite, MyceliteEarned);
-                DungeonGold = (StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber) : DungeonRewards.GrantSweep(Dungeon, StageNumber)).gold;
+                DungeonGold = StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber).gold : 0;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
                 WorldTree.QuestDungeon();
             }

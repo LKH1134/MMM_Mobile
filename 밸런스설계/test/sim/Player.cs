@@ -4,8 +4,11 @@ using System.Linq;
 using MoreMush.Mobile;
 
 // 플레이어 상태(PlayerPrefs를 쓰는 것들을 시뮬 안에서 들고 있는다). 공식은 실제 코드의 순수 함수를 부른다:
-//   IdleProgress.Value/Cost/CapLevel/ExpectedLevel, Formation.AttackMultiplierAt/IdsOfGrade/CopiesToNext,
-//   Equipment.BaseOwnPercent/OwnPercentAt/EquipPercentAt/CopiesToNext, GachaProgress.Odds/ExpToNext
+//   IdleProgress.Value/Cost/CapLevel/ExpectedLevel, Formation.AttackMultiplierAt/CopiesToNext,
+//   Equipment(인스턴스).OwnPercentAt/EquipPercentAt/Grade, Equipment.CopiesToNext, GachaProgress.Odds/ExpToNext
+// 장비 배치(종류별 장비 수·등급)는 장비 시트에서 읽는다 (2026-11-04: 무기·방어구 10종 4/3/2/1, 4등급).
+// 장비 종류 수는 Equipment.All(펫 있는 dll 3종 · 없는 dll 2종), 뽑기 종류는 Equipment.All[i].Kind + Character(3) — dll에서 읽는다
+// 공격 배율 = 공격(EquipStat.Attack) 장비 보유+장착 % 합 (IdleProgress.AttackMultiplier: 펫 있는 dll = 무기+펫, 없는 dll = 무기), 체력 배율 = 체력(Hp) 장비 합
 // 상태 옮긴 곳: 레벨 = IdleProgress.cs:81-108(levels), 지갑 = Wallet.cs, 조각·레벨·장착 = Equipment.cs:111-150, Formation.cs:70-100,
 //   뽑기 레벨·경험치 = GachaProgress.cs:Apply(155-170)
 sealed class Player
@@ -16,23 +19,31 @@ sealed class Player
     public long myc;
     public int[] lv = new int[Stats];
 
-    // 장비 3종(0 무기, 1 방어구=Accessory, 2 펫) × 15개
-    public int[][] eqLv = { new int[15], new int[15], new int[15] };
-    public int[][] eqCp = { new int[15], new int[15], new int[15] };
-    public int[] eqOn = { -1, -1, -1 };
-    public double[] eqPct = new double[3];
+    // 장비 종류(Equipment.All 순서의 인덱스 e) × 종류별 장비 수. 뽑기 종류 번호(GachaKind 값) ↔ e 는 EqIdx
+    public static readonly int EqN = Equipment.All.Length;
+    static Equipment E(int k) => Equipment.All[k];
+    public int[][] eqLv = Equipment.All.Select(e => new int[e.Count]).ToArray();
+    public int[][] eqCp = Equipment.All.Select(e => new int[e.Count]).ToArray();
+    public int[] eqOn = Enumerable.Repeat(-1, Equipment.All.Length).ToArray();
+    public double[] eqPct = new double[Equipment.All.Length];
+    public static string EqName(int e) => Equipment.All[e].Kind.ToString();
+    // 뽑기 종류 목록(GachaKind 정수 값): 장비 종류들 + 꼬마(3). 로테이션·광고 뽑기 순서의 기준
+    public static readonly int CharKind = (int)GachaKind.Character;
+    public static readonly int[] Kinds = Equipment.All.Select(e => (int)e.Kind).Concat(new[] { CharKind }).OrderBy(x => x).ToArray();
+    public static int EqIdx(int kind) { for (int i = 0; i < Equipment.All.Length; i++) if ((int)Equipment.All[i].Kind == kind) return i; return -1; }
+    public static readonly bool HasPet = Enum.GetNames(typeof(GachaKind)).Contains("Pet");
 
     // 꼬마 9종
     public string[] ids = Formation.Ids;
     public int[] mLv, mCp;
     public double[] slotMul = new double[5];
 
-    // 뽑기 4종(무기·방어구·펫·꼬마) 레벨·경험치
+    // 뽑기 종류별(GachaKind 값 0~3, 쓰지 않는 값은 안 씀) 레벨·경험치
     public int[] gLv = { 1, 1, 1, 1 }, gExp = new int[4];
     public int nextKind;
 
     // 파생 값
-    public double finalAtk, finalHp, finalRegen, speed, cc, cd, adv, norm, mulSum;
+    public double atkPctSum, finalAtk, finalHp, finalRegen, speed, cc, cd, adv, norm, mulSum;
     public bool dirty = true;
 
     public Random rng;
@@ -67,14 +78,17 @@ sealed class Player
     {
         if (!dirty) return;
         dirty = false;
-        for (int k = 0; k < 3; k++)
+        double atkPct = 0, hpPct = 0;
+        for (int k = 0; k < EqN; k++)
         {
             double sum = 0;
-            for (int i = 0; i < 15; i++) sum += Equipment.OwnPercentAt(i, eqLv[k][i]);
-            if (eqOn[k] >= 0) sum += Equipment.EquipPercentAt(eqOn[k], Math.Max(1, eqLv[k][eqOn[k]]));
+            for (int i = 0; i < eqLv[k].Length; i++) sum += E(k).OwnPercentAt(i, eqLv[k][i]);
+            if (eqOn[k] >= 0) sum += E(k).EquipPercentAt(eqOn[k], Math.Max(1, eqLv[k][eqOn[k]]));
             eqPct[k] = sum;
+            if (E(k).Stat == EquipStat.Attack) atkPct += sum; else hpPct += sum;
         }
-        double atkMul = 1 + (eqPct[0] + eqPct[2]) / 100.0, hpMul = 1 + eqPct[1] / 100.0;
+        atkPctSum = atkPct;
+        double atkMul = 1 + atkPct / 100.0, hpMul = 1 + hpPct / 100.0;   // IdleProgress.AttackMultiplier / HpMultiplier 와 같다
         adv = IdleProgress.Value(IdleStat.AdvancedAttack, lv[(int)IdleStat.AdvancedAttack]);
         norm = IdleProgress.Value(IdleStat.NormalEnemyDamage, lv[(int)IdleStat.NormalEnemyDamage]);
         finalAtk = IdleProgress.Value(IdleStat.Attack, lv[(int)IdleStat.Attack]) * atkMul * adv;
@@ -180,25 +194,20 @@ sealed class Player
     }
 
     // ── 뽑기 ──
-    static readonly float[] SubW = { (float)GameBalance.Const("equipSubWeight1"), (float)GameBalance.Const("equipSubWeight2"), (float)GameBalance.Const("equipSubWeight3") };
+    // 등급별 장비 번호 (Equipment.PickItems: 뽑힌 등급 안에서 같은 확률)
+    static List<int> Pool(int kind, int g) => Enumerable.Range(0, E(kind).Count).Where(i => E(kind).Grade(i) == g).ToList();
 
-    int PickSub()
-    {
-        float r = (float)rng.NextDouble(), acc = 0f;
-        for (int s = 0; s < 3; s++) { acc += SubW[s]; if (r < acc) return s; }
-        return 2;
-    }
-
-    // 11회(비용 100)·35회(비용 300). kind 0 무기, 1 방어구, 2 펫, 3 꼬마. 결과를 반영한다 (GachaPanel.DoRoll 순서)
+    // 11회(비용 100)·35회(비용 300). kind = GachaKind 값 (0 무기, 1 방어구, [2 펫: 있는 dll만], 3 꼬마). 결과를 반영한다 (GachaPanel.DoRoll 순서)
     public void Pull(int kind, int count)
     {
         var odds = GachaProgress.Odds(gLv[kind]);
-        var res = new int[5];
+        int grades = GachaProgress.GradeCount;
+        var res = new int[grades];
         for (int i = 0; i < count; i++)
         {
             float r = (float)rng.NextDouble() * 100f, acc = 0f;
-            int g = 4;
-            for (int k = 0; k < 5; k++) { acc += odds[k]; if (r < acc) { g = k; break; } }
+            int g = grades - 1;
+            for (int k = 0; k < grades; k++) { acc += odds[k]; if (r < acc) { g = k; break; } }
             res[g]++;
         }
         // GachaProgress.Apply: 경험치
@@ -208,17 +217,13 @@ sealed class Player
         gLv[kind] = level; gExp[kind] = exp;
         pulls += count;
 
-        if (kind == 3)
+        if (kind == CharKind)
         {
-            for (int g = 0; g < 5; g++)
+            // GachaProgress.PickCharacters: 꼬마는 등급이 없다 — 개수만 쓰고 한 번마다 모든 꼬마 중 같은 확률 (Formation.RandomId = Ids[Random.Range(0, Ids.Length)])
+            for (int n = 0; n < count; n++)
             {
-                var pool = Formation.IdsOfGrade(g);
-                if (pool.Count == 0) continue;
-                for (int n = 0; n < res[g]; n++)
-                {
-                    int idx = Array.IndexOf(ids, pool[rng.Next(pool.Count)]);
-                    if (mLv[idx] == 0) mLv[idx] = 1; else mCp[idx]++;
-                }
+                int idx = rng.Next(ids.Length);
+                if (mLv[idx] == 0) mLv[idx] = 1; else mCp[idx]++;
             }
             // 합성(Formation.MergeAll)
             for (int i = 0; i < ids.Length; i++)
@@ -226,16 +231,20 @@ sealed class Player
         }
         else
         {
-            int e = kind, batchBest = -1;
-            for (int g = 0; g < 5; g++)
+            int e = EqIdx(kind), batchBest = -1;
+            for (int g = 0; g < grades; g++)
+            {
+                var pool = res[g] > 0 ? Pool(e, g) : null;
+                if (pool == null || pool.Count == 0) continue;
                 for (int n = 0; n < res[g]; n++)
                 {
-                    int it = g * 3 + PickSub();
+                    int it = pool[rng.Next(pool.Count)];
                     batchBest = Math.Max(batchBest, it);
                     if (eqLv[e][it] == 0) eqLv[e][it] = 1; else eqCp[e][it]++;
                 }
+            }
             // 합성(Equipment.MergeAll)
-            for (int i = 0; i < 15; i++)
+            for (int i = 0; i < eqLv[e].Length; i++)
                 while (eqLv[e][i] > 0 && eqLv[e][i] < Equipment.MaxLevel && eqCp[e][i] >= Equipment.CopiesToNext(eqLv[e][i])) { eqCp[e][i] -= Equipment.CopiesToNext(eqLv[e][i]); eqLv[e][i]++; }
             if (EquipGame)
             {
@@ -246,8 +255,8 @@ sealed class Player
             {
                 // 장착: 장착 효과가 가장 큰 보유 장비 (플레이어가 최선으로 바꿔 낀다고 가정)
                 int bestI = -1; double bestV = -1;
-                for (int i = 0; i < 15; i++)
-                    if (eqLv[e][i] > 0) { double v = Equipment.EquipPercentAt(i, eqLv[e][i]); if (v > bestV) { bestV = v; bestI = i; } }
+                for (int i = 0; i < eqLv[e].Length; i++)
+                    if (eqLv[e][i] > 0) { double v = E(e).EquipPercentAt(i, eqLv[e][i]); if (v > bestV) { bestV = v; bestI = i; } }
                 eqOn[e] = bestI;
             }
         }
@@ -255,7 +264,7 @@ sealed class Player
         onPulled?.Invoke(count);
     }
 
-    // 균사석 쓰기: 300 이상이면 35회, 100 이상이면 11회, 4종 돌려가며
+    // 균사석 쓰기: 300 이상이면 35회, 100 이상이면 11회, 뽑기 종류(Kinds)를 돌려가며
     public static bool NoGacha;
     public static bool EquipGame;     // true = 게임처럼 처음 얻은 묶음에서만 자동 장착 (민감도), false = 늘 최선으로 바꿔 낌 (기본)
     public void SpendMycelite()
@@ -265,8 +274,8 @@ sealed class Player
         {
             int count = myc >= 300 ? 35 : 11;
             myc -= count == 35 ? 300 : 100;
-            Pull(nextKind, count);
-            nextKind = (nextKind + 1) % 4;
+            Pull(Kinds[nextKind], count);
+            nextKind = (nextKind + 1) % Kinds.Length;
         }
     }
 }

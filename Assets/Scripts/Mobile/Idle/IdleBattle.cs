@@ -22,16 +22,13 @@ namespace MoreMush.Mobile
         [SerializeField] bool hidePlaceholders = true;      // 칸·영역에 임시로 넣어 둔 그림을 숨긴다
         [SerializeField] TabGroup homeTabs;                 // Main 하단바 — 열린 탭이 없을 때(홈)만 전투를 보인다 (비우면 늘 보인다)
 
-        [Header("임시 리소스 (Resources 경로)")]
-        [SerializeField] string enemyFolder = "Art/Dream/Characters/Critters/Mushrooms";
-        [SerializeField] string kindFolder = "Art/Dream/Characters/Enumy";     // 독버섯·약용버섯 군락 시트 (적 시트 mushroom_tx·md행 = 세계수 창고). 식용 군락은 쓰지 않는다
-        [SerializeField] string bossFolder = "Art/Dream/Characters/Critters/Bosses";
-        [SerializeField] string[] extraBossSprites = { "Art/Dream/Characters/Grandpa/grandpa_ref" };   // 폴더 밖 보스 그림 (Resources 경로, 확장자 없이)
+        [Header("리소스 (Resources 경로)")]
+        [SerializeField] string kindFolder = "Art/Dream/Characters/Enumy";     // 식용·독버섯·약용버섯 군락 시트 (적 시트 mushroom_ed·tx·md행 = 세계수 창고)
         [SerializeField] string harvesterFolder = "Art/Dream/Harvesters";
 
         [Header("크기·연출")]
-        [SerializeField] float ggomaSize = 130f;
-        [SerializeField] float enemySize = 110f;
+        [SerializeField] float ggomaSize = 169f;
+        [SerializeField] float enemySize = 121f;
         [SerializeField] float bossSize = 560f;
         [SerializeField] float harvesterSize = 64f;
         // flightTime·waveDelay·enemyAttackDelay는 방치전투 시트 값을 쓴다 (Awake에서 덮어씀, 인스펙터 값은 표가 없을 때만)
@@ -68,7 +65,8 @@ namespace MoreMush.Mobile
         readonly Stack<Popup> freePopups = new Stack<Popup>();
         readonly List<Enemy> pick = new List<Enemy>();
 
-        Sprite[] enemySprites, bossSprites, harvesterSprites;
+        Sprite[] enemySprites, harvesterSprites;
+        readonly Dictionary<int, Sprite> bossSprites = new Dictionary<int, Sprite>();   // 보스.index → 그림 (표: 스테이지.bossId → 보스.resourceId 시트의 cell 조각)
         Sprite[] toxicSprites, medicinalSprites;    // 일반 적 중 독성·약용 버섯 (상수 enemyToxicRate·enemyMedicinalRate 비율로 나온다)
         Sprite white;
 
@@ -132,21 +130,13 @@ namespace MoreMush.Mobile
 
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
-            enemySprites = Resources.LoadAll<Sprite>(enemyFolder);
-            var kinds = Resources.LoadAll<Sprite>(kindFolder);
+            // 보스로 쓰는 조각(보스 시트 resourceId + cell)은 일반 적으로 나오지 않게 뺀다
+            var kinds = System.Array.FindAll(Resources.LoadAll<Sprite>(kindFolder), sp => !GameBalance.IsBossSprite(sp.name));
+            enemySprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Edible);
             toxicSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Toxic);
             medicinalSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Medicinal);
-            var bosses = new List<Sprite>(Resources.LoadAll<Sprite>(bossFolder));
-            foreach (var path in extraBossSprites)
-            {
-                var sp = string.IsNullOrEmpty(path) ? null : Resources.Load<Sprite>(path);
-                if (sp != null) bosses.Add(sp);
-                else Debug.LogWarning($"[IdleBattle] 보스 그림 없음: Resources/{path}");
-            }
-            bossSprites = bosses.ToArray();
             harvesterSprites = Resources.LoadAll<Sprite>(harvesterFolder);
-            if (enemySprites.Length == 0) Debug.LogWarning($"[IdleBattle] 적 그림 없음: Resources/{enemyFolder}");
-            if (bossSprites.Length == 0) bossSprites = enemySprites;
+            if (enemySprites.Length == 0) Debug.LogWarning($"[IdleBattle] 식용 적 그림 없음: Resources/{kindFolder}");
 
             if (hidePlaceholders)
             {
@@ -614,15 +604,23 @@ namespace MoreMush.Mobile
         Enemy Spawn(bool isBoss, Vector2 local)
         {
             var e = freeEnemies.Count > 0 ? freeEnemies.Pop() : NewEnemy();
-            var sprites = isBoss ? bossSprites : PickEnemyPool();
-            // 보스는 스테이지 순서대로 돌아가며 나온다 (같은 스테이지를 다시 해도 같은 보스). 일반 적은 무작위
-            int pickIndex = isBoss ? (stage - 1) % Mathf.Max(1, sprites.Length) : Random.Range(0, Mathf.Max(1, sprites.Length));
-            e.img.sprite = sprites.Length > 0 ? sprites[pickIndex] : white;
+            if (isBoss)
+            {
+                // 보스 그림 = 스테이지.bossId → 보스.resourceId (표). 못 찾으면 식용 적 그림
+                var sp = BossSprite(stage);
+                e.img.sprite = sp != null ? sp : enemySprites.Length > 0 ? enemySprites[0] : white;
+            }
+            else
+            {
+                var sprites = PickEnemyPool();
+                e.img.sprite = sprites.Length > 0 ? sprites[Random.Range(0, sprites.Length)] : white;
+            }
             float size = isBoss ? bossSize : enemySize;
             e.rt.sizeDelta = new Vector2(size, size);
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
             e.boss = isBoss;
-            e.kind = GgomaSkills.KindOf(e.img.sprite != null ? e.img.sprite.name : null);
+            // 보스는 그림이 독버섯 군락이어도 식용으로 친다 (꼬마 스킬의 독·약용 배율을 보스에 걸지 않는다 — 옛 보스 그림과 같은 밸런스)
+            e.kind = isBoss ? MushroomKind.Edible : GgomaSkills.KindOf(e.img.sprite != null ? e.img.sprite.name : null);
             e.maxHp = e.hp = isBoss ? IdleProgress.BossHp(stage) : IdleProgress.EnemyHp(stage, wave);
             e.gold = IdleProgress.ClampToLong((isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage)) * WorldTree.Mul(TreeEffect.KillGold), 1);
             e.incoming = 0;
@@ -639,6 +637,21 @@ namespace MoreMush.Mobile
             SetHp(e);
             enemies.Add(e);
             return e;
+        }
+
+        // 스테이지의 보스 그림 (스테이지.bossId → 보스.resourceId 시트의 cell 조각). 보스마다 한 번만 읽는다
+        Sprite BossSprite(int stageNumber)
+        {
+            int bossId = GameBalance.Stage(stageNumber).bossId;
+            if (bossSprites.TryGetValue(bossId, out var cached)) return cached;
+            var boss = GameBalance.Boss(bossId);
+            string path = boss != null ? GameBalance.ResourcePath(boss.resourceId) : null;
+            string cell = GameBalance.BossSpriteName(boss);
+            Sprite sp = null;
+            if (path != null) foreach (var s in Resources.LoadAll<Sprite>(path)) if (s.name == cell) { sp = s; break; }
+            if (sp == null) Debug.LogWarning($"[IdleBattle] 보스 그림 없음: 스테이지 {stageNumber} bossId {bossId} → '{path}' 조각 '{cell}'");
+            bossSprites[bossId] = sp;
+            return sp;
         }
 
         // 일반 적 그림 묶음: 독성·약용은 상수 비율대로, 나머지는 식용 (그림이 없으면 식용)

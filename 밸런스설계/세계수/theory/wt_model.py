@@ -92,7 +92,7 @@ class Tree:
         left = n
         while left > 0:
             lvrow = g[min(self.gacha_lv, len(g)) - 1]
-            need = lvrow[5] - self.gacha_exp if self.gacha_lv < len(g) else left
+            need = lvrow[-1] - self.gacha_exp if self.gacha_lv < len(g) else left   # 마지막 칸 = expToNext
             step = min(left, max(1, need))
             for gr, keys in by_grade.items():
                 each = step * lvrow[gr] / 100 / len(keys)
@@ -101,8 +101,8 @@ class Tree:
             left -= step
             if self.gacha_lv < len(g):
                 self.gacha_exp += step
-                if self.gacha_exp >= lvrow[5]:
-                    self.gacha_exp -= lvrow[5]; self.gacha_lv += 1
+                if self.gacha_exp >= lvrow[-1]:
+                    self.gacha_exp -= lvrow[-1]; self.gacha_lv += 1
         for key, k in self.kids.items():
             if not k['owned'] and k['copies'] >= 1:
                 k['owned'], k['level'], k['copies'] = True, 1, k['copies'] - 1

@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
 {
     // 뽑기 패널: 광고 뽑기(11회, 광고를 끝까지 보면, 하루 한 번 — 한국 00시에 다시) · 재화 뽑기(11회) · 재화 뽑기(35회).
     // 11회·35회는 보너스 포함 (10+1, 30+5) — 비용은 10회분·30회분. 비용·재화는 임시값이다 (기획 확정 전)
-    // kind = Character면 뽑은 개수만큼 꼬마를 같은 확률로 골라(등급 없음) Formation에 더한다. 무기·방어구·펫은 장비(Equipment)로 바꿔 더한다.
+    // kind = Character면 뽑은 개수만큼 꼬마를 같은 확률로 골라(등급 없음) Formation에 더한다. 무기·방어구는 장비(Equipment)로 바꿔 더한다.
     // 뽑은 뒤에는 GachaResultPopup으로 무엇이 나왔는지 칸을 하나씩 띄워 보여 준다.
     // 오른쪽 열은 GachaCardView로 꾸민다: 뽑기 레벨·경험치 막대 + 무료 소환(초록) · 재화 소환 11회/35회(보라, 재화 아이콘·가격)
     public class GachaPanel : MonoBehaviour
@@ -205,7 +205,7 @@ namespace MoreMush.Mobile
                 var entries = new List<GachaResultPopup.Entry>();
                 var seen = new HashSet<int>();
                 foreach (int i in items)
-                    entries.Add(new GachaResultPopup.Entry { icon = eq.Sprite(i), grade = Equipment.Grade(i), isNew = !eq.IsOwned(i) && seen.Add(i) });
+                    entries.Add(new GachaResultPopup.Entry { icon = eq.Sprite(i), grade = eq.Grade(i), isNew = !eq.IsOwned(i) && seen.Add(i) });
                 GachaProgress.Apply(kind, result);
                 eq.AddItems(items);
                 ShowResult(entries);
@@ -258,7 +258,6 @@ namespace MoreMush.Mobile
         {
             GachaKind.Weapon => "수확기 뽑기",
             GachaKind.Accessory => "방어구 뽑기",
-            GachaKind.Pet => "펫 뽑기",
             _ => "꼬마 뽑기",
         };
 
