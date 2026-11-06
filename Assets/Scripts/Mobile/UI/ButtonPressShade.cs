@@ -63,7 +63,9 @@ namespace MoreMush.Mobile
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
         {
-            var go = new GameObject("ButtonPressShade.Scanner") { hideFlags = HideFlags.HideAndDontSave };
+            // HideAndDontSave(DontSave 포함)는 플레이를 꺼도 에디터에 남아, 다시 컴파일할 때마다 "referenced script is missing"을 낸다
+            // (Scanner가 중첩 클래스라 스크립트 파일과 이어지지 않음). 숨기기만 하면 플레이 종료 때 Unity가 지운다 (2026-11-06)
+            var go = new GameObject("ButtonPressShade.Scanner") { hideFlags = HideFlags.HideInHierarchy | HideFlags.NotEditable };
             DontDestroyOnLoad(go);
             go.AddComponent<Scanner>();
         }
