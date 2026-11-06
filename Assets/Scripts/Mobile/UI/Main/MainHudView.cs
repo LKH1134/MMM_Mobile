@@ -37,7 +37,7 @@ namespace MoreMush.Mobile
         [SerializeField] GameObject statsPanel;     // 전투력을 누르면 열고 닫는 세부 통계
         [SerializeField] TMP_Text statsText;
 
-        [Header("왼쪽 아이콘 열 (퀘스트·도감)")]
+        [Header("왼쪽 아이콘 열 (퀘스트·출석·도감)")]
         [SerializeField] Button questButton;
         [SerializeField] GameObject questDot;       // 받을 보상이 있으면 켠다
         [SerializeField] Button dexButton;
@@ -64,6 +64,7 @@ namespace MoreMush.Mobile
             // 퀘스트·도감 버튼 (예전 코드 버튼 QuestButton·DexButton 대신)
             if (questButton != null) questButton.onClick.AddListener(() => { if (questScreen != null) questScreen.SetActive(true); else DailyQuestPopup.Open(); });
             if (dexButton != null) dexButton.onClick.AddListener(() => { if (dexScreen != null) dexScreen.SetActive(true); });
+            AttendanceEntry.Create(questButton, dexButton);     // 출석 버튼: 퀘스트와 도감 사이 (도감을 한 칸 내린다)
             DailyQuests.Changed += RefreshQuestDot;
             RefreshQuestDot();
         }
