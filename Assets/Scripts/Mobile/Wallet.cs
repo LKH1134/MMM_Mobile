@@ -59,8 +59,10 @@ namespace MoreMush.Mobile
             return true;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD   // 개발자 모드: 출시 빌드에는 컴파일되지 않는다
         // 개발자 모드(DevMode) 전용: 잔액을 그대로 정한다
         public static void DevSet(Currency currency, long value) => Set(currency, value);
+#endif
 
         static void Set(Currency currency, long value)
         {

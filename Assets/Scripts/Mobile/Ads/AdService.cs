@@ -100,12 +100,14 @@ namespace MoreMush.Mobile
         // placement = 어느 배치의 광고인지 (끝까지 본 수를 배치별로 센다, AdStats)
         public static bool ShowRewarded(string placement, Action onReward)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD   // 개발자 모드: 출시 빌드에는 컴파일되지 않는다
             if (DevMode.SkipAds)
             {
                 // 개발자 모드: 광고 없이 끝까지 본 것으로
                 Rewarded(placement, onReward);
                 return true;
             }
+#endif
             if (!IsReady)
             {
                 Report("아직 광고가 준비되지 않았습니다");

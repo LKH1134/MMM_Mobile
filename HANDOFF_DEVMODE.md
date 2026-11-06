@@ -12,7 +12,7 @@
 |---|---|
 | 에디터 플레이에서 ` 키로 열기·닫기 | ✅ (Input System 키 이벤트로 확인) |
 | 모든 버튼 동작 (재화·꾸미기·창고·세계수·스테이지·앱 밖 시간·던전·광고·속도) | ✅ 에디터 플레이에서 하나씩 눌러 확인 |
-| 출시 빌드에서 안 생김 | ⚠️ 코드로만 보장 (`Debug.isDebugBuild`) — 출시 AAB에서 직접 확인 안 함 |
+| 출시 빌드에서 빠짐 | ✅ 2026-11-06 `#if UNITY_EDITOR \|\| DEVELOPMENT_BUILD`로 컴파일 제외. Android 출시용 스크립트 컴파일 결과 DLL에 `DevMode`·`Dev…` 함수가 없음을 확인 (개발 빌드에는 있음) |
 | 기기(Development Build)에서 열기 | ❓ 휴대폰엔 키보드가 없어 지금은 열 방법이 없다 (5장) |
 
 ---
@@ -22,7 +22,7 @@
 - **키보드 ` 키** (숫자 1 왼쪽, 물결표 키). 한 번 누르면 열리고, 다시 누르거나 오른쪽 위 **닫기**를 누르면 닫힌다.
 - 어느 씬에서나 열린다 (Start·Main·WorldTree·InGame). 씬이 바뀌어도 남는다 — `DontDestroyOnLoad` 오브젝트 `DevMode`가 처음 씬을 읽은 뒤 저절로 생긴다. 씬이나 프리팹에 놓을 것은 없다.
 - 팝업은 자기 오버레이 캔버스(정렬 32500)에 그린다. 씬 로딩 화면(32000)·절전 덮개(31000)·방치 정산(30000)보다 위다. 뒤쪽은 어두운 덮개가 터치를 막는다.
-- **켜지는 곳:** 에디터 (`Application.isEditor`) 또는 Development Build (`Debug.isDebugBuild`). 출시 빌드에서는 오브젝트 자체가 만들어지지 않고 `DevMode.SkipAds`도 늘 `false`다.
+- **켜지는 곳:** 에디터 또는 Development Build. 출시 빌드에서는 **코드 자체가 컴파일되지 않는다** — `DevMode.cs`·`WorldTree.Dev.cs` 전체와 `Wallet.DevSet`·`IdleAway.DevBackdate`·`DungeonTickets.DevResetToday`, `AdService.ShowRewarded`의 광고 건너뛰기 분기가 `#if UNITY_EDITOR || DEVELOPMENT_BUILD` 안에 있다.
 
 ## 2. 기능
 
@@ -61,7 +61,7 @@
 
 ## 4. 기능을 더할 때
 
-1. **게임 데이터는 그 클래스의 `Dev…` 함수로만 바꾼다.** 저장 키를 `DevMode`에서 직접 만지지 않는다 — Wallet·IdleProgress·WorldTree는 값을 메모리에 들고 있어서, PlayerPrefs만 고치면 화면과 저장이 어긋난다. 새 조작이 필요하면 해당 클래스에 `Dev`로 시작하는 public 함수를 만들고, 바꾼 뒤 그 클래스의 `Changed`/저장 흐름을 타게 한다 (세계수는 `Notify(true)`).
+1. **게임 데이터는 그 클래스의 `Dev…` 함수로만 바꾼다. 새 `Dev…` 함수와 호출부는 `#if UNITY_EDITOR || DEVELOPMENT_BUILD`로 감싼다** (안 감싸면 출시 빌드에 남거나, `DevMode`를 부르는 곳이 출시 빌드에서 컴파일 오류가 난다). 저장 키를 `DevMode`에서 직접 만지지 않는다 — Wallet·IdleProgress·WorldTree는 값을 메모리에 들고 있어서, PlayerPrefs만 고치면 화면과 저장이 어긋난다. 새 조작이 필요하면 해당 클래스에 `Dev`로 시작하는 public 함수를 만들고, 바꾼 뒤 그 클래스의 `Changed`/저장 흐름을 타게 한다 (세계수는 `Notify(true)`).
 2. **줄 하나 = 카드 하나.** `BuildList()`에 이어 붙인다.
    ```csharp
    var row = Row(150f);
@@ -77,7 +77,7 @@
 - **세이브가 진짜로 바뀐다.** 개발자 모드는 지금 기기(에디터)의 PlayerPrefs를 그대로 고친다. 실제로 쓰는 세이브로 테스트할 때는 먼저 백업한다 — 특히 `WorldTree.Save`(세계수 전체 JSON). 전부 지우려면 에디터 메뉴 `MoreMush/게임 기록 전체 초기화`.
 - **광고 건너뛰기는 저장된다.** 켜 둔 채로 광고 흐름을 확인하면 광고가 안 뜬다. 광고를 볼 때는 `끄기`.
 - **기기에서는 지금 열 수 없다.** Development Build에도 들어가지만 휴대폰엔 ` 키가 없다. 기기 테스트가 필요하면 화면 구석 연속 터치(예: 5번) 같은 입구를 `DevMode.Update`에 더한다. ❓ 어떤 입구로 할지 정해야 한다.
-- **출시 빌드 확인:** Build Settings의 Development Build가 꺼져 있으면 생기지 않는다. ⚠️ 출시 AAB에서 한 번 확인 필요 (` 키 대신 오브젝트 `DevMode`가 없는지).
+- **출시 빌드:** Build Profiles의 Development Build를 끄고 뽑으면 개발자 모드 코드가 빠진다. 기기에 남은 `Dev.SkipAds` 저장값도 출시 빌드에서는 읽지 않는다.
 - **게임 속도**는 던전(InGame)의 일시정지·배속과 같은 `Time.timeScale`을 쓴다. 던전에서 바꾸면 던전 배속 버튼 표시와 어긋날 수 있다.
 - **앱 밖 시간**은 `offlineCapHours`(상수 시트)까지만 보상한다. 그보다 길게 앞당겨도 보상은 상한까지다.
 - **창고 버섯 목록**은 표의 적 시트를 그대로 따른다. 적을 더하면 자동으로 줄이 생긴다.

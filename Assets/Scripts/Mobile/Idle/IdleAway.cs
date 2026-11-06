@@ -84,12 +84,14 @@ namespace MoreMush.Mobile
             SaveScheduler.MarkDirty();
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD   // 개발자 모드: 출시 빌드에는 컴파일되지 않는다
         // 개발자 모드(DevMode) 전용: 마지막 접속 시각을 hours만큼 앞당긴다 (다음 ApplyOffline이 그만큼 앱 밖에 있던 것으로 셈)
         public static void DevBackdate(double hours)
         {
             long ticks = DateTime.UtcNow.Ticks - (long)(hours * TimeSpan.TicksPerHour);
             PlayerPrefs.SetString(LastSeenKey, ticks.ToString(CultureInfo.InvariantCulture));
         }
+#endif
 
         static bool TryLastSeen(out long ticks) =>
             long.TryParse(PlayerPrefs.GetString(LastSeenKey, ""), NumberStyles.Integer, CultureInfo.InvariantCulture, out ticks)

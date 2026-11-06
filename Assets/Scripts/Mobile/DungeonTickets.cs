@@ -129,6 +129,7 @@ namespace MoreMush.Mobile
         // 화면이 켜진 채 00시를 넘기면 다시 그리게 한다 (DungeonResetTimer가 부른다)
         public static void NotifyNewDay() => Changed?.Invoke();
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD   // 개발자 모드: 출시 빌드에는 컴파일되지 않는다
         // 개발자 모드(DevMode) 전용: 모든 던전의 오늘 입장·광고 입장 횟수를 되돌린다
         public static void DevResetToday()
         {
@@ -140,5 +141,6 @@ namespace MoreMush.Mobile
             PlayerPrefs.Save();
             Changed?.Invoke();
         }
+#endif
     }
 }
