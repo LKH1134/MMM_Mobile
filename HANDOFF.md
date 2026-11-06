@@ -583,6 +583,12 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
   - 확인한 것(빌드된 매니페스트·번들): targetSdk 36 / compileSdk 36 / minSdk 25, `com.soomyouth.moremustmush` 0.1.0(versionCode 1), portrait, 런처 `exported="true"`(+ TEST_LOOP 필터), arm64-v8a만, 네이티브 라이브러리 6개 모두 **16KB 정렬**(0x4000), 권한 INTERNET뿐, 업로드 키 서명.
   - 빌드 방법: Build Profiles에서 Android · "Build App Bundle (Google Play)" 켜고 Build. 또는 `BuildPipeline.BuildPlayer`(MCP로는 `EditorApplication.delayCall` 안에서 돌려야 시간 초과로 끊기지 않음).
 - **스토어 업로드:** Play Console에는 **AAB만** 올린다(키 파일은 올리지 않음). 새 앱은 Play App Signing 기본 사용 → 첫 AAB의 키가 업로드 키로 등록. **업데이트마다 versionCode +1**(지금 1), 같은 업로드 키로 서명. 처음엔 "내부 테스트" 트랙 권장.
+- **출시 안정화·최적화 (2026-11-06, KHD):**
+  - 광고: 콜백을 `MobileAdsEventExecutor.ExecuteInUpdate`로 메인 스레드에 넘김(폐기 예정 `RaiseAdEventsOnUnityMainThread` 대신). 광고 단위 ID는 **모든 안드로이드 빌드에서 실제 ID**(`ca-app-pub-3609467797467871/2013896497`) — 테스트 기기는 AdMob 콘솔에 등록해 실제 광고를 누르지 않게. 광고를 보느라 앱이 잠깐 뒤로 간 것은 앱 밖 보상·정산 창으로 치지 않음(`AdService.IsShowing`).
+  - 저장: `SaveScheduler` 주기 5→15초(전투가 늘 dirty라 사실상 주기마다 파일 전체 쓰기). 뒤로가기 종료 때 `SaveScheduler.Flush`. `IdleProgress.Stage`는 메모리에 둠.
+  - 성능: 홈 HUD 체력 글자 0.2초마다, 세계수 적 그림(`EnemySprite`) 캐시.
+  - 기타: 정산 표시 long 넘침 방지, `link.xml`에 `BossRow`·`TreeQuestRow`. 이 PC 빌드 설정의 네이티브 디버그 심볼 = Symbol Table(번들 포함, Play Console 크래시 해석용 — `Library`라 커밋 안 됨, 빌드 PC마다 켤 것).
+  - **결정 필요:** ① 기기 시계를 앞뒤로 돌리면 일일 입장권·뽑기·퀘스트가 다시 채워지고 세계수 제작이 즉시 끝남(서버 시간 없음). 대안: A) 저장된 날짜보다 시계가 뒤로 가면 새날로 치지 않기(서버 없음, 날짜 판정 6곳 `DungeonTickets`·`GachaProgress`·`DailyQuests`·`AdService`·`WorldTree.Quests`·`IdleAway`을 한 함수로 — 되돌려 반복 수령을 막음, 앞으로만 돌리기는 못 막음) / B) 인터넷 시각(HTTP 응답 Date) 기준 — 오프라인 방침 필요 / C) 게임 서버. 권장 A 먼저 ② EEA·영국용 광고 동의(UMP) 없음 ③ Android 16 예측형 뒤로가기·대화면 방향 무시 — 실기기 확인 ④ 전투가 예외 30점으로 꺼지면(`IdleBattle.Update`) 안내 없이 씬을 다시 열기 전까지 멈춤 — 몇 초 뒤 상태 초기화 후 재시도, 또는 안내 후 Main 다시 열기 ⑤ 세계수 세이브 JSON 손상 시 조용히 초기화(백업 없음).
 - **남은 것:** Play Console 앱 만들기·첫 업로드(내부 테스트), 개인정보처리방침 URL·데이터 보안 양식, 실기기 확인(노치·20:9·뒤로가기).
 - **리소스 정리(`b7e2863`):** 빌드 씬 + Resources 의존성 기준으로 안 쓰는 것 삭제, 텍스처는 보이는 크기에 맞춤(그림 위주 ASTC 6×6, 꼬마 아이콘 256, 할아버지 보스 512(11-05 삭제), 로고 1024). 일부러 남긴 것: `CollectPopup`(11-05 삭제)·`ConfirmPopup`, `GameBalance.bytes`·엑셀, `link.xml`, TMP 셰이더.
 

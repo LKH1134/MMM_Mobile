@@ -49,6 +49,8 @@ namespace MoreMush.Mobile
         bool shownBoss;
         double shownHp = -1, shownMaxHp = -1, shownPower = double.NaN;
         float powerIn;
+        float hpTextIn;   // 체력 글자는 0.2초마다 (막대는 매 프레임)
+        const float HpTextEvery = 0.2f;
 
         void Start()
         {
@@ -140,8 +142,10 @@ namespace MoreMush.Mobile
 
             double hp = battle.HudPartyHp, maxHp = battle.HudPartyMaxHp;
             if (hpFill != null) hpFill.anchorMax = new Vector2(maxHp <= 0 ? 0f : Mathf.Clamp01((float)(hp / maxHp)), 1f);
-            if (hp != shownHp || maxHp != shownMaxHp)
+            hpTextIn -= Time.unscaledDeltaTime;
+            if ((hp != shownHp || maxHp != shownMaxHp) && (hpTextIn <= 0f || maxHp != shownMaxHp))
             {
+                hpTextIn = HpTextEvery;
                 shownHp = hp;
                 shownMaxHp = maxHp;
                 if (hpText != null) hpText.text = $"체력 {IdleProgress.FormatNumber(hp)} / {IdleProgress.FormatNumber(maxHp)}";

@@ -1,16 +1,18 @@
 using System;
 using GoogleMobileAds.Api;
+using GoogleMobileAds.Common;
 using UnityEngine;
 
 namespace MoreMush.Mobile
 {
     // AdMob 리워드 광고. UI를 모른다 — 화면은 Initialize/ShowRewarded만 부르고, Status로 진행 상황을 받아 쓴다.
-    // 광고 단위 ID는 구글 공식 테스트 ID다. 출시 빌드 전에 실제 ID로 바꿀 것 (테스트 ID가 아닌 걸로 개발 중에 눌러보면 계정이 정지될 수 있다).
+    // 광고 단위 ID: 안드로이드는 모든 빌드(에디터·개발·출시)에서 앱으로 신청한 실제 ID를 쓴다.
+    // 실제 광고를 개발 중에 반복해서 누르면 계정이 제한될 수 있다 → 테스트 기기는 AdMob 콘솔에 테스트 기기로 등록해 둔다.
     // 리워드 광고는 한 번 보여주면 못 쓰므로, 닫히거나 실패하면 버리고 다음 것을 미리 불러 둔다.
     public static class AdService
     {
 #if UNITY_ANDROID
-        const string RewardedUnitId = "ca-app-pub-3940256099942544/5224354917";   // 테스트 광고. 출시 때 실제 ID ca-app-pub-3609467797467871/2013896497 로 바꾼다
+        const string RewardedUnitId = "ca-app-pub-3609467797467871/2013896497";   // 실제 광고 (구글 테스트 ID: ca-app-pub-3940256099942544/5224354917)
 #elif UNITY_IPHONE
         const string RewardedUnitId = "ca-app-pub-3940256099942544/1712485313";
 #else
@@ -58,15 +60,20 @@ namespace MoreMush.Mobile
             if (initialized) return;
             initialized = true;
 
-            // 광고 콜백을 메인 스레드로 받는다 (UI·데이터를 바로 만져도 안전)
-            MobileAds.RaiseAdEventsOnUnityMainThread = true;
-            MobileAds.Initialize(_ =>
+            // 광고 콜백은 SDK(안드로이드 UI 스레드)에서 온다 → OnMain으로 Unity 메인 스레드에 넘겨 처리한다
+            // (예전 RaiseAdEventsOnUnityMainThread는 SDK 10.7부터 폐기 예정 — CHANGELOG 권장 방식)
+            MobileAds.Initialize(_ => OnMain(() =>
             {
                 sdkReady = true;
                 Report("SDK 초기화 완료");
                 LoadRewarded();
-            });
+            }));
         }
+
+        static void OnMain(Action action) => MobileAdsEventExecutor.ExecuteInUpdate(action);
+
+        // 광고가 화면을 덮고 있는 동안 true (Show ~ 닫힘·표시 실패). 광고 때문에 앱이 잠깐 뒤로 간 것을 앱 밖 시간으로 셈하지 않게 쓴다
+        public static bool IsShowing { get; private set; }
 
         public static void LoadRewarded()
         {
@@ -76,7 +83,7 @@ namespace MoreMush.Mobile
             loading = true;
             Report("광고 불러오는 중...");
 
-            RewardedAd.Load(RewardedUnitId, new AdRequest(), (ad, error) =>
+            RewardedAd.Load(RewardedUnitId, new AdRequest(), (ad, error) => OnMain(() =>
             {
                 loading = false;
                 if (error != null || ad == null)
@@ -90,7 +97,7 @@ namespace MoreMush.Mobile
                 rewardedAd = ad;
                 loadedAt = Time.realtimeSinceStartup;
                 Report("광고 준비됨");
-            });
+            }));
         }
 
         // onReward: 끝까지 시청해 보상을 받을 자격이 생겼을 때 한 번만 불린다. 보상 지급은 여기서만 한다.
@@ -118,11 +125,12 @@ namespace MoreMush.Mobile
             var ad = rewardedAd;
             rewardedAd = null;   // 한 번 쓰면 끝. 닫힌 뒤 새로 불러온다
 
-            ad.OnAdFullScreenContentClosed += () => Release(ad, "광고 닫힘");
-            ad.OnAdFullScreenContentFailed += error => Release(ad, $"광고 표시 실패: {error?.GetMessage()}");
+            ad.OnAdFullScreenContentClosed += () => OnMain(() => Release(ad, "광고 닫힘"));
+            ad.OnAdFullScreenContentFailed += error => OnMain(() => Release(ad, $"광고 표시 실패: {error?.GetMessage()}"));
             // 광고가 나오는 동안 게임 소리(BGM)를 멈춘다. 닫히거나 표시에 실패하면 Release가 다시 켠다
             AudioListener.pause = true;
-            ad.Show(_ => Rewarded(placement, onReward));
+            IsShowing = true;
+            ad.Show(_ => OnMain(() => Rewarded(placement, onReward)));
             return true;
         }
 
@@ -141,6 +149,7 @@ namespace MoreMush.Mobile
         static void Release(RewardedAd ad, string message)
         {
             AudioListener.pause = false;
+            IsShowing = false;
             ad.Destroy();
             Report(message);
             LoadRewarded();
