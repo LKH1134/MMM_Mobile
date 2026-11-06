@@ -196,7 +196,8 @@ namespace MoreMush.Mobile
         void Split(Harvester h)
         {
             int alive = 0;
-            foreach (var other in field.Harvesters) if (other.Temporary) alive++;
+            var all = field.Harvesters;     // IReadOnlyList를 foreach하면 열거자가 박싱된다 — for로
+            for (int k = 0; k < all.Count; k++) if (all[k].Temporary) alive++;
             for (int i = 0; i < s.Base.splitCount && alive < s.MaxSplit; i++, alive++)
             {
                 var child = field.SpawnHarvester(h.Position);
@@ -210,6 +211,8 @@ namespace MoreMush.Mobile
             }
         }
 
+        static readonly float[] CloneSlots = { -0.3f, 0f, 0.3f };   // 필드 폭 대비 분신 바 자리
+
         // 분신 바: 본 바와 같은 높이의 왼쪽·가운데·오른쪽 중 본 바에서 가장 먼 빈 자리
         void SpawnCloneBar()
         {
@@ -217,7 +220,7 @@ namespace MoreMush.Mobile
             var main = (RectTransform)field.Bar.transform;
             float width = field.Rect.rect.width;
             float bestX = 0f, bestDistance = -1f;
-            foreach (float k in new[] { -0.3f, 0f, 0.3f })
+            foreach (float k in CloneSlots)
             {
                 float x = k * width;
                 bool used = false;
@@ -301,8 +304,12 @@ namespace MoreMush.Mobile
             }
             float radius = s.Base.lightningRadius * Mathf.Max(0.5f, field.MushroomSize);
             scratch.Clear();
-            foreach (var m in field.Mushrooms)
+            var mushrooms = field.Mushrooms;
+            for (int i = 0; i < mushrooms.Count; i++)
+            {
+                var m = mushrooms[i];
                 if (m.Alive && (m.Position - target).sqrMagnitude < (radius + m.Radius) * (radius + m.Radius)) scratch.Add(m);
+            }
             Deal(scratch, SkillDamage(s.LightningDamage));
             ShowFlash(target, radius * 2f, new Color(1f, 1f, 0.6f, 0.8f));
         }
@@ -319,8 +326,9 @@ namespace MoreMush.Mobile
                 {
                     d.tick += 0.5f;
                     scratch.Clear();
-                    foreach (var c in field.Colonies)
-                        if (c.id == d.colony) scratch.AddRange(c.members);
+                    var colonies = field.Colonies;
+                    for (int k = 0; k < colonies.Count; k++)
+                        if (colonies[k].id == d.colony) scratch.AddRange(colonies[k].members);
                     alive = scratch.Count > 0;   // 군락지가 이미 사라졌으면 끝
                     Deal(scratch, SkillDamage(s.WhirlDamage));
                 }
