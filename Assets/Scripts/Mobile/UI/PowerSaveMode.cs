@@ -149,6 +149,7 @@ namespace MoreMush.Mobile
             t.color = color;
             t.alignment = TextAlignmentOptions.Center;
             t.raycastTarget = false;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
             return t;
         }
 

@@ -13,15 +13,15 @@ namespace MoreMush.Mobile
     // 자기 오버레이 캔버스를 코드로 만들고 씬이 바뀌어도 남겨 둔다 (씬에 둘 것 없음). 수치는 상수 시트의 adBox* 다
     public class AdBox : MonoBehaviour
     {
-        const int SortingOrder = 10050;                 // Main 캔버스(10000) 위, 팝업(10100) 아래
+        const int SortingOrder = 10000 + PopupLayer.AdBox;   // [UI 개편] Main 캔버스(10000) 바로 위 — 하단 바(10020)·편성 안 팝업(10030)·팝업(10100) 아래
         const string ElapsedKey = "AdBox.Elapsed";      // 쿨타임을 센 초 (홈 화면을 본 시간)
         const float MaxStep = 0.5f;                     // 한 프레임이 길어도 이만큼만 센다 (화면 멈춤 때문에 시간이 튀지 않게)
         const float SaveEvery = 1f;
         const float EnterSeconds = 0.8f, LeaveSeconds = 0.8f;
         const float ChestSize = 230f;
-        const float TargetX = 0.22f, TargetY = 0.13f;   // 상자가 머무는 자리: 캔버스 중심에서 폭·높이의 비율 (오른쪽 위쪽)
+        const float TargetX = 0.22f, TargetY = 0.175f;   // 상자가 머무는 자리: 캔버스 중심에서 폭·높이의 비율 (오른쪽 위쪽). [UI 개편 2026-11-06] 0.13 → 0.175 = 홈 전투 적 영역 바로 위(화면 위에서 약 760)
         const float BobHeight = 18f, BobSpeed = 2.4f;
-        const string ChestKid = "chest";      // 임시 그림: 달 꼬마 1단계 (꼬마 진화 시트)
+        const string ChestIcon = "UI/Icon/advertisement";   // [UI 개편 2026-11-06] 보물상자 → 광고 아이콘
         const float EditorIntervalSeconds = 2f;         // 유니티 에디터에서는 표의 간격 대신 바로 나온다 (테스트용)
 
         static AdBox instance;
@@ -65,6 +65,23 @@ namespace MoreMush.Mobile
             SceneManager.sceneLoaded += (s, m) => instance.OnSceneLoaded(s, m);
             AdService.Status += instance.OnAdStatus;
             if (instance.inMain) AdService.Initialize();
+            instance.BindCamera();
+        }
+
+        // [UI 개편 2026-11-05] Main 캔버스는 Screen Space - Camera라서, 오버레이 캔버스는 정렬 순서와 상관없이 늘 그 위에 그려진다
+        // (상자가 도감·의뢰 팝업 위로 보이던 원인). 씬의 카메라 캔버스와 같은 카메라에 붙여 sortingOrder로 층을 맞춘다
+        void BindCamera()
+        {
+            var canvas = GetComponent<Canvas>();
+            foreach (var c in FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (c == canvas || !c.isRootCanvas || c.renderMode != RenderMode.ScreenSpaceCamera || c.worldCamera == null) continue;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = c.worldCamera;
+                canvas.planeDistance = c.planeDistance;
+                return;
+            }
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         }
 
         // 광고 진행 상황(불러오는 중·실패·닫힘)을 열려 있는 창에 보여 준다
@@ -89,7 +106,8 @@ namespace MoreMush.Mobile
             if (mode != LoadSceneMode.Single) return;
             popup?.Close();     // 창이 열린 채 씬이 바뀌면 PopupGate가 잡힌 채 남아 뒤로가기·다른 창이 막힌다
             inMain = scene.name == MainNavigation.MainScene;
-            if (inMain) AdService.Initialize();         // 상자를 누를 때 광고가 준비돼 있게 Main에 들어오면 미리 불러 둔다
+            BindCamera();
+            if (inMain) AdService.Initialize();        // 상자를 누를 때 광고가 준비돼 있게 Main에 들어오면 미리 불러 둔다
             if (!inMain) HideChest();
         }
 
@@ -216,7 +234,7 @@ namespace MoreMush.Mobile
             chest.anchorMin = chest.anchorMax = new Vector2(0.5f, 0.5f);
             chest.sizeDelta = new Vector2(ChestSize, ChestSize);
             var image = go.GetComponent<Image>();
-            image.sprite = Formation.Icon(ChestKid, 1);
+            image.sprite = Resources.Load<Sprite>(ChestIcon);
             image.preserveAspect = true;
             go.GetComponent<Button>().onClick.AddListener(OpenPopup);
             popup = new AdBoxPopup(transform, image.sprite, font);

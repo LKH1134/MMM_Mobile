@@ -156,6 +156,9 @@ namespace MoreMush.Mobile
             check = NewImage("Check", (RectTransform)box.transform, CheckColor, new Vector2(BoxSize - 18f, BoxSize - 18f));
             check.raycastTarget = false;
             check.enabled = AutoNext;
+            // [UI 개편] 색 상자 대신 그림: 상자 = 베이지 칸, 체크 = 체크 아이콘
+            box.sprite = Resources.Load<Sprite>("UI/UI_PP_In_Color_Beige2"); box.type = Image.Type.Sliced; box.color = Color.white;
+            check.sprite = Resources.Load<Sprite>("UI/Icon/check"); check.preserveAspect = true; check.color = Color.white;
 
             var labelGo = Instantiate(retryLabel.gameObject, rt, false);
             labelGo.name = "Label";

@@ -14,7 +14,7 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_FontAsset font;
         [SerializeField] Toast toastPrefab;         // 안내 문구 — 처음 쓸 때 캔버스 맨 위에 하나 만든다 (없으면 콘솔에만)
 
-        class Slot { public Button button; public Image bg, icon; public TMP_Text count, badge; }
+        class Slot { public Button button; public Image bg, icon; public TMP_Text count, badge; public Sprite normal; }   // normal = 프리팹에 놓은 칸 그림 [UI 개편 11-05]
 
         readonly List<Slot> slots = new List<Slot>();
         Image detailIcon;
@@ -26,9 +26,12 @@ namespace MoreMush.Mobile
 
         Equipment Eq => Equipment.Of(kind) ?? Equipment.Weapon;
 
-        static readonly Color Locked = new Color(0.25f, 0.25f, 0.25f, 1f);
-        static readonly Color SelectedBg = new Color(1f, 0.9f, 0.45f);
-        static readonly Color EquippedBg = new Color(0.75f, 0.92f, 0.7f);
+        // 칸 바탕: 색은 그림으로 정한다 (물들이지 않는다)
+        const string SelectedSprite = "UI/UI_PP_In_InnerLine1";   // 고른 칸: 노란 안쪽 선
+        const string EquippedSprite = "UI/UI_PP_In_Color_Green";
+        const string SlotSprite = "UI/UI_PP_In_Color_Beige1";
+        const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
+        const string BarFillSprite = "UI/UI_PP_Bar_Gauge_Green";
 
         void Awake() => Build();
 
@@ -62,6 +65,8 @@ namespace MoreMush.Mobile
                 ownStat = AddRowText(up.Find("Panel (2)"));
                 equipButton = up.Find("Button")?.GetComponent<Button>();
                 mergeButton = up.Find("Button (1)")?.GetComponent<Button>();
+                UiSkin.GreyWhenDisabled(equipButton);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
+                UiSkin.GreyWhenDisabled(mergeButton);
                 if (equipButton != null)
                 {
                     equipButton.onClick.AddListener(EquipSelected);
@@ -132,6 +137,7 @@ namespace MoreMush.Mobile
                 var t = NewText("Text (TMP)", img.transform, 30f);
                 t.text = label;
                 t.color = Color.white;
+                OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
                 var trt = t.rectTransform;
                 trt.anchorMin = Vector2.zero;
                 trt.anchorMax = Vector2.one;
@@ -140,8 +146,8 @@ namespace MoreMush.Mobile
         }
 
         // 프리팹 칸과 같은 게임 UI 그림 (Resources 경로)
-        const string CreamSprite = "Art/Dream/UI/Window/btn_cream";
-        const string GoSprite = "Art/Dream/UI/btn_go";
+        const string CreamSprite = "UI/UI_Btn_Beige";
+        const string GoSprite = "UI/UI_Btn_Green";
         static readonly Color Brown = new Color(0.36f, 0.24f, 0.14f);
 
         static void Skin(Image img, string sprite, float pixelsPerUnit)
@@ -160,6 +166,8 @@ namespace MoreMush.Mobile
             if (t == null) return;
             var rt = t.rectTransform;
             float left = rt.anchoredPosition.x - rt.sizeDelta.x * rt.pivot.x;
+            // [UI 개편] 창 폭이 좁아져도 정보 칸 오른쪽 밖으로 나가지 않게 (부모 가운데 기준 좌표)
+            if (rt.parent is RectTransform p) width = Mathf.Min(width, p.rect.width * 0.5f - 24f - left);
             rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
             rt.anchoredPosition = new Vector2(left + width * rt.pivot.x, rt.anchoredPosition.y);
             t.textWrappingMode = TextWrappingModes.NoWrap;
@@ -249,9 +257,9 @@ namespace MoreMush.Mobile
         {
             if (bar == null) return;
             var bg = bar.GetComponent<Image>();
-            if (bg != null && bg.sprite == null) bg.color = new Color(0.85f, 0.82f, 0.78f);   // 그림(progress_back)이 있으면 그대로
+            if (bg != null && bg.sprite == null) Skin(bg, BarBackSprite, 1f);   // 그림이 있으면 그대로
             var fill = NewImage("Fill", bar);
-            fill.color = new Color(0.45f, 0.78f, 0.38f);
+            Skin(fill, BarFillSprite, 1f);
             fill.preserveAspect = false;
             mergeBarFill = fill.rectTransform;
             mergeBarFill.anchorMin = Vector2.zero;
@@ -341,12 +349,16 @@ namespace MoreMush.Mobile
             {
                 var s = slots[i];
                 int lv = Eq.Level(i);
-                s.icon.color = lv > 0 ? Color.white : Locked;
+                s.icon.color = Color.white;     // 못 얻은 것은 "미보유" 글자로 알린다
                 s.count.text = lv <= 0 ? "미보유"
                     : lv >= Equipment.MaxLevel ? $"Lv.{lv} MAX"
                     : $"Lv.{lv} <size=80%>({Eq.Copies(i)}/{Equipment.CopiesToNext(lv)})</size>";
                 s.badge.text = i == equipped ? "<color=#3A8F2E>장착</color>" : "";
-                s.bg.color = i == selected ? SelectedBg : i == equipped ? EquippedBg : Color.white;
+                // [UI 개편 11-05] 보통 칸은 프리팹에 놓은 그림 그대로 (없을 때만 SlotSprite). 고른 칸·장착 칸만 바꿔 낀다
+                if (s.normal == null && s.bg != null) s.normal = s.bg.sprite != null ? s.bg.sprite : Resources.Load<Sprite>(SlotSprite);
+                s.bg.sprite = i == selected ? Resources.Load<Sprite>(SelectedSprite) : i == equipped ? Resources.Load<Sprite>(EquippedSprite) : s.normal;
+                s.bg.type = Image.Type.Sliced;
+                s.bg.color = Color.white;
             }
 
             if (ownTotal != null)
@@ -355,7 +367,7 @@ namespace MoreMush.Mobile
             if (selected < 0 || selected >= Eq.Count) return;
             int level = Eq.Level(selected), copies = Eq.Copies(selected), need = Equipment.CopiesToNext(level);
             bool have = level > 0, max = level >= Equipment.MaxLevel;
-            if (detailIcon != null) { detailIcon.sprite = Eq.Sprite(selected); detailIcon.color = have ? Color.white : Locked; }
+            if (detailIcon != null) { detailIcon.sprite = Eq.Sprite(selected); detailIcon.color = Color.white; }
             if (detailName != null) detailName.text = $"[{GachaProgress.GradeNames[Eq.Grade(selected)]}] {Eq.Names[selected]}";
             if (detailCount != null) detailCount.text = have ? $"Lv.{level}" : "미보유";
             if (mergeBarFill != null) mergeBarFill.anchorMax = new Vector2(max ? 1f : have ? Mathf.Clamp01(copies / (float)need) : 0f, 1f);
@@ -386,7 +398,12 @@ namespace MoreMush.Mobile
             var t = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
             t.transform.SetParent(parent, false);
             if (font != null) t.font = font;
-            t.fontSize = size;
+            // [UI 개편] 칸 글자가 작아 1.25배·굵게, 넘치면 자동 축소 (UiSkin 글자 규격)
+            t.fontStyle = FontStyles.Bold;
+            t.enableAutoSizing = true;
+            t.fontSizeMax = size * 1.25f;
+            t.fontSizeMin = size * 0.75f;
+            t.fontSize = size * 1.25f;
             t.color = new Color(0.25f, 0.2f, 0.15f);
             t.alignment = TextAlignmentOptions.Center;
             t.raycastTarget = false;

@@ -24,7 +24,11 @@ namespace MoreMush.Mobile
         const float AreaWidth = 960f;
         const float PopDelay = 0.06f;       // 칸 사이 간격
         const float PopTime = 0.18f;        // 칸 하나가 커졌다 자리 잡는 시간
-        const string CreamSprite = "Art/Dream/UI/Window/btn_cream";
+        const string CreamSprite = "UI/UI_Btn_Beige";
+        // [UI 개편 2026-11-05] 칸 바탕 = 안쪽 선 InnerLine2(배율 3), 닫기 = 빨간 버튼, NEW = 흰 글자 + 빨간 외곽선(15° 기울임, 왼쪽 위), 이름 = 칸 아래 흰 글자 + 갈색 외곽선
+        const string CellSprite = "UI/UI_PP_In_InnerLine2";
+        const string CloseSprite = "UI/UI_Btn_Red";
+        const string NewMaterial = "UI/Fonts/LINESeedKR-Bd Wide Outline Red";
 
         static readonly Color[] GradeColors =
         {
@@ -32,6 +36,10 @@ namespace MoreMush.Mobile
             new Color(0.45f, 0.7f, 1f),         // 희귀
             new Color(0.8f, 0.5f, 1f),          // 영웅
             new Color(1f, 0.8f, 0.3f),          // 전설
+        };
+        static readonly string[] GradeSprites =   // 일반 · 고급 · 희귀 · 영웅 · 전설
+        {
+            "UI/UI_PP_In_Color_Beige2", "UI/UI_PP_In_Color_Green", "UI/UI_PP_In_Color_Blue", "UI/UI_PP_In_Color_Red", "UI/UI_PP_In_Color_Yellow",
         };
         static readonly Color TextColor = new Color(0.25f, 0.2f, 0.15f);
         static readonly Color NewColor = new Color(1f, 0.45f, 0.5f);
@@ -69,13 +77,17 @@ namespace MoreMush.Mobile
             grid.anchorMin = grid.anchorMax = new Vector2(0.5f, 0.55f);
             grid.sizeDelta = Vector2.zero;
 
-            var closeImage = NewImage("Close", rt, CreamSprite);
+            var closeImage = NewImage("Close", rt, CloseSprite);
+            closeImage.pixelsPerUnitMultiplier = 1f;
             closeImage.raycastTarget = true;
             closeButton = closeImage.gameObject.AddComponent<Button>();
+            UiSkin.GreyWhenDisabled(closeButton);
             var crt = (RectTransform)closeButton.transform;
             crt.anchorMin = crt.anchorMax = new Vector2(0.5f, 0.12f);
             crt.sizeDelta = new Vector2(320f, 120f);
-            var label = NewText("Label", crt, 44f, TextColor);
+            var label = NewText("Label", crt, 48f, Color.white);
+            label.fontStyle = FontStyles.Bold;
+            OutlineText.ApplyIfWhite(label);
             Stretch(label.rectTransform);
             label.text = "닫기";
             closeButton.onClick.AddListener(Close);
@@ -126,32 +138,54 @@ namespace MoreMush.Mobile
             root.anchoredPosition = pos;
             root.sizeDelta = new Vector2(size, size);
 
-            var glow = NewImage("Glow", root, CreamSprite);
+            // 등급 테두리: 색은 등급별 그림으로 (물들이지 않는다)
+            var glow = NewImage("Glow", root, GradeSprites[Mathf.Clamp(e.grade, 0, GradeSprites.Length - 1)]);
             Stretch(glow.rectTransform, -10f);
-            glow.color = new Color(color.r, color.g, color.b, 0.75f);
 
-            var frame = NewImage("Frame", root, CreamSprite);
+            var frame = NewImage("Frame", root, CellSprite);
+            frame.pixelsPerUnitMultiplier = 3f;
             Stretch(frame.rectTransform);
 
+            // 그림은 칸 위쪽, 아래 이름 자리를 비운다
             var icon = NewImage("Icon", root, null);
             icon.sprite = e.icon;
-            Stretch(icon.rectTransform, size * 0.16f);
+            var irt = icon.rectTransform;
+            irt.anchorMin = Vector2.zero;
+            irt.anchorMax = Vector2.one;
+            irt.offsetMin = new Vector2(size * 0.16f, size * 0.26f);
+            irt.offsetMax = new Vector2(-size * 0.16f, -size * 0.1f);
 
-            var grade = NewText("Grade", root, size * 0.15f, new Color(color.r * 0.6f, color.g * 0.6f, color.b * 0.6f));
+            // 이름(꼬마) 또는 등급 이름: 칸 아래 흰 글자 + 갈색 외곽선
+            var grade = NewText("Name", root, size * 0.17f, Color.white);
             grade.text = !string.IsNullOrEmpty(e.label) ? e.label : GachaProgress.GradeNames[Mathf.Clamp(e.grade, 0, GachaProgress.GradeCount - 1)];
             grade.fontStyle = FontStyles.Bold;
-            grade.alignment = TextAlignmentOptions.TopLeft;
-            Stretch(grade.rectTransform, size * 0.07f);
+            grade.enableAutoSizing = true;
+            grade.fontSizeMax = size * 0.17f;
+            grade.fontSizeMin = size * 0.1f;
+            OutlineText.ApplyIfWhite(grade);
+            var grt = grade.rectTransform;
+            grt.anchorMin = new Vector2(0f, 0f);
+            grt.anchorMax = new Vector2(1f, 0f);
+            grt.pivot = new Vector2(0.5f, 0f);
+            grt.anchoredPosition = new Vector2(0f, size * 0.05f);
+            grt.sizeDelta = new Vector2(-size * 0.08f, size * 0.22f);
 
             if (e.isNew)
             {
-                var badge = NewText("New", root, size * 0.17f, NewColor);
-                badge.text = "NEW!!";
+                // 왼쪽 위 모서리에 15° 기울여 걸친다
+                var badge = NewText("New", root, size * 0.2f, Color.white);
+                badge.text = "NEW!";
                 badge.fontStyle = FontStyles.Bold;
+                var newMat = Resources.Load<Material>(NewMaterial);
+                var wide = Resources.Load<TMP_FontAsset>("UI/Fonts/LINESeedKR-Bd SDF Wide");
+                if (newMat != null && wide != null) { badge.font = wide; badge.fontSharedMaterial = newMat; }
+                else { badge.color = NewColor; }
                 var brt = badge.rectTransform;
-                brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 1f);
-                brt.anchoredPosition = new Vector2(0f, size * 0.1f);
-                brt.sizeDelta = new Vector2(size, size * 0.25f);
+                brt.anchorMin = brt.anchorMax = new Vector2(0f, 1f);
+                brt.pivot = new Vector2(0.5f, 0.5f);
+                brt.anchoredPosition = new Vector2(size * 0.18f, -size * 0.04f);
+                brt.sizeDelta = new Vector2(size * 0.6f, size * 0.26f);
+                brt.localEulerAngles = new Vector3(0f, 0f, 15f);
             }
 
             root.localScale = Vector3.zero;

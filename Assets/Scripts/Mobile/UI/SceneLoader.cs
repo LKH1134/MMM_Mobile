@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     public class SceneLoader : MonoBehaviour
     {
         const int SortingOrder = 32000;               // 방치 정산 팝업(30000)보다 위
-        const string SpinnerSprite = "Art/Dream/UI/Window/ic_ring";
+        const string SpinnerSprite = "UI/Icon/refresh";
         const float SpinSpeed = 300f;                 // 초당 도는 각도
         const float MinShow = 0.3f;                   // 로딩이 빨라도 이만큼은 보여 준다 (깜빡임 방지)
         const float Fade = 0.15f;

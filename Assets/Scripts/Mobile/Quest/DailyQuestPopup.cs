@@ -10,9 +10,15 @@ namespace MoreMush.Mobile
     public class DailyQuestPopup : MonoBehaviour
     {
         const int SortingOrder = 10100;     // PopupLayer.Popup(Main 캔버스 10000 + 100)과 같은 층. 한 번에 하나만 뜨게 PopupGate에 알린다
-        const string PanelSprite = "Art/Dream/UI/panel_paper";
-        const string TitleSprite = "Art/Dream/UI/window_title";
-        const string ButtonSprite = "Art/Dream/UI/btn_go";
+        const string PanelSprite = "UI/UI_PP_Out_Paper2";
+        const string TitleSprite = "UI/UI_PP_Under_Tag_Yellow";
+        // 색은 그림으로 정한다 (코드에서 물들이지 않는다)
+        const string ClaimSprite = "UI/UI_Btn_Green";     // 받기
+        const string WaitSprite = "UI/UI_Btn_Grey";       // 진행 중 · 완료 (회색)
+        const string CloseSprite = "UI/UI_Btn_Red";
+        const string RowSprite = "UI/UI_PP_In_Color_Beige1";
+        const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
+        const string BarFillSprite = "UI/UI_PP_Bar_Gauge_Green";
         const float PanelWidth = 900f, RowHeight = 170f, RowStep = 180f;
         static readonly Color Ink = new Color(0.30f, 0.20f, 0.10f, 1f);
 
@@ -105,7 +111,8 @@ namespace MoreMush.Mobile
                 row.reward.text = $"<color=#B07A00>골드</color> +{Wallet.Format(DailyQuests.RewardGold(i))}   <color=#2A7FB0>균사석</color> +{Wallet.Format(DailyQuests.RewardMycelite(i))}";
                 row.buttonText.text = claimed ? "완료" : canClaim ? "받기" : "진행 중";
                 row.button.interactable = canClaim;
-                row.buttonImage.color = canClaim ? new Color(0.4f, 0.85f, 0.75f) : new Color(0.7f, 0.7f, 0.7f);
+                row.buttonImage.sprite = Resources.Load<Sprite>(canClaim ? ClaimSprite : WaitSprite);
+                row.buttonText.color = canClaim ? Color.white : Ink;     // 베이지 버튼 위에서는 진한 글자
             }
         }
 
@@ -125,7 +132,7 @@ namespace MoreMush.Mobile
             var panel = NewImage("Panel", root.transform, Resources.Load<Sprite>(PanelSprite), Color.white, new Vector2(PanelWidth, height), Vector2.zero);
             panel.type = Image.Type.Sliced;
             panel.raycastTarget = true;     // 창 안을 눌러도 닫히지 않게
-            var title = NewImage("Title", panel.transform, Resources.Load<Sprite>(TitleSprite), new Color(0.75f, 0.5f, 0.9f, 1f), new Vector2(560f, 120f), new Vector2(0f, height / 2f - 60f));
+            var title = NewImage("Title", panel.transform, Resources.Load<Sprite>(TitleSprite), Color.white, new Vector2(560f, 120f), new Vector2(0f, height / 2f - 60f));
             title.type = Image.Type.Sliced;
             NewText("TitleText", title.transform, "일일 퀘스트", 54f, Color.white, new Vector2(520f, 100f), Vector2.zero);
             resetText = NewText("Reset", panel.transform, "", 32f, new Color(Ink.r, Ink.g, Ink.b, 0.8f), new Vector2(760f, 60f), new Vector2(0f, height / 2f - 190f));
@@ -133,26 +140,32 @@ namespace MoreMush.Mobile
             for (int i = 0; i < n; i++)
                 rows.Add(BuildRow(panel.transform, i, new Vector2(0f, height / 2f - 330f - i * RowStep)));
 
-            var close = NewButton("Close", panel.transform, "닫기", new Color(0.9f, 0.35f, 0.45f, 1f), new Vector2(340f, 130f), new Vector2(0f, -height / 2f + 110f), 48f, out _);
+            var close = NewButton("Close", panel.transform, "닫기", CloseSprite, new Vector2(340f, 130f), new Vector2(0f, -height / 2f + 110f), 48f, out _);
             close.onClick.AddListener(Hide);
+            // [UI 개편 2026-11-04] 와이어프레임: 닫기는 화면 아래 띠 가운데 X (하단 공용 바를 덮는다). 예전 "닫기" 버튼은 숨긴다
+            close.gameObject.SetActive(false);
+            PopupBottomBand.Attach(root.transform, Hide);
             root.SetActive(false);
         }
 
         Row BuildRow(Transform parent, int index, Vector2 pos)
         {
             var row = new Row();
-            var bg = NewImage("Row" + index, parent, null, new Color(1f, 1f, 1f, 0.35f), new Vector2(PanelWidth - 90f, RowHeight), pos);
+            var bg = NewImage("Row" + index, parent, Resources.Load<Sprite>(RowSprite), Color.white, new Vector2(PanelWidth - 90f, RowHeight), pos);
+            bg.type = Image.Type.Sliced;
             row.label = NewText("Label", bg.transform, "", 40f, Ink, new Vector2(520f, 56f), new Vector2(-95f, 48f));
             row.label.alignment = TextAlignmentOptions.Left;
-            var track = NewImage("Bar", bg.transform, null, new Color(0f, 0f, 0f, 0.45f), new Vector2(520f, 28f), new Vector2(-95f, 0f));
-            var fill = NewImage("Fill", track.transform, null, new Color(0.2f, 0.85f, 0.8f), Vector2.zero, Vector2.zero);
+            var track = NewImage("Bar", bg.transform, Resources.Load<Sprite>(BarBackSprite), Color.white, new Vector2(520f, 28f), new Vector2(-95f, 0f));
+            track.type = Image.Type.Sliced;
+            var fill = NewImage("Fill", track.transform, Resources.Load<Sprite>(BarFillSprite), Color.white, Vector2.zero, Vector2.zero);
+            fill.type = Image.Type.Sliced;
             row.fill = fill.rectTransform;
             row.fill.anchorMin = Vector2.zero;
             row.fill.anchorMax = Vector2.one;
             row.fill.offsetMin = row.fill.offsetMax = Vector2.zero;
             row.progress = NewText("Progress", track.transform, "", 24f, Color.white, new Vector2(520f, 28f), Vector2.zero);
             row.reward = NewText("Reward", bg.transform, "", 30f, Ink, new Vector2(520f, 44f), new Vector2(-95f, -46f));
-            row.button = NewButton("Claim", bg.transform, "", Color.white, new Vector2(190f, 110f), new Vector2(280f, 0f), 42f, out var buttonText);
+            row.button = NewButton("Claim", bg.transform, "", WaitSprite, new Vector2(190f, 110f), new Vector2(280f, 0f), 42f, out var buttonText);
             row.buttonText = buttonText;
             row.buttonImage = row.button.targetGraphic as Image;
             int i = index;
@@ -196,16 +209,18 @@ namespace MoreMush.Mobile
             t.textWrappingMode = TextWrappingModes.NoWrap;
             t.raycastTarget = false;
             if (font != null) t.font = font;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
             return t;
         }
 
-        Button NewButton(string name, Transform parent, string label, Color tint, Vector2 size, Vector2 pos, float textSize, out TMP_Text text)
+        Button NewButton(string name, Transform parent, string label, string sprite, Vector2 size, Vector2 pos, float textSize, out TMP_Text text)
         {
-            var img = NewImage(name, parent, Resources.Load<Sprite>(ButtonSprite), tint, size, pos);
+            var img = NewImage(name, parent, Resources.Load<Sprite>(sprite), Color.white, size, pos);
             img.type = Image.Type.Sliced;
             img.raycastTarget = true;
             text = NewText("Label", img.transform, label, textSize, Color.white, size, Vector2.zero);
             var button = img.gameObject.AddComponent<Button>();
+            UiSkin.GreyWhenDisabled(button);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             button.targetGraphic = img;
             return button;
         }
