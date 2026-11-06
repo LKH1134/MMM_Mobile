@@ -75,6 +75,12 @@
 
 ## 2. 커밋
 
+### 2026-11-06 (`KHD` 브랜치) — 던전 입장권·레이드 나가기·세계수 선물
+
+- **입장권은 보상 받을 때 사용**: 입장 때는 남은 횟수만 확인하고 `DungeonSession.MarkEntry(던전, 광고 여부)`로 표시, 보상을 주는 순간 `PayEntry`가 한 번만 쓴다. 던전 1~3 = `HarvestGame.Finish`, 던전 4 = 첫 보스 보상(`GrantRushBoss`), 던전 5 = `BankLevelReward`(모은 보상이 있을 때, 앱을 내릴 때 포함). 보상 없이 로비로 나가거나 첫 보스 전에 지면 횟수가 남는다. 광고 입장은 광고를 입장 때 보고 광고 횟수를 보상 때 쓴다.
+- **레이드(던전 5) 도중 나가기**: 뒤로가기(`MainBackHandler`)·하단 씬 버튼(`SceneButton.Go`)에서 `DungeonSession.GuardLeave`가 "현재 보상을 받고 나가시겠습니까?"를 띄운다. 예 → 모은 보상을 받고 끝낸다 (뒤로가기는 결과 창, 씬 이동은 바로 이동). 확인 창은 `MainBackHandler`가 `DungeonSession.Confirm`으로, 끝내기는 `IdleBattle`이 `DungeonSession.FinishIdle`로 등록한다.
+- **세계수 선물**: `GiftPick` 개수를 다음 호감도 레벨까지 필요한 만큼으로 줄인다 (`CapToNextLevel`, `GiftValue`와 같은 계산, 최소 1개).
+
 ### 2026-11-05 (`LKH` 브랜치)
 
 | 커밋 | 내용 |

@@ -224,7 +224,7 @@ namespace MoreMush.Mobile
             string scene = gameObject.scene.name;
             if (DungeonTickets.CanEnter(dungeon))
             {
-                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonTickets.TryUse(dungeon);
+                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonSession.MarkEntry(dungeon, false);   // 횟수는 판이 끝나 보상을 받을 때
             }
             else if (DungeonTickets.CanEnterWithAd(dungeon))
             {

@@ -9,19 +9,30 @@ namespace MoreMush.Mobile
         [SerializeField] PopupSlot confirmPopup;    // ConfirmPopup 프리팹
         [SerializeField] RectTransform popupRoot;
 
-        void OnEnable() => BackButton.SceneHandler = HandleBack;
+        void OnEnable()
+        {
+            BackButton.SceneHandler = HandleBack;
+            DungeonSession.Confirm = ShowConfirm;
+        }
+
+        void ShowConfirm(string title, string message, System.Action yes)
+        {
+            Transform root = popupRoot != null ? popupRoot : transform;
+            confirmPopup.Get(root).GetComponent<ConfirmPopup>().Show(title, message, yes);
+        }
 
         void OnDisable()
         {
             if (BackButton.SceneHandler == (System.Action)HandleBack) BackButton.SceneHandler = null;
+            if (DungeonSession.Confirm == (System.Action<string, string, System.Action>)ShowConfirm) DungeonSession.Confirm = null;
         }
 
         void HandleBack()
         {
             var bar = TabGroup.MainBar;
             if (bar != null && bar.Current >= 0) { bar.Select(MainNavigation.Home); return; }
-            Transform root = popupRoot != null ? popupRoot : transform;
-            confirmPopup.Get(root).GetComponent<ConfirmPopup>().Show("게임 종료", "게임을 종료할까요?", Quit);
+            if (DungeonSession.GuardLeave(null)) return;      // 레이드 중: 종료 대신 "현재 보상을 받고 나가시겠습니까?"
+            ShowConfirm("게임 종료", "게임을 종료할까요?", Quit);
         }
 
         static void Quit()

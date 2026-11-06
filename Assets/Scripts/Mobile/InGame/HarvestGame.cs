@@ -162,6 +162,7 @@ namespace MoreMush.Mobile
             input.Interactable = false;
             if (!Simulating)
             {
+                DungeonSession.PayEntry(Dungeon);      // 입장 횟수는 보상을 받는 지금 쓴다
                 PaidGold = GivesGold ? TotalGold : 0;
                 Wallet.Add(Currency.Gold, PaidGold);
                 MyceliteEarned = GivesMycelite ? StageProgress.FirstClearGem(Stats.Stage, Stats.Boss, StageCleared, StageProgress.Cleared) : 0;

@@ -116,8 +116,8 @@ namespace MoreMush.Mobile
             }
             if (DungeonTickets.CanEnter(dungeon))
             {
-                // 씬을 못 열면(빌드 설정에 없음) 횟수를 쓰지 않는다
-                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonTickets.TryUse(dungeon);
+                // 횟수는 판이 끝나 보상을 받을 때 쓴다 (HarvestGame.Finish)
+                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonSession.MarkEntry(dungeon, false);
             }
             else if (DungeonTickets.CanEnterWithAd(dungeon) && !EnterWithAd(dungeon, scene) && buttonLabel != null)
                 buttonLabel.text = "광고 준비 중…";
@@ -140,14 +140,13 @@ namespace MoreMush.Mobile
             string credit = "Dungeon." + dungeon;
             if (AdCredits.Has(credit) && !SceneLoader.IsLoading)   // 지난번에 광고를 다 보고도 못 들어간 입장
             {
-                if (DungeonSession.LoadHarvest(dungeon, scene)) { AdCredits.TryUse(credit); DungeonTickets.TryUseAd(dungeon); }
+                if (DungeonSession.LoadHarvest(dungeon, scene)) { AdCredits.TryUse(credit); DungeonSession.MarkEntry(dungeon, true); }
                 return true;
             }
             return AdService.ShowRewarded(AdPlacement.Dungeon, () =>
             {
                 if (SceneLoader.IsLoading || !DungeonSession.LoadHarvest(dungeon, scene)) { AdCredits.Add(credit); return; }   // 지금 못 들어간다 → 다음 한 번 광고 없이
-                // 광고를 보는 사이 00시가 지나 오늘 입장 횟수가 다시 찼으면 광고 입장 대신 그 횟수를 쓴다
-                if (!DungeonTickets.TryUseAd(dungeon)) DungeonTickets.TryUse(dungeon);
+                DungeonSession.MarkEntry(dungeon, true);     // 광고 입장 횟수는 판이 끝나 보상을 받을 때 쓴다
             });
         }
 

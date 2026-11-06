@@ -12,6 +12,10 @@ namespace MoreMush.Mobile
 
         void Awake() => GetComponent<Button>().onClick.AddListener(Go);
 
-        public void Go() => SceneLoader.Load(scene);
+        public void Go()
+        {
+            if (DungeonSession.GuardLeave(() => SceneLoader.Load(scene))) return;   // 레이드 중이면 "현재 보상을 받고 나가시겠습니까?" 먼저
+            SceneLoader.Load(scene);
+        }
     }
 }
