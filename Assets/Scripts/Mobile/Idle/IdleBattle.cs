@@ -968,14 +968,22 @@ namespace MoreMush.Mobile
             if (stageText == null) return;
             stageText.text = InDungeon ? DungeonLabel() : StageLabel(stage);
             bool isBoss = boss != null && !boss.dead;
-            timerRoot.gameObject.SetActive(isBoss);
-            barFillImage.color = isBoss ? BossFill : NormalFill;
-            bossMark.color = isBoss ? BossFill : new Color(0.55f, 0.2f, 0.25f);
+            bool bossUi = isBoss || InDungeon;      // 던전은 보스와 보스 사이에도 보스 막대 모양을 유지한다 (일반 웨이브 칸이 깜빡이지 않게)
+            timerRoot.gameObject.SetActive(bossUi);
+            barFillImage.color = bossUi ? BossFill : NormalFill;
+            bossMark.color = bossUi ? BossFill : new Color(0.55f, 0.2f, 0.25f);
             if (isBoss)
             {
                 ShowTicks(1);
                 shownBossSec = -1;
                 RefreshBossBars();
+            }
+            else if (bossUi)
+            {
+                // 다음 보스를 기다리는 중: 체력 막대는 비우고 시간 막대는 가득 (다음 보스가 나오면 RefreshBossBars가 채운다)
+                ShowTicks(1);
+                barFill.anchorMax = new Vector2(0f, 1f);
+                timerFill.anchorMax = Vector2.one;
             }
             else
             {
