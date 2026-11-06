@@ -74,12 +74,13 @@ namespace MoreMush.Mobile
             GachaCardView.Layout(freeButton, coinButton11, coinButton35);
             expRow = GachaCardView.BuildExp((RectTransform)transform, font);
             freeText = GachaCardView.Style(freeButton, freeLabel, GachaCardView.FreeSprite, GachaCardView.FreeColor, null, font);
+            GachaCardView.OneLine(freeText);   // [UI 개편 2026-11-05] "광고 보고 11회 소환" 한 줄
             coin11Text = GachaCardView.Style(coinButton11, coinLabel11, GachaCardView.CoinSprite, GachaCardView.CoinColor, CostIcon(smallProduct), font);
             coin35Text = GachaCardView.Style(coinButton35, coinLabel35, GachaCardView.CoinSprite, GachaCardView.CoinColor, CostIcon(bigProduct), font);
         }
 
-        const string GemIcon = "Art/Dream/Icons/gem";
-        const string GoldIcon = "Art/Dream/Icons/gold";
+        const string GemIcon = "UI/Icon/mycelium_stone";
+        const string GoldIcon = "UI/Icon/gold";
 
         // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 별똥 꼬마 3단계
         void ShowPreview()
@@ -116,8 +117,8 @@ namespace MoreMush.Mobile
             rt.offsetMax = new Vector2(-20f, -2f);
             if (label != null) t.font = label.font;
             t.color = Color.white;              // Name 띠는 카드 그림 위 반투명 어두운 리본
-            t.outlineWidth = 0.2f;
-            t.outlineColor = new Color32(40, 28, 20, 255);
+            // [UI 개편 11-05] 외곽선은 아래 OutlineText(공용 재질)로. 여기서 outlineWidth를 쓰면 예전 폰트 재질 복사본이 남아
+            //   새 폰트 글자를 엉뚱한 아틀라스에서 읽어 글자가 조각나 겹친다
             t.fontStyle = FontStyles.Bold;
             t.alignment = TextAlignmentOptions.Center;
             t.enableAutoSizing = true;
@@ -125,6 +126,7 @@ namespace MoreMush.Mobile
             t.fontSizeMax = 40f;
             t.textWrappingMode = TextWrappingModes.NoWrap;
             t.raycastTarget = false;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 공용 바깥 외곽선
             return t;
         }
 
@@ -277,8 +279,10 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             bool free = FreeAvailable;
-            string freeSub = !free ? "내일 다시" : AdLimit > 1 ? $"광고 시청 ({GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit})" : "광고 시청";
-            SetButton(freeText, adProduct != null ? $"{adProduct.pullCount}회 소환" : "-", freeSub);
+            // [UI 개편 2026-11-05] 한 줄 "광고 보고 11회 소환"(앞은 연한 노랑·뒤는 흰색). 다 보면 이름은 그대로 두고 버튼만 회색(interactable)
+            string freeTitle = adProduct == null ? "-"
+                : $"<color=#FFF2BF>광고 보고</color> {adProduct.pullCount}회 소환" + (AdLimit > 0 ? $" {AdLimit - GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit}" : "");   // 본 횟수/하루 횟수 (안 봤으면 0/n, 다 보면 n/n·회색)
+            SetButton(freeText, freeTitle, "");
             SetButton(coin11Text, smallProduct != null ? $"{smallProduct.pullCount}회 소환" : "-", smallProduct != null ? Wallet.Format(smallProduct.price) : "");
             SetButton(coin35Text, bigProduct != null ? $"{bigProduct.pullCount}회 소환" : "-", bigProduct != null ? Wallet.Format(bigProduct.price) : "");
 

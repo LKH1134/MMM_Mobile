@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 꼬마 패시브 스킬 (꼬마스킬 시트). 꼬마마다 진화 1·2·3단계에 하나씩 해금된다 (Formation.EvoStage ≥ stage).
-    // 해금 전에도 목록은 보인다 (CharacterDetail이 잠금으로 그린다). 같은 효과는 더한다.
+    // 해금 전에도 목록은 보인다 (편성 화면 FormationScreenView가 그린다). 같은 효과는 더한다.
     // 효과는 그 꼬마가 던지는 수확기에만 붙는다 — TeamAttack만 편성된 꼬마 전원에게 붙는다 (그 꼬마가 편성돼 있을 때).
     // 해금 상태는 저장하지 않는다 (레벨에서 계산) — 저장 데이터가 바뀌지 않는다
     public enum GgomaSkillEffect

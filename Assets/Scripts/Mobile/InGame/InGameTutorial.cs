@@ -58,6 +58,7 @@ namespace MoreMush.Mobile
             label.fontSize = 72f;
             label.fontStyle = FontStyles.Bold;
             label.color = Color.white;
+            OutlineText.ApplyIfWhite(label);   // [UI 개편 11-05] 흰 글자는 외곽선
             label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
             Stretch(label.rectTransform);

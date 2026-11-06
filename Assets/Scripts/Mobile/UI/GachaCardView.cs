@@ -13,20 +13,22 @@ namespace MoreMush.Mobile
         public class ExpRow { public TMP_Text level, value; public RectTransform fill; }
         public class ButtonText { public TMP_Text title, sub; }
 
-        const string BarBack = "Art/Dream/UI/progress_back";
-        const string BarFill = "Art/Dream/UI/progress_fill";
-        // 버튼 그림: 무료 = 초록 버튼 그대로, 재화 = 크림 버튼을 보라로 물들임
-        public const string FreeSprite = "Art/Dream/UI/btn_go";
-        public const string CoinSprite = "Art/Dream/UI/Window/btn_cream";
+        const string BarBack = "UI/UI_PP_Bar_Gauge_Under";
+        const string BarFill = "UI/UI_PP_Bar_Gauge_Yellow";
+        // 버튼 그림: 무료 = 초록 버튼, 재화 = 하늘 버튼 (색은 그림으로 정하고 물들이지 않는다)
+        public const string FreeSprite = "UI/UI_Btn_Green";
+        public const string CoinSprite = "UI/UI_Btn_Sky";
         public static readonly Color FreeColor = Color.white;
-        public static readonly Color CoinColor = new Color(0.62f, 0.45f, 0.85f);
+        public static readonly Color CoinColor = Color.white;
         static readonly Color32 TextOutline = new Color32(40, 28, 20, 255);
 
         // 오른쪽 열 (카드 오른쪽 끝 기준, 버튼 앵커는 프리팹 그대로 오른쪽 가운데)
         const float ColumnX = -276f, ColumnWidth = 474f;
-        const float ExpY = 102f, ExpHeight = 46f;
-        const float FreeY = 22f, FreeHeight = 92f;
-        const float CoinY = -110f, CoinHeight = 150f, CoinWidth = 232f, CoinGap = 10f;
+        // [UI 개편 2026-11-05] 경험치 줄을 제목 띠(Name, 카드 가운데 위 162)와 같은 줄로 올리고, 광고 버튼도 그만큼(60) 위로,
+        //   남은 자리만큼 균사석 소환 버튼을 위로 늘림 (예전: ExpY 102 · FreeY 22 · CoinY -110 · CoinHeight 150)
+        const float ExpY = 162f, ExpHeight = 46f;
+        const float FreeY = 82f, FreeHeight = 92f;
+        const float CoinY = -80f, CoinHeight = 210f, CoinWidth = 232f, CoinGap = 10f;
 
         public static void Layout(Button free, Button coin11, Button coin35)
         {
@@ -63,13 +65,13 @@ namespace MoreMush.Mobile
             lrt.anchoredPosition = new Vector2(4f, 0f);
             lrt.sizeDelta = new Vector2(110f, 0f);
 
-            var back = NewImage("Bar", root, BarBack, new Color(0.2f, 0.16f, 0.22f, 0.85f));
+            var back = NewImage("Bar", root, BarBack, Color.white);
             var brt = back.rectTransform;
             brt.anchorMin = new Vector2(0f, 0.5f);
             brt.anchorMax = new Vector2(1f, 0.5f);
             brt.offsetMin = new Vector2(118f, -15f);
             brt.offsetMax = new Vector2(-4f, 15f);
-            var fill = NewImage("Fill", brt, BarFill, new Color(0.45f, 0.7f, 1f));
+            var fill = NewImage("Fill", brt, BarFill, Color.white);
             row.fill = fill.rectTransform;
             row.fill.anchorMin = Vector2.zero;
             row.fill.anchorMax = new Vector2(0f, 1f);
@@ -109,29 +111,33 @@ namespace MoreMush.Mobile
                 }
                 b.image.color = color;
             }
+            UiSkin.GreyWhenDisabled(b);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             var rt = (RectTransform)b.transform;
 
             text.title = label != null ? label : NewText("Title", rt, font, 32f, Color.white);
             if (font != null) text.title.font = font;
             text.title.color = Color.white;
-            text.title.fontSize = 32f;
+            // [UI 개편] 버튼 글자·아이콘·가격을 크게 (넘치면 자동 축소)
+            text.title.fontSize = 40f;
             text.title.fontStyle = FontStyles.Bold;
-            text.title.enableAutoSizing = false;
+            text.title.enableAutoSizing = true;
+            text.title.fontSizeMax = 40f;
+            text.title.fontSizeMin = 24f;
             text.title.alignment = TextAlignmentOptions.Center;
             Outline(text.title);
             var trt = text.title.rectTransform;
-            trt.anchorMin = new Vector2(0f, 0.5f);
+            trt.anchorMin = new Vector2(0f, 0.48f);
             trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(6f, 0f);
-            trt.offsetMax = new Vector2(-6f, -4f);
+            trt.offsetMin = new Vector2(10f, 0f);
+            trt.offsetMax = new Vector2(-10f, -6f);
 
             // 아래 줄: [아이콘] 가격 — 가운데 정렬로 묶는다
             var sub = new GameObject("Sub", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(ContentSizeFitter)).GetComponent<RectTransform>();
             sub.SetParent(rt, false);
-            sub.anchorMin = sub.anchorMax = new Vector2(0.5f, 0.25f);
-            sub.sizeDelta = new Vector2(0f, 44f);
+            sub.anchorMin = sub.anchorMax = new Vector2(0.5f, 0.26f);
+            sub.sizeDelta = new Vector2(0f, 60f);
             var layout = sub.GetComponent<HorizontalLayoutGroup>();
-            layout.spacing = 6f;
+            layout.spacing = 10f;
             layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlWidth = layout.childControlHeight = true;
             layout.childForceExpandWidth = layout.childForceExpandHeight = false;
@@ -142,16 +148,51 @@ namespace MoreMush.Mobile
                 icon.sprite = costIcon;
                 icon.preserveAspect = true;
                 var le = icon.gameObject.AddComponent<LayoutElement>();
-                le.preferredWidth = le.preferredHeight = 40f;
+                le.preferredWidth = le.preferredHeight = CostIconSize;   // [UI 개편 2026-11-05] 56 → 80 (균사석 소환 버튼이 높아져서)
             }
-            text.sub = NewText("Value", sub, font, 30f, new Color(1f, 0.95f, 0.75f));
+            text.sub = NewText("Value", sub, font, 38f, new Color(1f, 0.95f, 0.75f));
+            text.sub.fontStyle = FontStyles.Bold;
             Outline(text.sub);
+            // [UI 개편 2026-11-05] 재화 아이콘이 없는 버튼(광고·무료)은 버튼 좌우 끝, 세로 가운데에 잎
+            if (costIcon == null) { Leaf(rt, "UI/UI_Sticker_Leaf_L_Beige", 0f); Leaf(rt, "UI/UI_Sticker_Leaf_R_Beige", 1f); }
             return text;
+        }
+
+        const float LeafSize = 56f, LeafInset = 26f;
+        const float CostIconSize = 80f;
+
+        // [UI 개편 2026-11-05] 광고 소환 버튼: 아래 줄 없이 "광고 보고 11회 소환" 한 줄을 버튼 가운데에 (잎 사이)
+        public static void OneLine(ButtonText text)
+        {
+            if (text == null || text.title == null) return;
+            if (text.sub != null) text.sub.transform.parent.gameObject.SetActive(false);
+            text.title.textWrappingMode = TextWrappingModes.NoWrap;   // 넘치면 줄바꿈 대신 자동 축소 (잘리지 않게 최소 16까지)
+            text.title.overflowMode = TextOverflowModes.Overflow;
+            text.title.fontSizeMin = 16f;
+            var trt = text.title.rectTransform;
+            trt.anchorMin = Vector2.zero;
+            trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(LeafInset + LeafSize - 6f, 0f);   // 잎 바로 안쪽까지 글자 자리
+            trt.offsetMax = new Vector2(-(LeafInset + LeafSize - 6f), -4f);
+        }
+
+        static void Leaf(RectTransform button, string sprite, float side)
+        {
+            var leaf = NewImage(side < 0.5f ? "Leaf_L" : "Leaf_R", button, null, Color.white);
+            leaf.sprite = Resources.Load<Sprite>(sprite);
+            leaf.preserveAspect = true;
+            var r = leaf.rectTransform;
+            r.anchorMin = r.anchorMax = r.pivot = new Vector2(side, 0.5f);
+            r.anchoredPosition = new Vector2(side < 0.5f ? LeafInset : -LeafInset, 0f);
+            r.sizeDelta = new Vector2(LeafSize, LeafSize);
         }
 
         // 밝은 버튼 그림 위에서도 흰 글자가 읽히게 진한 갈색 외곽선
         static void Outline(TMP_Text t)
         {
+            // [UI 개편 2026-11-05] 공용 바깥 외곽선 재질(크기별 2·4·6px)로. 재질 리소스가 없으면 예전처럼 글자마다 외곽선
+            OutlineText.Apply(t);
+            if (t.fontSharedMaterial != null && t.fontSharedMaterial.name.StartsWith("LINESeedKR-Bd Wide Outline")) return;
             t.outlineWidth = 0.2f;
             t.outlineColor = TextOutline;
         }
@@ -181,6 +222,7 @@ namespace MoreMush.Mobile
             t.alignment = TextAlignmentOptions.Center;
             t.raycastTarget = false;
             t.textWrappingMode = TextWrappingModes.NoWrap;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선 (레벨·막대 숫자)
             return t;
         }
 

@@ -17,6 +17,22 @@ namespace MoreMush.Mobile
             public TMP_Text name, npc, desc, progress, buttonLabel;
             public Image portrait;
             public Button button;
+            public Image questIcon;         // [UI 개편 2026-11-05] 말풍선(Desc) 안 의뢰 종류 그림 — 있으면 채운다
+            public RectTransform barFill;   // [UI 개편 2026-11-05] 달성도 막대(Bar/Fill) — 있으면 채운다
+            public TMP_Text reward;         // [UI 개편 2026-11-05] 홈 일일 의뢰와 같은 카드: 보상 줄(Reward)이 있으면 경험치는 여기, 막대 글자는 n / m만
+        }
+
+        // [UI 개편 2026-11-05] 의뢰 종류별 말풍선 그림 (Resources 경로). 지정 버섯(species)은 그 적 그림을 쓴다
+        static string QuestIconPath(string kind)
+        {
+            switch (kind)
+            {
+                case "kill": return "UI/Icon/sword";
+                case "stage": return "UI/Icon/boss_mushroom";
+                case "dungeon": return "UI/Icon/dungeon";
+                case "daily": return "UI/Icon/calendar";
+                default: return "UI/Icon/quest_scroll";
+            }
         }
 
         Card[] weekly, daily;
@@ -115,13 +131,29 @@ namespace MoreMush.Mobile
                     c.portrait.enabled = sprite != null;
                     c.portrait.preserveAspect = true;
                 }
+                if (c.questIcon != null)
+                {
+                    var icon = row.kind == "species" ? WorldTree.EnemySprite(q.arg) : Resources.Load<Sprite>(QuestIconPath(row.kind));
+                    c.questIcon.sprite = icon;
+                    c.questIcon.enabled = icon != null;
+                }
+                if (c.barFill != null)
+                    c.barFill.anchorMax = new Vector2(row.target <= 0 ? 0f : Mathf.Clamp01((float)q.prog / row.target), 1f);
                 string text = WorldTree.QuestText(q);
-                if (!isWeekly && claimable) text = $"완료! 눌러서 받기 · 경험치 +{WorldTree.Count(row.exp)}";
-                else if (!isWeekly && q.claimed) text = "받았어요";
+                bool descIsButton = c.buttonLabel == null;    // 완료 버튼이 없는 예전 일일 칸: 말풍선을 눌러 받는다
+                if (descIsButton && claimable) text = $"완료! 눌러서 받기 · 경험치 +{WorldTree.Count(row.exp)}";
+                else if (descIsButton && q.claimed) text = "받았어요";
                 if (c.desc != null) c.desc.text = text;
-                if (c.progress != null) c.progress.text = $"달성도 {WorldTree.Count(Mathf.Min(q.prog, row.target))} / {WorldTree.Count(row.target)}" + (isWeekly ? $" · 경험치 +{WorldTree.Count(row.exp)}" : "");
+                if (c.reward != null) c.reward.text = $"경험치 +{WorldTree.Count(row.exp)}";
+                if (c.progress != null) c.progress.text = $"{WorldTree.Count(Mathf.Min(q.prog, row.target))} / {WorldTree.Count(row.target)}" + (c.reward != null ? "" : $"  · 경험치 +{WorldTree.Count(row.exp)}");
                 if (c.button != null) c.button.interactable = claimable;
-                if (c.buttonLabel != null) c.buttonLabel.text = q.claimed ? "완료함" : done ? "의뢰 완료" : "진행 중";
+                if (c.reward != null && c.button != null && !isWeekly)
+                {
+                    // 홈 일일 의뢰와 같게: 진행 중이면 버튼을 숨기고, 받았으면 바탕 없이 "완료" 글자만
+                    c.button.gameObject.SetActive(claimable || q.claimed);
+                    if (c.button.image != null) c.button.image.enabled = claimable;
+                }
+                if (c.buttonLabel != null) c.buttonLabel.text = q.claimed ? (c.reward != null ? "완료" : "완료함") : done ? "의뢰 완료" : "진행 중";
             }
         }
 
@@ -147,16 +179,24 @@ namespace MoreMush.Mobile
                 var c = new Card
                 {
                     go = t.gameObject,
-                    name = t.Find("Name")?.GetComponent<TMP_Text>(),
+                    name = (t.Find("Name") ?? t.Find("Title"))?.GetComponent<TMP_Text>(),
                     npc = t.Find("NpcName")?.GetComponent<TMP_Text>(),
-                    desc = t.Find("Desc/Text")?.GetComponent<TMP_Text>(),
-                    progress = t.Find("Progress")?.GetComponent<TMP_Text>(),
-                    portrait = (t.Find("Portrait") ?? t.Find("Icon"))?.GetComponent<Image>(),
-                    button = (isWeekly ? t.Find("CompleteBtn") : t.Find("Desc"))?.GetComponent<Button>(),
-                    buttonLabel = isWeekly ? t.Find("CompleteBtn/Label")?.GetComponent<TMP_Text>() : null,
+                    // 홈 일일 의뢰 카드 이름도 받는다: Title · IconBox/Icon · Desc(글자) · Reward · Claim · Bar/Text
+                    // [UI 개편 2026-11-05] 주간 카드의 Desc·Reward는 안쪽 칸 InfoBox 아래로 옮겼다 (InfoBox/… 도 찾는다)
+                    desc = (t.Find("Desc/Text") ?? t.Find("Desc") ?? t.Find("InfoBox/Desc"))?.GetComponent<TMP_Text>(),
+                    progress = (t.Find("Progress") ?? t.Find("Bar/Text"))?.GetComponent<TMP_Text>(),
+                    reward = (t.Find("Reward") ?? t.Find("InfoBox/Reward"))?.GetComponent<TMP_Text>(),
+                    portrait = (t.Find("Portrait") ?? t.Find("Icon") ?? t.Find("IconBox/Icon"))?.GetComponent<Image>(),
+                    // [UI 개편 2026-11-05] 일일 칸도 CompleteBtn이 있으면 그 버튼으로 받는다 (없으면 예전처럼 Desc를 눌러 받기)
+                    button = (t.Find("CompleteBtn") ?? t.Find("Claim") ?? (isWeekly ? null : t.Find("Desc")))?.GetComponent<Button>(),
+                    buttonLabel = (t.Find("CompleteBtn/Label") ?? t.Find("Claim/Label"))?.GetComponent<TMP_Text>(),
+                    questIcon = t.Find("Desc/QuestIcon")?.GetComponent<Image>(),
+                    barFill = t.Find("Bar/Fill") as RectTransform,
                 };
                 int index = n - 1;
                 if (c.button != null) c.button.onClick.AddListener(() => Claim(isWeekly, index));
+                // [UI 개편 11-05] 주간 카드 버튼은 늘 보이고, 받을 수 없으면 회색 그림 (받을 수 있으면 견본 그림 = 초록)
+                if (isWeekly && c.button != null) UiSkin.GreyWhenDisabled(c.button);
                 list.Add(c);
             }
             return list.ToArray();

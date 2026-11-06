@@ -16,15 +16,24 @@ namespace MoreMush.Mobile
         public static readonly Color ButtonOn = new Color(0.40f, 0.80f, 0.55f, 1f);
         public static readonly Color ButtonAlt = new Color(0.95f, 0.65f, 0.30f, 1f);
         public static readonly Color ButtonOff = new Color(0.72f, 0.70f, 0.68f, 1f);
+        public static readonly Color ButtonBlue = new Color(0.35f, 0.80f, 0.95f, 1f);   // [UI 개편 11-05] 하늘색 버튼 (진화 등)
         public static readonly Color CardOn = new Color(1f, 0.97f, 0.88f, 1f);
         public static readonly Color CardOff = new Color(0.86f, 0.84f, 0.80f, 1f);
 
-        const string PanelSprite = "Art/Dream/UI/panel_paper";
-        const string ButtonSprite = "Art/Dream/UI/btn_go";
-        static Sprite panel, button, white;
+        // 색은 그림으로 정한다 (코드에서 물들이지 않는다). 위의 Button·Card 색 값은 어떤 그림을 쓸지 고르는 데만 쓴다
+        const string CardSprite = "UI/UI_PP_Out_Paper2";            // 켜진 카드
+        const string CardOffSprite = "UI/UI_PP_In_Color_Grey";      // 꺼진 카드 (회색)
+        const string ButtonSprite = "UI/UI_Btn_Green";              // ButtonOn
+        const string ButtonAltSprite = "UI/UI_Btn_Yellow";          // ButtonAlt
+        const string ButtonOffSprite = "UI/UI_Btn_Grey";            // ButtonOff · 누를 수 없음 (회색)
+        const string ButtonBlueSprite = "UI/UI_Btn_Sky";            // ButtonBlue
+        public const string CardBeigeSprite = "UI/UI_PP_In_Color_Beige1";   // [UI 개편 11-05] 성장 시트 카드 바탕
+        const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
+        const string BarGreenSprite = "UI/UI_PP_Bar_Gauge_Green";
+        const string BarYellowSprite = "UI/UI_PP_Bar_Gauge_Yellow";
+        static Sprite white;
 
-        static Sprite Panel => panel != null ? panel : panel = Resources.Load<Sprite>(PanelSprite);
-        static Sprite ButtonImage => button != null ? button : button = Resources.Load<Sprite>(ButtonSprite);
+        static Sprite Load(string path) => Resources.Load<Sprite>(path);
 
         // 부모를 가득 채우는 세로 스크롤 목록. 돌려주는 것은 행을 넣을 content
         public static RectTransform ScrollList(Transform parent)
@@ -45,7 +54,7 @@ namespace MoreMush.Mobile
             content.pivot = new Vector2(0.5f, 1f);
             content.offsetMin = content.offsetMax = Vector2.zero;
             var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 16f;
+            layout.spacing = UiSkin.Gap;   // [UI 개편] 공통 간격
             layout.padding = new RectOffset(0, 0, 8, 24);
             layout.childControlHeight = true;
             layout.childControlWidth = true;
@@ -58,13 +67,13 @@ namespace MoreMush.Mobile
         }
 
         // 목록 한 줄 (종이 카드). 안의 조각은 Place로 자리를 잡는다
-        public static RectTransform Card(Transform list, float height, bool active = true)
+        public static RectTransform Card(Transform list, float height, bool active = true, string sprite = null)
         {
             var rt = New("Card", list);
             var img = rt.gameObject.AddComponent<Image>();
-            img.sprite = Panel;
+            img.sprite = Load(active ? (sprite ?? CardSprite) : CardOffSprite);   // [UI 개편 11-05] sprite = 켜진 카드 바탕을 바꿀 때
             img.type = Image.Type.Sliced;
-            img.color = active ? CardOn : CardOff;
+            img.color = Color.white;
             img.raycastTarget = false;
             rt.gameObject.AddComponent<LayoutElement>().preferredHeight = height;
             return rt;
@@ -87,7 +96,12 @@ namespace MoreMush.Mobile
             var t = New("Text", parent).gameObject.AddComponent<TextMeshProUGUI>();
             if (font != null) t.font = font;
             t.text = text;
-            t.fontSize = size;
+            // [UI 개편] 세계수 카드 글자: 1.15배·굵게, 넘치면 자동 축소 (UiSkin 글자 규격)
+            t.fontStyle = FontStyles.Bold;
+            t.enableAutoSizing = true;
+            t.fontSizeMax = size * 1.15f;
+            t.fontSizeMin = size * 0.7f;
+            t.fontSize = size * 1.15f;
             t.color = color;
             t.alignment = align;
             t.raycastTarget = false;
@@ -106,16 +120,19 @@ namespace MoreMush.Mobile
             rt.sizeDelta = new Vector2(width, height);
             rt.anchoredPosition = new Vector2(-right, 0f);
             var img = rt.gameObject.AddComponent<Image>();
-            img.sprite = ButtonImage;
+            var want = interactable ? (tint ?? ButtonOn) : ButtonOff;
+            img.sprite = Load(want == ButtonAlt ? ButtonAltSprite : want == ButtonOff ? ButtonOffSprite : want == ButtonBlue ? ButtonBlueSprite : ButtonSprite);
             img.type = Image.Type.Sliced;
-            img.color = interactable ? (tint ?? ButtonOn) : ButtonOff;
+            img.color = Color.white;
             var b = rt.gameObject.AddComponent<UnityEngine.UI.Button>();
+            UiSkin.GreyWhenDisabled(b);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             b.targetGraphic = img;
             b.interactable = interactable;
             if (onClick != null) b.onClick.AddListener(() => onClick());
             var t = Text(rt, label, 34f, Color.white, font, TextAlignmentOptions.Center);
             t.fontStyle = FontStyles.Bold;
             t.overflowMode = TextOverflowModes.Overflow;
+            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
             Place(t.rectTransform, Vector2.zero, Vector2.one, new Vector2(8f, 4f), new Vector2(-8f, -4f));
             return b;
         }
@@ -142,14 +159,14 @@ namespace MoreMush.Mobile
             var back = New("Bar", parent);
             Place(back, new Vector2(0f, yAnchor), new Vector2(1f, yAnchor), offsetMin, offsetMax);
             var bg = back.gameObject.AddComponent<Image>();
-            bg.sprite = White;
-            bg.color = new Color(0f, 0f, 0f, 0.15f);
+            bg.sprite = Load(BarBackSprite);
+            bg.type = Image.Type.Sliced;
             bg.raycastTarget = false;
             var front = New("Fill", back);
             Place(front, Vector2.zero, new Vector2(Mathf.Clamp01(value), 1f), Vector2.zero, Vector2.zero);
             var fg = front.gameObject.AddComponent<Image>();
-            fg.sprite = White;
-            fg.color = fill;
+            fg.sprite = Load(fill.g >= fill.r ? BarGreenSprite : BarYellowSprite);   // 초록 계열이면 초록 막대, 아니면 노란 막대
+            fg.type = Image.Type.Sliced;
             fg.raycastTarget = false;
         }
 

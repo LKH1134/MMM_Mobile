@@ -29,19 +29,26 @@ namespace MoreMush.Mobile
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             var popup = go.AddComponent<IdleReportPopup>();
             popup.font = font;
-            popup.Build();
+            // [UI 개편 2026-11-05] 화면은 프리팹(규격 틀·노란 탭·속지)으로. 없으면 예전처럼 코드로 만든다 (UI_REWORK_LOG.md)
+            var prefab = Resources.Load<IdleReportView>(PrefabPath);
+            if (prefab != null) popup.Bind(Instantiate(prefab, go.transform, false));
+            else popup.Build();
             go.SetActive(false);
             return popup;
         }
 
         public void Show(IdleAway.Report r)
         {
-            title.text = "방치 정산";
+            SetTitle("방치 정산");
+            SetMessageMode(false);
             report = r;
             doubled = false;
             Render();
-            doubleButton.interactable = true;
-            doubleButton.gameObject.SetActive(r.gold + r.offlineGold + r.mycelite > 0);
+            if (doubleButton != null)
+            {
+                doubleButton.interactable = true;
+                doubleButton.gameObject.SetActive(r.gold + r.offlineGold + r.mycelite > 0);
+            }
             AdService.Initialize();
             AdService.Prepare();            // 누를 때 광고가 준비돼 있게
             PopupGate.Opened(this, Hide);
@@ -56,15 +63,97 @@ namespace MoreMush.Mobile
         {
             if (IsOpen) { pendingTitle = heading; pendingBody = message; return; }
             report = null;
-            title.text = heading;
-            body.text = message;
-            doubleButton.gameObject.SetActive(false);
+            SetTitle(heading);
+            SetMessageMode(true);
+            var text = view != null ? messageText : body;
+            if (text != null) text.text = message;
+            if (doubleButton != null) doubleButton.gameObject.SetActive(false);
             PopupGate.Opened(this, Hide);
             gameObject.SetActive(true);
         }
 
+        void SetTitle(string heading)
+        {
+            if (title != null) title.text = heading;
+        }
+
+        // 프리팹 화면에서 알림일 때: 정산 줄(List)·시간 줄을 숨기고 그 자리에 여러 줄 본문을 보인다
+        void SetMessageMode(bool on)
+        {
+            if (view == null || list == null) return;
+            list.SetActive(!on);
+            if (view.timeText != null) view.timeText.gameObject.SetActive(!on);
+            if (on && messageText == null) messageText = CreateMessageText();
+            if (messageText != null) messageText.gameObject.SetActive(on);
+        }
+
+        TMP_Text CreateMessageText()
+        {
+            var src = (RectTransform)list.transform;
+            var t = NewText("Message", src.parent, 40f);
+            var rt = t.rectTransform;
+            rt.anchorMin = src.anchorMin; rt.anchorMax = src.anchorMax; rt.pivot = src.pivot;
+            rt.anchoredPosition = src.anchoredPosition; rt.sizeDelta = src.sizeDelta;
+            rt.SetSiblingIndex(src.GetSiblingIndex() + 1);
+            if (view.timeText != null)
+            {
+                t.font = view.timeText.font;
+                t.fontSharedMaterial = view.timeText.fontSharedMaterial;
+                t.color = view.timeText.color;
+            }
+            t.enableAutoSizing = true;
+            t.fontSizeMin = 24f;
+            t.fontSizeMax = 40f;
+            t.lineSpacing = 12f;
+            return t;
+        }
+
+        const string PrefabPath = "IdleReportPopup";   // Assets/Prefabs/Mobile/UI/Main/Resources/IdleReportPopup.prefab
+        IdleReportView view;
+        GameObject list;            // 프리팹의 정산 줄 묶음
+        TMP_Text messageText;       // 프리팹 화면에서 알림 본문 (처음 알림 때 만든다)
+
+        void Bind(IdleReportView v)
+        {
+            view = v;
+            title = v.transform.Find("Frame/Tab/Label")?.GetComponent<TMP_Text>();   // 제목 (알림 때 바꾼다)
+            list = v.transform.Find("Content/List")?.gameObject;
+            var rt = (RectTransform)v.transform;
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            if (v.okButton != null) v.okButton.onClick.AddListener(Hide);
+            doubleButton = v.doubleButton;
+            if (doubleButton != null)
+            {
+                UiSkin.GreyWhenDisabled(doubleButton);
+                doubleButton.onClick.AddListener(WatchForDouble);
+            }
+        }
+
+        void RenderView()
+        {
+            var r = report;
+            long m = doubled ? 2 : 1;
+            if (view.timeText != null) view.timeText.text = "자리를 비운 동안 " + FormatTime(r.seconds + r.offlineSeconds);
+            if (view.goldText != null) view.goldText.text = "+" + Wallet.Format((r.gold + r.offlineGold) * m);
+            if (view.goldSubText != null)
+            {
+                view.goldSubText.gameObject.SetActive(r.offlineGold > 0);
+                view.goldSubText.text = $"(앱 밖 {FormatTime(r.offlineSeconds)} +{Wallet.Format(r.offlineGold * m)})";
+            }
+            if (view.myceliteRow != null) view.myceliteRow.SetActive(r.mycelite > 0);
+            if (view.myceliteText != null) view.myceliteText.text = "+" + Wallet.Format(r.mycelite * m);
+            var info = new System.Collections.Generic.List<string>();
+            if (r.kills > 0) info.Add($"처치 {r.kills:N0}마리");
+            if (r.stages > 0) info.Add($"스테이지 +{r.stages} → {IdleBattle.HudStageLabel(IdleProgress.Stage).Replace("스테이지 ", "")}");   // HUD와 같은 "7-7" 표기
+            if (view.infoRow != null) view.infoRow.SetActive(info.Count > 0);
+            if (view.infoText != null) view.infoText.text = string.Join("  ·  ", info);
+            if (view.doubledRow != null) view.doubledRow.SetActive(doubled);
+        }
+
         void Render()
         {
+            if (view != null) { RenderView(); return; }
             var r = report;
             long m = doubled ? 2 : 1;
             var sb = new System.Text.StringBuilder();
@@ -124,7 +213,7 @@ namespace MoreMush.Mobile
             dim.raycastTarget = true;                       // 뒤를 누르지 못하게 막는다
 
             var panel = NewImage("Panel", transform, new Color(0.98f, 0.94f, 0.86f));
-            var sprite = Resources.Load<Sprite>("Art/Dream/UI/panel_paper");
+            var sprite = Resources.Load<Sprite>("UI/UI_PP_Out_Paper2");
             if (sprite != null) { panel.sprite = sprite; panel.type = Image.Type.Sliced; panel.color = Color.white; }
             panel.rectTransform.sizeDelta = new Vector2(820f, 760f);
 
@@ -140,16 +229,16 @@ namespace MoreMush.Mobile
             body.alignment = TextAlignmentOptions.Top;
 
             // 왼쪽 = 확인(초록), 오른쪽 = 광고 보고 2배 보상(청록)
-            NewButton("Ok", panel.transform, "확인", 52f, Color.white, -190f).onClick.AddListener(Hide);
-            doubleButton = NewButton("DoubleAd", panel.transform, "광고 보고\n2배 보상", 40f, new Color(0.45f, 0.85f, 0.8f, 1f), 190f);
+            NewButton("Ok", panel.transform, "확인", 52f, "UI/UI_Btn_Green", -190f).onClick.AddListener(Hide);
+            doubleButton = NewButton("DoubleAd", panel.transform, "광고 보고\n2배 보상", 40f, "UI/UI_Btn_Sky", 190f);   // 색은 그림으로 (물들이지 않는다)
             doubleButton.onClick.AddListener(WatchForDouble);
         }
 
-        Button NewButton(string name, Transform parent, string label, float size, Color tint, float x)
+        Button NewButton(string name, Transform parent, string label, float size, string spritePath, float x)
         {
             var img = NewImage(name, parent, new Color(0.45f, 0.75f, 0.35f));
-            var sprite = Resources.Load<Sprite>("Art/Dream/UI/btn_go");
-            if (sprite != null) { img.sprite = sprite; img.type = Image.Type.Sliced; img.color = tint; }
+            var sprite = Resources.Load<Sprite>(spritePath);
+            if (sprite != null) { img.sprite = sprite; img.type = Image.Type.Sliced; img.color = Color.white; }
             img.raycastTarget = true;
             var rt = img.rectTransform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
@@ -157,10 +246,12 @@ namespace MoreMush.Mobile
             rt.anchoredPosition = new Vector2(x, 50f);
             rt.sizeDelta = new Vector2(350f, 130f);
             var button = img.gameObject.AddComponent<Button>();
+            UiSkin.GreyWhenDisabled(button);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
             button.targetGraphic = img;
             var text = NewText("Text", img.transform, size);
             text.text = label;
             text.color = Color.white;
+            OutlineText.ApplyIfWhite(text);   // [UI 개편 11-05] 흰 글자는 외곽선 (프리팹이 없을 때의 예전 화면)
             Stretch(text.rectTransform);
             return button;
         }
