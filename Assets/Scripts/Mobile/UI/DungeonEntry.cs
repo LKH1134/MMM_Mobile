@@ -6,7 +6,8 @@ namespace MoreMush.Mobile
 {
     // 던전 목록 카드 하나: 지금 레벨과 오늘 남은 입장 횟수 "n/2"를 보여 주고, 입장하기를 누르면 하나 쓰고 씬을 연다.
     // 입장 횟수를 다 쓰면 버튼이 "광고 보고 입장 (n/2)"로 바뀌고, 광고를 끝까지 보면 광고 입장을 하나 쓰고 연다 (하루 DungeonTickets.AdPerDay번).
-    // 소탕은 없다 — 레벨과 상관없이 매번 씬을 열어 직접 플레이한다.
+    // 소탕은 없다 — 레벨과 상관없이 매번 직접 플레이한다.
+    // 던전 시트 mode: Harvest = 씬(벽돌깨기)을 연다 · BossRush·BossLevel = 씬 없이 방치 화면에서 싸운다 (DungeonSession.TryEnterIdle, 던전 탭을 닫고 홈으로).
     // 둘 다 없거나 아직 해금 전이면 입장 버튼을 막는다. scene이 비어 있으면(아직 없는 던전) 횟수만 보여 준다.
     // 해금 조건은 던전 시트(스테이지 n 진입). 카드 안의 LockOverlay를 해금 전에만 켜고 LockText에 조건을 적는다.
     // 레벨 문구는 카드 안 "LevelText"가 있으면 거기, 없으면 남은 횟수 위에 하나 만들어 쓴다 (프리팹을 고치지 않아도 되게)
@@ -51,6 +52,7 @@ namespace MoreMush.Mobile
             var row = GameBalance.Dungeon(dungeon);
             if (row == null) return;
             scene = row.implemented ? row.scene : "";
+            idle = row.implemented && DungeonSession.IsIdle(dungeon);
             if (string.IsNullOrEmpty(row.name)) return;
             foreach (var t in GetComponentsInChildren<TMP_Text>(true))
             {
@@ -94,13 +96,28 @@ namespace MoreMush.Mobile
             IdleProgress.Changed -= Refresh;
         }
 
+        bool idle;      // 방치 화면 던전 (씬 없음)
+
         void Enter()
         {
-            if (string.IsNullOrEmpty(scene) || SceneLoader.IsLoading) return;
+            if (SceneLoader.IsLoading) return;
+            if (idle)
+            {
+                if (!DungeonSession.TryEnterIdle(dungeon) && buttonLabel != null)
+                    buttonLabel.text = DungeonSession.ActiveIdle != 0 ? "다른 던전 진행 중" : "광고 준비 중…";
+                return;
+            }
+            if (string.IsNullOrEmpty(scene)) return;
+            // 방치 던전 중에는 벽돌깨기 판을 열지 않는다 (LoadHarvest도 막는다) — 광고부터 보고 못 들어가는 일이 없게 먼저 알린다
+            if (DungeonSession.ActiveIdle != 0)
+            {
+                if (buttonLabel != null) buttonLabel.text = "다른 던전 진행 중";
+                return;
+            }
             if (DungeonTickets.CanEnter(dungeon))
             {
                 // 씬을 못 열면(빌드 설정에 없음) 횟수를 쓰지 않는다
-                if (SceneLoader.Load(scene)) DungeonTickets.TryUse(dungeon);
+                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonTickets.TryUse(dungeon);
             }
             else if (DungeonTickets.CanEnterWithAd(dungeon) && !EnterWithAd(dungeon, scene) && buttonLabel != null)
                 buttonLabel.text = "광고 준비 중…";
@@ -123,7 +140,7 @@ namespace MoreMush.Mobile
             return AdService.ShowRewarded(AdPlacement.Dungeon, () =>
             {
                 if (!DungeonTickets.CanEnterWithAd(dungeon) || SceneLoader.IsLoading) return;
-                if (SceneLoader.Load(scene)) DungeonTickets.TryUseAd(dungeon);
+                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonTickets.TryUseAd(dungeon);
             });
         }
 
@@ -134,11 +151,19 @@ namespace MoreMush.Mobile
             bool byAd = DungeonTickets.CanEnterWithAd(dungeon);
             if (lockOverlay != null) lockOverlay.SetActive(!unlocked);
             if (lockText != null && !unlocked) lockText.text = UnlockMessage();
-            if (levelText != null) levelText.text = unlocked ? $"레벨 {DungeonTickets.Level(dungeon)}" : "";
+            if (levelText != null) levelText.text = !unlocked ? "" : LevelLabel();
             if (countText != null) countText.text = $"{left}/{DungeonTickets.PerDay}";
             if (buttonLabel != null)
                 buttonLabel.text = byAd ? $"광고 보고 입장 ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})" : enterLabel;
-            if (enterButton != null) enterButton.interactable = unlocked && (left > 0 || byAd) && !string.IsNullOrEmpty(scene);
+            if (enterButton != null) enterButton.interactable = unlocked && (left > 0 || byAd) && (idle || !string.IsNullOrEmpty(scene));
+        }
+
+        // 레벨업 보스는 매번 레벨 1부터라 최고 기록을 보여 준다
+        string LevelLabel()
+        {
+            if (DungeonSession.Mode(dungeon) != DungeonMode.BossLevel) return $"레벨 {DungeonTickets.Level(dungeon)}";
+            int best = DungeonTickets.BestLevel(dungeon);
+            return best > 0 ? $"최고 레벨 {best}" : "최고 기록 없음";
         }
 
         string UnlockMessage()

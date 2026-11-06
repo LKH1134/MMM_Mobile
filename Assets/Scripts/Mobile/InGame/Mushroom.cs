@@ -35,7 +35,6 @@ namespace MoreMush.Mobile
         public int Drop => drop;
         public float Radius => radius * scale;
         public float BaseRadius => radius;
-        public MushroomTier Tier { get; private set; }
         public bool Golden { get; private set; }
         public int Colony { get; set; } = -1;         // 속한 군락지 번호 (HarvestField가 쓴다)
         public bool IsCenter { get; set; }            // 군락지 가운데 군락 버섯 ("군락 충돌" 스킬이 이걸 본다)
@@ -56,10 +55,9 @@ namespace MoreMush.Mobile
             if (visual != null) tintTarget = visual.GetComponent<Graphic>();
         }
 
-        // 등급·황금 변종·크기를 정한다. 꺼낸 직후(OnSpawned 다음)에 부른다. 체력 = 기본 체력 × hpMultiplier (등급 × 스테이지 계수)
-        public void Setup(MushroomTier tier, float hpMultiplier, bool golden, float size, Color tint)
+        // 황금 변종·크기를 정한다. 꺼낸 직후(OnSpawned 다음)에 부른다. 체력 = 기본 체력 × hpMultiplier (스테이지 계수)
+        public void Setup(float hpMultiplier, bool golden, float size, Color tint)
         {
-            Tier = tier;
             Golden = golden;
             hpMul = Mathf.Max(0.0001f, hpMultiplier);
             scale = size;
@@ -75,7 +73,6 @@ namespace MoreMush.Mobile
             hpMul = 1f;
             scale = 1f;
             rect.localScale = Vector3.one;
-            Tier = MushroomTier.Normal;
             Golden = false;
             Colony = -1;
             IsCenter = false;

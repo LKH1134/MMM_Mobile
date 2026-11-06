@@ -14,11 +14,29 @@ namespace MoreMush.Mobile
     // 보스 보상 계산용으로 직전 일반 판의 점수·골드도 남긴다
     public static class StageProgress
     {
-        const string Key = "Stage.Current";
-        const string FarmKey = "Stage.FarmLeft";
-        const string LastScoreKey = "Stage.LastNormalScore";
-        const string LastGoldKey = "Stage.LastNormalGold";
-        const string ClearedKey = "Stage.Cleared";
+        // 벽돌깨기 던전(1~3)마다 진행을 따로 저장한다. 던전 1은 예전 키 그대로 ("Stage.Current"), 2·3은 "Stage.D2.Current"처럼.
+        // 이 클래스의 속성은 지금 던전(DungeonSession.Current) 것이고, 다른 던전 레벨은 CurrentOf로 읽는다
+        static string Prefix(int dungeon) => dungeon <= 1 ? "Stage." : $"Stage.D{dungeon}.";
+        static int D => DungeonSession.Current;
+        static string Key => Prefix(D) + "Current";
+        static string FarmKey => Prefix(D) + "FarmLeft";
+        static string LastScoreKey => Prefix(D) + "LastNormalScore";
+        static string LastGoldKey => Prefix(D) + "LastNormalGold";
+        static string ClearedKey => Prefix(D) + "Cleared";
+
+        // 던전의 지금 레벨 (= 도전할 스테이지). 던전 화면 카드처럼 그 던전 밖에서 읽을 때
+        public static int CurrentOf(int dungeon)
+        {
+            string p = Prefix(dungeon);
+            int cleared = dungeon <= 1 ? ClearedOf1() : PlayerPrefs.GetInt(p + "Cleared", 0);
+            return Mathf.Max(1, Mathf.Max(PlayerPrefs.GetInt(p + "Current", 1), cleared + 1));
+        }
+
+        static int ClearedOf1()
+        {
+            if (!PlayerPrefs.HasKey("Stage.Cleared")) MigrateCleared();
+            return PlayerPrefs.GetInt("Stage.Cleared", 0);
+        }
 
         public static int FarmRounds => GameBalance.ConstInt("harvestFarmRounds");
         public static int CycleLength => GameBalance.ConstInt("harvestCycleLength");
@@ -34,7 +52,7 @@ namespace MoreMush.Mobile
         {
             get
             {
-                if (!PlayerPrefs.HasKey(ClearedKey)) MigrateCleared();
+                if (D <= 1) return ClearedOf1();
                 return PlayerPrefs.GetInt(ClearedKey, 0);
             }
         }
@@ -44,7 +62,7 @@ namespace MoreMush.Mobile
         // 지금까지 받은 균사석(지갑 + 균사석 노드에 쓴 몫)이 마지막 보스 전 보스들의 합을 넘으면 마지막 보스까지 잡은 것으로 본다
         static void MigrateCleared()
         {
-            int current = Mathf.Max(1, PlayerPrefs.GetInt(Key, 1)), max = TableMaxStage;
+            int current = Mathf.Max(1, PlayerPrefs.GetInt("Stage.Current", 1)), max = TableMaxStage;   // 던전 1 옛 세이브만
             int cleared = current - 1;
             if (current == max && max > 0)
             {
@@ -54,7 +72,7 @@ namespace MoreMush.Mobile
                     if (s.stage < max && s.boss != 0 && GameData.Bosses.Get(s.boss) is BossData b) beforeLast += b.gem;
                 if (received > beforeLast) cleared = max;
             }
-            PlayerPrefs.SetInt(ClearedKey, Mathf.Max(0, cleared));
+            PlayerPrefs.SetInt("Stage.Cleared", Mathf.Max(0, cleared));
             PlayerPrefs.Save();
         }
 

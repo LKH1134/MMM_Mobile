@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || DEVELOPMENT_BUILD   // 개발자 모드: 출시 빌드에는 컴파일되지 않는다
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -334,3 +335,4 @@ namespace MoreMush.Mobile
         }
     }
 }
+#endif

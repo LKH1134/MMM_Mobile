@@ -17,23 +17,53 @@ namespace MoreMush.Mobile
 
         static Transform holder;     // 꺼진 보관함 (씬과 함께 사라진다)
 
-        // 지금 씬의 던전 번호 (던전 시트에 없으면 0 = 표 값 없음)
+        // 지금 씬의 던전 번호 (던전 시트에 없으면 0 = 표 값 없음).
+        // 벽돌깨기 던전 1~3은 같은 씬을 쓰므로 들어온 던전(DungeonSession.Current)이 이 씬이면 그 번호
         public static int CurrentDungeon
         {
             get
             {
                 string scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+                var session = GameBalance.Dungeon(DungeonSession.Current);
+                if (session != null && session.implemented && session.scene == scene) return session.dungeon;
                 foreach (var d in GameBalance.Dungeons)
                     if (d.implemented && d.scene == scene) return d.dungeon;
                 return 0;
             }
         }
 
+        // 수확전투 시트의 기준 던전 번호: 같은 씬을 쓰는 던전 중 행이 있는 가장 앞 던전 (던전 2·3은 던전 1 판 설정이 기준)
+        static int TuningDungeon
+        {
+            get
+            {
+                int dungeon = CurrentDungeon;
+                var row = GameBalance.Dungeon(dungeon);
+                if (row == null) return dungeon;
+                int best = 0;
+                foreach (var d in GameBalance.Dungeons)
+                    if (d.implemented && d.scene == row.scene && HasRows(d.dungeon) && (best == 0 || d.dungeon < best)) best = d.dungeon;
+                return best != 0 ? best : dungeon;
+            }
+        }
+
+        static bool HasRows(int dungeon)
+        {
+            foreach (var r in GameBalance.HarvestSettings) if (r.dungeon == dungeon) return true;
+            return false;
+        }
+
+        // 이 던전의 행. 같은 씬을 쓰는 기준 던전(던전 1)과 다르면, 이 던전에 없는 필드는 기준 던전 값을 쓴다
+        // (던전 2는 황금 버섯 확률 한 줄만 따로 두고 나머지는 던전 1 설정 그대로)
         static IEnumerable<HarvestSettingRow> Rows(string scope)
         {
-            int dungeon = CurrentDungeon;
+            int own = CurrentDungeon, baseDungeon = TuningDungeon;
+            var overridden = new HashSet<string>();
+            if (own != baseDungeon)
+                foreach (var r in GameBalance.HarvestSettings)
+                    if (r.dungeon == own && r.scope == scope) { overridden.Add(r.field); yield return r; }
             foreach (var r in GameBalance.HarvestSettings)
-                if (r.dungeon == dungeon && r.scope == scope) yield return r;
+                if (r.dungeon == baseDungeon && r.scope == scope && !overridden.Contains(r.field)) yield return r;
         }
 
         // target(컴포넌트 또는 RoundBase)의 필드에 그 scope 행 값을 넣는다
