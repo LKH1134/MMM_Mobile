@@ -246,6 +246,7 @@ GameObject:
   - component: {fileID: 107349709}
   - component: {fileID: 107349711}
   - component: {fileID: 107349710}
+  - component: {fileID: 107349712}
   m_Layer: 0
   m_Name: EnemyArea
   m_TagString: Untagged
@@ -267,11 +268,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1624027208}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 300, y: -571.7}
-  m_SizeDelta: {x: 460, y: 287.3}
-  m_Pivot: {x: 0.5, y: 1}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -10, y: -963.14}
+  m_SizeDelta: {x: 552, y: 344.76}
+  m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &107349710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,6 +311,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 107349708}
   m_CullTransparentMesh: 1
+--- !u!114 &107349712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 107349708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffc55f5b188fdb44aa3d103483cabbb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.ScaleWithParentWidth
+  designWidth: 1080
+  minScale: 1
+  maxScale: 1.35
 --- !u!114 &243116582 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6553450026048374921, guid: b66bb32e4275aad47a6a26c7858cc8ae, type: 3}
@@ -332,6 +348,7 @@ GameObject:
   - component: {fileID: 263011676}
   - component: {fileID: 263011678}
   - component: {fileID: 263011677}
+  - component: {fileID: 263011679}
   m_Layer: 0
   m_Name: GgomaArea
   m_TagString: Untagged
@@ -358,11 +375,11 @@ RectTransform:
   - {fileID: 1463426290}
   m_Father: {fileID: 1624027208}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -361, y: -533.7}
-  m_SizeDelta: {x: 231.8, y: 361.9}
-  m_Pivot: {x: 0.5, y: 1}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 63.099976, y: -963.14}
+  m_SizeDelta: {x: 278.16, y: 434.28}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &263011677
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -401,6 +418,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 263011675}
   m_CullTransparentMesh: 1
+--- !u!114 &263011679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263011675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffc55f5b188fdb44aa3d103483cabbb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.ScaleWithParentWidth
+  designWidth: 1080
+  minScale: 1
+  maxScale: 1.35
 --- !u!1 &469936154
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,8 +467,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 58, y: -130.95}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 69.600006, y: -157.14}
+  m_SizeDelta: {x: 120.00001, y: 120.00001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &469936156
 MonoBehaviour:
@@ -648,8 +680,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -58, y: 65.475}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -69.600006, y: 78.56999}
+  m_SizeDelta: {x: 120.00001, y: 120.00001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &732697893
 MonoBehaviour:
@@ -1017,9 +1049,7 @@ PrefabInstance:
       propertyPath: m_PixelsPerUnitMultiplier
       value: 1.2
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 5559397049069519507, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
-    - {fileID: 6808736416309680846, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -1203,8 +1233,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 58, y: 130.95}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 69.600006, y: 157.14}
+  m_SizeDelta: {x: 120.00001, y: 120.00001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1136229613
 MonoBehaviour:
@@ -1278,8 +1308,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 58, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 69.600006, y: 0}
+  m_SizeDelta: {x: 120.00001, y: 120.00001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1147350523
 MonoBehaviour:
@@ -1557,8 +1587,8 @@ MonoBehaviour:
   extraBossSprites:
   - Art/Dream/Characters/Grandpa/grandpa_ref
   harvesterFolder: Art/Dream/Harvesters
-  ggomaSize: 130
-  enemySize: 110
+  ggomaSize: 156
+  enemySize: 132
   bossSize: 560
   harvesterSize: 64
   flightTime: 0.45
@@ -1772,8 +1802,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -58, y: -65.47499}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -69.600006, y: -78.56999}
+  m_SizeDelta: {x: 120.00001, y: 120.00001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1463426291
 MonoBehaviour:
@@ -1958,6 +1988,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1308794056}
     m_Modifications:
+    - target: {fileID: 2288835396992791396, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -2.7999992
+      objectReference: {fileID: 0}
     - target: {fileID: 3559190396345803066, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: battle
       value: 
@@ -1980,7 +2014,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4272912456507289973, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4272912456507289973, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1988,7 +2022,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4272912456507289973, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4272912456507289973, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_AnchorMin.y
@@ -1996,7 +2030,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4272912456507289973, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 600
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4272912456507289973, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_SizeDelta.y
@@ -2049,6 +2083,10 @@ PrefabInstance:
     - target: {fileID: 4272912456507289973, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5780039123007703541, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -5.0999985
       objectReference: {fileID: 0}
     - target: {fileID: 6439548761111890128, guid: 55cdf0a6550b3aa43b32ed5f51ba343c, type: 3}
       propertyPath: m_Name
@@ -2154,6 +2192,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7012601858957576135, guid: 9fee6bc2c9a2715469ff9558a0aeefd3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8144623506421351527, guid: 9fee6bc2c9a2715469ff9558a0aeefd3, type: 3}
+      propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -2337,6 +2379,7 @@ GameObject:
   - component: {fileID: 1972058997}
   - component: {fileID: 1972058999}
   - component: {fileID: 1972058998}
+  - component: {fileID: 1972059000}
   m_Layer: 5
   m_Name: BG
   m_TagString: Untagged
@@ -2358,10 +2401,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1098819486}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 444.09998}
+  m_SizeDelta: {x: 1754.1436, y: 1754.1436}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1972058998
 MonoBehaviour:
@@ -2377,13 +2420,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 7e2781ba514a01b4cb67a96e3bbdd04e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: fd3fc0c0509c65749b00f87385336069, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2401,6 +2444,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1972058996}
   m_CullTransparentMesh: 1
+--- !u!114 &1972059000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1972058996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12543edf5a35bc1489c5b595cc84baf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.BackgroundCover
+  bottomEdge: {fileID: 1478314269}
+  overlap: 60
 --- !u!114 &2100000001 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2773839414277164103, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}

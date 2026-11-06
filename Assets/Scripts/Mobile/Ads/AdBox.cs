@@ -19,9 +19,9 @@ namespace MoreMush.Mobile
         const float SaveEvery = 1f;
         const float EnterSeconds = 0.8f, LeaveSeconds = 0.8f;
         const float ChestSize = 230f;
-        const float TargetX = 0.22f, TargetY = 0.13f;   // 상자가 머무는 자리: 캔버스 중심에서 폭·높이의 비율 (오른쪽 위쪽)
+        const float TargetX = 0.22f, TargetY = 0.175f;   // 상자가 머무는 자리: 캔버스 중심에서 폭·높이의 비율 (오른쪽 위쪽). [UI 개편 2026-11-06] 0.13 → 0.175 = 홈 전투 적 영역 바로 위(화면 위에서 약 760)
         const float BobHeight = 18f, BobSpeed = 2.4f;
-        const string ChestIcon = "UI/Icon/treasure_chest";   // 임시 그림
+        const string ChestIcon = "UI/Icon/advertisement";   // [UI 개편 2026-11-06] 보물상자 → 광고 아이콘
         const float EditorIntervalSeconds = 2f;         // 유니티 에디터에서는 표의 간격 대신 바로 나온다 (테스트용)
 
         static AdBox instance;
