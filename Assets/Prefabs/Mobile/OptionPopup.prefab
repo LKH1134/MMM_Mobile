@@ -589,6 +589,7 @@ GameObject:
   - component: {fileID: 3566817529792044683}
   - component: {fileID: 522430545817475686}
   - component: {fileID: 8214326999876791824}
+  - component: {fileID: 2293237512336985551}
   m_Layer: 0
   m_Name: Switch
   m_TagString: Untagged
@@ -716,6 +717,19 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   m_IsOn: 1
+--- !u!114 &2293237512336985551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 399002834063559187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ccf192c864a30943bf55ab4d8f7d90e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.OptionSwitch
+  kind: 1
 --- !u!1 &494478911211240325
 GameObject:
   m_ObjectHideFlags: 0
@@ -728,6 +742,7 @@ GameObject:
   - component: {fileID: 8160448681644201894}
   - component: {fileID: 2507136149005877846}
   - component: {fileID: 4709804393370821006}
+  - component: {fileID: 3542560115339638111}
   m_Layer: 0
   m_Name: Switch
   m_TagString: Untagged
@@ -855,6 +870,19 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   m_IsOn: 1
+--- !u!114 &3542560115339638111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 494478911211240325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ccf192c864a30943bf55ab4d8f7d90e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.OptionSwitch
+  kind: 0
 --- !u!1 &513299419004363293
 GameObject:
   m_ObjectHideFlags: 0

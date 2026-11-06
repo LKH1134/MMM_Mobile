@@ -21,7 +21,7 @@ namespace MoreMush.Mobile.EditorTools
             { "상수", "index:int key:string value:double" },
             { "등급", "index:int key:string grade:int ownBase:double name:string" },
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsRare:double oddsEpic:double oddsLegend:double" },
-            { "던전", "index:int key:string dungeon:int unlockStage:int name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double hpMul:double atkMul:double" },
+            { "던전", "index:int key:string dungeon:int unlockStage:int mode:string name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double hpMul:double atkMul:double" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
             { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
             { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
@@ -35,7 +35,6 @@ namespace MoreMush.Mobile.EditorTools
             { "뽑기상품", "index:int key:string name:string kind:GachaKind pullCount:int price:long currency:Currency dailyLimit:int requiresAd:bool" },
             { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int flightTime:double waveDelay:double enemyAttackDelay:double" },
             { "수확전투", "index:int key:string dungeon:int scope:string field:string dataType:string value:double" },
-            { "수확등급", "index:int key:string tier:MushroomTier hpMultiplier:int scoreMultiplier:double" },
         };
 
         // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
@@ -60,7 +59,9 @@ namespace MoreMush.Mobile.EditorTools
             ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
             ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
             ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true), ("treeQuestDaily", 1, true),
-            ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false),
+            ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false), ("dungeonFailMul", 0, false),
+            ("bossRushCount", 1, true), ("bossLvSeconds", 5, false), ("bossLvHpGrowth", 1, false), ("bossLvAtkGrowth", 1, false),
+            ("bossLvSpeedGrowth", 1, false), ("bossLvDefPerLevel", 0, false), ("bossLvDefMax", 0, false),
             ("offlineGoldRate", 0, false), ("speedCostRampFromLv", 0, true), ("speedCostRamp", 0, false),
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
             ("harvestHpRateExp", 0, false),
@@ -294,7 +295,10 @@ namespace MoreMush.Mobile.EditorTools
                 if (scope == "StageHud" || scope == "FieldDevices" || (scope == "SkillEffects" && field != "flashTime")) Positive(r, "value", issues);
                 if (!settings.Add(r.Int("dungeon") + ":" + scope + "." + field)) issues.Add(r.At("field") + ": 같은 던전의 설정이 겹친다");
             }
-            foreach (int dungeon in dungeons)
+            // 같은 씬을 쓰는 던전은 가장 앞 던전의 설정이 기준이다 (HarvestTuning) — 기준 던전만 빠짐없이 검사하고, 다른 던전은 바꿀 필드만 둔다
+            var sceneOf = tables["던전"].ToDictionary(r => r.Int("dungeon"), r => r.Text("scene"));
+            bool HasSettings(int d) => tables["수확전투"].Any(r => r.Int("dungeon") == d);
+            foreach (int dungeon in dungeons.Where(d => HasSettings(d) && !dungeons.Any(o => o < d && sceneOf[o] == sceneOf[d] && HasSettings(o))))
             {
                 foreach (var field in typeof(RoundBase).GetFields().Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float)))
                     if (!settings.Contains(dungeon + ":RoundBase." + field.Name)) issues.Add($"[수확전투] 던전 {dungeon} RoundBase.{field.Name}가 없다");
@@ -309,16 +313,6 @@ namespace MoreMush.Mobile.EditorTools
                 if (split.TryGetValue("splitAt0", out double first) && split.TryGetValue("splitAt1", out double second) && first <= second)
                     issues.Add($"[수확전투] 던전 {dungeon} 분신 체력 기준은 splitAt0 > splitAt1이어야 한다");
             }
-
-            var tiers = new HashSet<string>();
-            foreach (var r in tables["수확등급"])
-            {
-                Positive(r, "hpMultiplier", issues);
-                Positive(r, "scoreMultiplier", issues);
-                if (!tiers.Add(r.Text("tier"))) issues.Add(r.At("tier") + ": 등급이 겹친다");
-            }
-            foreach (var tier in new[] { MushroomTier.Normal, MushroomTier.Epic, MushroomTier.Unique })
-                if (!tiers.Contains(tier.ToString())) issues.Add($"[수확등급] {tier} 등급이 없다");
         }
 
         static bool IsTrue(string value) => value == "1" || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
@@ -444,6 +438,12 @@ namespace MoreMush.Mobile.EditorTools
                 if (!seen.Add(r.Int("dungeon"))) issues.Add(r.At("dungeon") + ": 던전 번호가 겹친다");
                 string scene = r.Text("scene");
                 bool implemented = IsTrue(r.Text("implemented"));
+                if (!Enum.TryParse<DungeonMode>(r.Text("mode"), true, out var mode)) { issues.Add(r.At("mode") + ": Harvest·BossRush·BossLevel 중 하나"); continue; }
+                if (mode != DungeonMode.Harvest)
+                {
+                    if (!string.IsNullOrEmpty(scene)) issues.Add(r.At("scene") + ": 방치 화면 던전(BossRush·BossLevel)은 씬을 비워 둔다");
+                    continue;
+                }
                 if (implemented && (string.IsNullOrEmpty(scene) || checkAssets && !UnityEditor.EditorBuildSettings.scenes.Any(s => s.enabled && s.path == "Assets/Scenes/" + scene + ".unity")))
                     issues.Add(r.At("scene") + ": 구현된 던전은 빌드 설정에 포함된 씬이 필요하다");
                 if (!implemented && !string.IsNullOrEmpty(scene)) issues.Add(r.At("scene") + ": 미구현 던전은 연결 씬을 비워 둔다");
@@ -554,7 +554,6 @@ namespace MoreMush.Mobile.EditorTools
             if (type == "TreeZone") return Enum.TryParse<TreeZone>(raw, out var zone) && Enum.IsDefined(typeof(TreeZone), zone);
             if (type == "GachaKind") return Enum.TryParse<GachaKind>(raw, out var kind) && Enum.IsDefined(typeof(GachaKind), kind);
             if (type == "EquipStat") return Enum.TryParse<EquipStat>(raw, out var equip) && Enum.IsDefined(typeof(EquipStat), equip);
-            if (type == "MushroomTier") return Enum.TryParse<MushroomTier>(raw, out var tier) && Enum.IsDefined(typeof(MushroomTier), tier);
             if (type == "bool") return bool.TryParse(raw, out _) || raw == "0" || raw == "1";
             if (!double.TryParse(raw, NumberStyles.Float, Inv, out double d) || double.IsNaN(d) || double.IsInfinity(d)) return false;
             if (type == "int") return d == Math.Floor(d) && d >= int.MinValue && d <= int.MaxValue;

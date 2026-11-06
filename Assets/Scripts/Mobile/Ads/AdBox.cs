@@ -229,7 +229,7 @@ namespace MoreMush.Mobile
             long gold = ClampLong((double)IdleProgress.EnemyGold(stage) * goldKills);
             long mycelite = AdMycelite;
             PopupGate.Opened(this, () => popup.Close());      // 뒤로가기·다른 팝업이 열리면 닫힌다
-            popup.Open(gold, mycelite, () => Watch(gold, mycelite), () => PopupGate.Closed(this));
+            popup.Open(gold, mycelite, () => Watch(gold, mycelite), () => PopupGate.Closed(this), Despawn);     // 취소 = 상자도 사라진다 (쿨타임 처음부터)
         }
 
         void Watch(long gold, long mycelite)

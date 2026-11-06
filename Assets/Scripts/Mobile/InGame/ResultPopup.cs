@@ -19,7 +19,8 @@ namespace MoreMush.Mobile
         [SerializeField] Button mainButton;
         [SerializeField] string mainScene = MainNavigation.MainScene;
         [SerializeField] float countUpDuration = 0.8f;   // 번 골드가 0부터 올라가는 시간
-        [SerializeField] int dungeon = 1;                // 이 씬이 몇 번 던전인지 (입장 횟수, DungeonTickets)
+        // 몇 번 던전인지는 DungeonSession.Current (벽돌깨기 던전 1~3이 이 씬을 같이 쓴다)
+        static int dungeon => DungeonSession.Current;
 
         const string AutoNextKey = "Dungeon.AutoNext";
         static readonly Vector2 AutoRowPos = new Vector2(0f, 250f);     // 창 아래 가운데 기준 (버튼 바로 위)
@@ -52,10 +53,10 @@ namespace MoreMush.Mobile
             BuildAutoRow();
         }
 
-        public void Show(long earned) => Show(earned, false);
+        public void Show(long earned) => Show(earned, 0, false);
 
-        // cleared = 이번 판으로 레벨을 넘었는지 (HarvestGame.StageCleared)
-        public void Show(long earned, bool cleared)
+        // earned = 받은 골드, mycelite = 받은 균사석 (0이면 줄을 숨긴다), cleared = 이번 판으로 레벨을 넘었는지 (HarvestGame.StageCleared)
+        public void Show(long earned, long mycelite, bool cleared)
         {
             // 꺼진 채로 만들어져 아직 Awake 전일 수 있다. Open이 켜면서 Awake가 돈다
             if (popup == null) popup = GetComponent<UiPopup>();
@@ -64,7 +65,33 @@ namespace MoreMush.Mobile
             RefreshButtons();
             if (countUp != null) StopCoroutine(countUp);
             countUp = StartCoroutine(CountUp(earned));
+            ShowMycelite(mycelite);
             RestartAutoNext();
+        }
+
+        // 받은 균사석 한 줄: 골드 글자를 본떠 그 아래에 만든다 (프리팹을 고치지 않아도 되게)
+        TMP_Text myceliteText;
+        static readonly Color MyceliteColor = new Color(0.56f, 0.89f, 1f);
+
+        void ShowMycelite(long mycelite)
+        {
+            if (earnedText == null) return;
+            if (myceliteText == null)
+            {
+                if (mycelite <= 0) return;
+                var go = Instantiate(earnedText.gameObject, earnedText.transform.parent, false);
+                go.name = "MyceliteText";
+                foreach (Transform child in go.transform) Destroy(child.gameObject);
+                myceliteText = go.GetComponent<TMP_Text>();
+                var rt = (RectTransform)go.transform;
+                var src = earnedText.rectTransform;
+                rt.anchoredPosition = src.anchoredPosition - new Vector2(0f, Mathf.Max(60f, src.rect.height));
+                myceliteText.color = MyceliteColor;
+                myceliteText.fontSize = earnedText.fontSize * 0.75f;
+                myceliteText.enableAutoSizing = false;
+            }
+            myceliteText.gameObject.SetActive(mycelite > 0);
+            myceliteText.text = "균사석 +" + Wallet.Format(mycelite);
         }
 
         // 시간이 멈춰 있어도 돌도록 unscaled로 센다
@@ -194,7 +221,7 @@ namespace MoreMush.Mobile
             string scene = gameObject.scene.name;
             if (DungeonTickets.CanEnter(dungeon))
             {
-                if (SceneLoader.Load(scene)) DungeonTickets.TryUse(dungeon);
+                if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonTickets.TryUse(dungeon);
             }
             else if (DungeonTickets.CanEnterWithAd(dungeon))
             {

@@ -11,7 +11,7 @@ namespace MoreMush.Mobile
     {
         const int SortingOrder = 30000;
 
-        TMP_Text body;
+        TMP_Text body, title;
         TMP_FontAsset font;
         Button doubleButton;
         IdleAway.Report report;     // 지금 보이는 정산
@@ -36,6 +36,7 @@ namespace MoreMush.Mobile
 
         public void Show(IdleAway.Report r)
         {
+            title.text = "방치 정산";
             report = r;
             doubled = false;
             Render();
@@ -43,6 +44,21 @@ namespace MoreMush.Mobile
             doubleButton.gameObject.SetActive(r.gold + r.offlineGold + r.mycelite > 0);
             AdService.Initialize();
             AdService.Prepare();            // 누를 때 광고가 준비돼 있게
+            PopupGate.Opened(this, Hide);
+            gameObject.SetActive(true);
+        }
+
+        // 알림만 보여 준다 (방치 화면 던전 결과 등): 제목·본문 + 확인. 2배 버튼은 숨긴다
+        public bool IsOpen => gameObject.activeSelf;
+        string pendingTitle, pendingBody;   // 정산 창이 열려 있을 때 온 알림 — 닫은 뒤 보여 준다
+
+        public void ShowMessage(string heading, string message)
+        {
+            if (IsOpen) { pendingTitle = heading; pendingBody = message; return; }
+            report = null;
+            title.text = heading;
+            body.text = message;
+            doubleButton.gameObject.SetActive(false);
             PopupGate.Opened(this, Hide);
             gameObject.SetActive(true);
         }
@@ -77,9 +93,7 @@ namespace MoreMush.Mobile
                 Wallet.Add(Currency.Gold, IdleProgress.SaturatingAdd(watched.gold, watched.offlineGold));
                 Wallet.Add(Currency.Mycelite, watched.mycelite);
                 if (this == null || report != watched) return;
-                doubled = true;
-                Render();
-                doubleButton.gameObject.SetActive(false);
+                Hide();     // 광고를 다 보고 보상을 받았으면 정산 창도 같이 닫는다
             });
             if (!started) doubleButton.interactable = true;
         }
@@ -89,6 +103,10 @@ namespace MoreMush.Mobile
             PopupGate.Closed(this);
             report = null;
             gameObject.SetActive(false);
+            if (pendingBody == null) return;
+            string t = pendingTitle, b = pendingBody;
+            pendingTitle = pendingBody = null;
+            ShowMessage(t, b);
         }
 
         static string FormatTime(double seconds)
@@ -110,7 +128,7 @@ namespace MoreMush.Mobile
             if (sprite != null) { panel.sprite = sprite; panel.type = Image.Type.Sliced; panel.color = Color.white; }
             panel.rectTransform.sizeDelta = new Vector2(820f, 760f);
 
-            var title = NewText("Title", panel.transform, 64f);
+            title = NewText("Title", panel.transform, 64f);
             title.text = "방치 정산";
             title.color = new Color(0.36f, 0.24f, 0.14f);
             Place(title.rectTransform, new Vector2(0f, -60f), new Vector2(760f, 90f));

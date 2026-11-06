@@ -12,7 +12,7 @@ namespace MoreMush.Mobile
     // 적·수확기·숫자 팝업은 전부 코드로 만들고 풀에 돌려 쓴다. 그림은 임시 리소스(Resources 경로)를 쓴다.
     // 전투는 홈(하단바 TabGroup에 열린 탭이 없을 때)에서만 보인다. 다른 탭을 여는 동안에도 보이지 않게 계속 진행하고,
     // 홈으로 돌아오면 그동안(앱 밖에 있던 시간 포함, IdleAway) 번 것을 정산 팝업으로 보여 준다
-    public class IdleBattle : MonoBehaviour
+    public partial class IdleBattle : MonoBehaviour
     {
         [Header("배치 (씬)")]
         [SerializeField] RectTransform enemyArea;
@@ -190,11 +190,13 @@ namespace MoreMush.Mobile
             }
             else SetHome(true);
 
+            SubscribeDungeon();     // 방치 화면 던전 (IdleBattle.Dungeon.cs)
             StartWave(1);
         }
 
         void OnDestroy()
         {
+            UnsubscribeDungeon();
             if (homeTabs != null) homeTabs.Changed -= OnTabChanged;
         }
 
@@ -202,6 +204,7 @@ namespace MoreMush.Mobile
         {
             if (paused)
             {
+                BankLevelReward();      // 던전 5 중이면 모은 보상을 먼저 지급 (앱이 이대로 꺼져도 남게)
                 FlushGold();
                 IdleAway.MarkSeen();
                 SaveScheduler.Flush();      // SaveScheduler의 OnApplicationPause가 이보다 먼저 불렸어도 여기 값까지 저장되게
@@ -213,6 +216,7 @@ namespace MoreMush.Mobile
 
         void OnApplicationQuit()
         {
+            BankLevelReward();      // 던전 5 보상을 저장 전에 지급
             FlushGold();
             IdleAway.MarkSeen();
             SaveScheduler.Flush();
@@ -250,6 +254,7 @@ namespace MoreMush.Mobile
 
         void ShowReport()
         {
+            if (reportPopup != null && reportPopup.IsOpen) return;     // 던전 결과·정산 창이 떠 있으면 정산은 다음에 (번 것은 IdleAway가 계속 모은다)
             var report = IdleAway.End();
             if (report == null || report.IsEmpty) return;
             if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
@@ -266,6 +271,7 @@ namespace MoreMush.Mobile
         {
             Formation.Changed -= RefreshGgomas;
             Equipment.Weapon.Changed -= RefreshGgomas;
+            AbortDungeon();         // 꺼지면(프레임 예외로 멈춤 포함) 던전을 끝낸다 — 그대로 두면 다른 던전에 들어갈 수 없다
             FlushGold();
         }
 
@@ -309,7 +315,7 @@ namespace MoreMush.Mobile
         void Tick()
         {
             float dt = Time.deltaTime;
-            IdleAway.Tick(dt);
+            if (!InDungeon) IdleAway.Tick(dt);     // 던전 중에는 스테이지 골드를 벌지 않는다 — 시간만 쌓여 앱 밖 골드 속도가 깎이지 않게
             markSeenIn -= dt;
             if (markSeenIn <= 0f) { markSeenIn = MarkSeenInterval; IdleAway.MarkSeen(); }
             UpdateGgomas(dt);
@@ -336,7 +342,7 @@ namespace MoreMush.Mobile
             if (wave > IdleProgress.WavesPerStage(stage))
             {
                 waveTotal = 1;
-                bossTimeLeft = IdleProgress.BossTime(stage);
+                bossTimeLeft = bossTimeTotal = IdleProgress.BossTime(stage);
                 boss = Spawn(true, Vector2.zero);
                 DailyQuests.Add(QuestKind.Stage);   // 보스 도전 — 벽에서 막혀도 하루 퀘스트는 깬다
                 WorldTree.QuestStage();              // 세계수 의뢰 '보스 도전'도 같은 지점
@@ -351,6 +357,7 @@ namespace MoreMush.Mobile
 
         void UpdateFlow(float dt)
         {
+            if (InDungeon) { DungeonFlow(dt); return; }
             if (boss != null && !boss.dead)
             {
                 bossTimeLeft -= dt;
@@ -382,6 +389,7 @@ namespace MoreMush.Mobile
 
         void OnEnemyKilled(Enemy e)
         {
+            if (InDungeon && e.boss) { OnDungeonBossKilled(e); return; }
             waveKilled++;
             pendingGold = IdleProgress.SaturatingAdd(pendingGold, e.gold);     // 아주 높은 스테이지에서 넘쳐 음수가 되면 골드가 사라진다
             IdleAway.AddKill();
@@ -426,7 +434,7 @@ namespace MoreMush.Mobile
             }
             double enemyDps = 0;
             foreach (var e in enemies)
-                if (!e.dead && e.age > enemyAttackDelay) enemyDps += e.boss ? bossAttack : enemyAttack;
+                if (!e.dead && e.age > enemyAttackDelay) enemyDps += e.boss ? (InDungeon ? dungeonBossDps : bossAttack) : enemyAttack;
             double hurt = enemyDps * dt;
             partyHp = System.Math.Min(partyMaxHp, partyHp + IdleProgress.FinalHpRegen * dt - hurt);
 
@@ -453,6 +461,7 @@ namespace MoreMush.Mobile
         // 패배: 적을 거두고(보상 없음) 체력을 채운 뒤 같은 스테이지 1웨이브부터
         void Defeat()
         {
+            if (InDungeon) { FinishDungeon(!IsRush, true); return; }   // 레벨업 보스는 잡은 만큼 받는다
             foreach (var e in enemies) if (!e.dead) Kill(e, false);
             boss = null;
             wave = 0;
@@ -692,6 +701,7 @@ namespace MoreMush.Mobile
         {
             e.incoming = System.Math.Max(0, e.incoming - dmg);
             if (e.dead) return;
+            if (e.boss && InDungeon) dmg *= 1 - dungeonDefense;     // 던전 보스 방어력
             e.hp -= dmg;
             e.flash = 1f;
             // 공격 속도가 높으면 초당 수십 번 맞는다 — 이펙트·숫자는 동시에 보이는 수를 묶어 둔다 (치명타는 조금 더 허용)
@@ -956,7 +966,7 @@ namespace MoreMush.Mobile
         void RefreshHud()
         {
             if (stageText == null) return;
-            stageText.text = StageLabel(stage);
+            stageText.text = InDungeon ? DungeonLabel() : StageLabel(stage);
             bool isBoss = boss != null && !boss.dead;
             timerRoot.gameObject.SetActive(isBoss);
             barFillImage.color = isBoss ? BossFill : NormalFill;
@@ -982,7 +992,7 @@ namespace MoreMush.Mobile
         {
             if (stageText == null || boss == null) return;
             barFill.anchorMax = new Vector2(boss.maxHp > 0 ? Mathf.Clamp01((float)(boss.hp / boss.maxHp)) : 0f, 1f);
-            timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / IdleProgress.BossTime(stage)), 1f);
+            timerFill.anchorMax = new Vector2(Mathf.Clamp01(bossTimeLeft / Mathf.Max(0.01f, bossTimeTotal)), 1f);
             int sec = Mathf.CeilToInt(bossTimeLeft);
             if (sec == shownBossSec) return;
             shownBossSec = sec;

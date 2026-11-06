@@ -90,8 +90,41 @@ namespace MoreMush.Mobile
             return true;
         }
 
-        // 지금 이 던전의 레벨 (깨면 다음 레벨이 열린다). 던전 1 = 수확 판 스테이지(StageProgress), 나머지는 아직 내용이 없어 1
-        public static int Level(int dungeon) => dungeon == 1 ? StageProgress.Current : 1;
+        // 지금 이 던전의 레벨 (깨면 다음 레벨이 열린다).
+        //   벽돌깨기 던전(1~3) = 그 던전의 수확 판 스테이지 (StageProgress, 던전마다 따로)
+        //   보스 연속전(4) = "Dungeon.4.Level" (다 잡으면 +1)
+        //   레벨업 보스(5) = 매번 레벨 1부터 시작하므로, 지금까지 잡은 가장 높은 레벨 (BestLevel)
+        public static int Level(int dungeon)
+        {
+            switch (DungeonSession.Mode(dungeon))
+            {
+                case DungeonMode.BossRush: return Mathf.Max(1, PlayerPrefs.GetInt(LevelKey(dungeon), 1));
+                case DungeonMode.BossLevel: return BestLevel(dungeon);
+                default: return StageProgress.CurrentOf(dungeon);
+            }
+        }
+
+        static string LevelKey(int dungeon) => $"Dungeon.{dungeon}.Level";
+        static string BestKey(int dungeon) => $"Dungeon.{dungeon}.Best";
+
+        // 보스 연속전을 다 깼다: 다음 레벨
+        public static void LevelUp(int dungeon)
+        {
+            PlayerPrefs.SetInt(LevelKey(dungeon), Level(dungeon) + 1);
+            PlayerPrefs.Save();
+            Changed?.Invoke();
+        }
+
+        // 레벨업 보스에서 잡은 가장 높은 레벨 (0 = 아직 없음)
+        public static int BestLevel(int dungeon) => Mathf.Max(0, PlayerPrefs.GetInt(BestKey(dungeon), 0));
+
+        public static void RecordBest(int dungeon, int killedLevel)
+        {
+            if (killedLevel <= BestLevel(dungeon)) return;
+            PlayerPrefs.SetInt(BestKey(dungeon), killedLevel);
+            PlayerPrefs.Save();
+            Changed?.Invoke();
+        }
 
         // 화면이 켜진 채 00시를 넘기면 다시 그리게 한다 (DungeonResetTimer가 부른다)
         public static void NotifyNewDay() => Changed?.Invoke();

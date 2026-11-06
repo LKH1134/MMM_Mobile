@@ -5126,19 +5126,6 @@ MonoBehaviour:
   clusterPrefab: {fileID: 2238027093601932462, guid: 2e9858bae7ce72842a26d14424ddcbb1, type: 3}
   singlePrefab: {fileID: 3758636139128055095, guid: 34a578b2a5c6b384c86a857259ac2f22, type: 3}
   mushroomLayer: {fileID: 554654435}
-  tiers:
-  - tier: 0
-    hpMul: 1
-    scoreMul: 1
-    tint: {r: 1, g: 1, b: 1, a: 1}
-  - tier: 1
-    hpMul: 2
-    scoreMul: 3
-    tint: {r: 0.75, g: 0.6, b: 1, a: 1}
-  - tier: 2
-    hpMul: 3
-    scoreMul: 8
-    tint: {r: 1, g: 0.6, b: 0.45, a: 1}
   goldenTint: {r: 1, g: 0.85, b: 0.25, a: 1}
   ringGap: 6
   colonyGap: 16

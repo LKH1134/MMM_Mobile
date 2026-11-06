@@ -2,8 +2,6 @@ using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    public enum MushroomTier { Normal, Epic, Unique, Legendary }
-
     // 판 하나의 기본 수치. 스킬이 없을 때의 값이고, Skill 표 설명의 시작값(→ 왼쪽)을 따른다. HarvestGame 인스펙터에서 고친다
     [System.Serializable]
     public class RoundBase
@@ -13,8 +11,7 @@ namespace MoreMush.Mobile
         public int singlesPerColony = 3;      // 군락지 주변 단일 버섯 수
         public float colonyRespawn = 7f;      // 군락지를 다 캔 뒤 새로 돋기까지(초)
         public float minRespawn = 0.5f;
-        [Range(0f, 1f)] public float epicChance = 0.05f;     // 군락지가 에픽으로 돋을 확률
-        [Range(0f, 1f)] public float uniqueChance = 0.01f;   // 유니크로 돋을 확률
+        [Range(0f, 1f)] public float goldenChance = 0f;      // 버섯이 황금 변종으로 돋을 확률 (골드 던전만 표 값이 0보다 크다)
         public float comboFactor = 0.05f;     // 콤보 1당 점수 +5%
         public int comboCap = 20;             // 점수 배율에 쓰는 콤보 상한 (HUD 콤보는 계속 오른다). 0이면 상한 없음
         public float critDamage = 0.5f;       // 치명 박살이 없을 때 치명타 피해 +50%
@@ -59,14 +56,13 @@ namespace MoreMush.Mobile
         public int Colonies;
         public int SinglesPerColony;
         public float ColonyRespawn;
-        public float EpicChance, UniqueChance, GoldenChance;
+        public float GoldenChance;
         public int BonusDamage;
         public float SpeedMul, SizeMul, BarMul;
         public float CritChance, CritMul;
         public float ComboFactor;
         public int ComboCap;                  // 점수 배율에 쓰는 콤보 상한 (0 = 없음)
         public float ScoreMul, GoldMul, TripleChance;
-        public float NormalYieldMul, EpicYieldMul, UniqueYieldMul;
         public float GoldenScore, GoldenYield;
         public float FinalRushBonus, FinalRushSeconds;
         // 2단계
@@ -85,7 +81,7 @@ namespace MoreMush.Mobile
         public float BurstChance, BurstDamage;
         public int Restoration;
         // 3단계
-        public float CleanseChance, BossDamageMul, LegendaryYieldMul;
+        public float CleanseChance, BossDamageMul;
         // 스테이지 (HarvestGame이 StageProgress로 넣는다)
         public StageData Stage;
         public BossData Boss;                 // 보스 스테이지가 아니면 null
@@ -142,15 +138,12 @@ namespace MoreMush.Mobile
                 Restoration = Mathf.RoundToInt(T(SkillAbility.FieldRestoration)),
                 CleanseChance = Mathf.Clamp01(T(SkillAbility.DebuffCleanse)),
                 BossDamageMul = 1f + T(SkillAbility.BossDamage),
-                LegendaryYieldMul = 1f + T(SkillAbility.LegendaryYield),
 
                 Duration = Mathf.Max(1f, b.duration + T(SkillAbility.RoundTime)),
                 Colonies = Mathf.Max(1, b.colonies + Mathf.RoundToInt(T(SkillAbility.ColonyCount))),
                 SinglesPerColony = Mathf.Max(0, b.singlesPerColony + Mathf.RoundToInt(T(SkillAbility.ColonySingles))),
                 ColonyRespawn = Mathf.Max(b.minRespawn, b.colonyRespawn + T(SkillAbility.ColonyRespawn)),
-                EpicChance = Mathf.Clamp01(b.epicChance + T(SkillAbility.EpicSpawn)),
-                UniqueChance = Mathf.Clamp01(b.uniqueChance + T(SkillAbility.UniqueSpawn)),
-                GoldenChance = Mathf.Clamp01(T(SkillAbility.GoldenSpawn)),
+                GoldenChance = Mathf.Clamp01(b.goldenChance + T(SkillAbility.GoldenSpawn)),
                 BonusDamage = Mathf.RoundToInt(T(SkillAbility.HarvesterDamage)),
                 SpeedMul = 1f + T(SkillAbility.HarvesterSpeed),
                 SizeMul = 1f + T(SkillAbility.HarvesterSize),
@@ -162,26 +155,11 @@ namespace MoreMush.Mobile
                 ScoreMul = 1f + T(SkillAbility.ScoreRate),
                 GoldMul = 1f + T(SkillAbility.GoldConversion),
                 TripleChance = Mathf.Clamp01(T(SkillAbility.TripleScoreChance)),
-                NormalYieldMul = 1f + T(SkillAbility.NormalYield),
-                EpicYieldMul = 1f + T(SkillAbility.EpicYield),
-                UniqueYieldMul = 1f + T(SkillAbility.UniqueYield),
                 GoldenScore = b.goldenScore,
                 GoldenYield = b.goldenYield,
                 FinalRushBonus = T(SkillAbility.FinalRushBonus),
                 FinalRushSeconds = SkillProgress.Param(SkillAbility.FinalRushBonus, b.finalRushSeconds),
             };
-        }
-
-        public float YieldMul(MushroomTier tier)
-        {
-            switch (tier)
-            {
-                case MushroomTier.Epic: return EpicYieldMul;
-                case MushroomTier.Unique: return UniqueYieldMul;
-                case MushroomTier.Normal: return NormalYieldMul;
-                case MushroomTier.Legendary: return LegendaryYieldMul;
-                default: return 1f;
-            }
         }
     }
 }

@@ -38,7 +38,6 @@ namespace MoreMush.Mobile
         static GachaProductRow[] gachaProducts;
         static IdleBattleRow idleBattle;
         static HarvestSettingRow[] harvestSettings;
-        static HarvestTierRow[] harvestTiers;
         static TreeQuestRow[] treeQuests;
         static DungeonRow[] dungeonList;
 
@@ -47,7 +46,7 @@ namespace MoreMush.Mobile
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트",
             EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
-            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", HarvestTierSheet = "수확등급", TreeQuestSheet = "의뢰";
+            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -76,7 +75,6 @@ namespace MoreMush.Mobile
             gachaProducts = null;
             idleBattle = null;
             harvestSettings = null;
-            harvestTiers = null;
             treeQuests = null;
             dungeonList = null;
         }
@@ -121,7 +119,6 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<GachaProductRow> GachaProducts { get { Ensure(); return gachaProducts; } }
         public static IdleBattleRow IdleBattle { get { Ensure(); return idleBattle; } }
         public static IReadOnlyList<HarvestSettingRow> HarvestSettings { get { Ensure(); return harvestSettings; } }
-        public static IReadOnlyList<HarvestTierRow> HarvestTiers { get { Ensure(); return harvestTiers; } }
         public static IReadOnlyList<TreeQuestRow> TreeQuests { get { Ensure(); return treeQuests; } }
 
         // 장비 시트에서 그 종류의 장비를 저장 인덱스(itemIndex) 순서로
@@ -244,7 +241,6 @@ namespace MoreMush.Mobile
             var battleRows = Read(new DataTable<IdleBattleRow>(IdleBattleSheet, 13001, 13999), sheets, issues);
             idleBattle = battleRows.Count > 0 ? battleRows[0] : null;
             harvestSettings = ToArray(Read(new DataTable<HarvestSettingRow>(HarvestSheet, 14001, 14999), sheets, issues));
-            harvestTiers = ToArray(Read(new DataTable<HarvestTierRow>(HarvestTierSheet, 15001, 15999), sheets, issues));
             treeQuests = ToArray(Read(new DataTable<TreeQuestRow>(TreeQuestSheet, 9901, 9999), sheets, issues));
 
             foreach (var issue in issues)
@@ -388,6 +384,7 @@ namespace MoreMush.Mobile
     {
         public int dungeon;        // 던전 카드 번호 (DungeonEntry.dungeon)
         public int unlockStage;    // 이 스테이지에 진입해야 열린다 (0 = 처음부터)
+        public string mode;        // Harvest = 벽돌깨기 판(scene 씬) · BossRush = 방치 화면 보스 연속전 · BossLevel = 방치 화면 레벨업 보스 (DungeonSession)
         public string scene;       // 입장 씬 (DungeonEntry가 읽는다). 미구현 던전은 빈 문자열
         public bool implemented;   // false면 입장 버튼을 막는다
         public int baseStage;      // 레벨 1의 기준 스테이지 (레벨 L = baseStage + stageStep × (L − 1)) (DungeonRewards)
@@ -530,11 +527,4 @@ namespace MoreMush.Mobile
         public double value;
     }
 
-    // 수확등급: 수확 판 버섯 등급별 체력·점수 배율
-    public class HarvestTierRow : TableRow
-    {
-        public MushroomTier tier;
-        public int hpMultiplier;
-        public double scoreMultiplier;
-    }
 }

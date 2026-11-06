@@ -20,7 +20,7 @@ namespace MoreMush.Mobile
         readonly GameObject root;
         readonly TMP_Text goldText, myceliteText, statusText;
         readonly Button watchButton;
-        Action onWatch, onClose;
+        Action onWatch, onClose, onCancel;
 
         public bool IsOpen => root != null && root.activeSelf;
 
@@ -57,11 +57,13 @@ namespace MoreMush.Mobile
             root.SetActive(false);
         }
 
-        // gold·mycelite = 받을 양. watch = "광고 보기"를 눌렀을 때, close = 창이 닫힐 때(취소·뒤로가기·보상 뒤)
-        public void Open(long gold, long mycelite, Action watch, Action close)
+        // gold·mycelite = 받을 양. watch = "광고 보기"를 눌렀을 때, close = 창이 닫힐 때(취소·뒤로가기·보상 뒤),
+        // cancel = "취소" 버튼을 눌렀을 때만 (닫히기 전에 불린다 — 상자를 치우는 데 쓴다)
+        public void Open(long gold, long mycelite, Action watch, Action close, Action cancel = null)
         {
             onWatch = watch;
             onClose = close;
+            onCancel = cancel;
             goldText.text = "+" + Wallet.Format(gold);
             myceliteText.text = "+" + Wallet.Format(mycelite);
             statusText.text = "";
@@ -84,11 +86,16 @@ namespace MoreMush.Mobile
             if (!IsOpen) return;
             root.SetActive(false);
             var close = onClose;
-            onClose = onWatch = null;
+            onClose = onWatch = onCancel = null;
             close?.Invoke();
         }
 
-        void Cancel() => Close();
+        void Cancel()
+        {
+            var cancel = onCancel;
+            Close();
+            cancel?.Invoke();
+        }
 
         // ── UI 조각 ──
         static void Stretch(RectTransform rt)

@@ -44,8 +44,14 @@ namespace MoreMush.Mobile
         public bool StageCleared => Stats.BossRound ? BossKilled : !FarmRound;
         public int MyceliteEarned { get; private set; }   // 이번 판 첫 클리어 균사석 (측정기는 스스로 센다)
         public int StageNumber { get; private set; }      // = 던전 1 레벨 (DungeonTickets.Level)
-        public long DungeonGold { get; private set; }     // 판 골드에 더해 주는 던전 레벨 보상 (DungeonRewards: 깼을 때만 그 레벨 보상)
-        const int Dungeon = 1;
+        public long DungeonGold { get; private set; }     // 판 골드에 더해 주는 던전 레벨 보상 (DungeonRewards: 깨면 그 레벨, 못 깨면 × dungeonFailMul)
+        public long DungeonMycelite { get; private set; } // 던전 레벨 보상 균사석
+        public long PaidGold { get; private set; }        // 이번 판에 실제로 지갑에 넣은 판 골드 (균사석 던전은 0)
+        // 지금 던전 (벽돌깨기 던전 1~3이 이 씬을 같이 쓴다, DungeonSession)
+        static int Dungeon => DungeonSession.Current;
+        // 던전 시트에 골드 보상이 없는 던전(균사석 던전)은 판 점수를 골드로 주지 않고, 균사석 보상이 없는 던전(골드 던전)은 첫 클리어 균사석을 주지 않는다
+        static bool GivesGold => GameBalance.Dungeon(Dungeon) is DungeonRow r ? r.rewardKills > 0 : true;
+        static bool GivesMycelite => GameBalance.Dungeon(Dungeon) is DungeonRow r ? r.rewardMyc > 0 : true;
         public bool Simulating { get; set; }
         public bool FinalRush => Stats.FinalRushBonus > 0f && hud.TimerStarted && hud.Remaining <= Stats.FinalRushSeconds;
         public event System.Action<long> GameOver;   // 이번 판에 번 골드 (보상 포함)
@@ -75,7 +81,7 @@ namespace MoreMush.Mobile
             Finished = BossKilled = false;
             BonusGold = 0;
             MyceliteEarned = 0;
-            DungeonGold = 0;
+            DungeonGold = DungeonMycelite = PaidGold = 0;
             ReferenceScore = referenceScore;
             ReferenceGold = referenceGold;
             StageNumber = stageNumber;
@@ -127,7 +133,7 @@ namespace MoreMush.Mobile
             float comboFactor = Stats.ComboFactor * (effects != null ? effects.ComboMul : 1f);
             float skillMul = effects != null ? effects.ScoreMul : 1f;
 
-            double gain = m.Reward * field.ScoreMul(m.Tier) * (1f + combo * comboFactor) * Stats.ScoreMul * rush * skillMul * Stats.RewardRate;
+            double gain = m.Reward * (1f + combo * comboFactor) * Stats.ScoreMul * rush * skillMul * Stats.RewardRate;
             if (m.Golden) gain *= Stats.GoldenScore;
             if (Stats.TripleChance > 0f && Random.value < Stats.TripleChance) gain *= 3f;
             score += gain;
@@ -156,10 +162,13 @@ namespace MoreMush.Mobile
             input.Interactable = false;
             if (!Simulating)
             {
-                Wallet.Add(Currency.Gold, TotalGold);
-                MyceliteEarned = StageProgress.FirstClearGem(Stats.Stage, Stats.Boss, StageCleared, StageProgress.Cleared);
+                PaidGold = GivesGold ? TotalGold : 0;
+                Wallet.Add(Currency.Gold, PaidGold);
+                MyceliteEarned = GivesMycelite ? StageProgress.FirstClearGem(Stats.Stage, Stats.Boss, StageCleared, StageProgress.Cleared) : 0;
                 if (MyceliteEarned > 0) Wallet.Add(Currency.Mycelite, MyceliteEarned);
-                DungeonGold = StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber).gold : 0;
+                var reward = StageCleared ? DungeonRewards.GrantClear(Dungeon, StageNumber) : DungeonRewards.GrantFail(Dungeon, StageNumber);
+                DungeonGold = reward.gold;
+                DungeonMycelite = reward.mycelite;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
                 WorldTree.QuestDungeon();
             }
@@ -171,7 +180,7 @@ namespace MoreMush.Mobile
         {
             yield return new WaitForSecondsRealtime(resultDelay);
             var popup = resultPopup.Get(hud.transform).GetComponent<ResultPopup>();
-            popup.Show(IdleProgress.SaturatingAdd(TotalGold, DungeonGold), StageCleared);
+            popup.Show(IdleProgress.SaturatingAdd(PaidGold, DungeonGold), DungeonMycelite + MyceliteEarned, StageCleared);
         }
     }
 }

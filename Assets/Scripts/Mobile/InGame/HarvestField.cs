@@ -12,15 +12,6 @@ namespace MoreMush.Mobile
     [RequireComponent(typeof(RectTransform))]
     public class HarvestField : MonoBehaviour
     {
-        [System.Serializable]
-        public class TierLook
-        {
-            public MushroomTier tier;
-            public int hpMul = 1;                     // 체력 배율
-            public float scoreMul = 1f;               // 점수 배율
-            public Color tint = Color.white;          // 임시 구분용 색 (등급 그림이 생기면 바꾼다)
-        }
-
         [Header("수확기")]
         [SerializeField] Harvester harvesterPrefab;
         [SerializeField] RectTransform harvesterLayer;
@@ -37,12 +28,6 @@ namespace MoreMush.Mobile
         [SerializeField] Mushroom clusterPrefab;      // 군락지 가운데
         [SerializeField] Mushroom singlePrefab;       // 군락지 둘레
         [SerializeField] RectTransform mushroomLayer;
-        [SerializeField] TierLook[] tiers =
-        {
-            new TierLook { tier = MushroomTier.Normal, hpMul = 1, scoreMul = 1f, tint = Color.white },
-            new TierLook { tier = MushroomTier.Epic, hpMul = 2, scoreMul = 3f, tint = new Color(0.75f, 0.6f, 1f) },
-            new TierLook { tier = MushroomTier.Unique, hpMul = 3, scoreMul = 8f, tint = new Color(1f, 0.6f, 0.45f) },
-        };
         [SerializeField] Color goldenTint = new Color(1f, 0.85f, 0.25f);
         [SerializeField] float ringGap = 6f;          // 가운데 버섯과 둘레 버섯 사이
         [SerializeField] float colonyGap = 16f;       // 군락지끼리 띄울 거리
@@ -118,7 +103,7 @@ namespace MoreMush.Mobile
             SaveBarBase();
         }
 
-        // 수확전투·수확등급 시트 값을 한 번 넣는다 (HarvestGame.Awake가 이 Awake보다 먼저 Configure를 부를 수 있어 두 곳에서 부른다).
+        // 수확전투 시트 값을 한 번 넣는다 (HarvestGame.Awake가 이 Awake보다 먼저 Configure를 부를 수 있어 두 곳에서 부른다).
         // 프리팹은 표 값 복사본으로 바꿔 풀과 크기 계산(BaseRadius·MaxHp)이 같은 값을 쓰게 한다
         bool tuned;
         void EnsureTuned()
@@ -126,9 +111,6 @@ namespace MoreMush.Mobile
             if (tuned) return;
             tuned = true;
             HarvestTuning.Apply(this, "HarvestField");
-            foreach (var row in GameBalance.HarvestTiers)
-                foreach (var t in tiers)
-                    if (t.tier == row.tier) { t.hpMul = row.hpMultiplier; t.scoreMul = (float)row.scoreMultiplier; }
             if (bar != null && !barBaseSaved)
             {
                 var barRect = (RectTransform)bar.transform;
@@ -613,7 +595,7 @@ namespace MoreMush.Mobile
             var boss = clusterPool.Get();
             boss.Pool = clusterPool;
             boss.Place(position);
-            boss.Setup(MushroomTier.Legendary, hp / Mathf.Max(1, clusterPrefab.MaxHp), false, size, tint);
+            boss.Setup(hp / Mathf.Max(1, clusterPrefab.MaxHp), false, size, tint);
             boss.Colony = colony != null ? colony.id : -1;
             boss.IsCenter = true;
             boss.IsBoss = true;
@@ -717,10 +699,7 @@ namespace MoreMush.Mobile
         void SpawnColony(Vector2 center)
         {
             var colony = new Colony { id = nextColonyId++, center = center, footprint = Footprint(mushroomSize) };
-            var tier = RollTier();
-            var look = Look(tier);
-
-            var centerMushroom = SpawnMushroom(clusterPool, center, colony.id, look);
+            var centerMushroom = SpawnMushroom(clusterPool, center, colony.id);
             centerMushroom.IsCenter = true;
             colony.members.Add(centerMushroom);
             int n = stats.SinglesPerColony;
@@ -730,12 +709,12 @@ namespace MoreMush.Mobile
             {
                 float a = start + i * Mathf.PI * 2f / n + Random.Range(-0.15f, 0.15f);
                 var pos = center + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * ring;
-                colony.members.Add(SpawnMushroom(singlePool, pos, colony.id, look));
+                colony.members.Add(SpawnMushroom(singlePool, pos, colony.id));
             }
             colonies.Add(colony);
         }
 
-        Mushroom SpawnMushroom(PrefabPool<Mushroom> pool, Vector2 pos, int colonyId, TierLook look)
+        Mushroom SpawnMushroom(PrefabPool<Mushroom> pool, Vector2 pos, int colonyId)
         {
             var m = pool.Get();
             m.Pool = pool;
@@ -743,30 +722,13 @@ namespace MoreMush.Mobile
             bool golden = !stats.BossRound && stats.GoldenChance > 0f && Random.value < stats.GoldenChance;
             // 단단한 스테이지(Stage.xlsx mushHpMul)는 일반 버섯 체력만 올리고 색을 조금 어둡게 (같은 풀 프리팹)
             bool hard = stats.MushHpMul > 1f;
-            Color tint = golden ? goldenTint : look.tint;
+            Color tint = golden ? goldenTint : Color.white;
             if (hard) tint *= stats.Base.hardTint;
-            m.Setup(look.tier, look.hpMul * stats.HpRate * stats.MushHpMul, golden, mushroomSize, tint);
+            m.Setup(stats.HpRate * stats.MushHpMul, golden, mushroomSize, tint);
             m.Colony = colonyId;
             mushrooms.Add(m);
             return m;
         }
-
-        // 유니크 → 에픽 → 일반 순으로 굴린다
-        MushroomTier RollTier()
-        {
-            float roll = Random.value;
-            if (roll < stats.UniqueChance) return MushroomTier.Unique;
-            if (roll < stats.UniqueChance + stats.EpicChance) return MushroomTier.Epic;
-            return MushroomTier.Normal;
-        }
-
-        TierLook Look(MushroomTier tier)
-        {
-            foreach (var t in tiers) if (t.tier == tier) return t;
-            return tiers.Length > 0 ? tiers[0] : new TierLook();
-        }
-
-        public float ScoreMul(MushroomTier tier) => Look(tier).scoreMul;
 
         Colony FindColony(int id)
         {
