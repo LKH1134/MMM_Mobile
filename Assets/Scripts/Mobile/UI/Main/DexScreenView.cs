@@ -33,9 +33,9 @@ namespace MoreMush.Mobile
         [SerializeField] Button closeButton;
 
         static readonly string[] Kinds = { "Edible", "Medicinal", "Toxic" };
-        static readonly string[] KindNames = { "식용", "약용", "독성" };
+        static readonly string[] KindKeys = { "dex.kind_edible", "dex.kind_medicinal", "dex.kind_toxic" };
         static readonly string[] Grades = { "Common", "Rare", "Epic", "Unique", "Legend" };
-        static readonly string[] GradeNames = { "일반", "희귀", "영웅", "유일", "전설" };
+        static readonly string[] GradeKeys = { "name.8101", "name.8102", "name.8103", "grade.unique", "name.8104" };   // 일반·희귀·영웅·유일·전설
 
         class Entry { public Sprite sprite; public int kind, grade, no; }
 
@@ -94,7 +94,7 @@ namespace MoreMush.Mobile
                 // 탭 그림은 프리팹의 tabOn/tabOff (11-05: 고른 탭 In_Color_Green · 나머지 In_Color_Grey). 글자 색·외곽선은 프리팹 그대로 둔다
                 if (kindTabs[i].image != null && tabOn != null && tabOff != null) kindTabs[i].image.sprite = i == kind ? tabOn : tabOff;
             }
-            if (sortLabel != null) sortLabel.text = ascending ? "레어도 ↑" : "레어도 ↓";
+            if (sortLabel != null) sortLabel.text = Loc.T(ascending ? "dex.sort_asc" : "dex.sort_desc");
             if (goldKnob != null && goldToggle != null)
             {
                 float x = goldToggle.isOn ? 1f : 0f;
@@ -123,7 +123,7 @@ namespace MoreMush.Mobile
                 var e = shown[i];
                 c.name = "Dex_" + e.sprite.name;
                 c.icon.sprite = e.sprite;
-                if (c.nameText != null) c.nameText.text = $"{KindNames[e.kind]} {GradeNames[e.grade]} {e.no + 1}";   // 이름 표가 생기면 바꾼다
+                if (c.nameText != null) c.nameText.text = $"{Loc.T(KindKeys[e.kind])} {Loc.T(GradeKeys[e.grade])} {e.no + 1}";   // 이름 표가 생기면 바꾼다
                 if (c.levelText != null) c.levelText.text = new string('★', e.grade + 1);
                 if (c.badge != null) c.badge.SetActive(false);   // 황금 버섯 획득 표시 — 기록이 생기면 켠다
             }

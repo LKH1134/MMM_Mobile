@@ -22,7 +22,7 @@ namespace MoreMush.Mobile
 
         GameObject cover;
         TMP_Text goldText;
-        TMP_Text stageText;
+        TMP_Text stageText, titleText, hintText, wakeText;
         float lastInput;
         float nextRefresh;
         long startGold;
@@ -89,6 +89,7 @@ namespace MoreMush.Mobile
             Application.targetFrameRate = SleepFrameRate;
             disabledCameras = Camera.allCameras;
             foreach (var c in disabledCameras) c.enabled = false;
+            ApplyTexts();
             cover.SetActive(true);
             Refresh();
         }
@@ -117,7 +118,7 @@ namespace MoreMush.Mobile
         {
             nextRefresh = Time.unscaledTime + RefreshEvery;
             goldText.text = "+" + Wallet.Format(System.Math.Max(0, Wallet.Gold - startGold));
-            stageText.text = $"스테이지 {IdleProgress.Stage}";
+            stageText.text = Loc.F("hud.stage", IdleProgress.Stage);
         }
 
         void Build()
@@ -127,13 +128,21 @@ namespace MoreMush.Mobile
             Stretch((RectTransform)cover.transform);
             cover.GetComponent<Image>().color = Color.black;   // 누름을 받는다 — 클릭은 부모인 이 컴포넌트의 OnPointerClick으로 올라온다
 
-            NewText("Title", "절전 모드", 84f, new Color(1f, 1f, 1f, 0.9f), 260f);
+            titleText = NewText("Title", "", 84f, new Color(1f, 1f, 1f, 0.9f), 260f);
             stageText = NewText("Stage", "", 52f, new Color(1f, 1f, 1f, 0.7f), 120f);
             goldText = NewText("Gold", "", 72f, new Color(1f, 0.85f, 0.4f, 1f), 0f);
-            NewText("Hint", "절전 중에도 골드를 모읍니다", 40f, new Color(1f, 1f, 1f, 0.5f), -110f);
-            NewText("Wake", "화면을 누르면 해제됩니다", 44f, new Color(1f, 1f, 1f, 0.6f), -700f);
+            hintText = NewText("Hint", "", 40f, new Color(1f, 1f, 1f, 0.5f), -110f);
+            wakeText = NewText("Wake", "", 44f, new Color(1f, 1f, 1f, 0.6f), -700f);
             ApplyFont();
             cover.SetActive(false);
+        }
+
+        // 안내 글자 (덮개를 열 때마다 현재 언어로)
+        void ApplyTexts()
+        {
+            titleText.text = Loc.T("powersave.title");
+            hintText.text = Loc.T("powersave.hint");
+            wakeText.text = Loc.T("powersave.wake");
         }
 
         TMP_Text NewText(string name, string text, float size, Color color, float y)

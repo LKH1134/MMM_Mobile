@@ -97,12 +97,10 @@ namespace MoreMush.Mobile
             get
             {
                 Ensure();
-                if (gradeNames == null)
-                {
-                    gradeNames = new string[grades.Length];
-                    for (int i = 0; i < grades.Length; i++) gradeNames[i] = grades[i].name;
-                }
-                return gradeNames;
+                // 언어마다 달라 캐시하지 않는다 (번역된 이름)
+                var names = new string[grades.Length];
+                for (int i = 0; i < grades.Length; i++) names[i] = grades[i].Name;
+                return names;
             }
         }
         public static IReadOnlyList<GachaLevelRow> GachaLevels { get { Ensure(); return gachaLevels; } }

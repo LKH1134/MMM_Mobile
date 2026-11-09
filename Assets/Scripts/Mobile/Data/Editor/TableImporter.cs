@@ -73,9 +73,16 @@ namespace MoreMush.Mobile.EditorTools
         static void WarnMissingGlyphs(string name, byte[] bytes)
         {
             var text = new System.Text.StringBuilder();
-            foreach (var sheet in XlsxReader.Read(bytes))
-                foreach (var row in sheet.Value)
-                    foreach (var cell in row) text.Append(cell);
+            if (name == "String")
+            {
+                // 문자열 표는 화면에 나오는 문구 칸만 본다 (key·memo 열은 화면에 안 나온다)
+                foreach (var texts in StringTable.Parse(bytes, new List<string>()).Values)
+                    foreach (var t in texts) text.Append(t);
+            }
+            else
+                foreach (var sheet in XlsxReader.Read(bytes))
+                    foreach (var row in sheet.Value)
+                        foreach (var cell in row) text.Append(cell);
             string missing = FontBaker.MissingCharacters(text.ToString());
             if (missing.Length > 0)
                 Debug.LogWarning($"[TableImporter] {name}: 폰트에 없는 글자 {missing.Length}개 — 메뉴 MoreMush/Fonts/Bake Static Atlases를 다시 돌린다: {missing}");
@@ -87,6 +94,7 @@ namespace MoreMush.Mobile.EditorTools
             switch (name)
             {
                 case "GameBalance": return GameBalanceValidator.Validate(bytes, issues);
+                case "String": return ValidateStrings(bytes, issues);
                 case "Mushroom": return Check(new DataTable<MushroomData>(name, GameData.Mushrooms.IndexMin, GameData.Mushrooms.IndexMax), bytes, issues);
                 case "Harvester": return Check(new DataTable<HarvesterData>(name, GameData.Harvesters.IndexMin, GameData.Harvesters.IndexMax), bytes, issues);
                 case "Skill": return Check(new DataTable<SkillData>(name, GameData.Skills.IndexMin, GameData.Skills.IndexMax), bytes, issues);
@@ -94,6 +102,17 @@ namespace MoreMush.Mobile.EditorTools
                 case "Boss": return Check(new DataTable<BossData>(name, GameData.Bosses.IndexMin, GameData.Bosses.IndexMax), bytes, issues);
                 default: return -1;
             }
+        }
+
+        // 문자열 표: key 겹침·기본 언어 빈칸·{번호} 자리 차이는 막고, 번역이 빈 칸은 경고만 한다 (게임은 한국어로 보여 준다)
+        static int ValidateStrings(byte[] bytes, List<string> issues)
+        {
+            var table = StringTable.Parse(bytes, issues);
+            var missing = StringTable.MissingTranslations(table);
+            if (missing.Count > 0)
+                Debug.LogWarning($"[TableImporter] String: 번역이 빈 칸 {missing.Count}개 (한국어로 보인다, 최대 30개 표시)\n" + string.Join("\n", missing.Take(30)));
+            if (issues.Count == 0) EditorApplication.delayCall += Loc.Reload;
+            return table.Count;
         }
 
         static int Check<T>(DataTable<T> table, byte[] bytes, List<string> issues) where T : TableRow, new()

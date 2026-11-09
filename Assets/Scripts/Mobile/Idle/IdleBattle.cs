@@ -266,12 +266,23 @@ namespace MoreMush.Mobile
         {
             Formation.Changed += RefreshGgomas;
             Equipment.Weapon.Changed += RefreshGgomas;   // 장착한 수확기(무기)가 바뀌면 던지는 그림을 바꾼다
+            Loc.Changed += OnLanguageChanged;
+        }
+
+        // 언어가 바뀌면 값이 그대로여서 건너뛰던 글자도 다시 그린다
+        void OnLanguageChanged()
+        {
+            lastHpShown = lastMaxHpShown = -1;
+            shownBossSec = -1;
+            shownPower = double.NaN;
+            RefreshHud();
         }
 
         void OnDisable()
         {
             Formation.Changed -= RefreshGgomas;
             Equipment.Weapon.Changed -= RefreshGgomas;
+            Loc.Changed -= OnLanguageChanged;
             AbortDungeon();         // 꺼지면(프레임 예외로 멈춤 포함) 던전을 끝낸다 — 그대로 두면 다른 던전에 들어갈 수 없다
             FlushGold();
         }
@@ -381,7 +392,7 @@ namespace MoreMush.Mobile
             try
             {
                 if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
-                reportPopup.ShowMessage("문제가 생겼어요", "전투를 진행하지 못하고 있어요.\n확인을 누르면 게임을 다시 시작해요.\n(진행 상황은 저장되어 있어요)", Restart);
+                reportPopup.ShowMessage(Loc.T("battle.fatal_title"), Loc.T("battle.fatal_msg"), Restart);
             }
             catch (System.Exception e)
             {
@@ -450,7 +461,7 @@ namespace MoreMush.Mobile
                     // 시간 초과: 보스를 거두고 같은 스테이지 처음부터
                     Kill(boss, false);
                     boss = null;
-                    ShowText(Center(), "보스 실패!", new Color(1f, 0.45f, 0.4f), 64f, 1.4f);
+                    ShowText(Center(), Loc.T("battle.boss_fail"), new Color(1f, 0.45f, 0.4f), 64f, 1.4f);
                     nextWaveIn = waveDelay * 2f;
                     wave = 0;
                     partyHp = partyMaxHp;
@@ -493,7 +504,7 @@ namespace MoreMush.Mobile
                 partyHp = partyMaxHp;
                 stage++;
                 IdleProgress.Stage = stage;
-                ShowText(Center(), $"스테이지 {stage}", Color.white, 72f, 1.4f);
+                ShowText(Center(), Loc.F("hud.stage", stage), Color.white, 72f, 1.4f);
                 wave = 0;
                 nextWaveIn = waveDelay * 2f;
             }
@@ -552,7 +563,7 @@ namespace MoreMush.Mobile
             nextWaveIn = waveDelay * 2f;
             partyHp = partyMaxHp;
             pendingHurt = 0;
-            ShowText(Center(), "패배! 다시 도전", new Color(1f, 0.45f, 0.4f), 64f, 1.4f);
+            ShowText(Center(), Loc.T("battle.defeat"), new Color(1f, 0.45f, 0.4f), 64f, 1.4f);
             RefreshHud();
         }
 
@@ -568,7 +579,7 @@ namespace MoreMush.Mobile
             if (shownHp == lastHpShown && partyMaxHp == lastMaxHpShown) return;
             lastHpShown = shownHp;
             lastMaxHpShown = partyMaxHp;
-            hpText.text = $"체력 {IdleProgress.FormatNumber(shownHp)} / {IdleProgress.FormatNumber(partyMaxHp)}";
+            hpText.text = Loc.F("hud.hp", IdleProgress.FormatNumber(shownHp), IdleProgress.FormatNumber(partyMaxHp));
         }
 
         double lastHpShown = -1, lastMaxHpShown = -1;
@@ -919,7 +930,7 @@ namespace MoreMush.Mobile
         static string StageLabel(int stage)
         {
             int s = Mathf.Max(1, stage) - 1;
-            return $"<color=#BA8CF2>스테이지</color> {s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}";
+            return Loc.F("battle.stage_banner", $"{s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}");
         }
 
         // 진행 막대에 웨이브 사이 눈금을 (waves - 1)개 둔다
@@ -1000,7 +1011,7 @@ namespace MoreMush.Mobile
             int sec = Mathf.CeilToInt(bossTimeLeft);
             if (sec == shownBossSec) return;
             shownBossSec = sec;
-            timerText.text = sec + "초";
+            timerText.text = Loc.F("time.s", sec);
         }
 
         int shownBossSec = -1;

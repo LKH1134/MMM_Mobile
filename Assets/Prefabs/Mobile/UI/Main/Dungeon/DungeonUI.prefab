@@ -361,6 +361,7 @@ GameObject:
   - component: {fileID: 758553823394250641}
   - component: {fileID: 316600546420708679}
   - component: {fileID: 212329807459873283}
+  - component: {fileID: 2778090385069979391}
   m_Layer: 0
   m_Name: LockText
   m_TagString: Untagged
@@ -487,6 +488,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2778090385069979391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218815142829102475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.locked
 --- !u!1 &347530151542738677
 GameObject:
   m_ObjectHideFlags: 0
@@ -498,6 +512,7 @@ GameObject:
   - component: {fileID: 199090414712738008}
   - component: {fileID: 582119671500466010}
   - component: {fileID: 377465547730455439}
+  - component: {fileID: 9161605002377603130}
   m_Layer: 0
   m_Name: HeaderDesc
   m_TagString: Untagged
@@ -625,6 +640,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &9161605002377603130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 347530151542738677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.key_desc
 --- !u!1 &354889996629826252
 GameObject:
   m_ObjectHideFlags: 0
@@ -636,6 +664,7 @@ GameObject:
   - component: {fileID: 741790928812300208}
   - component: {fileID: 253540110946965195}
   - component: {fileID: 583234416758609302}
+  - component: {fileID: 8993676475301017971}
   m_Layer: 0
   m_Name: LockText
   m_TagString: Untagged
@@ -762,6 +791,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8993676475301017971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 354889996629826252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.locked
 --- !u!1 &391180355884436911
 GameObject:
   m_ObjectHideFlags: 0
@@ -2420,6 +2462,7 @@ GameObject:
   - component: {fileID: 8358929238208397730}
   - component: {fileID: 8961817389801954626}
   - component: {fileID: 6804207912642001333}
+  - component: {fileID: 3543199008205153836}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2546,6 +2589,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3543199008205153836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2666830752634566702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.enter
 --- !u!1 &2681486472750286714
 GameObject:
   m_ObjectHideFlags: 0
@@ -2557,6 +2613,7 @@ GameObject:
   - component: {fileID: 2021409627171181705}
   - component: {fileID: 350710069581946629}
   - component: {fileID: 5441969523389232151}
+  - component: {fileID: 7732121071631695014}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2683,6 +2740,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7732121071631695014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2681486472750286714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.enter
 --- !u!1 &2849344622129734851
 GameObject:
   m_ObjectHideFlags: 0
@@ -3824,6 +3894,7 @@ GameObject:
   - component: {fileID: 1577464003545156929}
   - component: {fileID: 4046239075133066350}
   - component: {fileID: 753835640736530895}
+  - component: {fileID: 1501621303619720430}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -3950,6 +4021,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1501621303619720430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3871007831152780414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.enter
 --- !u!1 &3981561682573790162
 GameObject:
   m_ObjectHideFlags: 0
@@ -4399,6 +4483,7 @@ GameObject:
   - component: {fileID: 6474072188903696320}
   - component: {fileID: 620010805146899614}
   - component: {fileID: 5213182821166032331}
+  - component: {fileID: 8005779731832096962}
   m_Layer: 0
   m_Name: LockText
   m_TagString: Untagged
@@ -4525,6 +4610,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8005779731832096962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4215368146829186306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.locked
 --- !u!1 &4357408923968286114
 GameObject:
   m_ObjectHideFlags: 0
@@ -5037,6 +5135,7 @@ GameObject:
   - component: {fileID: 8530885545437832948}
   - component: {fileID: 1678311586072982662}
   - component: {fileID: 4512394693697658801}
+  - component: {fileID: 2658231455201003686}
   m_Layer: 0
   m_Name: LockText
   m_TagString: Untagged
@@ -5163,6 +5262,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2658231455201003686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4883563042924355518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.locked
 --- !u!1 &4953498769422787428
 GameObject:
   m_ObjectHideFlags: 0
@@ -5711,6 +5823,7 @@ GameObject:
   - component: {fileID: 2796497107855081307}
   - component: {fileID: 6366343333889646777}
   - component: {fileID: 8719424549917447986}
+  - component: {fileID: 7274260261228527862}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -5837,6 +5950,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7274260261228527862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5305526594984402006}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.enter
 --- !u!1 &5455448700126227746
 GameObject:
   m_ObjectHideFlags: 0
@@ -6307,6 +6433,7 @@ GameObject:
   - component: {fileID: 803830318902007468}
   - component: {fileID: 5067869179995630629}
   - component: {fileID: 1469198092954133879}
+  - component: {fileID: 5540141957201343323}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -6433,6 +6560,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &5540141957201343323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5697066202112992681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.enter
 --- !u!1 &5723041132214224260
 GameObject:
   m_ObjectHideFlags: 0
@@ -8203,6 +8343,7 @@ GameObject:
   - component: {fileID: 8918728490387243766}
   - component: {fileID: 5236937703837807222}
   - component: {fileID: 723881602623580798}
+  - component: {fileID: 1351253916080069893}
   m_Layer: 0
   m_Name: LockText
   m_TagString: Untagged
@@ -8329,6 +8470,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1351253916080069893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8699180118626172708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: dungeon.locked
 --- !u!1 &8905538900156958309
 GameObject:
   m_ObjectHideFlags: 0
@@ -8340,6 +8494,7 @@ GameObject:
   - component: {fileID: 5767276078969456280}
   - component: {fileID: 6155687025813386266}
   - component: {fileID: 4709812358611853847}
+  - component: {fileID: 2483622854247395542}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -8466,3 +8621,16 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2483622854247395542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8905538900156958309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: tab.dungeon

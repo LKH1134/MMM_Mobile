@@ -25,7 +25,7 @@ namespace MoreMush.Mobile
             if (!GameBalance.Preload(out _))
             {
                 if (percentText != null) { percentText.enableAutoSizing = true; percentText.fontSizeMin = 18f; percentText.textWrappingMode = TextWrappingModes.Normal; }
-                if (percentText != null) percentText.text = "게임 데이터를 읽지 못했어요\n앱을 다시 실행해 주세요";
+                if (percentText != null) percentText.text = Loc.T("start.load_failed");
                 yield break;
             }
 

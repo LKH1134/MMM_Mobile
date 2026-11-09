@@ -24,7 +24,7 @@ namespace MoreMush.Mobile
             return GameBalance.DecoGrades[0];
         }
 
-        public static string DecoGradeName(int grade) => DecoGrade(grade).name;
+        public static string DecoGradeName(int grade) => DecoGrade(grade).Name;
 
         public static Sprite DecoSprite(DecoRow d)
         {
@@ -147,10 +147,10 @@ namespace MoreMush.Mobile
         {
             switch (zone)
             {
-                case TreeZone.Root: return "뿌리";
-                case TreeZone.Trunk: return "줄기";
-                case TreeZone.Branch: return "가지";
-                default: return "수관";
+                case TreeZone.Root: return Loc.T("zone.root");
+                case TreeZone.Trunk: return Loc.T("zone.trunk");
+                case TreeZone.Branch: return Loc.T("zone.branch");
+                default: return Loc.T("zone.crown");
             }
         }
 

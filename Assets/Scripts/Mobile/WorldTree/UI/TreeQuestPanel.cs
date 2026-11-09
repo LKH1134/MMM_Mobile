@@ -61,6 +61,7 @@ namespace MoreMush.Mobile
         {
             WorldTree.Changed += MarkDirty;
             Formation.Changed += MarkDirty;
+            Loc.Changed += MarkDirty;
             ShowPage(weeklyTab == null || weeklyTab.isOn);
             Refresh();
         }
@@ -69,6 +70,7 @@ namespace MoreMush.Mobile
         {
             WorldTree.Changed -= MarkDirty;
             Formation.Changed -= MarkDirty;
+            Loc.Changed -= MarkDirty;
         }
 
         void MarkDirty() => dirty = true;
@@ -106,8 +108,8 @@ namespace MoreMush.Mobile
             if (remain == null) return;
             var left = showingWeekly ? WorldTree.UntilWeekReset : DungeonTickets.UntilReset;
             remain.text = left.TotalDays >= 1
-                ? $"남은 시간 {(int)left.TotalDays}일 {left.Hours:00}:{left.Minutes:00}:{left.Seconds:00}"
-                : $"남은 시간 {left.Hours:00}:{left.Minutes:00}:{left.Seconds:00}";
+                ? Loc.F("treequest.remain_days", (int)left.TotalDays, left.Hours, left.Minutes, left.Seconds)
+                : Loc.F("treequest.remain", left.Hours, left.Minutes, left.Seconds);
         }
 
         void Refresh()
@@ -130,8 +132,8 @@ namespace MoreMush.Mobile
                 var q = quests[i];
                 var row = WorldTree.QuestRowOf(q);
                 bool done = WorldTree.QuestDone(q), claimable = WorldTree.QuestClaimable(q);
-                if (c.name != null) c.name.text = row.name;
-                if (c.npc != null) c.npc.text = string.IsNullOrEmpty(q.kid) ? "세계수" : Formation.Name(q.kid);
+                if (c.name != null) c.name.text = row.Name;
+                if (c.npc != null) c.npc.text = string.IsNullOrEmpty(q.kid) ? Loc.T("tab.worldtree") : Formation.Name(q.kid);
                 if (c.portrait != null)
                 {
                     // 일일 '지정 버섯' 의뢰는 그 적 그림, 나머지는 의뢰인 꼬마
@@ -151,11 +153,11 @@ namespace MoreMush.Mobile
                     c.barFill.anchorMax = new Vector2(row.target <= 0 ? 0f : Mathf.Clamp01((float)q.prog / row.target), 1f);
                 string text = WorldTree.QuestText(q);
                 bool descIsButton = c.buttonLabel == null;    // 완료 버튼이 없는 예전 일일 칸: 말풍선을 눌러 받는다
-                if (descIsButton && claimable) text = $"완료! 눌러서 받기 · 경험치 +{WorldTree.Count(row.exp)}";
-                else if (descIsButton && q.claimed) text = "받았어요";
+                if (descIsButton && claimable) text = Loc.F("treequest.claim_hint", WorldTree.Count(row.exp));
+                else if (descIsButton && q.claimed) text = Loc.T("treequest.claimed_bubble");
                 if (c.desc != null) c.desc.text = text;
-                if (c.reward != null) c.reward.text = $"경험치 +{WorldTree.Count(row.exp)}";
-                if (c.progress != null) c.progress.text = $"{WorldTree.Count(Mathf.Min(q.prog, row.target))} / {WorldTree.Count(row.target)}" + (c.reward != null ? "" : $"  · 경험치 +{WorldTree.Count(row.exp)}");
+                if (c.reward != null) c.reward.text = Loc.F("treequest.exp", WorldTree.Count(row.exp));
+                if (c.progress != null) c.progress.text = $"{WorldTree.Count(Mathf.Min(q.prog, row.target))} / {WorldTree.Count(row.target)}" + (c.reward != null ? "" : "  · " + Loc.F("treequest.exp", WorldTree.Count(row.exp)));
                 if (c.button != null) c.button.interactable = claimable;
                 if (c.reward != null && c.button != null && !isWeekly)
                 {
@@ -163,7 +165,7 @@ namespace MoreMush.Mobile
                     c.button.gameObject.SetActive(claimable || q.claimed);
                     if (c.button.image != null) c.button.image.enabled = claimable;
                 }
-                if (c.buttonLabel != null) c.buttonLabel.text = q.claimed ? (c.reward != null ? "완료" : "완료함") : done ? "의뢰 완료" : "진행 중";
+                if (c.buttonLabel != null) c.buttonLabel.text = q.claimed ? (c.reward != null ? Loc.T("tree.done") : Loc.T("treequest.done_full")) : done ? Loc.T("treequest.complete") : Loc.T("treequest.in_progress");
             }
         }
 
@@ -174,7 +176,7 @@ namespace MoreMush.Mobile
             int exp = WorldTree.QuestRowOf(list[i])?.exp ?? 0;
             if (!WorldTree.ClaimQuest(isWeekly, i)) return;
             var screen = FindAnyObjectByType<WorldTreeScreen>();
-            if (screen != null) screen.ShowToast($"의뢰 완료! 세계수 경험치 +{WorldTree.Count(exp)}");
+            if (screen != null) screen.ShowToast(Loc.F("treequest.claim_toast", WorldTree.Count(exp)));
             Refresh();
         }
 

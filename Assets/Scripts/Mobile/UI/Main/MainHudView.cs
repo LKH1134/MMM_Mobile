@@ -66,12 +66,23 @@ namespace MoreMush.Mobile
             if (dexButton != null) dexButton.onClick.AddListener(() => { if (dexScreen != null) dexScreen.SetActive(true); });
             DailyQuests.Changed += RefreshQuestDot;
             RefreshQuestDot();
+            Loc.Changed += OnLanguageChanged;
         }
 
         void OnDestroy()
         {
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= OnTabChanged;
             DailyQuests.Changed -= RefreshQuestDot;
+            Loc.Changed -= OnLanguageChanged;
+        }
+
+        // 언어가 바뀌면 글자를 모두 다시 쓴다 (값이 그대로여도)
+        void OnLanguageChanged()
+        {
+            shownStage = shownWave = shownWaves = shownBossSec = -1;
+            shownHp = shownMaxHp = -1;
+            hpTextIn = 0f;
+            RefreshPower(true);
         }
 
         void RefreshQuestDot()
@@ -124,7 +135,7 @@ namespace MoreMush.Mobile
                 if (sec != shownBossSec)
                 {
                     shownBossSec = sec;
-                    if (waveText != null) waveText.text = $"보스 {sec}초";
+                    if (waveText != null) waveText.text = Loc.F("hud.boss_time", sec);
                 }
             }
             else
@@ -135,7 +146,7 @@ namespace MoreMush.Mobile
                 {
                     shownWave = w;
                     shownWaves = waves;
-                    if (waveText != null) waveText.text = $"웨이브 {w}/{waves}";
+                    if (waveText != null) waveText.text = Loc.F("hud.wave", w, waves);
                     ShowDots(waves, w);
                 }
             }
@@ -148,7 +159,7 @@ namespace MoreMush.Mobile
                 hpTextIn = HpTextEvery;
                 shownHp = hp;
                 shownMaxHp = maxHp;
-                if (hpText != null) hpText.text = $"체력 {IdleProgress.FormatNumber(hp)} / {IdleProgress.FormatNumber(maxHp)}";
+                if (hpText != null) hpText.text = Loc.F("hud.hp", IdleProgress.FormatNumber(hp), IdleProgress.FormatNumber(maxHp));
             }
 
             powerIn -= Time.unscaledDeltaTime;
@@ -185,7 +196,7 @@ namespace MoreMush.Mobile
             if (force || total != shownPower)
             {
                 shownPower = total;
-                if (powerText != null) powerText.text = "전투력 " + CombatPower.Format(total);
+                if (powerText != null) powerText.text = Loc.F("hud.power", CombatPower.Format(total));
             }
             if (statsPanel != null && statsPanel.activeSelf && statsText != null) statsText.text = CombatPower.Describe();
         }

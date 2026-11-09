@@ -145,7 +145,7 @@ RectTransform:
   m_GameObject: {fileID: 257802347}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.37564102, y: 0.37564102, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2060219324}
@@ -158,7 +158,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1080, y: 2340}
+  m_SizeDelta: {x: 1315.0853, y: 2340}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &257802349
 MonoBehaviour:
@@ -346,6 +346,7 @@ MonoBehaviour:
   fill: {fileID: 1566989521}
   nextScene: Main
   minDuration: 2
+  consentCheckTimeout: 6
 --- !u!1 &1133938106
 GameObject:
   m_ObjectHideFlags: 0
@@ -460,6 +461,7 @@ GameObject:
   - component: {fileID: 1196788107}
   - component: {fileID: 1196788109}
   - component: {fileID: 1196788108}
+  - component: {fileID: 1196788110}
   m_Layer: 5
   m_Name: LoadText
   m_TagString: Untagged
@@ -586,6 +588,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1196788106}
   m_CullTransparentMesh: 1
+--- !u!114 &1196788110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1196788106}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: start.loading
 --- !u!1 &1245236678
 GameObject:
   m_ObjectHideFlags: 0

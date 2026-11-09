@@ -13,7 +13,8 @@ namespace MoreMush.Mobile
         const string FrameSprite = "UI/UI_PP_Out_Wood";
         const string PaperSprite = "UI/UI_PP_Out_Paper1";
         const string AdIcon = "UI/Icon/advertisement";     // 상자 그림 대신 광고 아이콘 (없으면 상자)
-        const string TitleSprite = "UI/UI_PP_Under_Tag_Yellow";
+        const string AdIconMycelite = "UI/Icon/advertisement_mycelite";   // 균사석 상자: 동전 자리에 균사석
+        const string TitleSprite ="UI/UI_PP_Under_Tag_Yellow";
         const string CancelSprite = "UI/UI_Btn_Red";     // 색은 그림으로 정한다 (코드에서 물들이지 않는다)
         const string WatchSprite = "UI/UI_Btn_Sky";
         const string GoldIcon = "UI/Icon/gold";
@@ -69,7 +70,7 @@ namespace MoreMush.Mobile
             var trt = title.rectTransform;
             trt.anchorMin = new Vector2(0.2f, 1f); trt.anchorMax = new Vector2(0.8f, 1f); trt.pivot = new Vector2(0.5f, 1f);
             trt.offsetMin = new Vector2(0f, -130f); trt.offsetMax = new Vector2(0f, 40f);
-            var titleText = NewText("Label", title.transform, "광고 보기", 54f, Ink, font, new Vector2(400f, 140f), Vector2.zero);
+            var titleText = NewText("Label", title.transform, Loc.T("common.watch_ad"), 54f, Ink, font, new Vector2(400f, 140f), Vector2.zero);
             titleText.fontStyle = FontStyles.Bold;
             var ttr = titleText.rectTransform; ttr.anchorMin = ttr.anchorMax = new Vector2(0.5f, 1f); ttr.anchoredPosition = new Vector2(0f, -76f);
             var paper = NewImage("Paper", panel.transform, Resources.Load<Sprite>(PaperSprite), Color.white, Vector2.zero, Vector2.zero);
@@ -77,7 +78,7 @@ namespace MoreMush.Mobile
             var prt = paper.rectTransform; prt.anchorMin = Vector2.zero; prt.anchorMax = Vector2.one; prt.offsetMin = new Vector2(34f, 50f); prt.offsetMax = new Vector2(-34f, -112f);
             var body = paper.transform;   // 속지 가운데 기준 (속지 높이 898)
 
-            NewText("Desc", body, "광고를 보고 골드와 균사석을 받으세요!", 40f, Ink, font, new Vector2(740f, 110f), new Vector2(0f, 340f)).fontStyle = FontStyles.Bold;
+            NewText("Desc", body, Loc.T("adbox.desc"), 40f, Ink, font, new Vector2(740f, 110f), new Vector2(0f, 340f)).fontStyle = FontStyles.Bold;
             var icon = NewImage("AdIcon", body, Resources.Load<Sprite>(AdIcon) ?? chest, Color.white, new Vector2(300f, 300f), new Vector2(0f, 130f));
             icon.preserveAspect = true;
 
@@ -94,9 +95,9 @@ namespace MoreMush.Mobile
             myceliteText = RewardPair("Mycelite", rewards, Resources.Load<Sprite>(MyceliteIcon), font);
             statusText = NewText("Status", body, "", 32f, new Color(Ink.r, Ink.g, Ink.b, 0.8f), font, new Vector2(740f, 70f), new Vector2(0f, -210f));
 
-            var cancel = NewButton("Cancel", body, "취소", CancelSprite, font, new Vector2(-190f, -340f));
+            var cancel = NewButton("Cancel", body, Loc.T("common.cancel"), CancelSprite, font, new Vector2(-190f, -340f));
             cancel.onClick.AddListener(Cancel);
-            watchButton = NewButton("Watch", body, "광고 보기", WatchSprite, font, new Vector2(190f, -340f));
+            watchButton = NewButton("Watch", body, Loc.T("common.watch_ad"), WatchSprite, font, new Vector2(190f, -340f));
             watchButton.onClick.AddListener(() => onWatch?.Invoke());
             root.SetActive(false);
         }
@@ -108,8 +109,18 @@ namespace MoreMush.Mobile
             onWatch = watch;
             onClose = close;
             onCancel = cancel;
-            if (goldText != null) goldText.text = "+" + Wallet.Format(gold);
-            if (myceliteText != null) myceliteText.text = "+" + Wallet.Format(mycelite);
+            // 상자는 한 가지 보상만 준다: 받지 않는 쪽 묶음은 숨기고, 그림·안내 문구도 그 보상에 맞춘다
+            bool mycelitePrize = mycelite > 0 && gold <= 0;
+            if (goldText != null) { goldText.text = "+" + Wallet.Format(gold); goldText.transform.parent.gameObject.SetActive(gold > 0); }
+            if (myceliteText != null) { myceliteText.text = "+" + Wallet.Format(mycelite); myceliteText.transform.parent.gameObject.SetActive(mycelite > 0); }
+            var icon = root.transform.Find("Frame/Paper/AdIcon") ?? FindDeep(root.transform, "AdIcon");
+            if (icon != null && icon.TryGetComponent<Image>(out var iconImage))
+            {
+                var sprite = Resources.Load<Sprite>(mycelitePrize ? AdIconMycelite : AdIcon);
+                if (sprite != null) iconImage.sprite = sprite;
+            }
+            var desc = FindDeep(root.transform, "Desc");
+            if (desc != null && desc.TryGetComponent<TMP_Text>(out var descText)) descText.text = Loc.T(mycelitePrize ? "adbox.desc_mycelite" : "adbox.desc_gold");
             if (statusText != null) statusText.text = "";
             if (watchButton != null) watchButton.interactable = true;
             root.SetActive(true);
@@ -142,6 +153,13 @@ namespace MoreMush.Mobile
         }
 
         // ── UI 조각 ──
+        static Transform FindDeep(Transform parent, string name)
+        {
+            foreach (var t in parent.GetComponentsInChildren<Transform>(true))
+                if (t.name == name) return t;
+            return null;
+        }
+
         static void Stretch(RectTransform rt)
         {
             rt.anchorMin = Vector2.zero;

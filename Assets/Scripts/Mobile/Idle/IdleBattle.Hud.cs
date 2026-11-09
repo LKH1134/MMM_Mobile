@@ -14,10 +14,13 @@ namespace MoreMush.Mobile
         public double HudPartyHp => System.Math.Max(0, partyHp);
         public double HudPartyMaxHp => partyMaxHp;
 
-        public static string HudStageLabel(int stage)
+        public static string HudStageLabel(int stage) => Loc.F("hud.stage", HudStageNumber(stage));
+
+        // "7-7" (챕터-칸) 표기
+        public static string HudStageNumber(int stage)
         {
             int s = Mathf.Max(1, stage) - 1;
-            return $"스테이지 {s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}";
+            return $"{s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}";
         }
     }
 }

@@ -93,15 +93,15 @@ namespace MoreMush.Mobile
             string pct = (r.value * 100).ToString("0.#");
             switch (r.effect)
             {
-                case GgomaSkillEffect.Attack: return $"공격력 +{pct}%";
-                case GgomaSkillEffect.Speed: return $"공격 속도 +{pct}%";
-                case GgomaSkillEffect.Splash: return $"범위 피해 {pct}%";
-                case GgomaSkillEffect.BossDamage: return $"보스 피해 +{pct}%";
-                case GgomaSkillEffect.EdibleDamage: return $"식용 버섯 +{pct}%";
-                case GgomaSkillEffect.ToxicDamage: return $"독성 버섯 +{pct}%";
-                case GgomaSkillEffect.MedicinalDamage: return $"약용 버섯 +{pct}%";
-                case GgomaSkillEffect.CritChance: return $"치명타 +{pct}%p";
-                case GgomaSkillEffect.TeamAttack: return $"모두 공격력 +{pct}%";
+                case GgomaSkillEffect.Attack: return Loc.F("skill.attack", pct);
+                case GgomaSkillEffect.Speed: return Loc.F("skill.speed", pct);
+                case GgomaSkillEffect.Splash: return Loc.F("skill.splash", pct);
+                case GgomaSkillEffect.BossDamage: return Loc.F("skill.boss", pct);
+                case GgomaSkillEffect.EdibleDamage: return Loc.F("skill.edible", pct);
+                case GgomaSkillEffect.ToxicDamage: return Loc.F("skill.toxic", pct);
+                case GgomaSkillEffect.MedicinalDamage: return Loc.F("skill.medicinal", pct);
+                case GgomaSkillEffect.CritChance: return Loc.F("skill.crit", pct);
+                case GgomaSkillEffect.TeamAttack: return Loc.F("skill.team_attack", pct);
                 default: return r.effect.ToString();
             }
         }

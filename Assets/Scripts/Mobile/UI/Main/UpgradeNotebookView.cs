@@ -64,13 +64,28 @@ namespace MoreMush.Mobile
         {
             Wallet.Changed += RefreshAfford;    // 전투 골드로 1초마다 온다 — 살 수 있는지만 다시 본다
             IdleProgress.Changed += OnProgressChanged;
-            Refresh();
+            Loc.Changed += OnLanguageChanged;
+            OnLanguageChanged();
         }
 
         void OnDisable()
         {
             Wallet.Changed -= RefreshAfford;
             IdleProgress.Changed -= OnProgressChanged;
+            Loc.Changed -= OnLanguageChanged;
+        }
+
+        // 언어가 바뀌면(또는 꺼져 있는 동안 바뀌었으면) 이름·잠금 문구를 다시 쓰고 값도 다시 그린다
+        void OnLanguageChanged()
+        {
+            foreach (var r in rows) WriteNames(r, IdleProgress.Get(r.stat));
+            Refresh();
+        }
+
+        static void WriteNames(UpgradeRowView r, IdleProgress.Def d)
+        {
+            if (r.nameText != null) r.nameText.text = IdleProgress.DisplayName(d.stat);
+            if (r.lockText != null) r.lockText.text = d.unlockLv > 0 ? Loc.F("upgrade.unlock_at", IdleProgress.DisplayName(d.unlockStat), d.unlockLv) : "";
         }
 
         // 강화 버튼을 누르고 있으면 초당 수십 번 온다 → 줄 전체 다시 쓰기는 RefreshEvery마다 한 번으로 묶는다 (첫 번째는 바로)
@@ -100,14 +115,13 @@ namespace MoreMush.Mobile
             var r = Instantiate(rowPrefab, content);
             r.name = "Row_" + d.stat;
             r.stat = d.stat;
-            if (r.nameText != null) r.nameText.text = d.name;
             if (r.icon != null)
             {
                 var sp = string.IsNullOrEmpty(d.icon) ? null : Resources.Load<Sprite>(d.icon);
                 r.icon.sprite = sp;
                 r.icon.enabled = sp != null;
             }
-            if (r.lockText != null) r.lockText.text = d.unlockLv > 0 ? $"{IdleProgress.Get(d.unlockStat).name} Lv {d.unlockLv} 달성 시 잠금 해제" : "";
+            WriteNames(r, d);
             if (r.button != null)
             {
                 var stat = d.stat;
@@ -147,7 +161,9 @@ namespace MoreMush.Mobile
                 {
                     // 단계 제한: 다음 단계를 여는 기준 강화 레벨을 버튼에 적는다. 비용 줄이 없으면 글자를 가운데로
                     var d = IdleProgress.Get(r.stat);
-                    r.buttonText.text = max ? "MAX" : capped ? $"{IdleProgress.Get(d.unlockStat).name}\nLv {IdleProgress.NextCapGateLevel(r.stat)} 필요" : "강화";
+                    r.buttonText.text = max ? Loc.T("upgrade.max")
+                        : capped ? Loc.F("upgrade.cap_need", IdleProgress.DisplayName(d.unlockStat), IdleProgress.NextCapGateLevel(r.stat))
+                        : Loc.T("upgrade.buy");
                     // 글자 크기·자리는 바뀔 때만 쓴다 (같은 값을 써도 레이아웃을 다시 계산한다)
                     float size = capped ? cappedLabelSize : r.labelSize;
                     if (r.buttonText.fontSize != size) r.buttonText.fontSize = size;

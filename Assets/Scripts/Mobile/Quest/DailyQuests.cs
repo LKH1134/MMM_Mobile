@@ -137,11 +137,11 @@ namespace MoreMush.Mobile
             int n = Target(i);
             switch (Kind(i))
             {
-                case QuestKind.Kill: return $"몬스터 {n:N0}마리 처치";
-                case QuestKind.Stage: return $"보스 {n:N0}번 도전";
-                case QuestKind.Upgrade: return $"강화 {n:N0}회";
-                case QuestKind.Gacha: return $"뽑기 {n:N0}회";
-                default: return $"광고 {n:N0}회 시청";
+                case QuestKind.Kill: return Loc.F("quest.desc_kill", n);
+                case QuestKind.Stage: return Loc.F("quest.desc_stage", n);
+                case QuestKind.Upgrade: return Loc.F("quest.desc_upgrade", n);
+                case QuestKind.Gacha: return Loc.F("quest.desc_gacha", n);
+                default: return Loc.F("quest.desc_ad", n);
             }
         }
     }

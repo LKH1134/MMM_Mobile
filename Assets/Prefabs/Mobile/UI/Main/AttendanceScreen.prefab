@@ -2407,6 +2407,7 @@ GameObject:
   - component: {fileID: 249738406972667708}
   - component: {fileID: 2531494767284261222}
   - component: {fileID: 2922473167515037350}
+  - component: {fileID: 872026192379815051}
   m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
@@ -2533,6 +2534,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &872026192379815051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3400441018741755139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: attendance.title
 --- !u!1 &3492128086144955367
 GameObject:
   m_ObjectHideFlags: 0

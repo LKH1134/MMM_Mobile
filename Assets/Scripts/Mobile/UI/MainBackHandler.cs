@@ -32,7 +32,7 @@ namespace MoreMush.Mobile
             var bar = TabGroup.MainBar;
             if (bar != null && bar.Current >= 0) { bar.Select(MainNavigation.Home); return; }
             if (DungeonSession.GuardLeave(null)) return;      // 레이드 중: 종료 대신 "현재 보상을 받고 나가시겠습니까?"
-            ShowConfirm("게임 종료", "게임을 종료할까요?", Quit);
+            ShowConfirm(Loc.T("option.quit"), Loc.T("confirm.quit"), Quit);
         }
 
         static void Quit()

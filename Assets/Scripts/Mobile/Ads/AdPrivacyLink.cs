@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     [RequireComponent(typeof(TMP_Text))]
     public class AdPrivacyLink : MonoBehaviour
     {
-        const string Label = "<u>광고 개인정보 설정</u>";
+        const string LabelKey = "ad.privacy";      // "<u>…</u>" 밑줄 포함
 
         TMP_Text text;
         Button button;
@@ -26,8 +26,16 @@ namespace MoreMush.Mobile
 
         void OnEnable()
         {
+            Refresh();
+            Loc.Changed += Refresh;
+        }
+
+        void OnDisable() => Loc.Changed -= Refresh;
+
+        void Refresh()
+        {
             bool show = AdService.PrivacyOptionsRequired;
-            text.text = show ? Label : "";
+            text.text = show ? Loc.T(LabelKey) : "";
             text.raycastTarget = show;
             button.enabled = show;
         }

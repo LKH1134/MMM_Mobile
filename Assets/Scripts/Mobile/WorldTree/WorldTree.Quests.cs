@@ -42,7 +42,7 @@ namespace MoreMush.Mobile
         {
             var r = QuestRowOf(q);
             if (r == null) return "";
-            return (r.desc ?? "").Replace("{n}", Count(r.target)).Replace("{m}", r.kind == "species" ? EnemyName(q.arg) : "");
+            return (r.Desc ?? "").Replace("{n}", Count(r.target)).Replace("{m}", r.kind == "species" ? EnemyName(q.arg) : "");
         }
 
         // 의뢰 숫자 (목표·진행·경험치): 1,500처럼 쉼표 (Wallet.Format은 1.5a 같은 재화 단위)

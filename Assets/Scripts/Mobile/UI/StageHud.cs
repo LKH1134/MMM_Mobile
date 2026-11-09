@@ -133,7 +133,7 @@ namespace MoreMush.Mobile
 
         public void SetStage(int stage, bool boss)
         {
-            if (stageText != null) stageText.text = boss ? $"스테이지 {stage} · 보스" : $"스테이지 {stage}";
+            if (stageText != null) stageText.text = Loc.F(boss ? "stage.boss_label" : "hud.stage", stage);
         }
 
         public void SetCombo(int value)
@@ -184,7 +184,7 @@ namespace MoreMush.Mobile
         {
             if (speeds.Length == 0) return;
             var step = speeds[speedIndex];
-            if (speedText != null) speedText.text = step.scale.ToString("0.##") + "배속";
+            if (speedText != null) speedText.text = Loc.F("stage.speed", step.scale.ToString("0.##"));
             if (speedIcon != null && step.icon != null) speedIcon.sprite = step.icon;
         }
 
@@ -196,7 +196,7 @@ namespace MoreMush.Mobile
             int sec = Mathf.CeilToInt(Remaining);
             if (sec == shownSecond) return;
             shownSecond = sec;
-            timerText.text = sec + "초";
+            timerText.text = Loc.F("time.s", sec);
         }
     }
 }

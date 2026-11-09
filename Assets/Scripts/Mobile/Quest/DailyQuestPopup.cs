@@ -95,7 +95,7 @@ namespace MoreMush.Mobile
             if (sec == shownSecond) return;
             shownSecond = sec;
             var t = System.TimeSpan.FromSeconds(sec);
-            resetText.text = $"초기화까지 {(int)t.TotalHours:00}:{t.Minutes:00}:{t.Seconds:00}";
+            resetText.text = Loc.F("quest.reset_in", (int)t.TotalHours, t.Minutes, t.Seconds);
         }
 
         void Refresh()
@@ -108,8 +108,8 @@ namespace MoreMush.Mobile
                 row.label.text = DailyQuests.Describe(i);
                 row.progress.text = $"{done:N0} / {target:N0}";
                 row.fill.anchorMax = new Vector2(target <= 0 ? 0f : Mathf.Clamp01((float)done / target), 1f);
-                row.reward.text = $"<color=#B07A00>골드</color> +{Wallet.Format(DailyQuests.RewardGold(i))}   <color=#2A7FB0>균사석</color> +{Wallet.Format(DailyQuests.RewardMycelite(i))}";
-                row.buttonText.text = claimed ? "완료" : canClaim ? "받기" : "진행 중";
+                row.reward.text = Loc.F("quest.reward_line", Wallet.Format(DailyQuests.RewardGold(i)), Wallet.Format(DailyQuests.RewardMycelite(i)));
+                row.buttonText.text = Loc.T(claimed ? "quest.done" : canClaim ? "quest.claim" : "quest.in_progress");
                 row.button.interactable = canClaim;
                 row.buttonImage.sprite = Resources.Load<Sprite>(canClaim ? ClaimSprite : WaitSprite);
                 row.buttonText.color = canClaim ? Color.white : Ink;     // 베이지 버튼 위에서는 진한 글자
@@ -134,13 +134,13 @@ namespace MoreMush.Mobile
             panel.raycastTarget = true;     // 창 안을 눌러도 닫히지 않게
             var title = NewImage("Title", panel.transform, Resources.Load<Sprite>(TitleSprite), Color.white, new Vector2(560f, 120f), new Vector2(0f, height / 2f - 60f));
             title.type = Image.Type.Sliced;
-            NewText("TitleText", title.transform, "일일 퀘스트", 54f, Color.white, new Vector2(520f, 100f), Vector2.zero);
+            NewText("TitleText", title.transform, Loc.T("quest.daily"), 54f, Color.white, new Vector2(520f, 100f), Vector2.zero);
             resetText = NewText("Reset", panel.transform, "", 32f, new Color(Ink.r, Ink.g, Ink.b, 0.8f), new Vector2(760f, 60f), new Vector2(0f, height / 2f - 190f));
 
             for (int i = 0; i < n; i++)
                 rows.Add(BuildRow(panel.transform, i, new Vector2(0f, height / 2f - 330f - i * RowStep)));
 
-            var close = NewButton("Close", panel.transform, "닫기", CloseSprite, new Vector2(340f, 130f), new Vector2(0f, -height / 2f + 110f), 48f, out _);
+            var close = NewButton("Close", panel.transform, Loc.T("common.close"), CloseSprite, new Vector2(340f, 130f), new Vector2(0f, -height / 2f + 110f), 48f, out _);
             close.onClick.AddListener(Hide);
             // [UI 개편 2026-11-04] 와이어프레임: 닫기는 화면 아래 띠 가운데 X (하단 공용 바를 덮는다). 예전 "닫기" 버튼은 숨긴다
             close.gameObject.SetActive(false);

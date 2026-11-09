@@ -334,7 +334,7 @@ namespace MoreMush.Mobile
         public static string Name(string id)
         {
             int i = System.Array.IndexOf(Ids, id);
-            return i >= 0 ? T.names[i] : id;
+            return i >= 0 ? GameBalance.Mascots[i].Name : id;   // 번역된 이름 (언어를 바꿔도 바로 따라간다)
         }
 
         // 지금 진화 단계의 그림

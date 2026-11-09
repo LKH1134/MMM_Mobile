@@ -88,6 +88,7 @@ namespace MoreMush.Mobile
             WorldTree.Changed += MarkDirty;
             Wallet.Changed += MarkDirty;
             Formation.Changed += MarkDirty;
+            Loc.Changed += MarkDirty;
             Refresh();
         }
 
@@ -96,6 +97,7 @@ namespace MoreMush.Mobile
             WorldTree.Changed -= MarkDirty;
             Wallet.Changed -= MarkDirty;
             Formation.Changed -= MarkDirty;
+            Loc.Changed -= MarkDirty;
             ShowList(false);
         }
 
@@ -120,22 +122,22 @@ namespace MoreMush.Mobile
 
             // 세계수
             if (treeImage != null) { treeImage.sprite = WorldTree.TreeSprite(WorldTree.Stage); treeImage.preserveAspect = true; treeImage.enabled = treeImage.sprite != null; }
-            if (treeTitle != null) treeTitle.text = $"{WorldTree.Stage}단계 {row.name}";
+            if (treeTitle != null) treeTitle.text = Loc.F("grow.tree_title", WorldTree.Stage, row.Name);
             if (effects != null) effects.text = EffectsText(row);
 
             // 진화
-            if (evolveTitle != null) evolveTitle.text = max ? "최고 단계" : $"세계수 진화 → {WorldTree.Stage + 1}단계";
+            if (evolveTitle != null) evolveTitle.text = max ? Loc.T("grow.max_stage_title") : Loc.F("grow.evolve_header", WorldTree.Stage + 1);
             if (evolveIcon != null) { evolveIcon.sprite = WorldTree.TreeSprite(max ? WorldTree.Stage : WorldTree.Stage + 1); evolveIcon.preserveAspect = true; evolveIcon.enabled = evolveIcon.sprite != null; }
             float exp = max ? 1f : WorldTree.EvoExp > 0 ? Mathf.Clamp01((float)(WorldTree.Exp / WorldTree.EvoExp)) : 1f;
             SetFill(evolveFill, exp);
-            if (evolveExp != null) evolveExp.text = max ? "MAX" : $"경험치 {Wallet.Format((long)WorldTree.Exp)}/{Wallet.Format(WorldTree.EvoExp)}";
+            if (evolveExp != null) evolveExp.text = max ? "MAX" : Loc.F("grow.exp_slash", Wallet.Format((long)WorldTree.Exp), Wallet.Format(WorldTree.EvoExp));
             if (evolveInfo != null) evolveInfo.text = max ? "" : EvolveInfo(row);
             if (evolveButton != null)
             {
                 evolveButton.gameObject.SetActive(!max);
                 evolveButton.interactable = !max && WorldTree.CanEvolve() == WorldTree.GrowFail.None;
             }
-            if (evolveLabel != null) evolveLabel.text = "진화";
+            if (evolveLabel != null) evolveLabel.text = Loc.T("grow.evolve_label");
             if (evolveGoldRow != null) evolveGoldRow.SetActive(!max);
             if (evolveGoldText != null) evolveGoldText.text = Wallet.Format(WorldTree.EvoGold);
             if (evolveMyceliteRow != null) evolveMyceliteRow.SetActive(!max && WorldTree.EvoMycelite > 0);
@@ -144,19 +146,19 @@ namespace MoreMush.Mobile
             // 나이테
             if (ringLevel != null) ringLevel.text = $"Lv. {WorldTree.Ring} / {WorldTree.RingMax}";
             SetFill(ringFill, WorldTree.RingMax > 0 ? Mathf.Clamp01(WorldTree.Ring / (float)WorldTree.RingMax) : 1f);
-            if (ringDesc != null) ringDesc.text = WorldTree.IsMaxRing ? "최대 Lv" : "";
+            if (ringDesc != null) ringDesc.text = WorldTree.IsMaxRing ? Loc.T("grow.ring_max_desc") : "";
             if (ringButton != null) ringButton.interactable = !WorldTree.IsMaxRing && WorldTree.CanRingUp() == WorldTree.GrowFail.None;
-            if (ringLabel != null) ringLabel.text = WorldTree.IsMaxRing ? "최대" : "성장";
+            if (ringLabel != null) ringLabel.text = WorldTree.IsMaxRing ? Loc.T("grow.max") : Loc.T("grow.ring_label");
             if (ringCostRow != null) ringCostRow.SetActive(!WorldTree.IsMaxRing);
             CenterWhenNoCost(ringLabel, WorldTree.IsMaxRing, ref ringLabelMin);
             if (ringCostText != null) ringCostText.text = Wallet.Format(WorldTree.RingCost);
 
             // 공물
-            if (tributeDesc != null) tributeDesc.text = $"공물 <size=70%>(창고 버섯 {Wallet.Format(WorldTree.StoreTotal)}개)</size>";   // 칸 제목 줄
-            if (tributePrefer != null) tributePrefer.text = "선호 버섯 <size=80%>(×" + GameBalance.Const("tributePreferMul").ToString("0.#") + ")</size>";
+            if (tributeDesc != null) tributeDesc.text = Loc.F("grow.tribute_header", Wallet.Format(WorldTree.StoreTotal));   // 칸 제목 줄
+            if (tributePrefer != null) tributePrefer.text = Loc.F("grow.prefer_header", GameBalance.Const("tributePreferMul").ToString("0.#"));
             RefreshTributeItems(row);
             if (tributeButton != null) tributeButton.interactable = WorldTree.CanTribute;
-            if (tributeLabel != null) tributeLabel.text = WorldTree.TributePreview > 0 ? $"바치기\n<size=60%>경험치 +{Wallet.Format((long)WorldTree.TributePreview)}</size>" : "바치기";
+            if (tributeLabel != null) tributeLabel.text = WorldTree.TributePreview > 0 ? Loc.F("grow.tribute_label_exp", Wallet.Format((long)WorldTree.TributePreview)) : Loc.T("grow.tribute_btn");
 
             // 가호
             int got = 0, all = 0;
@@ -167,8 +169,8 @@ namespace MoreMush.Mobile
                 if (WorldTree.BlessActive(b)) got++;
                 else if (next == null || b.stage < next.stage) next = b;
             }
-            if (blessCount != null) blessCount.text = $"세계수의 가호 <size=70%>({got}/{all})</size>";   // 칸 제목 줄 (자세한 건 목록)
-            if (blessNext != null) blessNext.text = next != null ? $"다음 {next.stage}단계: {WorldTree.EffectText(next.effect, next.value)}" : "모든 가호를 받았어요";
+            if (blessCount != null) blessCount.text = Loc.F("grow.bless_header", got, all);   // 칸 제목 줄 (자세한 건 목록)
+            if (blessNext != null) blessNext.text = next != null ? Loc.F("grow.bless_next", next.stage, WorldTree.EffectText(next.effect, next.value)) : Loc.T("grow.bless_all");
 
             if (changed && listPanel != null && listPanel.activeSelf) FillList();   // 목록은 통째로 다시 만든다 — 바뀌었을 때만
         }
@@ -205,25 +207,25 @@ namespace MoreMush.Mobile
             }
             int deco = row.rootSlots + row.trunkSlots + row.branchSlots + row.crownSlots;
             if (sb.Length > 0) sb.Append('\n');
-            sb.Append($"제작 슬롯 {row.craftSlots} · 장식 칸 {deco}");
+            sb.Append(Loc.F("grow.slots_summary", row.craftSlots, deco));
             return sb.ToString();
         }
 
         // 진화 칸 본문: 비용(골드·균사석)은 버튼에, 여기는 조건(나이테·경험치)과 진화하면 좋아지는 것만
         static string EvolveInfo(TreeStageRow row)
         {
-            var sb = new StringBuilder("요구: ");
-            sb.Append(TreeUi.Check(WorldTree.IsMaxRing, $"나이테 Lv.{WorldTree.RingMax}"));
+            var sb = new StringBuilder();
+            sb.Append(Loc.F("grow.require", TreeUi.Check(WorldTree.IsMaxRing, Loc.F("grow.cond_ring_dot", WorldTree.RingMax))));
             if (WorldTree.Stage < GameBalance.TreeStages.Count)
             {
                 var next = GameBalance.TreeStages[WorldTree.Stage];
                 var gain = new StringBuilder();
-                if (next.craftSlots > row.craftSlots) gain.Append($"제작 슬롯 {row.craftSlots}→{next.craftSlots}  ");
+                if (next.craftSlots > row.craftSlots) gain.Append(Loc.F("grow.unlock_slots", row.craftSlots, next.craftSlots) + "  ");
                 int a = row.rootSlots + row.trunkSlots + row.branchSlots + row.crownSlots;
                 int b = next.rootSlots + next.trunkSlots + next.branchSlots + next.crownSlots;
-                if (b > a) gain.Append($"장식 칸 {a}→{b}  ");
+                if (b > a) gain.Append(Loc.F("grow.unlock_deco", a, b) + "  ");
                 foreach (var bless in GameBalance.Blessings)
-                    if (bless.stage == next.stage) gain.Append("가호 ").Append(WorldTree.EffectText(bless.effect, bless.value));
+                    if (bless.stage == next.stage) gain.Append(Loc.F("grow.gain_bless", WorldTree.EffectText(bless.effect, bless.value)));
                 if (gain.Length > 0) sb.Append("\n").Append(gain.ToString().TrimEnd());
             }
             return sb.ToString();
@@ -289,21 +291,21 @@ namespace MoreMush.Mobile
                 var row = Add(blessRowTemplate);
                 var bg = row.GetComponent<Image>();
                 if (bg != null) bg.sprite = on ? onSprite : offSprite;
-                SetText(row.transform, "Badge/Stage", $"{b.stage}단계");
-                SetText(row.transform, "Effect", WorldTree.EffectText(b.effect, b.value) + (on ? "" : "  <size=80%>(잠김)</size>"));
+                SetText(row.transform, "Badge/Stage", Loc.F("grow.stage_n", b.stage));
+                SetText(row.transform, "Effect", WorldTree.EffectText(b.effect, b.value) + (on ? "" : "  <size=80%>(" + Loc.T("grow.locked") + ")</size>"));
             }
 
             // 창고 버섯
             if (headerTemplate != null)
             {
                 var h = Add(headerTemplate.gameObject);
-                h.GetComponent<TMP_Text>().text = $"창고 버섯 ({Wallet.Format(WorldTree.StoreTotal)})";
+                h.GetComponent<TMP_Text>().text = Loc.F("grow.store_header", Wallet.Format(WorldTree.StoreTotal));
             }
             if (storeRowTemplate == null) return;
             if (WorldTree.StoreTotal <= 0)
             {
                 var row = Add(storeRowTemplate);
-                SetText(row.transform, "Name", "방치 전투에서 버섯을 잡으면 창고에 쌓여요");
+                SetText(row.transform, "Name", Loc.T("grow.store_empty"));
                 SetText(row.transform, "Count", "");
                 var ic = row.transform.Find("Icon"); if (ic != null) ic.gameObject.SetActive(false);
             }
@@ -314,7 +316,7 @@ namespace MoreMush.Mobile
                 var row = Add(storeRowTemplate);
                 var icon = row.transform.Find("Icon")?.GetComponent<Image>();
                 if (icon != null) { icon.sprite = WorldTree.EnemySprite(e.index); icon.preserveAspect = true; icon.enabled = icon.sprite != null; }
-                SetText(row.transform, "Name", e.name + (WorldTree.Prefers(e.index) ? TreeUi.Colored("  선호", TreeUi.Good) : ""));
+                SetText(row.transform, "Name", e.Name + (WorldTree.Prefers(e.index) ? TreeUi.Colored("  " + Loc.T("grow.favorite_short"), TreeUi.Good) : ""));
                 SetText(row.transform, "Count", "×" + Wallet.Format(n));
             }
         }
@@ -336,20 +338,20 @@ namespace MoreMush.Mobile
         // ── 버튼 ──
         void RingUp()
         {
-            if (WorldTree.RingUp()) Toast($"나이테 Lv {WorldTree.Ring}!");
+            if (WorldTree.RingUp()) Toast(Loc.F("grow.ring_toast", WorldTree.Ring));
             Refresh();
         }
 
         void Tribute()
         {
             double exp = WorldTree.Tribute();
-            if (exp > 0) Toast($"경험치 +{Wallet.Format((long)exp)}");
+            if (exp > 0) Toast(Loc.F("grow.exp_toast", Wallet.Format((long)exp)));
             Refresh();
         }
 
         void Evolve()
         {
-            if (WorldTree.Evolve()) Toast($"세계수가 {WorldTree.CurrentRow.name}(으)로 자랐어요!");
+            if (WorldTree.Evolve()) Toast(Loc.F("grow.evolve_toast", WorldTree.CurrentRow.Name));
             Refresh();
         }
 

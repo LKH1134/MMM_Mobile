@@ -240,6 +240,7 @@ GameObject:
   - component: {fileID: 1747297595101727505}
   - component: {fileID: 6763654258551458446}
   - component: {fileID: 2121486676206939672}
+  - component: {fileID: 6300251531117818189}
   m_Layer: 5
   m_Name: Title
   m_TagString: Untagged
@@ -366,6 +367,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6300251531117818189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 819023342144706237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: quest.title
 --- !u!1 &917561068093726560
 GameObject:
   m_ObjectHideFlags: 0
@@ -1988,6 +2002,7 @@ GameObject:
   - component: {fileID: 3082398707495336077}
   - component: {fileID: 2506405514051289838}
   - component: {fileID: 381385535046865323}
+  - component: {fileID: 4523540738638064751}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -2114,6 +2129,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4523540738638064751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514603531037261275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: quest.weekly
 --- !u!1 &1531522140879441009
 GameObject:
   m_ObjectHideFlags: 0
@@ -2474,6 +2502,7 @@ GameObject:
   - component: {fileID: 5475173588490846498}
   - component: {fileID: 460853061359060913}
   - component: {fileID: 8201656734410062929}
+  - component: {fileID: 2092465677294077421}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -2600,6 +2629,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2092465677294077421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1807310047219175926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: common.coming_soon
 --- !u!1 &1928645681657200750
 GameObject:
   m_ObjectHideFlags: 0
@@ -4210,6 +4252,7 @@ GameObject:
   - component: {fileID: 2361374756311935168}
   - component: {fileID: 8779107631550558954}
   - component: {fileID: 395332945083917183}
+  - component: {fileID: 6299106042860245291}
   m_Layer: 0
   m_Name: WeeklyTitle
   m_TagString: Untagged
@@ -4338,6 +4381,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6299106042860245291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3028399823062541364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: quest.weekly
 --- !u!1 &3103248266203085255
 GameObject:
   m_ObjectHideFlags: 0
@@ -4850,6 +4906,7 @@ GameObject:
   - component: {fileID: 5544912263106038334}
   - component: {fileID: 3167667604851496717}
   - component: {fileID: 498044197652227862}
+  - component: {fileID: 3826821363645059682}
   m_Layer: 0
   m_Name: DailyTitle
   m_TagString: Untagged
@@ -4978,6 +5035,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3826821363645059682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3635538372911678054}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: quest.daily
 --- !u!1 &3649244730796066273
 GameObject:
   m_ObjectHideFlags: 0
@@ -12922,6 +12992,7 @@ GameObject:
   - component: {fileID: 6394132711687547117}
   - component: {fileID: 1252661481076039658}
   - component: {fileID: 6337837114297749333}
+  - component: {fileID: 3223434457807721720}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -13048,6 +13119,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3223434457807721720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8860464600475197371}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: quest.daily
 --- !u!1 &8937292819905392327
 GameObject:
   m_ObjectHideFlags: 0

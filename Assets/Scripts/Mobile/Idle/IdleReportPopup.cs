@@ -39,7 +39,7 @@ namespace MoreMush.Mobile
 
         public void Show(IdleAway.Report r)
         {
-            SetTitle("방치 정산");
+            SetTitle(Loc.T("idle.title"));
             SetMessageMode(false);
             report = r;
             doubled = false;
@@ -138,18 +138,18 @@ namespace MoreMush.Mobile
         {
             var r = report;
             long m = doubled ? 2 : 1;
-            if (view.timeText != null) view.timeText.text = "자리를 비운 동안 " + FormatTime(r.seconds + r.offlineSeconds);
+            if (view.timeText != null) view.timeText.text = Loc.F("idle.away", FormatTime(r.seconds + r.offlineSeconds));
             if (view.goldText != null) view.goldText.text = "+" + Wallet.Format(Times(IdleProgress.SaturatingAdd(r.gold, r.offlineGold), m));
             if (view.goldSubText != null)
             {
                 view.goldSubText.gameObject.SetActive(r.offlineGold > 0);
-                view.goldSubText.text = $"(앱 밖 {FormatTime(r.offlineSeconds)} +{Wallet.Format(Times(r.offlineGold, m))})";
+                view.goldSubText.text = Loc.F("idle.offline_sub", FormatTime(r.offlineSeconds), Wallet.Format(Times(r.offlineGold, m)));
             }
             if (view.myceliteRow != null) view.myceliteRow.SetActive(r.mycelite > 0);
             if (view.myceliteText != null) view.myceliteText.text = "+" + Wallet.Format(Times(r.mycelite, m));
             var info = new System.Collections.Generic.List<string>();
-            if (r.kills > 0) info.Add($"처치 {r.kills:N0}마리");
-            if (r.stages > 0) info.Add($"스테이지 +{r.stages} → {IdleBattle.HudStageLabel(IdleProgress.Stage).Replace("스테이지 ", "")}");   // HUD와 같은 "7-7" 표기
+            if (r.kills > 0) info.Add(Loc.F("idle.kills", r.kills.ToString("N0")));
+            if (r.stages > 0) info.Add(Loc.F("idle.stage_up", r.stages, IdleBattle.HudStageNumber(IdleProgress.Stage)));   // HUD와 같은 "7-7" 표기
             if (view.infoRow != null) view.infoRow.SetActive(info.Count > 0);
             if (view.infoText != null) view.infoText.text = string.Join("  ·  ", info);
             if (view.doubledRow != null) view.doubledRow.SetActive(doubled);
@@ -161,13 +161,13 @@ namespace MoreMush.Mobile
             var r = report;
             long m = doubled ? 2 : 1;
             var sb = new System.Text.StringBuilder();
-            sb.Append("자리를 비운 동안 ").Append(FormatTime(r.seconds + r.offlineSeconds)).Append("\n\n");
-            sb.Append("<color=#FFD54A>골드 +").Append(Wallet.Format(Times(IdleProgress.SaturatingAdd(r.gold, r.offlineGold), m))).Append("</color>\n");
-            if (r.offlineGold > 0) sb.Append("<size=80%>(앱 밖 ").Append(FormatTime(r.offlineSeconds)).Append(" +").Append(Wallet.Format(Times(r.offlineGold, m))).Append(")</size>\n");
-            if (r.mycelite > 0) sb.Append("<color=#8FE3FF>균사석 +").Append(Wallet.Format(Times(r.mycelite, m))).Append("</color>\n");
-            if (r.kills > 0) sb.Append("처치 ").Append(r.kills.ToString("N0")).Append("마리\n");
-            if (r.stages > 0) sb.Append("스테이지 +").Append(r.stages).Append(" → ").Append(IdleProgress.Stage).Append('\n');
-            if (doubled) sb.Append("<color=#7FD37F>광고 보상 2배 적용!</color>");
+            sb.Append(Loc.F("idle.away", FormatTime(r.seconds + r.offlineSeconds))).Append("\n\n");
+            sb.Append("<color=#FFD54A>").Append(Loc.F("idle.gold", Wallet.Format(Times(IdleProgress.SaturatingAdd(r.gold, r.offlineGold), m)))).Append("</color>\n");
+            if (r.offlineGold > 0) sb.Append("<size=80%>").Append(Loc.F("idle.offline_sub", FormatTime(r.offlineSeconds), Wallet.Format(Times(r.offlineGold, m)))).Append("</size>\n");
+            if (r.mycelite > 0) sb.Append("<color=#8FE3FF>").Append(Loc.F("idle.mycelite", Wallet.Format(Times(r.mycelite, m)))).Append("</color>\n");
+            if (r.kills > 0) sb.Append(Loc.F("idle.kills", r.kills.ToString("N0"))).Append('\n');
+            if (r.stages > 0) sb.Append(Loc.F("idle.stage_up", r.stages, IdleBattle.HudStageNumber(IdleProgress.Stage))).Append('\n');
+            if (doubled) sb.Append("<color=#7FD37F>").Append(Loc.T("idle.doubled")).Append("</color>");
             body.text = sb.ToString().TrimEnd('\n');
         }
 
@@ -211,9 +211,9 @@ namespace MoreMush.Mobile
         static string FormatTime(double seconds)
         {
             int s = Mathf.Max(0, (int)seconds);
-            if (s >= 3600) return $"{s / 3600}시간 {s % 3600 / 60}분";
-            if (s >= 60) return $"{s / 60}분 {s % 60}초";
-            return $"{s}초";
+            if (s >= 3600) return Loc.F("time.hm", s / 3600, s % 3600 / 60);
+            if (s >= 60) return Loc.F("time.ms", s / 60, s % 60);
+            return Loc.F("time.s", s);
         }
 
         void Build()
@@ -228,7 +228,7 @@ namespace MoreMush.Mobile
             panel.rectTransform.sizeDelta = new Vector2(820f, 760f);
 
             title = NewText("Title", panel.transform, 64f);
-            title.text = "방치 정산";
+            title.text = Loc.T("idle.title");
             title.color = new Color(0.36f, 0.24f, 0.14f);
             Place(title.rectTransform, new Vector2(0f, -60f), new Vector2(760f, 90f));
 
@@ -239,8 +239,8 @@ namespace MoreMush.Mobile
             body.alignment = TextAlignmentOptions.Top;
 
             // 왼쪽 = 확인(초록), 오른쪽 = 광고 보고 2배 보상(청록)
-            NewButton("Ok", panel.transform, "확인", 52f, "UI/UI_Btn_Green", -190f).onClick.AddListener(Hide);
-            doubleButton = NewButton("DoubleAd", panel.transform, "광고 보고\n2배 보상", 40f, "UI/UI_Btn_Sky", 190f);   // 색은 그림으로 (물들이지 않는다)
+            NewButton("Ok", panel.transform, Loc.T("common.ok"), 52f, "UI/UI_Btn_Green", -190f).onClick.AddListener(Hide);
+            doubleButton = NewButton("DoubleAd", panel.transform, Loc.T("idle.double_ad"), 40f, "UI/UI_Btn_Sky", 190f);   // 색은 그림으로 (물들이지 않는다)
             doubleButton.onClick.AddListener(WatchForDouble);
         }
 

@@ -117,7 +117,7 @@ namespace MoreMush.Mobile
             if (from >= 0 && (targetSlot < 0 || targetSlot == from)) { Formation.Clear(from); return; }   // 편성 해제
             int to = targetSlot;
             if (to < 0) for (int i = 0; i < Formation.SlotCount; i++) if (Formation.IsEmpty(i)) { to = i; break; }
-            if (to < 0) { if (message != null) message.text = "놓을 칸을 먼저 고르세요"; return; }
+            if (to < 0) { if (message != null) message.text = Loc.T("formation.pick_slot"); return; }
             Formation.Place(to, selectedId);
             targetSlot = -1;
         }
@@ -132,7 +132,7 @@ namespace MoreMush.Mobile
         void MergeAll()
         {
             int up = Formation.MergeAll();
-            if (message != null) message.text = up > 0 ? $"일괄 합성: 꼬마 레벨 +{up}" : "합성할 꼬마가 없습니다";
+            if (message != null) message.text = up > 0 ? Loc.F("formation.merge_all_done", up) : Loc.T("formation.nothing_to_merge");
             Refresh();
         }
 
@@ -155,7 +155,7 @@ namespace MoreMush.Mobile
                 c.icon.sprite = Formation.Icon(c.id);
                 if (c.lockMark != null) c.lockMark.SetActive(!have);   // 못 얻은 꼬마: 색을 바꾸지 않고 자물쇠 그림을 얹는다
                 if (c.nameText != null) c.nameText.text = Formation.Name(c.id);
-                if (c.levelText != null) c.levelText.text = have ? "Lv." + lv : "미보유";
+                if (c.levelText != null) c.levelText.text = have ? "Lv." + lv : Loc.T("formation.not_owned");
                 if (c.badge != null) c.badge.SetActive(Formation.SlotOf(c.id) >= 0);
                 if (c.selection != null) c.selection.SetActive(c.id == selectedId);
                 if (Formation.CanMerge(c.id)) anyMerge = true;
@@ -172,21 +172,21 @@ namespace MoreMush.Mobile
             bool have = level > 0, max = level >= Formation.MaxLevel;
             int stage = Formation.EvoStage(id);
             if (infoIcon != null) infoIcon.sprite = Formation.Icon(id);
-            if (infoLevel != null) infoLevel.text = have ? (max ? $"Lv.{level} MAX" : $"Lv.{level}") : "미보유";
-            if (infoName != null) infoName.text = $"[{stage}단계] {Formation.Name(id)}";
+            if (infoLevel != null) infoLevel.text = have ? (max ? $"Lv.{level} {Loc.T("upgrade.max")}" : $"Lv.{level}") : Loc.T("formation.not_owned");
+            if (infoName != null) infoName.text = Loc.F("formation.stage_name", stage, Formation.Name(id));
             int shown = Mathf.Max(1, level);
-            if (infoStat != null) infoStat.text = $"공격 배율 ×{Formation.AttackMultiplierAt(id, shown):0.00}";
+            if (infoStat != null) infoStat.text = Loc.F("formation.attack_mul", Formation.AttackMultiplierAt(id, shown));
             if (infoNext != null)
             {
-                string evo = stage < Formation.EvoStageCount ? $"Lv.{Formation.EvoLevel(stage + 1)} {stage + 1}단계 진화" : "최종 진화";
-                infoNext.text = have && !max ? $"다음 레벨 <color=#3A8F2E>×{Formation.AttackMultiplierAt(id, level + 1):0.00}</color>  ·  {evo}" : evo;
+                string evo = stage < Formation.EvoStageCount ? Loc.F("formation.evo_at", Formation.EvoLevel(stage + 1), stage + 1) : Loc.T("formation.evo_final");
+                infoNext.text = have && !max ? Loc.F("formation.next_level", Formation.AttackMultiplierAt(id, level + 1), evo) : evo;
             }
             if (infoBarFill != null) infoBarFill.anchorMax = new Vector2(max ? 1f : have ? Mathf.Clamp01(copies / (float)need) : 0f, 1f);
-            if (infoBarText != null) infoBarText.text = !have ? "꼬마 뽑기로 얻을 수 있습니다" : max ? "최고 레벨" : $"조각 {copies}/{need}";
+            if (infoBarText != null) infoBarText.text = !have ? Loc.T("formation.get_by_summon") : max ? Loc.T("formation.max_level") : Loc.F("formation.shards", copies, need);
             if (mergeButton != null) mergeButton.interactable = Formation.CanMerge(id);
             int from = Formation.SlotOf(id);
             if (placeButton != null) placeButton.interactable = have;
-            if (placeLabel != null) placeLabel.text = from >= 0 && (targetSlot < 0 || targetSlot == from) ? "편성 해제" : "편성";
+            if (placeLabel != null) placeLabel.text = from >= 0 && (targetSlot < 0 || targetSlot == from) ? Loc.T("formation.remove") : Loc.T("formation.place");
         }
     }
 }

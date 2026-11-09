@@ -229,21 +229,8 @@ namespace MoreMush.Mobile
 
         public static string Percent(double v) => (v * 100).ToString("0.#") + "%";
 
-        public static string EffectText(TreeEffect effect, double v)
-        {
-            switch (effect)
-            {
-                case TreeEffect.Attack: return "공격력 +" + Percent(v);
-                case TreeEffect.Hp: return "체력 +" + Percent(v);
-                case TreeEffect.Speed: return "공격 속도 +" + Percent(v);
-                case TreeEffect.CritChance: return "치명타 확률 +" + Percent(v);
-                case TreeEffect.CritDamage: return "치명타 피해 +" + Percent(v);
-                case TreeEffect.KillGold: return "처치 골드 +" + Percent(v);
-                case TreeEffect.BossMycelite: return "보스 균사석 +" + Percent(v);
-                case TreeEffect.Harvest: return "버섯 획득량 +" + Percent(v);
-                case TreeEffect.CraftSpeed: return "제작 속도 +" + Percent(v);
-            }
-            return effect + " " + v;
-        }
+        // 효과 이름은 표 키 effect.<이름> ("공격력 +{0}")
+        public static string EffectText(TreeEffect effect, double v) =>
+            Loc.F("effect." + effect.ToString().ToLowerInvariant(), Percent(v));
     }
 }

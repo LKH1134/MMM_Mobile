@@ -38,12 +38,17 @@ namespace MoreMush.Mobile
         void OnEnable()
         {
             Eq.Changed += Refresh;
+            Loc.Changed += Refresh;
             Build();
             if (selected < 0) selected = Eq.Equipped >= 0 ? Eq.Equipped : HighestOwned();
             Refresh();
         }
 
-        void OnDisable() => Eq.Changed -= Refresh;
+        void OnDisable()
+        {
+            Eq.Changed -= Refresh;
+            Loc.Changed -= Refresh;
+        }
 
         void Build()
         {
@@ -126,7 +131,7 @@ namespace MoreMush.Mobile
                 rt.offsetMax = new Vector2(-27.2f, y - 154.7f);
             }
 
-            foreach (var (buttonName, x, label) in new[] { ("Button", -149f, "장착"), ("Button (1)", 141f, "합성") })
+            foreach (var (buttonName, x, label) in new[] { ("Button", -149f, Loc.T("common.equip")), ("Button (1)", 141f, Loc.T("common.merge")) })
             {
                 var img = NewImage(buttonName, up);
                 img.preserveAspect = false;
@@ -289,9 +294,9 @@ namespace MoreMush.Mobile
 
         void EquipSelected()
         {
-            if (!Eq.IsOwned(selected)) { Notify($"가지고 있지 않은 {Eq.Title}입니다"); return; }
+            if (!Eq.IsOwned(selected)) { Notify(Loc.F("equip.not_owned", Eq.DisplayTitle)); return; }
             Eq.Equip(selected);
-            Notify(Eq.Names[selected] + " 장착");
+            Notify(Loc.F("equip.equipped_toast", Eq.Names[selected]));
         }
 
         void MergeSelected()
@@ -299,9 +304,9 @@ namespace MoreMush.Mobile
             if (!Eq.CanMerge(selected))
             {
                 int lv = Eq.Level(selected);
-                Notify(lv <= 0 ? $"가지고 있지 않은 {Eq.Title}입니다"
-                    : lv >= Equipment.MaxLevel ? "최고 레벨입니다"
-                    : $"같은 {Eq.Title} 조각 {Equipment.CopiesToNext(lv)}개가 있어야 합성할 수 있습니다");
+                Notify(lv <= 0 ? Loc.F("equip.not_owned", Eq.DisplayTitle)
+                    : lv >= Equipment.MaxLevel ? Loc.T("equip.max_level_msg")
+                    : Loc.F("equip.need_shards", Eq.DisplayTitle, Equipment.CopiesToNext(lv)));
                 return;
             }
             int up = Eq.Merge(selected);
@@ -311,7 +316,7 @@ namespace MoreMush.Mobile
         void MergeAll()
         {
             int up = Eq.MergeAll();
-            Notify(up > 0 ? $"일괄 합성: {Eq.Title} 레벨 +{up}" : $"합성할 {Eq.Title}가 없습니다");
+            Notify(up > 0 ? Loc.F("equip.merge_all_result", Eq.DisplayTitle, up) : Loc.F("equip.nothing_to_merge", Eq.DisplayTitle));
         }
 
         // 소환 = 하단바 뽑기 탭
@@ -350,10 +355,10 @@ namespace MoreMush.Mobile
                 var s = slots[i];
                 int lv = Eq.Level(i);
                 s.icon.color = Color.white;     // 못 얻은 것은 "미보유" 글자로 알린다
-                s.count.text = lv <= 0 ? "미보유"
+                s.count.text = lv <= 0 ? Loc.T("equip.not_owned_short")
                     : lv >= Equipment.MaxLevel ? $"Lv.{lv} MAX"
                     : $"Lv.{lv} <size=80%>({Eq.Copies(i)}/{Equipment.CopiesToNext(lv)})</size>";
-                s.badge.text = i == equipped ? "<color=#3A8F2E>장착</color>" : "";
+                s.badge.text = i == equipped ? "<color=#3A8F2E>" + Loc.T("common.equip") + "</color>" : "";
                 // [UI 개편 11-05] 보통 칸은 프리팹에 놓은 그림 그대로 (없을 때만 SlotSprite). 고른 칸·장착 칸만 바꿔 낀다
                 if (s.normal == null && s.bg != null) s.normal = s.bg.sprite != null ? s.bg.sprite : Resources.Load<Sprite>(SlotSprite);
                 s.bg.sprite = i == selected ? Resources.Load<Sprite>(SelectedSprite) : i == equipped ? Resources.Load<Sprite>(EquippedSprite) : s.normal;
@@ -362,25 +367,25 @@ namespace MoreMush.Mobile
             }
 
             if (ownTotal != null)
-                ownTotal.text = $"보유 효과: {Eq.StatName} +{Eq.TotalOwnPercent:0.#}%   장착 효과: {Eq.StatName} +{Eq.EquipPercent(equipped):0.#}%";
+                ownTotal.text = Loc.F("equip.total_effect", Eq.DisplayStatName, Eq.TotalOwnPercent, Eq.EquipPercent(equipped));
 
             if (selected < 0 || selected >= Eq.Count) return;
             int level = Eq.Level(selected), copies = Eq.Copies(selected), need = Equipment.CopiesToNext(level);
             bool have = level > 0, max = level >= Equipment.MaxLevel;
             if (detailIcon != null) { detailIcon.sprite = Eq.Sprite(selected); detailIcon.color = Color.white; }
             if (detailName != null) detailName.text = $"[{GachaProgress.GradeNames[Eq.Grade(selected)]}] {Eq.Names[selected]}";
-            if (detailCount != null) detailCount.text = have ? $"Lv.{level}" : "미보유";
+            if (detailCount != null) detailCount.text = have ? $"Lv.{level}" : Loc.T("equip.not_owned_short");
             if (mergeBarFill != null) mergeBarFill.anchorMax = new Vector2(max ? 1f : have ? Mathf.Clamp01(copies / (float)need) : 0f, 1f);
-            if (mergeBarText != null) mergeBarText.text = !have ? "뽑기로 얻을 수 있습니다" : max ? "최고 레벨" : $"다음 레벨 조각 {copies}/{need}";
+            if (mergeBarText != null) mergeBarText.text = !have ? Loc.T("equip.obtain_summon") : max ? Loc.T("equip.max_level") : Loc.F("equip.next_shards", copies, need);
             // 다음 레벨 값도 같이 보여 준다
             string Next(double next) => have && !max ? $"  <size=80%><color=#3A8F2E>→ +{next:0.#}%</color></size>" : "";
             int shown = Mathf.Max(1, level);
-            if (equipStat != null) equipStat.text = $"장착 효과  {Eq.StatName} +{Eq.EquipPercentAt(selected, shown):0.#}%" + Next(Eq.EquipPercentAt(selected, level + 1));
-            if (ownStat != null) ownStat.text = $"보유 효과  {Eq.StatName} +{Eq.OwnPercentAt(selected, shown):0.#}%" + Next(Eq.OwnPercentAt(selected, level + 1));
+            if (equipStat != null) equipStat.text = Loc.F("equip.effect_equip", Eq.DisplayStatName, Eq.EquipPercentAt(selected, shown)) + Next(Eq.EquipPercentAt(selected, level + 1));
+            if (ownStat != null) ownStat.text = Loc.F("equip.effect_own", Eq.DisplayStatName, Eq.OwnPercentAt(selected, shown)) + Next(Eq.OwnPercentAt(selected, level + 1));
 
             bool isEquipped = selected == equipped;
             if (equipButton != null) equipButton.interactable = have && !isEquipped;
-            if (equipLabel != null) equipLabel.text = isEquipped ? "장착 중" : "장착";
+            if (equipLabel != null) equipLabel.text = Loc.T(isEquipped ? "equip.equipped_now" : "common.equip");
             if (mergeButton != null) mergeButton.interactable = Eq.CanMerge(selected);
         }
 
