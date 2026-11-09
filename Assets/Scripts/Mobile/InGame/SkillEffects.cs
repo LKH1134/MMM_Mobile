@@ -27,14 +27,7 @@ namespace MoreMush.Mobile
         [SerializeField] float splitDamage = 0.5f;    // 분열체 공격력 배율
         [SerializeField] float flashTime = 0.25f;
         [SerializeField] Color cloneBarTint = new Color(1f, 1f, 1f, 0.55f);
-
-        [Header("버프 색 (임시)")]
-        [SerializeField] Color powerTint = new Color(1f, 0.75f, 0.45f);
-        [SerializeField] Color hasteTint = new Color(0.55f, 0.9f, 1f);
-        [SerializeField] Color pierceTint = new Color(1f, 0.5f, 0.5f);
-        [SerializeField] Color homingTint = new Color(0.6f, 1f, 0.6f);
-        [SerializeField] Color splitTint = new Color(0.85f, 0.75f, 1f);
-        [SerializeField] Color debuffTint = new Color(0.55f, 0.65f, 0.4f);
+        // 버프·디버프·분열체를 수확기 색으로 보여 주던 임시 표시는 뺐다 — 그림이 어두워 보였다 [11-09]
 
         class CloneBar
         {
@@ -85,6 +78,8 @@ namespace MoreMush.Mobile
         void Start()
         {
             s = field.Stats;
+            var look = BattleLooks.Harvester();      // 꼬마 수확기도 던지는 수확기와 같은 그림 (장착한 무기)
+            if (look != null) orbitSprite = look;
             // 분신 바: 본 바를 본떠 최대 수만큼 미리 만든다
             if (s.CloneBarMax > 0 && field.Bar != null)
                 clonePool = new PrefabPool<Bar>(field.Bar, field.Bar.transform.parent, s.CloneBarMax);
@@ -144,7 +139,6 @@ namespace MoreMush.Mobile
             TickDots(dt);
             TickOrbits(dt);
             TickFlashes(dt);
-            ShowBuffs();
         }
 
         // ── 바 ──
@@ -205,7 +199,6 @@ namespace MoreMush.Mobile
                 child.Life = s.SplitDuration;
                 child.Size = h.Size * s.Base.splitSize;
                 child.DamageMul = splitDamage;
-                child.Tint(splitTint);
                 float angle = (i % 2 == 0 ? 1f : -1f) * splitSpread * (i / 2 + 1);
                 field.Launch(child, Quaternion.Euler(0f, 0f, angle) * h.Velocity);
             }
@@ -428,24 +421,6 @@ namespace MoreMush.Mobile
                 f.image.gameObject.SetActive(false);
                 freeFlashes.Push(f.image);
                 flashes.RemoveAt(i);
-            }
-        }
-
-        // 임시 표시: 걸린 버프를 수확기 색으로 보여 준다 (예전의 버프 글자 목록은 정신없어서 뺐다)
-        void ShowBuffs()
-        {
-            var harvesters = field.Harvesters;      // 매 프레임 — foreach는 열거자 박싱
-            for (int i = 0; i < harvesters.Count; i++)
-            {
-                var h = harvesters[i];
-                if (h.Temporary) continue;
-                Color tint = Color.white;
-                if (h.Has(HarvesterBuff.Power)) tint = powerTint;
-                if (h.Has(HarvesterBuff.Haste)) tint = hasteTint;
-                if (h.Has(HarvesterBuff.Homing)) tint = homingTint;
-                if (h.Has(HarvesterBuff.Pierce)) tint = pierceTint;
-                if (h.Debuffed) tint = debuffTint;
-                h.Tint(tint);
             }
         }
 

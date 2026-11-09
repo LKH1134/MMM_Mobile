@@ -46,7 +46,7 @@ namespace MoreMush.Mobile
         public float bossRewardMul = 3f;      // 처치 보상 골드 = max(이번 판 골드, 직전 일반 판 골드) × 이 값 (PC판 BOSS_REWARD_MUL 2 → 패배 패널티를 없앤 대신 3)
         public float splitCloneSize = 0.75f;  // 환상 버섯 분신 크기 (본체 대비)
 
-        public Color hardTint = new Color(0.8f, 0.8f, 0.8f);   // 단단한 버섯(mushHpMul > 1) 임시 구분 색 (등급 색에 곱한다)
+        public Color hardTint = new Color(0.8f, 0.8f, 0.8f);   // 쓰지 않음 [11-09] — 단단한 버섯(mushHpMul > 1)을 어둡게 하던 임시 구분 색
     }
 
     // 판 시작 때 배운 스킬로 정해지는 수치 모음 (판 중에는 바뀌지 않는다)

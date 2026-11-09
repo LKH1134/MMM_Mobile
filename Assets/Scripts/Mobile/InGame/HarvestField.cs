@@ -154,10 +154,26 @@ namespace MoreMush.Mobile
 
             // 판 중에 만들지 않도록 최대치만큼 미리 만들어 둔다 (군락지, 함께 던지는 수확기 + 분열체)
             int perColony = stats.SinglesPerColony;
-            clusterPool = new PrefabPool<Mushroom>(clusterPrefab, mushroomLayer, stats.Colonies + 1);
-            singlePool = new PrefabPool<Mushroom>(singlePrefab, mushroomLayer, (stats.Colonies + 1) * perColony);
+            // 군락 버섯이 언제나 단일 버섯 위에 그려지게 레이어를 나눈다 (뒤 형제가 위에 그려진다: 단일 → 군락)
+            var singleLayer = SubLayer(mushroomLayer, "Singles");
+            var clusterLayer = SubLayer(mushroomLayer, "Clusters");
+            clusterPool = new PrefabPool<Mushroom>(clusterPrefab, clusterLayer, stats.Colonies + 1);
+            singlePool = new PrefabPool<Mushroom>(singlePrefab, singleLayer, (stats.Colonies + 1) * perColony);
             harvesterPools.Add(harvesterPrefab, new PrefabPool<Harvester>(harvesterPrefab, harvesterLayer, 1 + stats.ExtraHarvesters + stats.MaxSplit));
             BeginRound();
+        }
+
+        // parent를 꽉 채우는 빈 레이어 (가운데 기준 좌표가 parent와 같다 — 버섯 위치 계산은 그대로)
+        static RectTransform SubLayer(RectTransform parent, string name)
+        {
+            var rt = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
+            rt.SetParent(parent, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            rt.SetAsLastSibling();
+            return rt;
         }
 
         // 판을 처음부터 다시 (밸런스 측정기가 판마다 부른다). Configure로 새 수치를 넣은 뒤 부른다
@@ -600,6 +616,7 @@ namespace MoreMush.Mobile
             var boss = clusterPool.Get();
             boss.Pool = clusterPool;
             boss.Place(position);
+            boss.SetSprite(null);      // 보스는 프리팹 그림 (같은 풀의 일반 군락 버섯이 바꿔 둔 그림을 되돌린다)
             boss.Setup(hp / Mathf.Max(1, clusterPrefab.MaxHp), false, size, tint);
             boss.Colony = colony != null ? colony.id : -1;
             boss.IsCenter = true;
@@ -705,7 +722,10 @@ namespace MoreMush.Mobile
         void SpawnColony(Vector2 center)
         {
             var colony = new Colony { id = nextColonyId++, center = center, footprint = Footprint(mushroomSize) };
-            var centerMushroom = SpawnMushroom(clusterPool, center, colony.id);
+            // 그림: 가운데 = Main과 같은 군락 그림, 둘레 = 같은 종의 단일 버섯 그림 (BattleLooks)
+            var centerLook = BattleLooks.Pick(BattleLooks.PickEnemyPool());
+            var unitLook = BattleLooks.UnitOf(centerLook);
+            var centerMushroom = SpawnMushroom(clusterPool, center, colony.id, centerLook);
             centerMushroom.IsCenter = true;
             colony.members.Add(centerMushroom);
             int n = stats.SinglesPerColony;
@@ -715,21 +735,21 @@ namespace MoreMush.Mobile
             {
                 float a = start + i * Mathf.PI * 2f / n + Random.Range(-0.15f, 0.15f);
                 var pos = center + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * ring;
-                colony.members.Add(SpawnMushroom(singlePool, pos, colony.id));
+                colony.members.Add(SpawnMushroom(singlePool, pos, colony.id, unitLook));
             }
             colonies.Add(colony);
         }
 
-        Mushroom SpawnMushroom(PrefabPool<Mushroom> pool, Vector2 pos, int colonyId)
+        Mushroom SpawnMushroom(PrefabPool<Mushroom> pool, Vector2 pos, int colonyId, Sprite look)
         {
             var m = pool.Get();
             m.Pool = pool;
             m.Place(pos);
+            m.SetSprite(look);      // null이면 프리팹 그림
             bool golden = !stats.BossRound && stats.GoldenChance > 0f && Random.value < stats.GoldenChance;
-            // 단단한 스테이지(Stage.xlsx mushHpMul)는 일반 버섯 체력만 올리고 색을 조금 어둡게 (같은 풀 프리팹)
-            bool hard = stats.MushHpMul > 1f;
+            // 단단한 스테이지(Stage.xlsx mushHpMul)는 일반 버섯 체력만 올린다.
+            // 예전엔 색을 어둡게(hardTint) 해서 구분했는데 그림이 칙칙해 보여서 뺐다 [11-09]
             Color tint = golden ? goldenTint : Color.white;
-            if (hard) tint *= stats.Base.hardTint;
             m.Setup(stats.HpRate * stats.MushHpMul, golden, mushroomSize, tint);
             m.Colony = colonyId;
             mushrooms.Add(m);
