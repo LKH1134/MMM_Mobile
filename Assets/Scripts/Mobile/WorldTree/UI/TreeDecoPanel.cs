@@ -25,7 +25,15 @@ namespace MoreMush.Mobile
                 var tab = Use("ZoneTab", tabs);
                 var b = tab.GetComponent<UnityEngine.UI.Button>();   // 탭 자체가 버튼
                 if (b != null) { UiSkin.GreyWhenDisabled(b); b.interactable = true; b.onClick.RemoveAllListeners(); b.onClick.AddListener(() => { zone = zz; Rebuild(); }); if (z == zone) b.image.sprite = Resources.Load<Sprite>(SelectedTab); }
-                SetText(tab, "Text", $"{WorldTree.ZoneName(z)}\n<size=24>{WorldTree.PlacedIn(z).Count}/{WorldTree.ZoneSlots(z)}</size>");
+                // 탭 숫자 = 그 자리 장식 중 만든 수 / 그 자리 장식 전체 수
+                int made = 0, total = 0;
+                foreach (var d in GameBalance.Decos)
+                {
+                    if (d.zone != z) continue;
+                    total++;
+                    if (WorldTree.OwnsDeco(d.key)) made++;
+                }
+                SetText(tab, "Text", $"{WorldTree.ZoneName(z)}\n<size=24>{made}/{total}</size>");
             }
 
             int slots = WorldTree.ZoneSlots(zone);
