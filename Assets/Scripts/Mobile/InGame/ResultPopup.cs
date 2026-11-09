@@ -91,7 +91,7 @@ namespace MoreMush.Mobile
                 myceliteText.enableAutoSizing = false;
             }
             myceliteText.gameObject.SetActive(mycelite > 0);
-            myceliteText.text = "균사석 +" + Wallet.Format(mycelite);
+            myceliteText.text = Loc.F("idle.mycelite", Wallet.Format(mycelite));
         }
 
         // 시간이 멈춰 있어도 돌도록 unscaled로 센다
@@ -113,8 +113,8 @@ namespace MoreMush.Mobile
             bool byAd = DungeonTickets.CanEnterWithAd(dungeon);
             retryButton.interactable = ticket || byAd;
             if (retryLabel == null) return;
-            if (!ticket && byAd) retryLabel.text = $"광고 보고 도전 ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})";
-            else retryLabel.text = cleared ? $"다음 레벨 (레벨 {DungeonTickets.Level(dungeon)})" : "다시 도전";
+            if (!ticket && byAd) retryLabel.text = Loc.F("result.ad_retry", DungeonTickets.AdRemaining(dungeon), DungeonTickets.AdPerDay);
+            else retryLabel.text = cleared ? Loc.F("result.next_level", DungeonTickets.Level(dungeon)) : Loc.T("result.retry_challenge");
         }
 
         // ── 다음 레벨 자동 도전 ──
@@ -150,7 +150,7 @@ namespace MoreMush.Mobile
         void SetAutoLabel(int seconds)
         {
             if (autoLabel == null) return;
-            autoLabel.text = seconds > 0 ? $"다음 레벨 자동 도전  <color=#FFD95A>{seconds}초 후 도전</color>" : "다음 레벨 자동 도전";
+            autoLabel.text = seconds > 0 ? Loc.F("result.auto_next_countdown", seconds) : Loc.T("result.auto_next");
         }
 
         void ToggleAutoNext()
@@ -228,7 +228,7 @@ namespace MoreMush.Mobile
             }
             else if (DungeonTickets.CanEnterWithAd(dungeon))
             {
-                if (!DungeonEntry.EnterWithAd(dungeon, scene) && retryLabel != null) retryLabel.text = "광고 준비 중…";
+                if (!DungeonEntry.EnterWithAd(dungeon, scene) && retryLabel != null) retryLabel.text = Loc.T("ad.preparing");
             }
             else retryButton.interactable = false;
         }

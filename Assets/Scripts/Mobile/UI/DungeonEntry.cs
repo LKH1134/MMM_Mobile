@@ -22,7 +22,6 @@ namespace MoreMush.Mobile
         TMP_Text lockText;
         TMP_Text levelText;
         TMP_Text buttonLabel;
-        string enterLabel;          // 프리팹에 적힌 입장 문구 (광고 입장에서 돌아올 때 되돌린다)
 
         void Awake()
         {
@@ -32,7 +31,6 @@ namespace MoreMush.Mobile
                 buttonLabel = enterButton.GetComponentInChildren<TMP_Text>(true);
                 if (buttonLabel != null)
                 {
-                    enterLabel = buttonLabel.text;
                     FitToWidth(buttonLabel);    // "광고 보고 입장 (2/2)"가 버튼보다 길다
                 }
             }
@@ -58,7 +56,7 @@ namespace MoreMush.Mobile
             {
                 if (t == buttonLabel || t == countText || t == lockText || t == levelText) continue;
                 if (t.transform.IsChildOf(enterButton != null ? enterButton.transform : transform) && enterButton != null) continue;
-                t.text = row.name;
+                t.text = row.Name;
                 break;
             }
         }
@@ -87,6 +85,7 @@ namespace MoreMush.Mobile
         {
             DungeonTickets.Changed += Refresh;
             IdleProgress.Changed += Refresh;        // 스테이지를 깨면 해금이 바뀐다
+            Loc.Changed += OnLanguageChanged;
             Refresh();
         }
 
@@ -94,6 +93,14 @@ namespace MoreMush.Mobile
         {
             DungeonTickets.Changed -= Refresh;
             IdleProgress.Changed -= Refresh;
+            Loc.Changed -= OnLanguageChanged;
+        }
+
+        // 언어가 바뀌면 던전 이름과 버튼·잠금 글자를 다시 쓴다
+        void OnLanguageChanged()
+        {
+            ApplyTable();
+            Refresh();
         }
 
         bool idle;      // 방치 화면 던전 (씬 없음)
@@ -104,14 +111,14 @@ namespace MoreMush.Mobile
             if (idle)
             {
                 if (!DungeonSession.TryEnterIdle(dungeon) && buttonLabel != null)
-                    buttonLabel.text = DungeonSession.ActiveIdle != 0 ? "다른 던전 진행 중" : "광고 준비 중…";
+                    buttonLabel.text = Loc.T(DungeonSession.ActiveIdle != 0 ? "dungeon.other_active" : "ad.preparing");
                 return;
             }
             if (string.IsNullOrEmpty(scene)) return;
             // 방치 던전 중에는 벽돌깨기 판을 열지 않는다 (LoadHarvest도 막는다) — 광고부터 보고 못 들어가는 일이 없게 먼저 알린다
             if (DungeonSession.ActiveIdle != 0)
             {
-                if (buttonLabel != null) buttonLabel.text = "다른 던전 진행 중";
+                if (buttonLabel != null) buttonLabel.text = Loc.T("dungeon.other_active");
                 return;
             }
             if (DungeonTickets.CanEnter(dungeon))
@@ -120,7 +127,7 @@ namespace MoreMush.Mobile
                 if (DungeonSession.LoadHarvest(dungeon, scene)) DungeonSession.MarkEntry(dungeon, false);
             }
             else if (DungeonTickets.CanEnterWithAd(dungeon) && !EnterWithAd(dungeon, scene) && buttonLabel != null)
-                buttonLabel.text = "광고 준비 중…";
+                buttonLabel.text = Loc.T("ad.preparing");
         }
 
         // 긴 문구는 줄이고, 짧은 문구는 원래 크기 그대로
@@ -160,22 +167,22 @@ namespace MoreMush.Mobile
             if (levelText != null) levelText.text = !unlocked ? "" : LevelLabel();
             if (countText != null) countText.text = $"{left}/{DungeonTickets.PerDay}";
             if (buttonLabel != null)
-                buttonLabel.text = byAd ? $"광고 보고 입장 ({DungeonTickets.AdRemaining(dungeon)}/{DungeonTickets.AdPerDay})" : enterLabel;
+                buttonLabel.text = byAd ? Loc.F("dungeon.ad_enter", DungeonTickets.AdRemaining(dungeon), DungeonTickets.AdPerDay) : Loc.T("dungeon.enter");
             if (enterButton != null) enterButton.interactable = unlocked && (left > 0 || byAd) && (idle || !string.IsNullOrEmpty(scene));
         }
 
         // 레벨업 보스는 매번 레벨 1부터라 최고 기록을 보여 준다
         string LevelLabel()
         {
-            if (DungeonSession.Mode(dungeon) != DungeonMode.BossLevel) return $"레벨 {DungeonTickets.Level(dungeon)}";
+            if (DungeonSession.Mode(dungeon) != DungeonMode.BossLevel) return Loc.F("dungeon.level", DungeonTickets.Level(dungeon));
             int best = DungeonTickets.BestLevel(dungeon);
-            return best > 0 ? $"최고 레벨 {best}" : "최고 기록 없음";
+            return best > 0 ? Loc.F("dungeon.best_level", best) : Loc.T("dungeon.no_record");
         }
 
         string UnlockMessage()
         {
             int stage = DungeonTickets.UnlockStage(dungeon);
-            return stage < 0 ? "해금되지 않음" : $"스테이지 {stage} 진입 시 해금";
+            return stage < 0 ? Loc.T("dungeon.locked") : Loc.F("dungeon.unlock_at_stage", stage);
         }
     }
 }

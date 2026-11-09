@@ -11,8 +11,8 @@ namespace MoreMush.Mobile
     public class InGameTutorial : MonoBehaviour
     {
         const string DoneKey = "InGame.TutorialDone";
-        const string DragText = "드래그하여 발사";
-        const string HarvestText = "버섯을 채집하세요!";
+        const string DragKey = "ingame.tutorial_drag";
+        const string HarvestKey = "ingame.tutorial_harvest";
         const float HarvestShow = 2f;       // "버섯을 채집하세요!"를 보여 주는 시간
         const float Fade = 0.25f;
         const float PulseSpeed = 3f;
@@ -62,7 +62,7 @@ namespace MoreMush.Mobile
             label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
             Stretch(label.rectTransform);
-            label.text = DragText;
+            label.text = Loc.T(DragKey);
 
             field.Launched += OnLaunched;
         }
@@ -86,7 +86,7 @@ namespace MoreMush.Mobile
             launched = true;
             field.Launched -= OnLaunched;
             label.transform.localScale = Vector3.one;
-            label.text = HarvestText;
+            label.text = Loc.T(HarvestKey);
             PlayerPrefs.SetInt(DoneKey, 1);
             PlayerPrefs.Save();
             StartCoroutine(HideAfter(HarvestShow));

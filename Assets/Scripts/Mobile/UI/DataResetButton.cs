@@ -19,7 +19,7 @@ namespace MoreMush.Mobile
         {
             // 옵션 팝업보다 위에 뜨도록 맨 위 캔버스에 만든다
             var canvas = GetComponentInParent<Canvas>().rootCanvas.transform;
-            confirmPopup.Get(canvas).GetComponent<ConfirmPopup>().Show(title, message, ResetAll);
+            confirmPopup.Get(canvas).GetComponent<ConfirmPopup>().Show(Loc.T("data.reset_title", title), Loc.T("data.reset_msg", message), ResetAll);
         }
 
         void ResetAll()

@@ -124,7 +124,7 @@ namespace MoreMush.Mobile
             {
                 var w = Equipment.Weapon;
                 var names = w.Names;
-                for (int i = 0; i < names.Length; i++) if (names[i] == WeaponName) return i;
+                for (int i = 0; i < names.Length; i++) if (w.SheetName(i) == WeaponName) return i;
                 int best = -1;
                 for (int i = 0; i < w.Count; i++) if (best < 0 || w.Grade(i) >= w.Grade(best)) best = i;
                 return best;

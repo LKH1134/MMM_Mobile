@@ -38,6 +38,7 @@ namespace MoreMush.Mobile
             PopupLayer.Raise(gameObject, PopupLayer.Popup);
             PopupGate.Opened(this, () => gameObject.SetActive(false));     // 뒤로가기·다른 팝업이 열리면 닫힌다
             Attendance.Changed += Refresh;
+            Loc.Changed += OnLanguageChanged;
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed += CloseOnTab;
             shownSecond = -1;
             Refresh();
@@ -47,10 +48,18 @@ namespace MoreMush.Mobile
         {
             PopupGate.Closed(this);
             Attendance.Changed -= Refresh;
+            Loc.Changed -= OnLanguageChanged;
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= CloseOnTab;
             if (pop != null) StopCoroutine(pop);
             pop = null;
             justClaimed = 0;
+        }
+
+        // 언어가 바뀌면 타이머 글자도 다시 쓴다
+        void OnLanguageChanged()
+        {
+            shownSecond = -1;
+            Refresh();
         }
 
         void CloseOnTab(int tab) => gameObject.SetActive(false);
@@ -62,14 +71,14 @@ namespace MoreMush.Mobile
             {
                 if (shownSecond == -2) return;
                 shownSecond = -2;
-                timerText.text = Attendance.Finished ? $"{Attendance.Days}일 출석을 모두 마쳤어요!" : "";
+                timerText.text = Attendance.Finished ? Loc.F("attendance.all_done", Attendance.Days) : "";
                 return;
             }
             int sec = Mathf.Max(0, Mathf.FloorToInt((float)Attendance.UntilNextDay.TotalSeconds));
             if (sec == shownSecond) return;
             shownSecond = sec;
             var t = System.TimeSpan.FromSeconds(sec);
-            timerText.text = $"다음 출석까지 {(int)t.TotalHours:00}:{t.Minutes:00}:{t.Seconds:00}";
+            timerText.text = Loc.F("attendance.next_in", (int)t.TotalHours, t.Minutes, t.Seconds);
         }
 
         void Refresh()
@@ -89,7 +98,7 @@ namespace MoreMush.Mobile
                 bool got = day <= claimed;
                 if (cell.background != null)
                     cell.background.sprite = Resources.Load<Sprite>(day == justClaimed ? todaySprite : got ? claimedSprite : day == Attendance.Days ? finalSprite : cellSprite);
-                if (cell.dayText != null) cell.dayText.text = $"{day}일째";
+                if (cell.dayText != null) cell.dayText.text = Loc.F("attendance.day", day);
                 if (cell.icon != null)
                 {
                     cell.icon.sprite = IconOf(reward);
@@ -101,7 +110,7 @@ namespace MoreMush.Mobile
                 cell.transform.localScale = Vector3.one;
             }
             if (messageText != null)
-                messageText.text = justClaimed > 0 ? $"{justClaimed}일째 출석 보상을 받았어요!" : $"{Attendance.Days}일째에는 전설 무기 <color=#E08A00>{Attendance.WeaponTitle}</color>!";
+                messageText.text = justClaimed > 0 ? Loc.F("attendance.claimed_msg", justClaimed) : Loc.F("attendance.final_msg", Attendance.Days, Attendance.WeaponTitle);
             if (justClaimed > 0 && justClaimed <= cells.Length && cells[justClaimed - 1] != null && isActiveAndEnabled)
             {
                 if (pop != null) StopCoroutine(pop);

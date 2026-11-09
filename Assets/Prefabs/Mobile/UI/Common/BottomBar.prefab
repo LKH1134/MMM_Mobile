@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 391706549280707326}
   - component: {fileID: 5704965291430470467}
   - component: {fileID: 3083639283897084882}
+  - component: {fileID: 7232451998873019752}
   m_Layer: 5
   m_Name: GrowText
   m_TagString: Untagged
@@ -137,6 +138,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7232451998873019752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650507436607067254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: tab.gacha
 --- !u!1 &1336164663637804623
 GameObject:
   m_ObjectHideFlags: 0
@@ -706,6 +720,7 @@ GameObject:
   - component: {fileID: 3703004240489559801}
   - component: {fileID: 5217388742537069688}
   - component: {fileID: 3527382096174427466}
+  - component: {fileID: 7496935787763716538}
   m_Layer: 5
   m_Name: GrowText
   m_TagString: Untagged
@@ -832,6 +847,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7496935787763716538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4149692216041720971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: tab.formation
 --- !u!1 &4786994664054656965
 GameObject:
   m_ObjectHideFlags: 0
@@ -843,6 +871,7 @@ GameObject:
   - component: {fileID: 287081012257874946}
   - component: {fileID: 7614339524514709155}
   - component: {fileID: 2420813564493813465}
+  - component: {fileID: 2010977698883145627}
   m_Layer: 5
   m_Name: GrowText
   m_TagString: Untagged
@@ -969,6 +998,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2010977698883145627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4786994664054656965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: tab.worldtree
 --- !u!1 &5332669630340579887
 GameObject:
   m_ObjectHideFlags: 0
@@ -980,6 +1022,7 @@ GameObject:
   - component: {fileID: 6008136530742521127}
   - component: {fileID: 6711044304592121100}
   - component: {fileID: 6712129470448424230}
+  - component: {fileID: 4225301866974827334}
   m_Layer: 5
   m_Name: GrowText
   m_TagString: Untagged
@@ -1106,6 +1149,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4225301866974827334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5332669630340579887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: tab.home
 --- !u!1 &5526160064109524242
 GameObject:
   m_ObjectHideFlags: 0
@@ -1802,6 +1858,7 @@ GameObject:
   - component: {fileID: 4778932785698708990}
   - component: {fileID: 8108468680432741354}
   - component: {fileID: 4243405262598145493}
+  - component: {fileID: 686851727324881916}
   m_Layer: 5
   m_Name: GrowText
   m_TagString: Untagged
@@ -1928,6 +1985,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &686851727324881916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7564973244697673935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: tab.dungeon
 --- !u!1 &8277847885025085211
 GameObject:
   m_ObjectHideFlags: 0

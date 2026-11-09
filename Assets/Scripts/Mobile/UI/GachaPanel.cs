@@ -134,6 +134,7 @@ namespace MoreMush.Mobile
         {
             Wallet.Changed += RefreshButtons;    // 전투 골드로 1초마다 온다 — 살 수 있는지만 다시 본다
             GachaProgress.Changed += Refresh;
+            Loc.Changed += OnLanguageChanged;
             AdService.Status += OnAdStatus;
             AdService.Initialize();
             if (FreeAvailable) AdService.Prepare();     // 누를 때 광고가 준비돼 있게
@@ -144,7 +145,15 @@ namespace MoreMush.Mobile
         {
             Wallet.Changed -= RefreshButtons;
             GachaProgress.Changed -= Refresh;
+            Loc.Changed -= OnLanguageChanged;
             AdService.Status -= OnAdStatus;
+        }
+
+        // 언어가 바뀌면 제목·버튼 글자를 다시 쓴다
+        void OnLanguageChanged()
+        {
+            if (titleText != null) titleText.text = Title(kind);
+            Refresh();
         }
 
         void OnAdStatus(string message)
@@ -155,7 +164,7 @@ namespace MoreMush.Mobile
 
         void OnFreeClicked()
         {
-            if (!FreeAvailable) { Notify("오늘의 광고 뽑기를 이미 사용했습니다"); return; }
+            if (!FreeAvailable) { Notify(Loc.T("gacha.ad_used")); return; }
             if (adBusy) return;
             string credit = "Gacha." + kind;
             if (AdCredits.TryUse(credit))   // 지난번에 광고를 다 보고도 못 받은 뽑기
@@ -177,14 +186,14 @@ namespace MoreMush.Mobile
             if (!started)
             {
                 adBusy = false;
-                Notify("광고를 불러오는 중입니다. 잠시 후 다시 눌러 주세요");
+                Notify(Loc.T("gacha.ad_loading"));
             }
         }
 
         void PayAndRoll(GachaProductRow product)
         {
             if (product == null) return;
-            if (!Wallet.TrySpend(product.currency, product.price)) { Notify("재화가 부족합니다"); return; }
+            if (!Wallet.TrySpend(product.currency, product.price)) { Notify(Loc.T("gacha.no_funds")); return; }
             DoRoll(product.pullCount);
         }
 
@@ -252,7 +261,7 @@ namespace MoreMush.Mobile
 
         static string FormatResult(GachaKind kind, int count, int[] result)
         {
-            var sb = new StringBuilder($"{count}회 결과: ");
+            var sb = new StringBuilder(Loc.F("gacha.result", count));
             bool first = true;
             for (int g = GachaProgress.GradeCount - 1; g >= 0; g--)
             {
@@ -266,9 +275,9 @@ namespace MoreMush.Mobile
 
         static string Title(GachaKind k) => k switch
         {
-            GachaKind.Weapon => "수확기 뽑기",
-            GachaKind.Accessory => "방어구 뽑기",
-            _ => "꼬마 뽑기",
+            GachaKind.Weapon => Loc.T("gacha.title_weapon"),
+            GachaKind.Accessory => Loc.T("gacha.title_armor"),
+            _ => Loc.T("gacha.title_mini"),
         };
 
         void Notify(string message)
@@ -298,10 +307,10 @@ namespace MoreMush.Mobile
             bool free = FreeAvailable;
             // [UI 개편 2026-11-05] 한 줄 "광고 보고 11회 소환"(앞은 연한 노랑·뒤는 흰색). 다 보면 이름은 그대로 두고 버튼만 회색(interactable)
             string freeTitle = adProduct == null ? "-"
-                : $"<color=#FFF2BF>광고 보고</color> {adProduct.pullCount}회 소환" + (AdLimit > 0 ? $" {AdLimit - GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit}" : "");   // 본 횟수/하루 횟수 (안 봤으면 0/n, 다 보면 n/n·회색)
+                : Loc.F("gacha.ad_pull", adProduct.pullCount) + (AdLimit > 0 ? $" {AdLimit - GachaProgress.FreeLeft(kind, AdLimit)}/{AdLimit}" : "");   // 본 횟수/하루 횟수 (안 봤으면 0/n, 다 보면 n/n·회색)
             SetButton(freeText, freeTitle, "");
-            SetButton(coin11Text, smallProduct != null ? $"{smallProduct.pullCount}회 소환" : "-", smallProduct != null ? Wallet.Format(smallProduct.price) : "");
-            SetButton(coin35Text, bigProduct != null ? $"{bigProduct.pullCount}회 소환" : "-", bigProduct != null ? Wallet.Format(bigProduct.price) : "");
+            SetButton(coin11Text, smallProduct != null ? Loc.F("gacha.pull", smallProduct.pullCount) : "-", smallProduct != null ? Wallet.Format(smallProduct.price) : "");
+            SetButton(coin35Text, bigProduct != null ? Loc.F("gacha.pull", bigProduct.pullCount) : "-", bigProduct != null ? Wallet.Format(bigProduct.price) : "");
 
             RefreshButtons(free);
 

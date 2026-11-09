@@ -70,6 +70,9 @@ namespace MoreMush.Mobile
 
         public static event System.Action Changed;
 
+        // 화면에 보이는 강화 이름: 문자열 표 upgrade.<종류> (없으면 업그레이드 시트 name)
+        public static string DisplayName(IdleStat stat) => Loc.T("upgrade." + stat, Get(stat).name);
+
         // Defs는 IdleStat 순서대로 적혀 있다 — 번호로 바로 꺼내고, 순서가 어긋나면 찾아서 쓴다
         public static Def Get(IdleStat stat)
         {
@@ -201,8 +204,8 @@ namespace MoreMush.Mobile
         {
             switch (stat)
             {
-                case IdleStat.Speed: return v.ToString("0.00") + "/초";
-                case IdleStat.HpRegen: return FormatNumber(v) + "/초";
+                case IdleStat.Speed: return v.ToString("0.00") + Loc.T("unit.per_sec");
+                case IdleStat.HpRegen: return FormatNumber(v) + Loc.T("unit.per_sec");
                 case IdleStat.CritChance: return (v * 100).ToString("0.0") + "%";
                 case IdleStat.CritDamage:
                 case IdleStat.AdvancedAttack:

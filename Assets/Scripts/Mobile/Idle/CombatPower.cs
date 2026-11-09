@@ -44,21 +44,19 @@ namespace MoreMush.Mobile
             for (int i = 0; i < Formation.SlotCount; i++) if (!Formation.IsEmpty(i)) members++;
             double ownAtk = (IdleProgress.AttackMultiplier - 1) * 100, ownHp = (IdleProgress.HpMultiplier - 1) * 100;
             var sb = new StringBuilder();
-            sb.Append("전투력 ").Append(Format(Total)).Append('\n');
-            sb.Append("  공격 ").Append(Format(Offense)).Append("  ·  생존 ").Append(Format(Survival)).Append('\n');
-            sb.Append("공격력 ").Append(Format(IdleProgress.FinalAttack)).Append("  (보유 효과 +").Append(ownAtk.ToString("0.#")).Append("%)\n");
+            sb.Append(Loc.F("stats.power", Format(Total))).Append('\n');
+            sb.Append("  ").Append(Loc.F("stats.offense_survival", Format(Offense), Format(Survival))).Append('\n');
+            sb.Append(Loc.F("stats.attack", Format(IdleProgress.FinalAttack), ownAtk.ToString("0.#"))).Append('\n');
             foreach (var eq in Equipment.All)
             {
                 int on = eq.Equipped;
-                sb.Append(eq.Title).Append(' ').Append(on >= 0 ? eq.Names[on] : "없음")
-                  .Append("  ·  ").Append(eq.StatName).Append(" +").Append(eq.TotalPercent.ToString("0.#")).Append("%\n");
+                sb.Append(Loc.F("stats.equip", eq.DisplayTitle, on >= 0 ? eq.Names[on] : Loc.T("common.none"),
+                    eq.DisplayStatName, eq.TotalPercent.ToString("0.#"))).Append('\n');
             }
-            sb.Append("편성 ").Append(members).Append('/').Append(Formation.SlotCount).Append("명  ·  배율 합 ×").Append(Formation.TotalAttackMultiplier().ToString("0.##")).Append('\n');
-            sb.Append("공격 속도 ").Append(IdleProgress.FinalSpeed.ToString("0.00")).Append("/초  ·  치명타 ")
-              .Append((CritChance * 100).ToString("0.##")).Append("% × ").Append((CritDamage * 100).ToString("0.#")).Append("%\n");
-            sb.Append("초당 피해 ").Append(Format(Dps)).Append('\n');
-            sb.Append("체력 ").Append(Format(IdleProgress.FinalHp)).Append("  (보유 효과 +").Append(ownHp.ToString("0.#")).Append("%)  ·  재생 ")
-              .Append(Format(IdleProgress.FinalHpRegen)).Append("/초");
+            sb.Append(Loc.F("stats.formation", members, Formation.SlotCount, Formation.TotalAttackMultiplier().ToString("0.##"))).Append('\n');
+            sb.Append(Loc.F("stats.speed_crit", IdleProgress.FinalSpeed.ToString("0.00"), (CritChance * 100).ToString("0.##"), (CritDamage * 100).ToString("0.#"))).Append('\n');
+            sb.Append(Loc.F("stats.dps", Format(Dps))).Append('\n');
+            sb.Append(Loc.F("stats.hp", Format(IdleProgress.FinalHp), ownHp.ToString("0.#"), Format(IdleProgress.FinalHpRegen)));
             return sb.ToString();
         }
 

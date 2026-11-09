@@ -40,8 +40,8 @@ namespace MoreMush.Mobile
             var info = Use("Info");
             CardOff(info, slots <= 0);
             SetText(info, "Text", slots > 0
-                ? $"{WorldTree.ZoneName(zone)} 칸 {WorldTree.PlacedIn(zone).Count}/{slots}  ·  놓은 장식만 효과가 있어요"
-                : $"{WorldTree.ZoneName(zone)}는 세계수 {WorldTree.ZoneOpenStage(zone)}단계에 열려요");
+                ? Loc.F("deco.zone_info", WorldTree.ZoneName(zone), WorldTree.PlacedIn(zone).Count, slots)
+                : Loc.F("deco.zone_locked", WorldTree.ZoneName(zone), WorldTree.ZoneOpenStage(zone)));
 
             bool any = false;
             foreach (var d in GameBalance.Decos)
@@ -54,16 +54,16 @@ namespace MoreMush.Mobile
                 CardOff(card, !owned);
                 var icon = SetIcon(card, "Icon", WorldTree.DecoSprite(d));
                 if (icon != null && !owned) icon.color = new Color(0f, 0f, 0f, 0.35f);   // 아직 없는 장식은 그림자만
-                SetText(card, "Title", $"{d.name}  <size=26>{WorldTree.DecoGradeName(d.grade)}</size>");
+                SetText(card, "Title", $"{d.Name}  <size=26>{WorldTree.DecoGradeName(d.grade)}</size>");
                 string sub = WorldTree.EffectText(d.effect, d.value) + $"  ·  {Formation.Name(d.owner)}";
                 if (owned && !placed && WorldTree.FirstPlaceRewardLeft(d))
-                    sub += TreeUi.Colored($"\n처음 놓으면 {Mycelite(GameBalance.ConstInt("decoFirstMycelite"))} · 호감도 +{GameBalance.ConstInt("decoFirstAffinity")}", TreeUi.Good);
+                    sub += TreeUi.Colored("\n" + Loc.F("deco.first_place", Mycelite(GameBalance.ConstInt("decoFirstMycelite")), GameBalance.ConstInt("decoFirstAffinity")), TreeUi.Good);
                 SetText(card, "Sub", sub);
-                if (!owned) SetButton(card, "Button", "공방에서\n제작", false, null);
-                else if (placed) SetButton(card, "Button", "빼기", true, () => WorldTree.Remove(dd), "UI/UI_Btn_Red");
-                else SetButton(card, "Button", "놓기", WorldTree.CanPlace(d), () => { if (WorldTree.Place(dd)) Toast($"{dd.name}을(를) 놓았어요!"); });
+                if (!owned) SetButton(card, "Button", Loc.T("deco.needs_craft"), false, null);
+                else if (placed) SetButton(card, "Button", Loc.T("deco.remove"), true, () => WorldTree.Remove(dd), "UI/UI_Btn_Red");
+                else SetButton(card, "Button", Loc.T("deco.place"), WorldTree.CanPlace(d), () => { if (WorldTree.Place(dd)) Toast(Loc.F("deco.placed_toast", dd.Name)); });
             }
-            if (!any) SetText(Use("Empty"), "Text", "이 자리에 놓는 장식이 없어요");
+            if (!any) SetText(Use("Empty"), "Text", Loc.T("deco.no_decos"));
         }
 
         // 견본이 없을 때: 예전 코드 화면
@@ -98,8 +98,8 @@ namespace MoreMush.Mobile
             int slots = WorldTree.ZoneSlots(zone);
             var info = TreeUi.Card(list, 110f, slots > 0);
             TreeUi.Line(info, slots > 0
-                    ? $"{WorldTree.ZoneName(zone)} 칸 {WorldTree.PlacedIn(zone).Count}/{slots}  ·  놓은 장식만 효과가 있어요"
-                    : $"{WorldTree.ZoneName(zone)}는 세계수 {WorldTree.ZoneOpenStage(zone)}단계에 열려요",
+                    ? Loc.F("deco.zone_info", WorldTree.ZoneName(zone), WorldTree.PlacedIn(zone).Count, slots)
+                    : Loc.F("deco.zone_locked", WorldTree.ZoneName(zone), WorldTree.ZoneOpenStage(zone)),
                 30f, TreeUi.Ink, font, 32f, 24f, 0f, 1f);
 
             bool any = false;
@@ -112,7 +112,7 @@ namespace MoreMush.Mobile
             if (!any)
             {
                 var empty = TreeUi.Card(list, 110f);
-                TreeUi.Line(empty, "이 자리에 놓는 장식이 없어요", 30f, TreeUi.Faint, font, 32f, 24f, 0f, 1f);
+                TreeUi.Line(empty, Loc.T("deco.no_decos"), 30f, TreeUi.Faint, font, 32f, 24f, 0f, 1f);
             }
         }
 
@@ -122,20 +122,20 @@ namespace MoreMush.Mobile
             var card = TreeUi.Card(list, 180f, owned);
             var icon = TreeUi.Icon(card, WorldTree.DecoSprite(d), 130f);
             if (!owned) icon.color = new Color(0f, 0f, 0f, 0.35f);       // 아직 없는 장식은 그림자만
-            TreeUi.Line(card, $"{d.name}  <size=26>{WorldTree.DecoGradeName(d.grade)}</size>", 34f, TreeUi.Ink, font, 180f, 270f, 0.58f, 0.92f).fontStyle = FontStyles.Bold;
+            TreeUi.Line(card, $"{d.Name}  <size=26>{WorldTree.DecoGradeName(d.grade)}</size>", 34f, TreeUi.Ink, font, 180f, 270f, 0.58f, 0.92f).fontStyle = FontStyles.Bold;
             string sub = WorldTree.EffectText(d.effect, d.value) + $"  ·  {Formation.Name(d.owner)}";
             if (owned && !placed && WorldTree.FirstPlaceRewardLeft(d))
-                sub += TreeUi.Colored($"\n처음 놓으면 {Mycelite(GameBalance.ConstInt("decoFirstMycelite"))} · 호감도 +{GameBalance.ConstInt("decoFirstAffinity")}", TreeUi.Good);
+                sub += TreeUi.Colored("\n" + Loc.F("deco.first_place", Mycelite(GameBalance.ConstInt("decoFirstMycelite")), GameBalance.ConstInt("decoFirstAffinity")), TreeUi.Good);
             TreeUi.Line(card, sub, 26f, TreeUi.Faint, font, 180f, 270f, 0.06f, 0.58f);
 
             if (!owned)
-                TreeUi.Button(card, "공방에서\n제작", false, null, font);
+                TreeUi.Button(card, Loc.T("deco.needs_craft"), false, null, font);
             else if (placed)
-                TreeUi.Button(card, "빼기", true, () => WorldTree.Remove(d), font, tint: TreeUi.Bad);
+                TreeUi.Button(card, Loc.T("deco.remove"), true, () => WorldTree.Remove(d), font, tint: TreeUi.Bad);
             else
-                TreeUi.Button(card, "놓기", WorldTree.CanPlace(d), () =>
+                TreeUi.Button(card, Loc.T("deco.place"), WorldTree.CanPlace(d), () =>
                 {
-                    if (WorldTree.Place(d)) Toast($"{d.name}을(를) 놓았어요!");
+                    if (WorldTree.Place(d)) Toast(Loc.F("deco.placed_toast", d.Name));
                 }, font);
         }
     }

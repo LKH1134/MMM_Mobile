@@ -91,7 +91,7 @@ namespace MoreMush.Mobile
             float k = max ? 1f : Mathf.Clamp01(exp / (float)need);
             row.fill.anchorMax = new Vector2(k, 1f);
             row.fill.gameObject.SetActive(k > 0f);
-            row.value.text = max ? "MAX" : $"{exp}/{need}";
+            row.value.text = max ? Loc.T("upgrade.max") : $"{exp}/{need}";
         }
 
         // 버튼 색과 두 줄 글자. costIcon이 있으면 아래 줄 앞에 재화 아이콘을 붙인다.
@@ -158,7 +158,7 @@ namespace MoreMush.Mobile
             return text;
         }
 
-        const float LeafSize = 56f, LeafInset = 26f;
+        const float LeafSize = 56f, LeafInset = 26f, LeafTextGap = 4f;
         const float CostIconSize = 80f;
 
         // [UI 개편 2026-11-05] 광고 소환 버튼: 아래 줄 없이 "광고 보고 11회 소환" 한 줄을 버튼 가운데에 (잎 사이)
@@ -172,8 +172,9 @@ namespace MoreMush.Mobile
             var trt = text.title.rectTransform;
             trt.anchorMin = Vector2.zero;
             trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(LeafInset + LeafSize - 6f, 0f);   // 잎 바로 안쪽까지 글자 자리
-            trt.offsetMax = new Vector2(-(LeafInset + LeafSize - 6f), -4f);
+            // 잎 바깥부터 글자 자리 (예전 -6은 잎과 6px 겹쳐 긴 문구·외곽선이 잎을 덮었다). 넘치면 자동 축소
+            trt.offsetMin = new Vector2(LeafInset + LeafSize + LeafTextGap, 0f);
+            trt.offsetMax = new Vector2(-(LeafInset + LeafSize + LeafTextGap), -4f);
         }
 
         static void Leaf(RectTransform button, string sprite, float side)

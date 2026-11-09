@@ -13,6 +13,11 @@ namespace MoreMush.Mobile
         public string name;        // 인게임 이름
         public string desc;        // 인게임 설명
         public string icon;        // 아이콘 스프라이트 경로 (Resources 기준)
+
+        // 화면에 보일 이름·설명: 문자열 표의 name.<index>·desc.<index> 줄 (게임 언어), 없으면 이 표에 적힌 한국어.
+        // index는 표마다 범위가 달라 겹치지 않는다. 언어를 바꾸면 다음에 읽을 때 바로 바뀐다
+        public string Name => Loc.T("name." + index, name);
+        public string Desc => Loc.T("desc." + index, desc);
     }
 
     // 엑셀 시트 한 장을 읽은 표. 시트 형식:

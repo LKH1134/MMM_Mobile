@@ -30,6 +30,7 @@ namespace MoreMush.Mobile
             WorldTree.Changed += MarkDirty;
             Wallet.Changed += MarkDirty;
             Formation.Changed += MarkDirty;
+            Loc.Changed += MarkDirty;       // 언어가 바뀌면 다시 그린다
             Rebuild();
         }
 
@@ -38,6 +39,7 @@ namespace MoreMush.Mobile
             WorldTree.Changed -= MarkDirty;
             Wallet.Changed -= MarkDirty;
             Formation.Changed -= MarkDirty;
+            Loc.Changed -= MarkDirty;
         }
 
         // 한 프레임에 여러 번 바뀌어도 한 번만 다시 만든다
@@ -154,7 +156,7 @@ namespace MoreMush.Mobile
             return b;
         }
 
-        protected static string Gold(long v) => Wallet.Format(v) + " 골드";
-        protected static string Mycelite(long v) => "균사석 " + Wallet.Format(v);
+        protected static string Gold(long v) => Loc.F("tree.gold", Wallet.Format(v));
+        protected static string Mycelite(long v) => Loc.F("tree.mycelite", Wallet.Format(v));
     }
 }

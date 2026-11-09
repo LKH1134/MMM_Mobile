@@ -42,6 +42,7 @@ namespace MoreMush.Mobile
             // 예전 DailyQuestPopup과 같게 팝업으로 알린다: 열린 동안 광고 상자 시간이 멈추고, 뒤로가기·다른 팝업이 열리면 닫힌다
             PopupGate.Opened(this, () => gameObject.SetActive(false));
             DailyQuests.Changed += Refresh;
+            Loc.Changed += OnLanguageChanged;
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed += CloseOnTab;
             Refresh();
         }
@@ -50,7 +51,15 @@ namespace MoreMush.Mobile
         {
             PopupGate.Closed(this);
             DailyQuests.Changed -= Refresh;
+            Loc.Changed -= OnLanguageChanged;
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= CloseOnTab;
+        }
+
+        // 언어가 바뀌면 타이머와 카드 글자를 다시 쓴다
+        void OnLanguageChanged()
+        {
+            shownSecond = -1;
+            Refresh();
         }
 
         void CloseOnTab(int tab) => gameObject.SetActive(false);
@@ -61,7 +70,7 @@ namespace MoreMush.Mobile
             int sec = (int)t.TotalSeconds;
             if (sec == shownSecond || resetText == null) return;
             shownSecond = sec;
-            resetText.text = $"초기화까지 {(int)t.TotalHours:00}:{t.Minutes:00}:{t.Seconds:00}";
+            resetText.text = Loc.F("quest.reset_in", (int)t.TotalHours, t.Minutes, t.Seconds);
         }
 
         string IconOf(QuestKind k)
@@ -80,11 +89,11 @@ namespace MoreMush.Mobile
         {
             switch (k)
             {
-                case QuestKind.Kill: return "버섯 퇴치";
-                case QuestKind.Stage: return "보스 도전";
-                case QuestKind.Upgrade: return "강화 연습";
-                case QuestKind.Gacha: return "뽑기";
-                default: return "광고 보기";
+                case QuestKind.Kill: return Loc.T("quest.title_kill");
+                case QuestKind.Stage: return Loc.T("quest.title_stage");
+                case QuestKind.Upgrade: return Loc.T("quest.title_upgrade");
+                case QuestKind.Gacha: return Loc.T("quest.title_gacha");
+                default: return Loc.T("common.watch_ad");
             }
         }
 
@@ -112,7 +121,7 @@ namespace MoreMush.Mobile
                 if (c.title != null) c.title.text = TitleOf(kind);
                 if (c.icon != null) c.icon.sprite = Resources.Load<Sprite>(IconOf(kind));
                 if (c.desc != null) c.desc.text = DailyQuests.Describe(i);
-                if (c.reward != null) c.reward.text = $"골드 +{Wallet.Format(DailyQuests.RewardGold(i))}   균사석 +{Wallet.Format(DailyQuests.RewardMycelite(i))}";
+                if (c.reward != null) c.reward.text = Loc.F("idle.gold", Wallet.Format(DailyQuests.RewardGold(i))) + "   " + Loc.F("idle.mycelite", Wallet.Format(DailyQuests.RewardMycelite(i)));
                 if (c.progress != null) c.progress.text = $"{done:N0} / {target:N0}";
                 if (c.barFill != null)
                 {
@@ -128,7 +137,7 @@ namespace MoreMush.Mobile
                     c.button.image.sprite = Resources.Load<Sprite>(can ? claimSprite : doneSprite);
                     c.button.image.enabled = can;     // 받은 뒤에는 회색 바탕을 그리지 않는다
                 }
-                if (c.buttonText != null) c.buttonText.text = claimed ? "완료" : "의뢰 완료";
+                if (c.buttonText != null) c.buttonText.text = Loc.T(claimed ? "quest.done" : "quest.complete");
             }
         }
     }

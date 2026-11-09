@@ -89,7 +89,7 @@ namespace MoreMush.Mobile
             label.fontStyle = FontStyles.Bold;
             OutlineText.ApplyIfWhite(label);
             Stretch(label.rectTransform);
-            label.text = "닫기";
+            label.text = Loc.T("common.close");
             closeButton.onClick.AddListener(Close);
         }
 

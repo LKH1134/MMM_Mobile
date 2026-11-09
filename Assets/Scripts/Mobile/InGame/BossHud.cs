@@ -40,7 +40,7 @@ namespace MoreMush.Mobile
                 shown = trailShown = 1f;
                 shownClones = -1;
                 shownPercent = -1;
-                bossName = stats != null && stats.Boss != null && !string.IsNullOrEmpty(stats.Boss.name) ? stats.Boss.name : "보스";
+                bossName = stats != null && stats.Boss != null && !string.IsNullOrEmpty(stats.Boss.name) ? stats.Boss.Name : Loc.T("ingame.boss");
             }
             if (stats == null || !stats.BossRound) { Hide(); return; }
 
@@ -84,7 +84,7 @@ namespace MoreMush.Mobile
             if (clones != shownClones)
             {
                 shownClones = clones;
-                nameText.text = clones > 0 ? $"{bossName}  <size=75%>분신 ×{clones}</size>" : bossName;
+                nameText.text = clones > 0 ? $"{bossName}  <size=75%>{Loc.F("ingame.boss_clones", clones)}</size>" : bossName;
             }
         }
 

@@ -94,8 +94,7 @@ namespace MoreMush.Mobile
             dungeonLevel = IsRush ? DungeonTickets.Level(d) : 1;
             partyHp = partyMaxHp;
             pendingHurt = 0;
-            var row = GameBalance.Dungeon(d);
-            ShowText(Center(), row != null && !string.IsNullOrEmpty(row.name) ? row.name : $"던전 {d}", new Color(1f, 0.85f, 0.35f), 72f, 1.4f);
+            ShowText(Center(), DungeonName(d), new Color(1f, 0.85f, 0.35f), 72f, 1.4f);
             if (IsRush) SpawnRushBoss();
             else
             {
@@ -127,7 +126,7 @@ namespace MoreMush.Mobile
             dungeonBossDps = DungeonRewards.RushAttack(dungeon, dungeonLevel, rushIndex);
             dungeonDefense = 0;
             bossTimeLeft = bossTimeTotal = DungeonRewards.RushTime(dungeon, dungeonLevel, rushIndex);
-            ShowText(Center(), $"보스 {rushIndex + 1}/{n}", Color.white, 64f, 1.1f);
+            ShowText(Center(), Loc.F("battle.boss_count", rushIndex + 1, n), Color.white, 64f, 1.1f);
         }
 
         void SpawnLevelBoss()
@@ -193,7 +192,7 @@ namespace MoreMush.Mobile
             SetHp(e);
             boss = e;
             ApplyLevelStats();
-            ShowText(Center(), $"레벨 {dungeonLevel}!", new Color(1f, 0.85f, 0.35f), 64f, 1f);
+            ShowText(Center(), Loc.F("battle.level_banner", dungeonLevel), new Color(1f, 0.85f, 0.35f), 64f, 1f);
             RefreshHud();
         }
 
@@ -237,22 +236,21 @@ namespace MoreMush.Mobile
 
         void ShowDungeonResult(int d, bool rush, bool cleared, int killed, int level)
         {
-            var row = GameBalance.Dungeon(d);
-            string title = row != null && !string.IsNullOrEmpty(row.name) ? row.name : $"던전 {d}";
+            string title = DungeonName(d);
             var sb = new System.Text.StringBuilder();
             if (rush)
             {
-                sb.Append(cleared ? $"레벨 {level} 클리어!" : $"레벨 {level} 도전 실패").Append('\n');
-                sb.Append($"보스 처치 {killed}/{DungeonRewards.RushCount}\n\n");
+                sb.Append(Loc.F(cleared ? "battle.level_clear" : "battle.level_fail", level)).Append('\n');
+                sb.Append(Loc.F("battle.boss_kills", killed, DungeonRewards.RushCount)).Append("\n\n");
             }
             else
             {
-                sb.Append(level - 1 > 0 ? $"레벨 {level - 1}까지 처치" : "처치한 레벨 없음").Append('\n');
-                sb.Append($"최고 기록 레벨 {DungeonTickets.BestLevel(d)}\n\n");
+                sb.Append(level - 1 > 0 ? Loc.F("battle.cleared_up_to", level - 1) : Loc.T("battle.no_level_cleared")).Append('\n');
+                sb.Append(Loc.F("battle.best_level", DungeonTickets.BestLevel(d))).Append("\n\n");
             }
-            if (dungeonGold > 0) sb.Append("<color=#FFD54A>골드 +").Append(Wallet.Format(dungeonGold)).Append("</color>\n");
-            if (dungeonMycelite > 0) sb.Append("<color=#8FE3FF>균사석 +").Append(Wallet.Format(dungeonMycelite)).Append("</color>\n");
-            if (dungeonGold <= 0 && dungeonMycelite <= 0) sb.Append("받은 보상 없음\n");
+            if (dungeonGold > 0) sb.Append("<color=#FFD54A>").Append(Loc.F("idle.gold", Wallet.Format(dungeonGold))).Append("</color>").Append('\n');
+            if (dungeonMycelite > 0) sb.Append("<color=#8FE3FF>").Append(Loc.F("idle.mycelite", Wallet.Format(dungeonMycelite))).Append("</color>").Append('\n');
+            if (dungeonGold <= 0 && dungeonMycelite <= 0) sb.Append(Loc.T("battle.no_reward")).Append('\n');
             if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
             reportPopup.ShowMessage(title, sb.ToString().TrimEnd('\n'));
         }
@@ -269,10 +267,16 @@ namespace MoreMush.Mobile
             if (dungeonLevel - 1 > 0) DungeonTickets.RecordBest(dungeon, dungeonLevel - 1);
         }
 
+        // 화면에 보이는 던전 이름 (표 name.<번호>, 없으면 "던전 n")
+        static string DungeonName(int d)
+        {
+            var row = GameBalance.Dungeon(d);
+            return row != null && !string.IsNullOrEmpty(row.name) ? row.Name : Loc.F("dungeon.default_name", d);
+        }
+
         string DungeonLabel()
         {
-            var row = GameBalance.Dungeon(dungeon);
-            string name = row != null && !string.IsNullOrEmpty(row.name) ? row.name : $"던전 {dungeon}";
+            string name = DungeonName(dungeon);
             return IsRush
                 ? $"<color=#FFD54A>{name}</color> {Mathf.Min(rushIndex + 1, DungeonRewards.RushCount)}/{DungeonRewards.RushCount}"
                 : $"<color=#FFD54A>{name}</color> Lv.{dungeonLevel}";

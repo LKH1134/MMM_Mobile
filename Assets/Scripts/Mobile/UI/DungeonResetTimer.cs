@@ -16,6 +16,16 @@ namespace MoreMush.Mobile
         {
             day = DungeonTickets.KstNow.Date;
             shownMinute = -1;
+            Loc.Changed += OnLanguageChanged;
+            Tick();
+        }
+
+        void OnDisable() => Loc.Changed -= OnLanguageChanged;
+
+        // 분이 그대로여도 새 언어로 다시 쓴다
+        void OnLanguageChanged()
+        {
+            shownMinute = -1;
             Tick();
         }
 
@@ -38,7 +48,7 @@ namespace MoreMush.Mobile
             int minutes = (int)left.TotalMinutes;
             if (minutes == shownMinute || timeText == null) return;
             shownMinute = minutes;
-            timeText.text = $"남은 시간: {minutes / 60}시간 {minutes % 60}분";
+            timeText.text = Loc.F("dungeon.time_left", minutes / 60, minutes % 60);
         }
     }
 }

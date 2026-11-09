@@ -57,7 +57,7 @@ namespace MoreMush.Mobile
         public static bool GuardLeave(Action proceed)
         {
             if (ActiveIdle == 0 || Mode(ActiveIdle) != DungeonMode.BossLevel || Confirm == null || FinishIdle == null) return false;
-            Confirm("레이드 나가기", "현재 보상을 받고 나가시겠습니까?", () =>
+            Confirm(Loc.T("dungeon.raid_leave_title"), Loc.T("dungeon.raid_leave_msg"), () =>
             {
                 FinishIdle?.Invoke(proceed == null);
                 proceed?.Invoke();

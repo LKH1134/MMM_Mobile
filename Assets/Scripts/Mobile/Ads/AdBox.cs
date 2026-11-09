@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 광고 상자 (레전드 오브 슬라임식): 일정 시간(adBoxIntervalHours)마다 홈 화면 왼쪽에서 상자가 날아와 머물고(adBoxStaySeconds),
+    // 광고 상자 (레전드 오브 슬라임식): 일정 시간(adBoxIntervalHours)마다 홈 화면 왼쪽에서 상자가 날아와 두 자리 사이를 돌아다니다(adBoxStaySeconds) 오른쪽으로 빠지고,
     // 누르면 "광고 보기" 창이 뜬다. 리워드 광고를 끝까지 보면 골드와 균사석을 준다 (스테이지가 오를수록 커진다).
     //   - 시간은 유저가 Main 홈 화면을 보고 있을 때만 간다: 절전 모드·앱을 내린 동안·다른 탭·팝업·다른 씬에서는 멈춘다.
     //     상자가 떠 있는 동안 홈을 떠나면 상자는 숨고 머무는 시간도 멈춘다.
@@ -19,7 +19,10 @@ namespace MoreMush.Mobile
         const float SaveEvery = 1f;
         const float EnterSeconds = 0.8f, LeaveSeconds = 0.8f;
         const float ChestSize = 230f;
-        const float TargetX = 0.22f, TargetY = 0.175f;   // 상자가 머무는 자리: 캔버스 중심에서 폭·높이의 비율 (오른쪽 위쪽). [UI 개편 2026-11-06] 0.13 → 0.175 = 홈 전투 적 영역 바로 위(화면 위에서 약 760)
+        // 상자가 돌아다니는 길: 전투 화면 위쪽의 빈 풀밭 두 자리(왼쪽 의뢰 버튼 옆 · 오른쪽 전투력 옆)를 오간다.
+        // 캔버스 중심에서 폭·높이의 비율 — 두 자리는 중심 기준 ±WanderHalfSpan, 높이는 TargetY (화면 위에서 약 25%). [2026-11-09] 한 자리에 머물던 것을 두 자리 배회로 바꿈
+        const float WanderHalfSpan = 0.25f, TargetY = 0.252f;
+        const float WanderPeriod = 14f;                  // 왼쪽→오른쪽→왼쪽 한 바퀴 초 (느리게)
         const float BobHeight = 18f, BobSpeed = 2.4f;
         const string ChestIcon = "UI/Icon/advertisement";   // [UI 개편 2026-11-06] 보물상자 → 광고 아이콘
         const float EditorIntervalSeconds = 2f;         // 유니티 에디터에서는 표의 간격 대신 바로 나온다 (테스트용)
@@ -27,12 +30,15 @@ namespace MoreMush.Mobile
         static AdBox instance;
 
         enum State { Waiting, Present }
+        enum Reward { Gold, Mycelite }      // 상자 한 개는 보상을 한 가지만 준다: 동전 그림이면 골드, 균사석 그림이면 균사석
+        const string GoldChestIcon = "UI/Icon/advertisement", MyceliteChestIcon = "UI/Icon/advertisement_mycelite";
 
         RectTransform canvasRect;
         RectTransform chest;
         AdBoxPopup popup;
         State state = State.Waiting;
-        float elapsed;          // 쿨타임을 센 초
+        Reward reward = Reward.Gold;    // 이번 상자의 보상 (나올 때 정한다)
+        float elapsed;         // 쿨타임을 센 초
         float stayLeft;         // 상자가 머물 남은 초
         float age;              // 상자가 나온 뒤 홈에서 보낸 초 (날아오는 연출·흔들림)
         float saveIn;
@@ -165,6 +171,7 @@ namespace MoreMush.Mobile
 
             // 상자가 떠 있다: 홈을 떠나면 숨기고 시간도 멈춘다 (내 "광고 보기" 창이 열려 있는 동안은 그대로 둔다)
             bool popupOpen = popup != null && popup.IsOpen;
+            if (home) EnsureChest();        // Main 씬을 다시 읽으면 씬과 함께 상자가 사라진다 — 다시 만든다
             if (chest != null && chest.gameObject.activeSelf != (home || popupOpen)) chest.gameObject.SetActive(home || popupOpen);
             if (!home) return;
             age += dt;
@@ -175,7 +182,11 @@ namespace MoreMush.Mobile
 
         void Spawn()
         {
-            if (chest == null) BuildChest();
+            reward = NextReward();
+#if UNITY_EDITOR
+            Debug.Log($"[AdBox] 상자 종류: {reward}");      // 에디터에서 뜨는 종류가 어떻게 나오는지 콘솔로 확인
+#endif
+            EnsureChest();
             state = State.Present;
             stayLeft = staySeconds;
             age = 0f;
@@ -209,22 +220,68 @@ namespace MoreMush.Mobile
             SaveScheduler.MarkDirty();
         }
 
-        // 왼쪽 바깥에서 날아와 자리에 머물며 흔들리고, 떠나기 전에 왼쪽으로 빠진다
+        // 왼쪽 바깥에서 날아와 두 자리 사이를 천천히 오가며 흔들리고, 머무는 시간이 끝나면 오른쪽으로 빠진다
         void Place()
         {
-            float w = canvasRect.rect.width, h = canvasRect.rect.height;
-            float outX = -(w * 0.5f + ChestSize);
-            float targetX = w * TargetX, targetY = h * TargetY;
-            float x = targetX;
-            if (age < EnterSeconds) x = Mathf.Lerp(outX, targetX, EaseOut(age / EnterSeconds));
-            else if (stayLeft < LeaveSeconds) x = Mathf.Lerp(outX, targetX, EaseOut(stayLeft / LeaveSeconds));
+            if (chest == null) return;
+            var area = ((RectTransform)chest.parent).rect;      // 상자가 걸린 판(홈 화면 전투 영역) 기준
+            float w = area.width, h = area.height;
+            float outLeft = -(w * 0.5f + ChestSize), outRight = w * 0.5f + ChestSize;
+            float y = h * TargetY;
+            float x;
+            if (age < EnterSeconds) x = Mathf.Lerp(outLeft, WanderX(w, 0f), EaseOut(age / EnterSeconds));
+            else if (stayLeft < LeaveSeconds) x = Mathf.Lerp(WanderX(w, staySeconds - LeaveSeconds - EnterSeconds), outRight, EaseIn(1f - stayLeft / LeaveSeconds));
+            else x = WanderX(w, age - EnterSeconds);
             float bob = Mathf.Sin(age * BobSpeed) * BobHeight;
-            chest.anchoredPosition = new Vector2(x, targetY + bob);
+            chest.anchoredPosition = new Vector2(x, y + bob);
         }
 
+        // 왼쪽 자리에서 시작해 두 자리 사이를 천천히 오간다 (t = 날아온 뒤 흐른 초)
+        static float WanderX(float width, float t) => -Mathf.Cos(Mathf.Max(0f, t) * Mathf.PI * 2f / WanderPeriod) * width * WanderHalfSpan;
+
         static float EaseOut(float t) => 1f - Mathf.Pow(1f - Mathf.Clamp01(t), 3f);
+        static float EaseIn(float t) => Mathf.Pow(Mathf.Clamp01(t), 3f);
 
         // ── 화면 ──
+        // 상자를 홈 전투 영역(IdleBattle)의 홈 HUD 바로 뒤에 끼워 넣는다: 전투 그림 위, HUD(체력·전투력·왼쪽 버튼)·화면·팝업 아래.
+        // 홈 HUD를 못 찾으면(씬 준비 전) 오버레이 캔버스에 두었다가 찾으면 옮긴다
+        void EnsureChest()
+        {
+            if (chest == null) BuildChest();
+            ApplyChestIcon();
+            var hud = FindFirstObjectByType<MainHudView>();
+            Transform parent = hud != null && hud.transform.parent is RectTransform ? hud.transform.parent : transform;
+            if (chest.parent != parent)
+            {
+                chest.SetParent(parent, false);
+                chest.localScale = Vector3.one;
+            }
+            if (hud != null && chest.GetSiblingIndex() > hud.transform.GetSiblingIndex())
+                chest.SetSiblingIndex(hud.transform.GetSiblingIndex());   // HUD 앞 자리에 끼워 HUD가 위에 그려지게
+        }
+
+        // 다음 상자의 종류: 50 대 50으로 뽑되, 같은 종류가 3번 연속 나오지 않게 한다 (운이 몰려 한쪽만 나오는 느낌을 막는다)
+        const int MaxSameInRow = 2;
+        Reward lastReward = Reward.Mycelite;
+        int sameInRow;
+
+        Reward NextReward()
+        {
+            Reward pick = Random.value < 0.5f ? Reward.Gold : Reward.Mycelite;
+            if (sameInRow >= MaxSameInRow && pick == lastReward) pick = lastReward == Reward.Gold ? Reward.Mycelite : Reward.Gold;
+            sameInRow = pick == lastReward ? sameInRow + 1 : 1;
+            lastReward = pick;
+            return pick;
+        }
+
+        // 보상 종류에 맞는 그림: 골드는 동전, 균사석은 동전 자리에 균사석이 붙은 그림
+        void ApplyChestIcon()
+        {
+            var sprite = Resources.Load<Sprite>(reward == Reward.Mycelite ? MyceliteChestIcon : GoldChestIcon) ?? Resources.Load<Sprite>(ChestIcon);
+            var image = chest.GetComponent<Image>();
+            if (image != null && sprite != null && image.sprite != sprite) image.sprite = sprite;
+        }
+
         void BuildChest()
         {
             var font = BorrowFont();
@@ -244,8 +301,9 @@ namespace MoreMush.Mobile
         {
             if (state != State.Present || popup == null || popup.IsOpen) return;
             var stage = IdleProgress.Stage;
-            long gold = ClampLong((double)IdleProgress.EnemyGold(stage) * goldKills);
-            long mycelite = AdMycelite;
+            // 이 상자의 종류만 준다 (다른 쪽은 0 → 창에서도 숨는다)
+            long gold = reward == Reward.Gold ? ClampLong((double)IdleProgress.EnemyGold(stage) * goldKills) : 0L;
+            long mycelite = reward == Reward.Mycelite ? AdMycelite : 0L;
             PopupGate.Opened(this, () => popup.Close());      // 뒤로가기·다른 팝업이 열리면 닫힌다
             popup.Open(gold, mycelite, () => Watch(gold, mycelite), () => PopupGate.Closed(this), Despawn);     // 취소 = 상자도 사라진다 (쿨타임 처음부터)
         }
@@ -257,14 +315,14 @@ namespace MoreMush.Mobile
             {
                 if (rewardGiven || state != State.Present) return;      // 보상은 한 번만 (데이터를 지워 상자가 사라졌으면 주지 않는다)
                 rewardGiven = true;
-                Wallet.Add(Currency.Gold, gold);
-                Wallet.Add(Currency.Mycelite, mycelite);
+                if (gold > 0) Wallet.Add(Currency.Gold, gold);
+                if (mycelite > 0) Wallet.Add(Currency.Mycelite, mycelite);
                 popup.Close();
                 Despawn();
             });
             if (!started)
             {
-                popup.SetStatus("광고를 불러오는 중입니다. 잠시 후 다시 눌러 주세요");
+                popup.SetStatus(Loc.T("ad.loading"));
                 popup.SetWatchEnabled(true);
             }
         }

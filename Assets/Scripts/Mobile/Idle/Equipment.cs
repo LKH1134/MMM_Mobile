@@ -51,9 +51,15 @@ namespace MoreMush.Mobile
         }
 
         public readonly GachaKind Kind;
-        public readonly string Title;               // 화면 이름 (무기·방어구)
+        public readonly string Title;               // 기본 이름 (무기·방어구). 화면에는 DisplayTitle
+
+        // 화면에 보이는 이름·스탯 이름 (문자열 표 equip.weapon / equip.armor, upgrade.Attack / upgrade.Hp)
+        public string DisplayTitle => Loc.T("equip." + keyPrefix.ToLowerInvariant(), Title);
+        public string DisplayStatName => Loc.T(Stat == EquipStat.Attack ? "upgrade.Attack" : "upgrade.Hp", StatName);
         public readonly EquipStat Stat;
         string[] names, spritePaths;                // 장비 시트에서 처음 쓸 때 읽는다 (null = 아직)
+        EquipmentRow[] nameRows;                    // 번역 이름을 언어가 바뀔 때 다시 꺼내려고 둔다
+        GameLanguage namesLanguage;
         int[] grades, subs, gradeSizes;             // 장비별 등급·등급 안 단계, 등급별 장비 수
         List<int>[] byGrade;                        // 등급별 장비 번호 (뽑기용)
         readonly string keyPrefix;
@@ -148,8 +154,23 @@ namespace MoreMush.Mobile
             get
             {
                 if (names == null) LoadRows();
+                if (namesLanguage != Loc.Current) RefreshNames();
                 return names;
             }
+        }
+
+        // 시트에 적힌 원래(한국어) 이름 — 이름으로 장비를 찾을 때 쓴다 (화면 이름 Names는 언어에 따라 바뀐다)
+        public string SheetName(int i)
+        {
+            if (names == null) LoadRows();
+            return nameRows[i]?.name;
+        }
+
+        // 현재 언어의 이름으로 다시 채운다 (표 name.<번호> → 없으면 시트 이름)
+        void RefreshNames()
+        {
+            namesLanguage = Loc.Current;
+            for (int i = 0; i < names.Length; i++) names[i] = nameRows[i] != null ? nameRows[i].Name : Title + " " + (i + 1);
         }
 
         // 장비 시트 → 이름·그림·등급·단계·저장 키. 장비 수 = 가장 큰 itemIndex + 1 (검증기가 빈 번호를 막는다)
@@ -159,13 +180,15 @@ namespace MoreMush.Mobile
             int count = 0;
             foreach (var r in rows) if (r.itemIndex >= 0) count = Mathf.Max(count, r.itemIndex + 1);
             var n = new string[count];
+            var nr = new EquipmentRow[count];
             var p = new string[count];
             var g = new int[count];
             var s = new int[count];
             foreach (var r in rows)
             {
                 if (r.itemIndex < 0) continue;
-                n[r.itemIndex] = r.name;
+                n[r.itemIndex] = r.Name;
+                nr[r.itemIndex] = r;
                 p[r.itemIndex] = GameBalance.ResourcePath(r.resourceId);
                 g[r.itemIndex] = Mathf.Clamp(r.grade, 0, GachaProgress.GradeCount - 1);
                 s[r.itemIndex] = Mathf.Max(0, r.sub);
@@ -189,6 +212,8 @@ namespace MoreMush.Mobile
             byGrade = lists;
             spritePaths = p;
             names = n;
+            nameRows = nr;
+            namesLanguage = Loc.Current;
         }
         public string StatName => Stat == EquipStat.Attack ? "공격력" : "체력";
 

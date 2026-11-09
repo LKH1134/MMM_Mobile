@@ -831,6 +831,7 @@ GameObject:
   - component: {fileID: 451759878}
   - component: {fileID: 451759880}
   - component: {fileID: 451759879}
+  - component: {fileID: 451759881}
   m_Layer: 5
   m_Name: GrowText
   m_TagString: Untagged
@@ -957,6 +958,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 451759877}
   m_CullTransparentMesh: 1
+--- !u!114 &451759881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451759877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: kid.title
 --- !u!1 &452505837
 GameObject:
   m_ObjectHideFlags: 0
@@ -1228,6 +1242,7 @@ GameObject:
   - component: {fileID: 570785917}
   - component: {fileID: 570785919}
   - component: {fileID: 570785918}
+  - component: {fileID: 570785920}
   m_Layer: 5
   m_Name: SkinText
   m_TagString: Untagged
@@ -1354,6 +1369,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 570785916}
   m_CullTransparentMesh: 1
+--- !u!114 &570785920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 570785916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: skin.title
 --- !u!1 &616982746
 GameObject:
   m_ObjectHideFlags: 0
@@ -1365,6 +1393,7 @@ GameObject:
   - component: {fileID: 616982747}
   - component: {fileID: 616982749}
   - component: {fileID: 616982748}
+  - component: {fileID: 616982750}
   m_Layer: 5
   m_Name: WorkshopText
   m_TagString: Untagged
@@ -1491,6 +1520,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 616982746}
   m_CullTransparentMesh: 1
+--- !u!114 &616982750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 616982746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: craft.title
 --- !u!1 &627711769
 GameObject:
   m_ObjectHideFlags: 0
@@ -1714,6 +1756,7 @@ GameObject:
   - component: {fileID: 655071595}
   - component: {fileID: 655071597}
   - component: {fileID: 655071596}
+  - component: {fileID: 655071598}
   m_Layer: 5
   m_Name: QuestText
   m_TagString: Untagged
@@ -1840,6 +1883,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 655071594}
   m_CullTransparentMesh: 1
+--- !u!114 &655071598
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655071594}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: quest.title
 --- !u!1 &664804488
 GameObject:
   m_ObjectHideFlags: 0
@@ -2337,6 +2393,7 @@ GameObject:
   - component: {fileID: 1041351635}
   - component: {fileID: 1041351637}
   - component: {fileID: 1041351636}
+  - component: {fileID: 1041351638}
   m_Layer: 5
   m_Name: GrowText
   m_TagString: Untagged
@@ -2463,6 +2520,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1041351634}
   m_CullTransparentMesh: 1
+--- !u!114 &1041351638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041351634}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fde976c2da2d644faaf29ce5d5725bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.LocalizedText
+  key: grow.title
 --- !u!1 &1157403954
 GameObject:
   m_ObjectHideFlags: 0
@@ -2729,6 +2799,15 @@ MonoBehaviour:
   - 0.7
   - 0.6
   decoSize: 0.2
+  stageSizes:
+  - 210
+  - 300
+  - 360
+  - 420
+  - 500
+  - 570
+  - 640
+  - 760
 --- !u!224 &1306356611 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1376669995390693769, guid: 1df0110a68a9a904f83f0790cb524af5, type: 3}
@@ -3097,7 +3176,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1080, y: 2340}
+  m_SizeDelta: {x: 1315.0853, y: 2340}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2048336446
 MonoBehaviour:

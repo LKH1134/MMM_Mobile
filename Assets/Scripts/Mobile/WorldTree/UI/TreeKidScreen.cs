@@ -61,6 +61,7 @@ namespace MoreMush.Mobile
             WorldTree.Changed += MarkDirty;
             Formation.Changed += MarkDirty;
             Wallet.Changed += MarkDirty;
+            Loc.Changed += MarkDirty;
             Refresh();
         }
 
@@ -69,6 +70,7 @@ namespace MoreMush.Mobile
             WorldTree.Changed -= MarkDirty;
             Formation.Changed -= MarkDirty;
             Wallet.Changed -= MarkDirty;
+            Loc.Changed -= MarkDirty;
         }
 
         void MarkDirty() => dirty = true;
@@ -113,14 +115,14 @@ namespace MoreMush.Mobile
                 bool can = !r.done && WorldTree.CanDoRequest(i);
                 if (c.title != null) c.title.text = Formation.Name(r.kid);
                 if (c.icon != null) { var sp = WorldTree.EnemySprite(r.enemy); c.icon.sprite = sp; c.icon.enabled = sp != null; c.icon.preserveAspect = true; }
-                if (c.desc != null) c.desc.text = r.done ? "고마워요!" : $"{WorldTree.EnemyName(r.enemy)} {r.count}개 주세요";
-                if (c.reward != null) c.reward.text = $"{Wallet.Format(WorldTree.RequestGold)} 골드 · 호감도 +{GameBalance.ConstInt("requestAffinity")}";
+                if (c.desc != null) c.desc.text = r.done ? Loc.T("kid.thanks") : Loc.F("kid.request_desc", WorldTree.EnemyName(r.enemy), r.count);
+                if (c.reward != null) c.reward.text = Loc.F("kid.reward_line", Wallet.Format(WorldTree.RequestGold), GameBalance.ConstInt("requestAffinity"));
                 if (c.progress != null) c.progress.text = $"{Wallet.Format(System.Math.Min(have, r.count))} / {r.count}";
                 if (c.barFill != null) c.barFill.anchorMax = new Vector2(r.count <= 0 ? 0f : Mathf.Clamp01(have / (float)r.count), c.barFill.anchorMax.y);
                 if (c is KidRequestView kv && kv.kidIcon != null) { var ks = Formation.Icon(r.kid); kv.kidIcon.sprite = ks; kv.kidIcon.enabled = ks != null; kv.kidIcon.preserveAspect = true; }
                 // 버튼은 늘 보인다: 줄 수 있으면 초록 "들어주기", 아니면 회색 "진행 중", 들어줬으면 회색 "완료"
                 if (c.button != null) c.button.interactable = can;
-                if (c.buttonText != null) c.buttonText.text = r.done ? "완료" : can ? "들어주기" : "진행 중";
+                if (c.buttonText != null) c.buttonText.text = r.done ? Loc.T("tree.done") : can ? Loc.T("kid.help") : Loc.T("treequest.in_progress");
             }
         }
 
@@ -129,7 +131,7 @@ namespace MoreMush.Mobile
             var requests = WorldTree.Requests;
             if (index >= requests.Count) return;
             string kid = requests[index].kid;
-            if (WorldTree.DoRequest(index)) Toast($"{Formation.Name(kid)}의 부탁을 들어줬어요!");
+            if (WorldTree.DoRequest(index)) Toast(Loc.F("kid.help_toast", Formation.Name(kid)));
             Refresh();
         }
 
@@ -138,13 +140,13 @@ namespace MoreMush.Mobile
         {
             if (weekButton != null) weekButton.interactable = WorldTree.CanClaimWeek;
             if (weekLabel != null)
-                weekLabel.text = WorldTree.WeekClaimed ? "주간 상자 받음"
-                    : $"주간 상자 {Mathf.Min(WorldTree.WeekDone, WorldTree.WeekGoal)}/{WorldTree.WeekGoal}";
+                weekLabel.text = WorldTree.WeekClaimed ? Loc.T("kid.week_claimed_label")
+                    : Loc.F("kid.week_label", Mathf.Min(WorldTree.WeekDone, WorldTree.WeekGoal), WorldTree.WeekGoal);
         }
 
         void ClaimWeek()
         {
-            if (WorldTree.ClaimWeek()) Toast($"균사석 {Wallet.Format(WorldTree.WeekMycelite)}을 받았어요!");
+            if (WorldTree.ClaimWeek()) Toast(Loc.F("kid.claim_toast", Loc.F("tree.mycelite", Wallet.Format(WorldTree.WeekMycelite))));
             Refresh();
         }
 
@@ -194,7 +196,7 @@ namespace MoreMush.Mobile
             if (evolveButton != null) evolveButton.interactable = has && WorldTree.CanKidEvolve(id) == WorldTree.KidFail.None;
             if (!has)
             {
-                if (infoName != null) infoName.text = "꼬마가 없어요";
+                if (infoName != null) infoName.text = Loc.T("kid.no_kid");
                 if (infoIcon != null) infoIcon.enabled = false;
                 if (infoLevel != null) infoLevel.text = "";
                 if (infoAffinity != null) infoAffinity.text = "";
@@ -206,42 +208,42 @@ namespace MoreMush.Mobile
             int star = WorldTree.Star(id);
             var row = WorldTree.KidRow(id);
             if (infoIcon != null) { infoIcon.enabled = true; infoIcon.sprite = Formation.Icon(id); infoIcon.preserveAspect = true; }
-            if (infoLevel != null) infoLevel.text = $"Lv.{Formation.Level(id)} [{Mathf.Max(1, WorldTree.KidStep(id) + 1)}단계]";
+            if (infoLevel != null) infoLevel.text = Loc.F("kid.level_step", Formation.Level(id), Mathf.Max(1, WorldTree.KidStep(id) + 1));
             if (infoName != null) infoName.text = $"{Formation.Name(id)}  " + TreeUi.Colored(TreeUi.Stars(star, WorldTree.MaxStar), new Color(0.95f, 0.65f, 0.1f));
 
             int affLv = WorldTree.AffinityLevel(id);
             var (have, need) = WorldTree.AffinityProgress(id);
-            if (infoAffinity != null) infoAffinity.text = need > 0 ? $"호감도 Lv {affLv}  ({have}/{need})" : $"호감도 Lv {affLv} (최고)";
+            if (infoAffinity != null) infoAffinity.text = need > 0 ? Loc.F("kid.affinity_lv", affLv, have, need) : Loc.F("kid.affinity_max", affLv);
 
             var sb = new StringBuilder();
             int step = WorldTree.KidStep(id);
-            if (row != null) sb.Append("특기: ").Append(WorldTree.EffectText(row.bonusEffect, row.bonusValue * step)).Append(step == 0 ? " (진화하면)" : "");
-            if (WorldTree.DecoSetComplete(id)) sb.Append(TreeUi.Colored("  장식 세트!", TreeUi.Good));
+            if (row != null) sb.Append(Loc.F(step == 0 ? "kid.talent_locked" : "kid.talent", WorldTree.EffectText(row.bonusEffect, row.bonusValue * step)));
+            if (WorldTree.DecoSetComplete(id)) sb.Append(TreeUi.Colored("  " + Loc.T("kid.deco_set"), TreeUi.Good));
             if (infoBonus != null) infoBonus.text = sb.ToString();
 
             if (infoEvolve != null)
-                infoEvolve.text = star >= WorldTree.MaxStar ? TreeUi.Colored("최고 등급", TreeUi.Good)
-                    : "진화: " + TreeUi.Check(Formation.Level(id) >= WorldTree.EvoLevelNeeded(id), $"Lv {WorldTree.EvoLevelNeeded(id)}") + "  "
-                      + TreeUi.Check(WorldTree.Stage >= WorldTree.EvoStageNeeded(id), $"세계수 {WorldTree.EvoStageNeeded(id)}단계") + "  "
-                      + TreeUi.Check(Wallet.CanAfford(Currency.Mycelite, WorldTree.EvoMyceliteCost(id)), "균사석 " + Wallet.Format(WorldTree.EvoMyceliteCost(id)));
+                infoEvolve.text = star >= WorldTree.MaxStar ? TreeUi.Colored(Loc.T("kid.max_rank"), TreeUi.Good)
+                    : Loc.F("kid.evolve_cond", TreeUi.Check(Formation.Level(id) >= WorldTree.EvoLevelNeeded(id), $"Lv {WorldTree.EvoLevelNeeded(id)}") + "  "
+                      + TreeUi.Check(WorldTree.Stage >= WorldTree.EvoStageNeeded(id), Loc.F("kid.need_stage", WorldTree.EvoStageNeeded(id))) + "  "
+                      + TreeUi.Check(Wallet.CanAfford(Currency.Mycelite, WorldTree.EvoMyceliteCost(id)), Loc.F("tree.mycelite", Wallet.Format(WorldTree.EvoMyceliteCost(id)))));
 
             var (giftEnemy, giftCount) = WorldTree.GiftPick(id);
-            if (giftLabel != null) giftLabel.text = CanGift(id) ? $"선물\n<size=70%>호감도 +{WorldTree.GiftValue(id, giftEnemy, giftCount)}</size>" : "선물";
-            if (evolveLabel != null) evolveLabel.text = star >= WorldTree.MaxStar ? "진화" : $"진화 ★{star + 1}";
+            if (giftLabel != null) giftLabel.text = CanGift(id) ? Loc.F("kid.gift_exp", WorldTree.GiftValue(id, giftEnemy, giftCount)) : Loc.T("kid.gift");
+            if (evolveLabel != null) evolveLabel.text = star >= WorldTree.MaxStar ? Loc.T("kid.evolve") : Loc.F("kid.evolve_star", star + 1);
         }
 
         void Gift()
         {
             if (string.IsNullOrEmpty(selected)) return;
             int gain = WorldTree.Gift(selected);
-            if (gain > 0) Toast($"{Formation.Name(selected)} 호감도 +{gain}");
+            if (gain > 0) Toast(Loc.F("kid.gift_toast", Formation.Name(selected), gain));
             Refresh();
         }
 
         void Evolve()
         {
             if (string.IsNullOrEmpty(selected)) return;
-            if (WorldTree.KidEvolve(selected)) Toast($"{Formation.Name(selected)}가 ★{WorldTree.Star(selected)}로 진화했어요!");
+            if (WorldTree.KidEvolve(selected)) Toast(Loc.F("kid.evolve_toast", Formation.Name(selected), WorldTree.Star(selected)));
             Refresh();
         }
 
