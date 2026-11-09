@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
@@ -21,16 +22,60 @@ namespace MoreMush.Mobile
         [SerializeField] string goldIcon = "UI/Icon/gold";
         [SerializeField] string myceliteIcon = "UI/Icon/mycelium_stone";
 
-        int justClaimed;        // 이번에 열 때 방금 받은 날 (0 = 그냥 열기)
+        int justClaimed;        // 이번에 열 때 방금 받은 날 (0 = 아직 안 받았거나 그냥 열기)
         int shownSecond = -1;
         Coroutine pop;
+        TMP_Text claimLabel;
+        Button claimButton;     //"받기" 버튼 (오늘 받을 게 남았을 때만 보인다. 처음 쓸 때 타이머 자리에 만든다)
 
-        // 방금 받은 날을 알려 주며 연다 (0 = 그냥 열기)
+        // 연다. 오늘 받을 보상이 남았으면 "받기" 버튼이 보이고, 누르지 않고 닫아도 닫을 때 받는다.
+        // 받지 못한 채 닫혔다면(앱 강제 종료 등) 보상이 그대로 남아 다음 접속 때 다시 뜬다
         public void Open(int claimedDay = 0)
         {
             justClaimed = claimedDay;
             if (gameObject.activeSelf) Refresh();
             else gameObject.SetActive(true);
+        }
+
+        // 받기 버튼: 오늘 보상을 받고 받은 칸을 보여 준다
+        void Claim()
+        {
+            int day = Attendance.Claimed + 1;
+            justClaimed = day;                  // Claim이 부르는 Changed → Refresh에서 받은 칸을 알 수 있게 먼저 정한다
+            if (Attendance.Claim() == 0) { justClaimed = 0; Refresh(); }
+        }
+
+        void EnsureClaimButton()
+        {
+            if (claimButton != null || timerText == null) return;
+            var parent = timerText.transform.parent;
+            var img = new GameObject("ClaimButton", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            img.transform.SetParent(parent, false);
+            img.sprite = Resources.Load<Sprite>("UI/UI_Btn_Red");
+            img.type = Image.Type.Sliced;
+            var rt = img.rectTransform;
+            var src = timerText.rectTransform;
+            rt.anchorMin = rt.anchorMax = (src.anchorMin + src.anchorMax) * 0.5f;
+            rt.sizeDelta = new Vector2(460f, 140f);
+            var corners = new Vector3[4];
+            src.GetWorldCorners(corners);
+            rt.position = (corners[0] + corners[2]) * 0.5f;      // 타이머 글자 자리 한가운데
+            var label = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
+            label.transform.SetParent(rt, false);
+            var lr = label.rectTransform;
+            lr.anchorMin = Vector2.zero; lr.anchorMax = Vector2.one; lr.offsetMin = lr.offsetMax = Vector2.zero;
+            label.font = timerText.font;
+            label.fontSize = 54f;
+            label.enableAutoSizing = true; label.fontSizeMax = 54f; label.fontSizeMin = 30f;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            claimLabel = label;
+            OutlineText.ApplyIfWhite(label);
+            claimButton = img.gameObject.AddComponent<Button>();
+            claimButton.targetGraphic = img;
+            UiSkin.GreyWhenDisabled(claimButton);
+            claimButton.onClick.AddListener(Claim);
         }
 
         void OnEnable()
@@ -53,6 +98,8 @@ namespace MoreMush.Mobile
             if (pop != null) StopCoroutine(pop);
             pop = null;
             justClaimed = 0;
+            // 받기를 누르지 않고 닫았으면 닫을 때 받는다 (씬이 사라지는 중에는 건드리지 않는다)
+            if (gameObject.scene.isLoaded && Attendance.CanClaim) Attendance.Claim();
         }
 
         // 언어가 바뀌면 타이머 글자도 다시 쓴다
@@ -84,6 +131,10 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             if (cells == null) return;
+            EnsureClaimButton();
+            bool toClaim = justClaimed == 0 && Attendance.CanClaim;       // 오늘 보상이 남았다 → 받기 버튼
+            if (claimButton != null) claimButton.gameObject.SetActive(toClaim);
+            if (claimLabel != null) claimLabel.text = Loc.T("attendance.claim");
             int claimed = Attendance.Claimed;
             int nextDay = claimed < Attendance.Days ? claimed + 1 : 0;
             for (int i = 0; i < cells.Length; i++)
@@ -110,7 +161,9 @@ namespace MoreMush.Mobile
                 cell.transform.localScale = Vector3.one;
             }
             if (messageText != null)
-                messageText.text = justClaimed > 0 ? Loc.F("attendance.claimed_msg", justClaimed) : Loc.F("attendance.final_msg", Attendance.Days, Attendance.WeaponTitle);
+                messageText.text = justClaimed > 0 ? Loc.F("attendance.claimed_msg", justClaimed)
+                    : toClaim ? Loc.F("attendance.claim_msg", claimed + 1)
+                    : Loc.F("attendance.final_msg", Attendance.Days, Attendance.WeaponTitle);
             if (justClaimed > 0 && justClaimed <= cells.Length && cells[justClaimed - 1] != null && isActiveAndEnabled)
             {
                 if (pop != null) StopCoroutine(pop);

@@ -4,8 +4,9 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 홈 왼쪽 아이콘 열의 출석 버튼 (프리팹 MainHud › SideButtons › AttendanceButton, 퀘스트와 도감 사이) + 출석 자동 처리.
-    // 날짜가 바뀌면(Main에 들어올 때, 접속 중이면 한국 00시가 지나는 순간) 보상을 바로 주고 출석 화면을 띄운다.
-    // 다른 팝업·씬 로딩·광고 중에는 끝날 때까지 기다린다 (보상은 화면이 뜰 때 준다).
+    // 하루 처음 접속할 때(날짜가 바뀐 뒤 Main에 들어올 때, 접속 중이면 한국 00시가 지나는 순간) 출석 화면을 띄운다.
+    // 보상은 화면의 받기 버튼으로 받고, 누르지 않고 닫아도 닫을 때 받는다. 받은 날에는 다시 안 뜨고, 못 받은 채 끝났으면 다음 접속 때 다시 뜬다.
+    // 다른 팝업·씬 로딩·광고 중에는 끝날 때까지 기다린다.
     // 마지막 날까지 다 받았으면 버튼을 숨기고 아래 버튼(도감)을 이 자리로 올린다
     public class AttendanceEntry : MonoBehaviour
     {
@@ -57,8 +58,7 @@ namespace MoreMush.Mobile
             RefreshDot();
             // 다른 창이 떠 있거나 씬을 옮기는 중이면 다음 확인 때 (다른 팝업을 닫아 버리지 않게)
             if (screen == null || PopupGate.IsOpen || SceneLoader.IsLoading || AdService.IsShowing) return;
-            int day = Attendance.Claim();
-            if (day > 0) screen.Open(day);
+            screen.Open();      // 보상은 받기 버튼(또는 닫을 때)에 준다. 받으면 오늘은 다시 안 뜬다
         }
     }
 }

@@ -19,9 +19,14 @@ namespace MoreMush.Mobile
             public bool isNew;
         }
 
-        const float MaxCell = 180f;
-        const float Gap = 22f;
-        const float AreaWidth = 960f;
+        const float MaxCell = 200f;        // 적게 뽑았을 때 칸 최대 크기 (많이 뽑으면 가로 폭에 맞춰 줄어든다)
+        const float Gap = 16f;
+        const float AreaWidth = 940f;       // 칸을 늘어놓는 폭 (양옆 창 여백 포함해도 화면 폭 1080 안)
+        const float CloseGap = 14f;         // 창 아래 끝과 닫기 사이
+        const float WindowPad = 44f;        // 칸과 창 테두리 사이
+        const float PaperInset = 26f;       // 나무 테두리 두께
+        const string WindowSprite = "UI/UI_PP_Out_Wood", PaperSprite = "UI/UI_PP_Out_Paper1";
+        const float GridAnchorY = 0.55f;
         const float PopDelay = 0.06f;       // 칸 사이 간격
         const float PopTime = 0.18f;        // 칸 하나가 커졌다 자리 잡는 시간
         const string CreamSprite = "UI/UI_Btn_Beige";
@@ -46,6 +51,7 @@ namespace MoreMush.Mobile
 
         TMP_FontAsset font;
         RectTransform grid;
+        Image window;
         Button closeButton;
         readonly List<RectTransform> cells = new List<RectTransform>();
         Coroutine playing;
@@ -72,9 +78,18 @@ namespace MoreMush.Mobile
             dim.transition = Selectable.Transition.None;
             dim.onClick.AddListener(Skip);
 
+            // 결과 창: 나무 테두리 + 종이 바탕. 칸이 놓이는 크기에 맞춰 Layout이 늘이고 줄인다
+            window = NewImage("Window", rt, WindowSprite);
+            window.pixelsPerUnitMultiplier = 1f;
+            var wrt = window.rectTransform;
+            wrt.anchorMin = wrt.anchorMax = new Vector2(0.5f, GridAnchorY);
+            var paper = NewImage("Paper", wrt, PaperSprite);
+            paper.pixelsPerUnitMultiplier = 1f;
+            Stretch(paper.rectTransform, PaperInset);
+
             grid = new GameObject("Grid", typeof(RectTransform)).GetComponent<RectTransform>();
             grid.SetParent(rt, false);
-            grid.anchorMin = grid.anchorMax = new Vector2(0.5f, 0.55f);
+            grid.anchorMin = grid.anchorMax = new Vector2(0.5f, GridAnchorY);
             grid.sizeDelta = Vector2.zero;
 
             var closeImage = NewImage("Close", rt, CloseSprite);
@@ -83,7 +98,8 @@ namespace MoreMush.Mobile
             closeButton = closeImage.gameObject.AddComponent<Button>();
             UiSkin.GreyWhenDisabled(closeButton);
             var crt = (RectTransform)closeButton.transform;
-            crt.anchorMin = crt.anchorMax = new Vector2(0.5f, 0.12f);
+            crt.anchorMin = crt.anchorMax = new Vector2(0.5f, GridAnchorY);     // 자리는 Layout이 맨 아랫줄 바로 밑으로 정한다
+            crt.pivot = new Vector2(0.5f, 1f);
             crt.sizeDelta = new Vector2(320f, 120f);
             var label = NewText("Label", crt, 48f, Color.white);
             label.fontStyle = FontStyles.Bold;
@@ -111,16 +127,25 @@ namespace MoreMush.Mobile
             gameObject.SetActive(false);
         }
 
-        // 11개는 5칸씩, 그보다 많으면 7칸씩 줄을 채운다. 순서는 뽑힌 순서 그대로
+        // 15개까지(11회)는 5칸씩, 그보다 많으면 7칸씩 줄을 채운다. 순서는 뽑힌 순서 그대로
         void Layout(IList<Entry> entries)
         {
             foreach (var c in cells) Destroy(c.gameObject);
             cells.Clear();
 
-            int cols = entries.Count > 15 ? 7 : 5;
+            int cols = entries.Count > 15 ? 7 : Mathf.Clamp(entries.Count, 1, 5);
             int rows = (entries.Count + cols - 1) / cols;
             float cell = Mathf.Min(MaxCell, (AreaWidth - Gap * (cols - 1)) / cols);
-            float step = cell + Gap * 1.6f;     // 줄 사이는 NEW 글자 자리만큼 넓게
+            float step = cell + Gap * 2.2f;    // 줄 사이는 NEW 글자 자리만큼 넓게
+            // 창 = 칸이 차지하는 영역 + 여백 (위는 NEW 글자 자리, 아래는 등급 테두리 10). 닫기는 창 바로 아래에 붙인다
+            float top = (rows - 1) * 0.5f * step + cell * 0.5f + cell * 0.15f + WindowPad;
+            float bottom = -(rows - 1) * 0.5f * step - cell * 0.5f - 10f - WindowPad;
+            float width = cols * cell + (cols - 1) * Gap + WindowPad * 2f;
+            var wrt = window.rectTransform;
+            wrt.sizeDelta = new Vector2(width, top - bottom);
+            wrt.anchoredPosition = new Vector2(0f, grid.anchoredPosition.y + (top + bottom) * 0.5f);
+            var crt = (RectTransform)closeButton.transform;
+            crt.anchoredPosition = new Vector2(0f, grid.anchoredPosition.y + bottom - CloseGap);
             for (int i = 0; i < entries.Count; i++)
             {
                 int r = i / cols, c = i % cols;
@@ -152,8 +177,8 @@ namespace MoreMush.Mobile
             var irt = icon.rectTransform;
             irt.anchorMin = Vector2.zero;
             irt.anchorMax = Vector2.one;
-            irt.offsetMin = new Vector2(size * 0.16f, size * 0.26f);
-            irt.offsetMax = new Vector2(-size * 0.16f, -size * 0.1f);
+            irt.offsetMin = new Vector2(size * 0.07f, size * 0.22f);
+            irt.offsetMax = new Vector2(-size * 0.07f, -size * 0.05f);
 
             // 이름(꼬마) 또는 등급 이름: 칸 아래 흰 글자 + 갈색 외곽선
             var grade = NewText("Name", root, size * 0.17f, Color.white);
