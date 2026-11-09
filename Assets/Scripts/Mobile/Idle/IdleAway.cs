@@ -77,7 +77,7 @@ namespace MoreMush.Mobile
         // 다만 MaxClockSkew보다 앞선 값은 한때 시계가 크게 틀렸던 것으로 보고 버린다 (안 그러면 그 날짜까지 앱 밖 보상이 막힌다)
         public static void MarkSeen()
         {
-            long now = DateTime.UtcNow.Ticks;
+            long now = GameClock.NowTicks;
             if (TryLastSeen(out var seen) && seen > now && seen - now <= MaxClockSkew.Ticks) now = seen;
             PlayerPrefs.SetString(LastSeenKey, now.ToString(CultureInfo.InvariantCulture));
             if (sessionSeconds >= RateMinSeconds) PlayerPrefs.SetString(RateKey, GoldPerSecond.ToString("R", CultureInfo.InvariantCulture));
@@ -88,7 +88,7 @@ namespace MoreMush.Mobile
         // 개발자 모드(DevMode) 전용: 마지막 접속 시각을 hours만큼 앞당긴다 (다음 ApplyOffline이 그만큼 앱 밖에 있던 것으로 셈)
         public static void DevBackdate(double hours)
         {
-            long ticks = DateTime.UtcNow.Ticks - (long)(hours * TimeSpan.TicksPerHour);
+            long ticks = GameClock.NowTicks - (long)(hours * TimeSpan.TicksPerHour);
             PlayerPrefs.SetString(LastSeenKey, ticks.ToString(CultureInfo.InvariantCulture));
         }
 #endif
@@ -101,7 +101,7 @@ namespace MoreMush.Mobile
         public static long ApplyOffline()
         {
             if (!TryLastSeen(out var ticks)) { MarkSeen(); return 0; }
-            double seconds = (DateTime.UtcNow - new DateTime(ticks, DateTimeKind.Utc)).TotalSeconds;
+            double seconds = (GameClock.UtcNow - new DateTime(ticks, DateTimeKind.Utc)).TotalSeconds;
             MarkSeen();
             if (seconds < OfflineMinSeconds) return 0;      // 시계를 되돌린 경우(음수)도 여기서 걸러진다
             seconds = Math.Min(seconds, OfflineCapHours * 3600);

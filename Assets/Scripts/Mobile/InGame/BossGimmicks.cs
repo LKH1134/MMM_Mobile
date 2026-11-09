@@ -44,7 +44,8 @@ namespace MoreMush.Mobile
             if (boss == null)
             {
                 boss = field.Stats.Boss;
-                foreach (var m in field.Mushrooms) if (m.IsBoss) main = m;
+                var list = field.Mushrooms;
+                for (int i = 0; i < list.Count; i++) if (list[i].IsBoss) main = list[i];
                 timer = boss.gimmickInterval;
             }
 
@@ -52,8 +53,14 @@ namespace MoreMush.Mobile
             {
                 case BossGimmick.Heal:
                     if (Tick(dt))
-                        foreach (var m in field.Mushrooms)
+                    {
+                        var list = field.Mushrooms;     // for — IReadOnlyList foreach는 열거자 박싱
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            var m = list[i];
                             if (m.IsBoss && m.Alive) m.Heal(Mathf.CeilToInt(m.MaxHp * boss.gimmickValue));
+                        }
+                    }
                     break;
                 case BossGimmick.Purge:
                     if (Tick(dt)) field.PurgeTemporaryHarvesters();

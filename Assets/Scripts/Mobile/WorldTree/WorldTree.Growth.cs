@@ -149,8 +149,10 @@ namespace MoreMush.Mobile
             {
                 int us = spriteName.LastIndexOf('_');
                 if (us <= 0 || !int.TryParse(spriteName.Substring(us + 1), out _)
-                    || !enemyBySprite.TryGetValue(spriteName.Substring(0, us), out enemy)) return;
+                    || !enemyBySprite.TryGetValue(spriteName.Substring(0, us), out enemy)) enemy = -1;
+                enemyBySprite[spriteName] = enemy;     // 조각 이름도 적어 둔다 — 처치마다 문자열을 자르지 않게 (-1 = 세계수 적 아님)
             }
+            if (enemy < 0) return;
             QuestKill(enemy);
             double amount = GameBalance.Const("treeHarvestPerKill") * (1 + Bonus(TreeEffect.Harvest));
             long n = (long)Math.Floor(amount);

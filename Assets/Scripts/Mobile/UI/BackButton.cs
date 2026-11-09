@@ -23,6 +23,7 @@ namespace MoreMush.Mobile
         {
             var kb = Keyboard.current;     // 안드로이드 뒤로가기는 입력 시스템에서 Esc 키로 들어온다
             if (kb == null || !kb.escapeKey.wasPressedThisFrame || SceneLoader.IsLoading) return;
+            if (PowerSaveMode.Active) return;      // 절전 덮개가 켜져 있으면 뒤로가기는 덮개만 걷는다 (PowerSaveMode가 입력으로 처리) — 덮개 아래에서 탭·종료 창이 열리지 않게
             if (PopupGate.HandleBack()) return;
             SceneHandler?.Invoke();
         }

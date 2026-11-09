@@ -15,7 +15,7 @@ namespace MoreMush.Mobile
         public static void Open(int tab)
         {
             PendingTab = tab;
-            SceneLoader.Load(MainScene);
+            if (!SceneLoader.Load(MainScene)) PendingTab = Home;   // 못 열었으면(이미 로딩 중 등) 예약을 남기지 않는다
         }
 
         public static int TakePendingTab()

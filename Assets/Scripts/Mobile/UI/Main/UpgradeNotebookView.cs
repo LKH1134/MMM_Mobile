@@ -63,14 +63,30 @@ namespace MoreMush.Mobile
         void OnEnable()
         {
             Wallet.Changed += RefreshAfford;    // 전투 골드로 1초마다 온다 — 살 수 있는지만 다시 본다
-            IdleProgress.Changed += Refresh;
+            IdleProgress.Changed += OnProgressChanged;
             Refresh();
         }
 
         void OnDisable()
         {
             Wallet.Changed -= RefreshAfford;
-            IdleProgress.Changed -= Refresh;
+            IdleProgress.Changed -= OnProgressChanged;
+        }
+
+        // 강화 버튼을 누르고 있으면 초당 수십 번 온다 → 줄 전체 다시 쓰기는 RefreshEvery마다 한 번으로 묶는다 (첫 번째는 바로)
+        const float RefreshEvery = 0.1f;
+        float nextRefreshAt;
+        bool refreshPending;
+
+        void OnProgressChanged()
+        {
+            if (Time.unscaledTime >= nextRefreshAt) Refresh();
+            else refreshPending = true;
+        }
+
+        void Update()
+        {
+            if (refreshPending && Time.unscaledTime >= nextRefreshAt) Refresh();
         }
 
         // 화면 폭(Stage 1080~1316)이 바뀌면 줄 폭을 바로 다시 맞춘다 — 그대로 두면 줄이 예전 폭에 남아 스프링이 접힌 선에서 어긋난다
@@ -111,6 +127,8 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             if (!isActiveAndEnabled) return;
+            refreshPending = false;
+            nextRefreshAt = Time.unscaledTime + RefreshEvery;
             foreach (var r in rows)
             {
                 int lv = IdleProgress.Level(r.stat);
@@ -130,10 +148,14 @@ namespace MoreMush.Mobile
                     // 단계 제한: 다음 단계를 여는 기준 강화 레벨을 버튼에 적는다. 비용 줄이 없으면 글자를 가운데로
                     var d = IdleProgress.Get(r.stat);
                     r.buttonText.text = max ? "MAX" : capped ? $"{IdleProgress.Get(d.unlockStat).name}\nLv {IdleProgress.NextCapGateLevel(r.stat)} 필요" : "강화";
-                    r.buttonText.fontSize = capped ? cappedLabelSize : r.labelSize;
+                    // 글자 크기·자리는 바뀔 때만 쓴다 (같은 값을 써도 레이아웃을 다시 계산한다)
+                    float size = capped ? cappedLabelSize : r.labelSize;
+                    if (r.buttonText.fontSize != size) r.buttonText.fontSize = size;
                     var rt = r.buttonText.rectTransform;
-                    rt.sizeDelta = new Vector2(rt.sizeDelta.x, capped ? r.labelHeight * 2f : r.labelHeight);
-                    rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, max || capped ? 0f : r.labelY);
+                    var sd = new Vector2(rt.sizeDelta.x, capped ? r.labelHeight * 2f : r.labelHeight);
+                    if (rt.sizeDelta != sd) rt.sizeDelta = sd;
+                    var ap = new Vector2(rt.anchoredPosition.x, max || capped ? 0f : r.labelY);
+                    if (rt.anchoredPosition != ap) rt.anchoredPosition = ap;
                 }
             }
             RefreshAfford();

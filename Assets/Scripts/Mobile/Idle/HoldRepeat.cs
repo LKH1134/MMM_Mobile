@@ -15,12 +15,14 @@ namespace MoreMush.Mobile
         Button button;
         bool held;
         float wait, interval;
+        PointerEventData press;     // 이번 누름 — 되풀이가 한 번이라도 일어나면 손을 뗄 때의 클릭을 막는다 (안 막으면 1레벨 더 오른다)
 
         void Awake() => button = GetComponent<Button>();
 
         public void OnPointerDown(PointerEventData e)
         {
             held = true;
+            press = e;
             wait = delay;
             interval = startInterval;
         }
@@ -36,6 +38,7 @@ namespace MoreMush.Mobile
             if (wait > 0f) return;
             if (!button.IsInteractable()) { held = false; return; }
             button.onClick.Invoke();
+            if (press != null) press.eligibleForClick = false;
             interval = Mathf.Max(minInterval, interval * 0.85f);
             wait = interval;
         }

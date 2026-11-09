@@ -26,6 +26,45 @@ namespace MoreMush.Mobile
         public static event Action<int> IdleStarted;      // 방치 화면 던전 시작 (던전 번호)
         public static event Action IdleEnded;
 
+        // ── 입장 횟수는 보상을 받을 때 쓴다 ──
+        // 입장할 때는 남은 횟수만 확인하고(MarkEntry) 실제로 쓰는 건 보상을 받는 순간(PayEntry).
+        // 보상 없이 판 도중 나가면(로비·앱 종료·보상 전 패배) 횟수가 그대로 남는다. 광고 입장도 같다 (광고는 입장 때 본다)
+        static int unpaidDungeon;
+        static bool unpaidByAd;
+
+        public static void MarkEntry(int dungeon, bool byAd)
+        {
+            unpaidDungeon = dungeon;
+            unpaidByAd = byAd;
+        }
+
+        // 보상을 줄 때 부른다. 이번 입장에 한 번만 쓴다 (같은 판에서 여러 번 불려도 된다)
+        public static void PayEntry(int dungeon)
+        {
+            if (dungeon == 0 || unpaidDungeon != dungeon) return;
+            unpaidDungeon = 0;
+            // 00시가 지나 횟수 종류가 바뀌었으면 남은 쪽으로
+            if (unpaidByAd) { if (!DungeonTickets.TryUseAd(dungeon)) DungeonTickets.TryUse(dungeon); }
+            else if (!DungeonTickets.TryUse(dungeon)) DungeonTickets.TryUseAd(dungeon);
+        }
+
+        // ── 레이드(레벨업 보스) 도중 나가기 확인 ──
+        public static Action<string, string, Action> Confirm;   // 확인 창 (Main 씬 MainBackHandler가 등록)
+        public static Action<bool> FinishIdle;                  // 진행 중 방치 던전을 모은 보상을 주고 끝낸다 (IdleBattle이 등록, true = 결과 창)
+
+        // 레이드 중이면 "현재 보상을 받고 나가시겠습니까?"를 띄우고 true. 예 → 보상 받고 끝낸 뒤 proceed (null이면 결과 창을 띄운다).
+        // 레이드 중이 아니면 false (부르는 쪽이 그대로 진행한다)
+        public static bool GuardLeave(Action proceed)
+        {
+            if (ActiveIdle == 0 || Mode(ActiveIdle) != DungeonMode.BossLevel || Confirm == null || FinishIdle == null) return false;
+            Confirm("레이드 나가기", "현재 보상을 받고 나가시겠습니까?", () =>
+            {
+                FinishIdle?.Invoke(proceed == null);
+                proceed?.Invoke();
+            });
+            return true;
+        }
+
         public static DungeonMode Mode(int dungeon)
         {
             var row = GameBalance.Dungeon(dungeon);
@@ -66,23 +105,28 @@ namespace MoreMush.Mobile
             IdleEnded?.Invoke();
         }
 
-        // 방치 화면 던전에 입장한다: 입장 횟수가 있으면 쓰고, 없으면 광고를 끝까지 본 뒤 광고 입장을 쓴다.
+        // 방치 화면 던전에 입장한다: 입장 횟수가 남았으면 바로, 없으면 광고를 끝까지 본 뒤 (횟수는 보상을 받을 때 쓴다).
         // 광고가 준비되지 않았거나 시작할 수 없으면 false
         public static bool TryEnterIdle(int dungeon)
         {
             if (!CanStartIdle) return false;
-            if (DungeonTickets.CanEnter(dungeon))
-            {
-                if (!DungeonTickets.TryUse(dungeon)) return false;
-                return BeginIdle(dungeon);
-            }
+            if (DungeonTickets.CanEnter(dungeon)) return EnterIdle(dungeon, false);
             if (!DungeonTickets.CanEnterWithAd(dungeon)) return false;
+            string credit = "Dungeon." + dungeon;
+            if (AdCredits.TryUse(credit)) return EnterIdle(dungeon, true);   // 지난번에 광고를 다 보고도 못 들어간 입장
             return AdService.ShowRewarded(AdPlacement.Dungeon, () =>
             {
-                // 광고를 보는 사이 씬이 바뀌어 방치 전투가 없으면 광고 입장을 쓰지 않는다
-                if (!CanStartIdle || !DungeonTickets.TryUseAd(dungeon)) return;
-                BeginIdle(dungeon);
+                // 광고를 보는 사이 씬이 바뀌어 방치 전투가 없으면 → 다음 한 번 광고 없이 들어가게 남긴다
+                if (!CanStartIdle) { AdCredits.Add(credit); return; }
+                EnterIdle(dungeon, true);
             });
+        }
+
+        static bool EnterIdle(int dungeon, bool byAd)
+        {
+            if (!BeginIdle(dungeon)) return false;
+            MarkEntry(dungeon, byAd);       // 횟수는 보상을 받을 때 쓴다
+            return true;
         }
     }
 }

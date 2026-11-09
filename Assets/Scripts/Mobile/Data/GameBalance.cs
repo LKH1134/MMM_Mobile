@@ -191,6 +191,13 @@ namespace MoreMush.Mobile
         // 읽기에 실패하면 그 오류를 기억해 둔다 — 매번 xlsx를 다시 풀면(매 프레임 호출) 기기가 멈춘 것처럼 된다. Reload로 다시 시도한다
         static Exception loadError;
 
+        // 시작 화면에서 미리 읽는다 (홈 화면이 뜨는 순간 멈칫하지 않게, 실패하면 시작 화면이 안내한다). 실패하면 false
+        public static bool Preload(out string error)
+        {
+            try { Ensure(); error = null; return true; }
+            catch (Exception e) { error = e.Message; Debug.LogException(e); return false; }
+        }
+
         static void Ensure()
         {
             if (loaded) return;

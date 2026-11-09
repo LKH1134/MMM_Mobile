@@ -291,11 +291,18 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 한 프레임에서 예외가 나도 다음 프레임은 다시 돈다. 계속 나면(표가 틀림 등) 로그가 쏟아져 기기가 버벅이므로
-        // 오류 점수가 MaxFrameErrors에 닿으면 전투를 멈춘다 (앱은 계속 쓸 수 있다). 점수는 예외마다 +1, 정상 프레임마다 조금씩 준다 —
-        // 한 프레임 걸러 나는 오류도 쌓이게
+        // 한 프레임에서 예외가 나도 다음 프레임은 다시 돈다. 계속 나면(표가 틀림 등) 오류 점수가 MaxFrameErrors에 닿아 전투를 멈추고,
+        // RetryDelays(10초 → 30초 → 1분) 뒤 전투를 정리하고 다시 돌린다. 세 번 다 실패하면 안내 팝업 뒤 시작 씬부터 다시 연다.
+        // 점수는 예외마다 +1, 정상 프레임마다 조금씩 준다 — 한 프레임 걸러 나는 오류도 쌓이게.
+        // 로그: 같은 예외(종류·문구)는 처음 한 번만 스택과 함께 남기고 나머지는 개수만 센다 — 매 프레임 스택 로그로 기기가 버벅이지 않게
         const float MaxFrameErrors = 30f, ErrorDecayPerFrame = 0.05f;
-        float frameErrors;
+        static readonly float[] RetryDelays = { 10f, 30f, 60f };
+        const float HealthyResetSeconds = 120f;     // 이만큼 탈 없이 돌면 재시도 횟수를 처음으로
+        const string RestartScene = "Start";
+        float frameErrors, healthyFor;
+        int retries;
+        string lastError;       // 마지막으로 남긴 예외 (종류 + 문구)
+        int repeatedErrors;     // 그 뒤 로그 없이 센 같은 예외 수
 
         void Update()
         {
@@ -303,14 +310,90 @@ namespace MoreMush.Mobile
             {
                 Tick();
                 if (frameErrors > 0f) frameErrors = Mathf.Max(0f, frameErrors - ErrorDecayPerFrame);
+                if (retries > 0 && (healthyFor += Time.unscaledDeltaTime) >= HealthyResetSeconds) { retries = 0; FlushRepeatedErrors(); lastError = null; }
+            }
+            catch (System.Exception e)
+            {
+                healthyFor = 0f;
+                LogError(e);
+                if (++frameErrors < MaxFrameErrors) return;
+                StopForErrors();
+            }
+        }
+
+        void LogError(System.Exception e)
+        {
+            string key = e.GetType().Name + ": " + e.Message;
+            if (key == lastError) { repeatedErrors++; return; }
+            FlushRepeatedErrors();
+            lastError = key;
+            Debug.LogException(e);
+        }
+
+        void FlushRepeatedErrors()
+        {
+            if (repeatedErrors == 0) return;
+            Debug.LogWarning($"[IdleBattle] 같은 예외가 {repeatedErrors}번 더 났다: {lastError}");
+            repeatedErrors = 0;
+        }
+
+        void StopForErrors()
+        {
+            FlushRepeatedErrors();
+            lastError = null;
+            frameErrors = 0f;
+            enabled = false;        // OnDisable이 던전도 끝낸다. 코루틴은 꺼진 컴포넌트에서도 돈다
+            if (retries < RetryDelays.Length)
+            {
+                float wait = RetryDelays[retries++];
+                Debug.LogError($"[IdleBattle] 예외가 계속 나서 방치 전투를 멈춘다 — {wait}초 뒤 다시 시도 ({retries}/{RetryDelays.Length})");
+                StartCoroutine(RetryAfter(wait));
+                return;
+            }
+            Debug.LogError("[IdleBattle] 다시 시도해도 예외가 나서 게임을 다시 시작한다");
+            ShowFatalAndRestart();
+        }
+
+        System.Collections.IEnumerator RetryAfter(float seconds)
+        {
+            yield return new WaitForSecondsRealtime(seconds);
+            if (this == null) yield break;
+            // 패배와 같은 정리: 적을 거두고(보상 없음) 체력을 채운 뒤 같은 스테이지 1웨이브부터. 정리 중 예외는 무시하고 다시 돌린다
+            try
+            {
+                foreach (var e in enemies) if (!e.dead) Kill(e, false);
+                boss = null;
+                wave = 0;
+                nextWaveIn = waveDelay;
+                partyHp = partyMaxHp;
+                pendingHurt = 0;
+                RefreshHud();
+            }
+            catch (System.Exception e) { LogError(e); }
+            healthyFor = 0f;
+            enabled = true;
+        }
+
+        void ShowFatalAndRestart()
+        {
+            try { FlushGold(); } catch (System.Exception e) { Debug.LogException(e); }
+            try { SaveScheduler.Flush(); } catch (System.Exception e) { Debug.LogException(e); }
+            try
+            {
+                if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
+                reportPopup.ShowMessage("문제가 생겼어요", "전투를 진행하지 못하고 있어요.\n확인을 누르면 게임을 다시 시작해요.\n(진행 상황은 저장되어 있어요)", Restart);
             }
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                if (++frameErrors < MaxFrameErrors) return;
-                Debug.LogError("[IdleBattle] 매 프레임 예외가 나서 방치 전투를 멈춘다");
-                enabled = false;
+                Restart();      // 안내도 못 띄우면 바로 다시 시작
             }
+        }
+
+        static void Restart()
+        {
+            Time.timeScale = 1f;
+            if (!SceneLoader.Load(RestartScene)) UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         }
 
         void Tick()

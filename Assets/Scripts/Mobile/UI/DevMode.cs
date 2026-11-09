@@ -170,6 +170,11 @@ namespace MoreMush.Mobile
                 () => $"던전 1 남은 입장 {DungeonTickets.Remaining(1)}/{DungeonTickets.PerDay}  ·  광고 입장 {DungeonTickets.AdRemaining(1)}/{DungeonTickets.AdPerDay}");
             Buttons(dungeon, ("오늘 입장 횟수 초기화", () => { DungeonTickets.DevResetToday(); Done("던전 입장 횟수 초기화"); }));
 
+            var attend = Row(150f);
+            Live(TreeUi.Line(attend, "", 32f, TreeUi.Ink, font, 24f, 24f, 0.55f, 0.95f),
+                () => $"출석 {Attendance.Claimed}/{Attendance.Days}일  ·  오늘 {(Attendance.ClaimedToday ? "받음" : "안 받음")}");
+            Buttons(attend, ("오늘 출석 초기화 (다시 받기)", () => { Attendance.DevResetToday(); Done("출석 오늘 기록 초기화 — 1초 안에 출석 창이 뜬다"); }));
+
             var ads = Row(150f);
             Live(TreeUi.Line(ads, "", 32f, TreeUi.Ink, font, 24f, 24f, 0.55f, 0.95f), () => $"광고 건너뛰기: {(SkipAds ? "켬 (광고 없이 바로 보상)" : "끔")}");
             Buttons(ads, ("켜기", () => SetSkipAds(true)), ("끄기", () => SetSkipAds(false)));

@@ -31,6 +31,14 @@ namespace MoreMush.Mobile
             dungeonSubscribed = true;
             DungeonSession.IdleStarted += BeginDungeon;
             DungeonSession.IdleReady = IdleReady;
+            DungeonSession.FinishIdle = FinishIdleByUser;
+        }
+
+        // 레이드 도중 나가기 (확인 창 "예"): 모은 보상을 받고 끝낸다
+        void FinishIdleByUser(bool showResult)
+        {
+            if (this == null || !InDungeon) return;
+            FinishDungeon(true, showResult);
         }
 
         void UnsubscribeDungeon()
@@ -39,6 +47,7 @@ namespace MoreMush.Mobile
             dungeonSubscribed = false;
             DungeonSession.IdleStarted -= BeginDungeon;
             if (DungeonSession.IdleReady == IdleReady) DungeonSession.IdleReady = null;
+            if (DungeonSession.FinishIdle == FinishIdleByUser) DungeonSession.FinishIdle = null;
             // 던전 중에 씬을 떠났다: 이미 받은 보상은 그대로, 레벨업 보스는 모아 둔 보상을 준다
             AbortDungeon();
         }
@@ -161,6 +170,7 @@ namespace MoreMush.Mobile
         {
             if (IsRush)
             {
+                DungeonSession.PayEntry(dungeon);      // 첫 보상을 받는 지금 입장 횟수를 쓴다
                 var r = DungeonRewards.GrantRushBoss(dungeon, dungeonLevel, rushIndex);
                 AddDungeonReward(r.gold, r.mycelite, e);
                 rushIndex++;
@@ -251,6 +261,7 @@ namespace MoreMush.Mobile
         void BankLevelReward()
         {
             if (!InDungeon || IsRush) return;
+            if (levelGold > 0 || levelMycelite > 0) DungeonSession.PayEntry(dungeon);   // 모은 보상을 받는 지금 입장 횟수를 쓴다 (앱을 내릴 때도)
             var r = DungeonRewards.GrantRaw(levelGold, levelMycelite);
             levelGold = levelMycelite = 0;
             dungeonGold = IdleProgress.SaturatingAdd(dungeonGold, r.gold);

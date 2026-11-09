@@ -116,9 +116,9 @@ namespace MoreMush.Mobile
                 var barRect = (RectTransform)bar.transform;
                 barRect.sizeDelta = new Vector2(HarvestTuning.Number("Bar", "width", barRect.sizeDelta.x), HarvestTuning.Number("Bar", "height", barRect.sizeDelta.y));
             }
-            harvesterPrefab = HarvestTuning.Template(harvesterPrefab, "Harvester");
-            clusterPrefab = HarvestTuning.Template(clusterPrefab, "Cluster");
-            singlePrefab = HarvestTuning.Template(singlePrefab, "Single");
+            harvesterPrefab = HarvestTuning.Template(harvesterPrefab, "Harvester", this);
+            clusterPrefab = HarvestTuning.Template(clusterPrefab, "Cluster", this);
+            singlePrefab = HarvestTuning.Template(singlePrefab, "Single", this);
         }
 
         // 씬에 놓인 바의 원래 길이·자리. HarvestGame.Awake가 이 Awake보다 먼저 Configure를 부를 수 있어 처음 쓸 때 한 번 저장한다
@@ -298,7 +298,10 @@ namespace MoreMush.Mobile
         }
 
         // 군락지·장치와 겹치지 않는 빈 자리 (장치를 놓을 때 쓴다)
-        public bool FindFreeSpot(float radius, out Vector2 spot) => FindSpot(radius, new List<Vector2>(), out spot);
+        public bool FindFreeSpot(float radius, out Vector2 spot) => FindSpot(radius, NoPending, out spot);
+
+        static readonly List<Vector2> NoPending = new List<Vector2>();   // 예정 자리 없음 (읽기만 한다)
+        readonly List<Vector2> cellBuffer = new List<Vector2>();         // 군락지 격자 칸 (리스폰마다 새로 만들지 않게)
 
         // 분신·소환용. 첫 번째로 꺼낸 것이 메인이 된다
         public Harvester SpawnHarvester(Vector2 position, Harvester prefab = null)
@@ -520,15 +523,18 @@ namespace MoreMush.Mobile
         // 칸이 군락지 수보다 모자라면 버섯 크기를 줄여 칸을 늘린다
         void PlanColonies()
         {
-            List<Vector2> cells = null;
+            var cells = cellBuffer;
+            bool filled = false;
             for (mushroomSize = 1f; mushroomSize >= minMushroomSize; mushroomSize *= 0.95f)
             {
                 float foot = Footprint(mushroomSize);
-                cells = GridCells(foot);
-                cells.RemoveAll(c => !ObstacleFree(c, foot));
+                GridCells(foot, cells);
+                filled = true;
+                for (int i = cells.Count - 1; i >= 0; i--) if (!ObstacleFree(cells[i], foot)) cells.RemoveAt(i);
                 if (cells.Count >= stats.Colonies) break;
             }
             mushroomSize = Mathf.Max(mushroomSize, minMushroomSize);
+            if (!filled) GridCells(Footprint(mushroomSize), cells);   // minMushroomSize가 1보다 크면 위 루프가 한 번도 안 돈다
 
             // 칸을 섞어 앞에서부터 쓴다
             for (int i = cells.Count - 1; i > 0; i--)
@@ -543,13 +549,13 @@ namespace MoreMush.Mobile
         }
 
         // 군락지 반지름 foot으로 스폰 구역을 채우는 엇갈린 격자의 가운데 자리들 (칸 안에서 남는 만큼 흔든다)
-        List<Vector2> GridCells(float foot)
+        void GridCells(float foot, List<Vector2> cells)
         {
-            var cells = new List<Vector2>();
+            cells.Clear();
             Rect b = rect.rect;
             float xMin = b.xMin + spawnSide + foot, xMax = b.xMax - spawnSide - foot;
             float yMin = b.yMin + spawnBottom + foot, yMax = b.yMax - spawnTop - foot;
-            if (xMin > xMax || yMin > yMax) return cells;
+            if (xMin > xMax || yMin > yMax) return;
 
             float dx = foot * 2f + colonyGap;
             float dy = dx * 0.866f;                     // 엇갈린 줄 사이 (정삼각형 높이)
@@ -570,7 +576,6 @@ namespace MoreMush.Mobile
                     cells.Add(pos);
                 }
             }
-            return cells;
         }
 
         // 보스 판: 군락지 대신 큰 보스 하나를 필드 가운데 위쪽에 놓는다. 유도·번개·회오리가 보스를 노리도록 군락지 하나로 등록한다.
@@ -628,8 +633,9 @@ namespace MoreMush.Mobile
         bool TrySpawnColony()
         {
             float foot = Footprint(mushroomSize);
-            var none = new List<Vector2>();
-            var cells = GridCells(foot);
+            var none = NoPending;
+            var cells = cellBuffer;
+            GridCells(foot, cells);
             for (int i = cells.Count - 1; i > 0; i--)
             {
                 int j = Random.Range(0, i + 1);

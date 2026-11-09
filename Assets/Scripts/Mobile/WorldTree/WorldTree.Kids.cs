@@ -120,16 +120,34 @@ namespace MoreMush.Mobile
             return fav != null && Array.IndexOf(fav, enemy) >= 0;
         }
 
-        // 선물할 버섯: 좋아하는 버섯 중 가장 많은 것 전부, 없으면 가장 많은 버섯을 giftMaxCount개까지
+        // 선물할 버섯: 좋아하는 버섯 중 가장 많은 것, 없으면 가장 많은 버섯(giftMaxCount개까지).
+        // 개수는 다음 호감도 레벨까지 필요한 만큼만 — 레벨을 넘기는 남는 버섯은 쓰지 않는다
         public static (int enemy, long count) GiftPick(string id)
         {
             int best = 0; long bestCount = 0;
             foreach (var s in D.store)
                 if (s.count > bestCount && Likes(id, s.enemy)) { best = s.enemy; bestCount = s.count; }
-            if (bestCount > 0) return (best, bestCount);
+            if (bestCount > 0) return (best, CapToNextLevel(id, best, bestCount));
             foreach (var s in D.store)
                 if (s.count > bestCount) { best = s.enemy; bestCount = s.count; }
-            return (best, Math.Min(bestCount, GameBalance.ConstInt("giftMaxCount")));
+            return (best, CapToNextLevel(id, best, Math.Min(bestCount, GameBalance.ConstInt("giftMaxCount"))));
+        }
+
+        // 다음 레벨까지 남은 호감도를 채우는 가장 적은 개수 (최소 1). GiftValue와 같은 계산으로 센다
+        static long CapToNextLevel(string id, int enemy, long count)
+        {
+            if (count <= 1) return count;
+            var (have, need) = AffinityProgress(id);
+            if (need <= 0) return count;
+            long left = Math.Max(1, need - have);
+            if (GiftValue(id, enemy, count) <= left) return count;
+            long lo = 1, hi = count;        // GiftValue(n) >= left 인 가장 작은 n
+            while (lo < hi)
+            {
+                long mid = lo + (hi - lo) / 2;
+                if (GiftValue(id, enemy, mid) >= left) hi = mid; else lo = mid + 1;
+            }
+            return lo;
         }
 
         public static int GiftValue(string id, int enemy, long count)

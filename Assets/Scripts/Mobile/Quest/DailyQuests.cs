@@ -34,7 +34,7 @@ namespace MoreMush.Mobile
 
         static void Ensure()
         {
-            if (loaded && DateTime.UtcNow < nextResetUtc) return;
+            if (loaded && GameClock.UtcNow < nextResetUtc) return;
             bool rollover = loaded;     // 화면을 켠 채 00시를 넘겼다
             Load();
             if (rollover) Changed?.Invoke();
@@ -66,7 +66,7 @@ namespace MoreMush.Mobile
                 PlayerPrefs.SetString(DayKey, DungeonTickets.Today);
                 SaveScheduler.MarkDirty();
             }
-            nextResetUtc = DateTime.UtcNow + DungeonTickets.UntilReset;
+            nextResetUtc = GameClock.UtcNow + DungeonTickets.UntilReset;
             loaded = true;
         }
 

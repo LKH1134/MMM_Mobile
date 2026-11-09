@@ -132,7 +132,7 @@ namespace MoreMush.Mobile
 
         void OnEnable()
         {
-            Wallet.Changed += Refresh;
+            Wallet.Changed += RefreshButtons;    // 전투 골드로 1초마다 온다 — 살 수 있는지만 다시 본다
             GachaProgress.Changed += Refresh;
             AdService.Status += OnAdStatus;
             AdService.Initialize();
@@ -142,7 +142,7 @@ namespace MoreMush.Mobile
 
         void OnDisable()
         {
-            Wallet.Changed -= Refresh;
+            Wallet.Changed -= RefreshButtons;
             GachaProgress.Changed -= Refresh;
             AdService.Status -= OnAdStatus;
         }
@@ -157,12 +157,20 @@ namespace MoreMush.Mobile
         {
             if (!FreeAvailable) { Notify("오늘의 광고 뽑기를 이미 사용했습니다"); return; }
             if (adBusy) return;
+            string credit = "Gacha." + kind;
+            if (AdCredits.TryUse(credit))   // 지난번에 광고를 다 보고도 못 받은 뽑기
+            {
+                GachaProgress.MarkFreeUsed(kind);
+                DoRoll(adProduct.pullCount);
+                return;
+            }
             adBusy = true;
             // 광고를 끝까지 봐야 소환한다. 보상 콜백은 한 번만 불린다 (그 안에서만 사용 처리·소환)
             bool started = AdService.ShowRewarded(AdPlacement.Gacha, () =>
             {
                 adBusy = false;
-                if (this == null || !FreeAvailable) return;
+                if (this == null || !isActiveAndEnabled) { AdCredits.Add(credit); return; }   // 광고 보는 사이 창이 닫혔다 → 다음 한 번 광고 없이
+                if (!FreeAvailable) return;
                 GachaProgress.MarkFreeUsed(kind);
                 DoRoll(adProduct.pullCount);
             });
@@ -276,6 +284,15 @@ namespace MoreMush.Mobile
             if (b.sub != null) b.sub.text = sub;
         }
 
+        void RefreshButtons() => RefreshButtons(FreeAvailable);
+
+        void RefreshButtons(bool free)
+        {
+            if (freeButton != null) freeButton.interactable = free && !adBusy;
+            if (coinButton11 != null) coinButton11.interactable = CanBuy(smallProduct);
+            if (coinButton35 != null) coinButton35.interactable = CanBuy(bigProduct);
+        }
+
         void Refresh()
         {
             bool free = FreeAvailable;
@@ -286,9 +303,7 @@ namespace MoreMush.Mobile
             SetButton(coin11Text, smallProduct != null ? $"{smallProduct.pullCount}회 소환" : "-", smallProduct != null ? Wallet.Format(smallProduct.price) : "");
             SetButton(coin35Text, bigProduct != null ? $"{bigProduct.pullCount}회 소환" : "-", bigProduct != null ? Wallet.Format(bigProduct.price) : "");
 
-            if (freeButton != null) freeButton.interactable = free && !adBusy;
-            if (coinButton11 != null) coinButton11.interactable = CanBuy(smallProduct);
-            if (coinButton35 != null) coinButton35.interactable = CanBuy(bigProduct);
+            RefreshButtons(free);
 
             if (expRow != null)
             {
