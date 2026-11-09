@@ -70,6 +70,9 @@ namespace MoreMush.Mobile
         {
             rect = (RectTransform)transform;
             if (visual != null) tintTarget = visual.GetComponent<Graphic>();
+            // Main 방치 전투와 같은 그림: 장착한 무기 (BattleLooks). 없으면 프리팹 그림
+            var look = BattleLooks.Harvester();
+            if (look != null && tintTarget is Image img) { img.sprite = look; img.preserveAspect = true; }
         }
 
         public void OnSpawned()

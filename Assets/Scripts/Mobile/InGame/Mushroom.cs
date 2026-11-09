@@ -53,6 +53,15 @@ namespace MoreMush.Mobile
         {
             rect = (RectTransform)transform;
             if (visual != null) tintTarget = visual.GetComponent<Graphic>();
+            if (tintTarget is Image img) defaultSprite = img.sprite;
+        }
+
+        Sprite defaultSprite;   // 프리팹 그림 (보스처럼 따로 고르지 않을 때)
+
+        // 그림을 바꾼다 (BattleLooks — Main 방치 전투와 같은 버섯 그림). null이면 프리팹 그림
+        public void SetSprite(Sprite sprite)
+        {
+            if (tintTarget is Image img) img.sprite = sprite != null ? sprite : defaultSprite;
         }
 
         // 황금 변종·크기를 정한다. 꺼낸 직후(OnSpawned 다음)에 부른다. 체력 = 기본 체력 × hpMultiplier (스테이지 계수)
