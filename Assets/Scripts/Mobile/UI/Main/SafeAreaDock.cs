@@ -22,8 +22,9 @@ namespace MoreMush.Mobile
         RectTransform rect, parent, stage, safe, screen;
         LayoutGroup layout;
         int basePaddingBottom;
-        float left0, right0, bottom0, top0, bottomGap;   // 처음 자리 (부모 가운데 기준) · Stage 아래와의 간격 (Stage 단위)
-        Vector3 lastSafeMin, lastSafeMax, lastScreenMin, lastScreenMax;
+        // 프리팹에 정한 자리 (앵커·오프셋). 매번 지금 부모 크기로 다시 풀어 쓴다 → 재생 중 화면 비율이 바뀌어도 처음 비율의 폭·높이가 남지 않는다
+        Vector2 anchorMin0, anchorMax0, offsetMin0, offsetMax0;
+        float bottomGap;   // Stage 아래와의 간격 (Stage 단위)
         bool ready;
         readonly Vector3[] corners = new Vector3[4];
 
@@ -46,55 +47,49 @@ namespace MoreMush.Mobile
             layout = GetComponent<LayoutGroup>();
             if (layout != null) basePaddingBottom = layout.padding.bottom;
 
+            anchorMin0 = rect.anchorMin;
+            anchorMax0 = rect.anchorMax;
+            offsetMin0 = rect.offsetMin;
+            offsetMax0 = rect.offsetMax;
             rect.GetWorldCorners(corners);
-            var min = parent.InverseTransformPoint(corners[0]);
-            var max = parent.InverseTransformPoint(corners[2]);
-            var pc = parent.rect.center;
-            left0 = min.x - pc.x;
-            right0 = max.x - pc.x;
-            bottom0 = min.y - pc.y;
-            top0 = max.y - pc.y;
             bottomGap = stage.InverseTransformPoint(corners[0]).y - stage.rect.yMin;
             ready = true;
             Apply();
         }
 
+        // 매 프레임 다시 계산하고, 결과가 달라졌을 때만 쓴다.
+        // 화면 크기가 바뀔 때 캔버스(렌더 직전)·SafeArea·StageFrame(Update, 순서 미정)이 여러 프레임에 걸쳐 바뀌어서
+        // "모서리가 바뀌었을 때만" 다시 맞추면 중간 상태로 계산한 자리에 굳는다 (PC 창 최대화·해상도 변경 때 탭바가 화면 밖으로 사라짐)
         void LateUpdate()
         {
-            if (!ready) return;
-            safe.GetWorldCorners(corners);
-            var sMin = corners[0];
-            var sMax = corners[2];
-            screen.GetWorldCorners(corners);
-            if (sMin != lastSafeMin || sMax != lastSafeMax || corners[0] != lastScreenMin || corners[2] != lastScreenMax) Apply();
+            if (ready) Apply();
         }
 
         void Apply()
         {
             var pc = parent.rect.center;
             safe.GetWorldCorners(corners);
-            lastSafeMin = corners[0];
-            lastSafeMax = corners[2];
             // 안전 영역 아래 끝 + 처음 간격 (Stage 단위로 더한 뒤 부모 좌표로)
             var safeBottomStage = stage.InverseTransformPoint(corners[0]);
             var dockWorld = stage.TransformPoint(new Vector3(0f, safeBottomStage.y + bottomGap, 0f));
             float dockY = parent.InverseTransformPoint(dockWorld).y - pc.y;
             screen.GetWorldCorners(corners);
-            lastScreenMin = corners[0];
-            lastScreenMax = corners[2];
             var fMin = (Vector2)parent.InverseTransformPoint(corners[0]) - pc;   // 화면 끝 (부모 가운데 기준)
             var fMax = (Vector2)parent.InverseTransformPoint(corners[2]) - pc;
 
             if (coverScreen)
             {
-                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-                rect.offsetMin = fMin;
-                rect.offsetMax = fMax;
+                SetRect(fMin, fMax);
                 return;
             }
-            float l = stretchWidth ? fMin.x : left0;
-            float r = stretchWidth ? fMax.x : right0;
-            float b = bottom0, t = top0;
+            // 프리팹 자리를 지금 부모 크기로 (부모 가운데 기준)
+            var pr = parent.rect;
+            var min0 = pr.min + Vector2.Scale(pr.size, anchorMin0) + offsetMin0 - pc;
+            var max0 = pr.min + Vector2.Scale(pr.size, anchorMax0) + offsetMax0 - pc;
+            float l = stretchWidth ? fMin.x : min0.x;
+            float r = stretchWidth ? fMax.x : max0.x;
+            float b = min0.y, t = max0.y;
+            float bottom0 = min0.y, top0 = max0.y;
             if (dockBottom)
             {
                 b = dockY;
@@ -111,9 +106,21 @@ namespace MoreMush.Mobile
                 layout.padding.bottom = basePaddingBottom + extra;
                 LayoutRebuilder.MarkLayoutForRebuild(rect);
             }
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.offsetMin = new Vector2(l, b);
-            rect.offsetMax = new Vector2(r, t);
+            SetRect(new Vector2(l, b), new Vector2(r, t));
+        }
+
+        // 같은 값이면 건드리지 않는다 (매 프레임 부르므로 레이아웃·캔버스를 쓸데없이 더럽히지 않게)
+        const float Epsilon = 0.01f;
+        static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
+
+        void SetRect(Vector2 offsetMin, Vector2 offsetMax)
+        {
+            if (rect.anchorMin == Center && rect.anchorMax == Center
+                && (rect.offsetMin - offsetMin).sqrMagnitude < Epsilon * Epsilon
+                && (rect.offsetMax - offsetMax).sqrMagnitude < Epsilon * Epsilon) return;
+            rect.anchorMin = rect.anchorMax = Center;
+            rect.offsetMin = offsetMin;
+            rect.offsetMax = offsetMax;
         }
     }
 }
