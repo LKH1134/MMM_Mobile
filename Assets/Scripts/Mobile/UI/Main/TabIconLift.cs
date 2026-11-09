@@ -12,8 +12,14 @@ namespace MoreMush.Mobile
         [SerializeField] float lift = 22f;
         [SerializeField] float liftScale = 1.08f;
 
+        // 지금 탭이면 이 버튼 뒤에 반투명 색 판을 깐다 (그림 없이 색만 — 어느 탭인지 알아보게)
+        [SerializeField] Color backdropColor = new Color(0f, 0f, 0f, 0.3f);
+
+        public UnityEngine.UI.Image IconImage => icon != null ? icon.GetComponent<UnityEngine.UI.Image>() : null;   // 탭 그림 (해금 표시·안내가 쓴다)
+
         Vector2 basePos;
         TabGroup bar;
+        UnityEngine.UI.Image backdrop;
 
         void Start()
         {
@@ -34,6 +40,14 @@ namespace MoreMush.Mobile
             bool on = bar != null ? current == tab : currentScene;
             icon.anchoredPosition = basePos + (on ? Vector2.up * lift : Vector2.zero);
             icon.localScale = Vector3.one * (on ? liftScale : 1f);
+            ApplyBackdrop(on);
+        }
+
+        void ApplyBackdrop(bool on)
+        {
+            if (!TryGetComponent<UnityEngine.UI.Button>(out var button)) return;
+            if (on) backdrop = BarBackdrop.Place(backdrop, button, backdropColor);
+            else if (backdrop != null) backdrop.gameObject.SetActive(false);
         }
     }
 }

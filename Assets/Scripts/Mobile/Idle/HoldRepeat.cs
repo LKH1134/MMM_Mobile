@@ -36,7 +36,9 @@ namespace MoreMush.Mobile
             if (!held) return;
             wait -= Time.unscaledDeltaTime;
             if (wait > 0f) return;
-            if (!button.IsInteractable()) { held = false; return; }
+            // 누를 수 없는 동안(골드 부족)에도 누르고 있는 상태는 유지한다 — 누르는 중에 조건이 채워지면 손을 뗐다 다시 누르지 않아도 이어서 눌린다.
+            // 기다리는 동안 wait는 0 이하로 남아, 눌릴 수 있게 되는 첫 프레임에 바로 실행된다
+            if (!button.IsInteractable()) return;
             button.onClick.Invoke();
             if (press != null) press.eligibleForClick = false;
             interval = Mathf.Max(minInterval, interval * 0.85f);

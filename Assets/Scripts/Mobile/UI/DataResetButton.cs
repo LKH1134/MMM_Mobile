@@ -42,6 +42,7 @@ namespace MoreMush.Mobile
             Equipment.ReloadAll();
             WorldTree.Reload();            // 세계수 JSON 캐시 (안 버리면 다음 저장 때 옛 값을 다시 쓴다)
             AdBox.ResetTimer();            // 광고 상자 쿨타임도 처음부터
+            FeatureUnlock.Reload();        // 기능 해금·안내 기록도 처음부터
             DailyQuests.Reload();          // 일일 퀘스트 진행도도 처음부터
         }
     }
