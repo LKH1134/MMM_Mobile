@@ -14,6 +14,7 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_Text timerText;
         [SerializeField] AttendanceCellView[] cells;     // 1일째부터 차례로 (Attendance.Days개)
         [SerializeField] Button claimButton;             // "받기" (오늘 받을 게 남았을 때만 보인다. 타이머 글자 자리)
+        [SerializeField] Button closeButton;             // 창 오른쪽 위 X
 
         [Header("그림 (Resources 경로)")]
         [SerializeField] string cellSprite = "UI/UI_PP_In_Color_Beige1";
@@ -23,9 +24,11 @@ namespace MoreMush.Mobile
         [SerializeField] string goldIcon = "UI/Icon/gold";
         [SerializeField] string myceliteIcon = "UI/Icon/mycelium_stone";
 
+        [SerializeField] float closeDelay = 1f;          // 받기를 누른 뒤 창이 닫힐 때까지 (초)
+
         int justClaimed;        // 이번에 열 때 방금 받은 날 (0 = 아직 안 받았거나 그냥 열기)
         int shownSecond = -1;
-        Coroutine pop;
+        Coroutine pop, autoClose;
 
         // 연다. 오늘 받을 보상이 남았으면 "받기" 버튼이 보이고, 누르지 않고 닫아도 닫을 때 받는다.
         // 받지 못한 채 닫혔다면(앱 강제 종료 등) 보상이 그대로 남아 다음 접속 때 다시 뜬다
@@ -36,17 +39,27 @@ namespace MoreMush.Mobile
             else gameObject.SetActive(true);
         }
 
-        // 받기 버튼: 오늘 보상을 받고 받은 칸을 보여 준다
+        // 받기 버튼: 오늘 보상을 받고 받은 칸을 보여 준 뒤 closeDelay초 후 창을 닫는다
         void Claim()
         {
             int day = Attendance.Claimed + 1;
             justClaimed = day;                  // Claim이 부르는 Changed → Refresh에서 받은 칸을 알 수 있게 먼저 정한다
-            if (Attendance.Claim() == 0) { justClaimed = 0; Refresh(); }
+            if (Attendance.Claim() == 0) { justClaimed = 0; Refresh(); return; }
+            if (autoClose != null) StopCoroutine(autoClose);
+            autoClose = StartCoroutine(CloseLater());
+        }
+
+        IEnumerator CloseLater()
+        {
+            yield return new WaitForSecondsRealtime(closeDelay);
+            autoClose = null;
+            gameObject.SetActive(false);
         }
 
         void Awake()
         {
             if (claimButton != null) claimButton.onClick.AddListener(Claim);
+            if (closeButton != null) closeButton.onClick.AddListener(() => gameObject.SetActive(false));
         }
 
         void OnEnable()
@@ -68,6 +81,7 @@ namespace MoreMush.Mobile
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= CloseOnTab;
             if (pop != null) StopCoroutine(pop);
             pop = null;
+            autoClose = null;       // 꺼지면 코루틴도 멈춘다
             justClaimed = 0;
             // 받기를 누르지 않고 닫았으면 닫을 때 받는다 (씬이 사라지는 중에는 건드리지 않는다)
             if (gameObject.scene.isLoaded && Attendance.CanClaim) Attendance.Claim();
