@@ -154,10 +154,26 @@ namespace MoreMush.Mobile
 
             // 판 중에 만들지 않도록 최대치만큼 미리 만들어 둔다 (군락지, 함께 던지는 수확기 + 분열체)
             int perColony = stats.SinglesPerColony;
-            clusterPool = new PrefabPool<Mushroom>(clusterPrefab, mushroomLayer, stats.Colonies + 1);
-            singlePool = new PrefabPool<Mushroom>(singlePrefab, mushroomLayer, (stats.Colonies + 1) * perColony);
+            // 군락 버섯이 언제나 단일 버섯 위에 그려지게 레이어를 나눈다 (뒤 형제가 위에 그려진다: 단일 → 군락)
+            var singleLayer = SubLayer(mushroomLayer, "Singles");
+            var clusterLayer = SubLayer(mushroomLayer, "Clusters");
+            clusterPool = new PrefabPool<Mushroom>(clusterPrefab, clusterLayer, stats.Colonies + 1);
+            singlePool = new PrefabPool<Mushroom>(singlePrefab, singleLayer, (stats.Colonies + 1) * perColony);
             harvesterPools.Add(harvesterPrefab, new PrefabPool<Harvester>(harvesterPrefab, harvesterLayer, 1 + stats.ExtraHarvesters + stats.MaxSplit));
             BeginRound();
+        }
+
+        // parent를 꽉 채우는 빈 레이어 (가운데 기준 좌표가 parent와 같다 — 버섯 위치 계산은 그대로)
+        static RectTransform SubLayer(RectTransform parent, string name)
+        {
+            var rt = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
+            rt.SetParent(parent, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            rt.SetAsLastSibling();
+            return rt;
         }
 
         // 판을 처음부터 다시 (밸런스 측정기가 판마다 부른다). Configure로 새 수치를 넣은 뒤 부른다
