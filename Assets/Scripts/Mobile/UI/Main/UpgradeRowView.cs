@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
         public TMP_Text lockText;
         public Graphic[] springs;      // 접힌 선 위 스프링. 스크롤 가림(RectMask2D)을 받지 않고(maskable 끔), 반 넘게 목록 밖으로 나가면 통째로 숨긴다
 
-        [System.NonSerialized] public IdleStat stat;
+        public IdleStat stat;          // 이 줄이 맡은 능력치 (UpgradeNotebook 프리팹에 줄마다 배치해 정한다)
         [System.NonSerialized] public Sprite normalButton;   // 살 수 있을 때 버튼 그림 (처음 그림)
         [System.NonSerialized] public long nextCost;    // Refresh 때 셈해 둔 다음 레벨 비용
         [System.NonSerialized] public bool buyable;     // 열렸고 최대·단계 제한이 아님

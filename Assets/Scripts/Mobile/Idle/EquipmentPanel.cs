@@ -6,23 +6,30 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 장비 화면 (Wepon·Amor 프리팹): 위 = 고른 장비 정보·장착·합성(도감 레벨업), 가운데 = 장비 칸(Equipment 순서), 아래 = 보유 효과·소환·일괄 합성.
-    // 프리팹 안 오브젝트는 이름으로 찾는다 (Up / mid / Down). 칸 버튼에는 그림·장수·장착 표시를 코드로 붙인다.
-    // 위쪽에 정보 칸이 없는 프리팹은 Wepon과 같은 배치로 코드에서 만든다 (원래 있던 위쪽 오브젝트는 숨긴다)
+    // 칸마다 그림·장수·장착 표시, 합성 막대 등 화면 조각은 모두 프리팹에 배치되어 있고 여기서는 값만 채운다.
+    // slots는 화면 순서(위→아래, 왼→오른) = 장비 순서. 장비보다 많은 칸은 프리팹에서 꺼 둔다
     public class EquipmentPanel : MonoBehaviour
     {
+        [System.Serializable]
+        public class Slot { public Button button; public Image bg, icon; public TMP_Text count, badge; [System.NonSerialized] public Sprite normal; }   // normal = 프리팹에 놓은 칸 그림
+
         [SerializeField] GachaKind kind = GachaKind.Weapon;     // Weapon · Accessory(방어구)
-        [SerializeField] TMP_FontAsset font;
-        [SerializeField] Toast toastPrefab;         // 안내 문구 — 처음 쓸 때 캔버스 맨 위에 하나 만든다 (없으면 콘솔에만)
+        [SerializeField] Slot[] slots;
 
-        class Slot { public Button button; public Image bg, icon; public TMP_Text count, badge; public Sprite normal; }   // normal = 프리팹에 놓은 칸 그림 [UI 개편 11-05]
+        [Header("위: 고른 장비")]
+        [SerializeField] Image detailIcon;
+        [SerializeField] TMP_Text detailName, detailCount;
+        [SerializeField] RectTransform mergeBarFill;
+        [SerializeField] TMP_Text mergeBarText, equipStat, ownStat;
+        [SerializeField] Button equipButton, mergeButton;
+        [SerializeField] TMP_Text equipLabel;
 
-        readonly List<Slot> slots = new List<Slot>();
-        Image detailIcon;
-        TMP_Text detailName, detailCount, mergeBarText, equipStat, ownStat, equipLabel, ownTotal;
-        RectTransform mergeBarFill;
-        Button equipButton, mergeButton;
+        [Header("아래")]
+        [SerializeField] TMP_Text ownTotal;
+        [SerializeField] Button summonButton, mergeAllButton;
+        [SerializeField] Toast toast;               // 안내 문구 (비우면 씬에서 찾는다. 없으면 콘솔에만)
+
         int selected = -1;
-        bool built;
 
         Equipment Eq => Equipment.Of(kind) ?? Equipment.Weapon;
 
@@ -30,16 +37,32 @@ namespace MoreMush.Mobile
         const string SelectedSprite = "UI/UI_PP_In_InnerLine1";   // 고른 칸: 노란 안쪽 선
         const string EquippedSprite = "UI/UI_PP_In_Color_Green";
         const string SlotSprite = "UI/UI_PP_In_Color_Beige1";
-        const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
-        const string BarFillSprite = "UI/UI_PP_Bar_Gauge_Green";
 
-        void Awake() => Build();
+        void Awake()
+        {
+            UiSkin.GreyWhenDisabled(equipButton);   // 누를 수 없으면 회색 버튼 그림
+            UiSkin.GreyWhenDisabled(mergeButton);
+            if (equipButton != null) equipButton.onClick.AddListener(EquipSelected);
+            if (mergeButton != null) mergeButton.onClick.AddListener(MergeSelected);
+            if (summonButton != null) summonButton.onClick.AddListener(OpenSummon);
+            if (mergeAllButton != null) mergeAllButton.onClick.AddListener(MergeAll);
+            if (slots == null) slots = new Slot[0];
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var s = slots[i];
+                if (s.button == null) continue;
+                int index = i;
+                if (s.icon != null) s.icon.sprite = Eq.Sprite(i);
+                s.normal = s.bg != null && s.bg.sprite != null ? s.bg.sprite : Resources.Load<Sprite>(SlotSprite);
+                s.button.onClick.RemoveAllListeners();
+                s.button.onClick.AddListener(() => { selected = index; Refresh(); });
+            }
+        }
 
         void OnEnable()
         {
             Eq.Changed += Refresh;
             Loc.Changed += Refresh;
-            Build();
             if (selected < 0) selected = Eq.Equipped >= 0 ? Eq.Equipped : HighestOwned();
             Refresh();
         }
@@ -48,246 +71,6 @@ namespace MoreMush.Mobile
         {
             Eq.Changed -= Refresh;
             Loc.Changed -= Refresh;
-        }
-
-        void Build()
-        {
-            if (built) return;
-            built = true;
-
-            var up = transform.Find("Up");
-            if (up != null && up.Find("Text (TMP)") == null) BuildDetail(up);
-            if (up != null)
-            {
-                detailIcon = up.Find("Image")?.GetComponent<Image>();
-                if (detailIcon != null) detailIcon.preserveAspect = true;
-                detailName = up.Find("Text (TMP)")?.GetComponent<TMP_Text>();
-                detailCount = up.Find("Text (TMP) (1)")?.GetComponent<TMP_Text>();
-                FitDetailText(detailName, 900f, 22f);   // 이름은 합성 막대 위 빈 줄을 한 줄로 쓴다 (좁으면 두 줄로 접혀 아래 글자와 겹친다)
-                FitDetailText(detailCount, 160.5f, 22f);
-                BuildMergeBar(FindChildByIndex(up, "Image", 1));
-                equipStat = AddRowText(up.Find("Panel (1)"));
-                ownStat = AddRowText(up.Find("Panel (2)"));
-                equipButton = up.Find("Button")?.GetComponent<Button>();
-                mergeButton = up.Find("Button (1)")?.GetComponent<Button>();
-                UiSkin.GreyWhenDisabled(equipButton);   // [UI 개편] 누를 수 없으면 회색 버튼 그림
-                UiSkin.GreyWhenDisabled(mergeButton);
-                if (equipButton != null)
-                {
-                    equipButton.onClick.AddListener(EquipSelected);
-                    equipLabel = equipButton.GetComponentInChildren<TMP_Text>(true);
-                }
-                if (mergeButton != null) mergeButton.onClick.AddListener(MergeSelected);
-            }
-
-            var mid = transform.Find("mid");
-            if (mid != null) BuildSlots(mid);
-
-            var down = transform.Find("Down");
-            if (down != null)
-            {
-                ownTotal = down.Find("Text (TMP)")?.GetComponent<TMP_Text>();
-                down.Find("Summon")?.GetComponent<Button>()?.onClick.AddListener(OpenSummon);
-                down.Find("All")?.GetComponent<Button>()?.onClick.AddListener(MergeAll);
-            }
-        }
-
-        // 위쪽 정보 칸이 없는 프리팹: 원래 오브젝트를 숨기고 Wepon과 같은 배치(Up 가운데 기준)로 만든다.
-        // 이름을 Wepon과 같게 붙여 Build가 그대로 찾는다
-        void BuildDetail(Transform up)
-        {
-            foreach (Transform c in up)
-            {
-                c.gameObject.SetActive(false);
-                c.name += " (숨김)";      // 아래에서 같은 이름으로 찾을 때 걸리지 않게
-            }
-
-            var icon = NewImage("Image", up);
-            icon.color = Color.white;
-            Center(icon.rectTransform, new Vector2(-450f, 103.4f), new Vector2(122.4f, 101.9f));
-
-            var name = NewText("Text (TMP)", up, 36f);
-            name.color = Brown;
-            name.alignment = TextAlignmentOptions.MidlineLeft;
-            Center(name.rectTransform, new Vector2(-281.6f, 126f), new Vector2(160.5f, 50f));
-            var count = NewText("Text (TMP) (1)", up, 36f);
-            count.color = Brown;
-            count.alignment = TextAlignmentOptions.MidlineLeft;
-            Center(count.rectTransform, new Vector2(-281.6f, 85f), new Vector2(160.5f, 50f));
-
-            var bar = NewImage("Image", up);
-            bar.preserveAspect = false;
-            Center(bar.rectTransform, new Vector2(175.3f, 87.7f), new Vector2(742.7f, 30.6f));
-
-            foreach (var (rowName, y) in new[] { ("Panel (1)", 18.4f), ("Panel (2)", -42.1f) })
-            {
-                var row = NewImage(rowName, up);
-                row.preserveAspect = false;
-                Skin(row, CreamSprite, 2.5f);
-                var rt = row.rectTransform;
-                rt.anchorMin = Vector2.zero;
-                rt.anchorMax = Vector2.one;
-                rt.offsetMin = new Vector2(79f, y + 154.7f);
-                rt.offsetMax = new Vector2(-27.2f, y - 154.7f);
-            }
-
-            foreach (var (buttonName, x, label) in new[] { ("Button", -149f, Loc.T("common.equip")), ("Button (1)", 141f, Loc.T("common.merge")) })
-            {
-                var img = NewImage(buttonName, up);
-                img.preserveAspect = false;
-                img.raycastTarget = true;
-                Center(img.rectTransform, new Vector2(x, -121.2f), new Vector2(234.8f, 89.3f));
-                img.gameObject.AddComponent<Button>();
-                Skin(img, GoSprite, 1.4f);
-                var t = NewText("Text (TMP)", img.transform, 30f);
-                t.text = label;
-                t.color = Color.white;
-                OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 외곽선
-                var trt = t.rectTransform;
-                trt.anchorMin = Vector2.zero;
-                trt.anchorMax = Vector2.one;
-                trt.offsetMin = trt.offsetMax = Vector2.zero;
-            }
-        }
-
-        // 프리팹 칸과 같은 게임 UI 그림 (Resources 경로)
-        const string CreamSprite = "UI/UI_Btn_Beige";
-        const string GoSprite = "UI/UI_Btn_Green";
-        static readonly Color Brown = new Color(0.36f, 0.24f, 0.14f);
-
-        static void Skin(Image img, string sprite, float pixelsPerUnit)
-        {
-            var sp = Resources.Load<Sprite>(sprite);
-            if (sp == null) return;
-            img.sprite = sp;
-            img.type = Image.Type.Sliced;
-            img.pixelsPerUnitMultiplier = pixelsPerUnit;
-            img.color = Color.white;
-        }
-
-        // 왼쪽 끝은 그대로 두고 width만큼 오른쪽으로 넓힌다. 한 줄로만 쓰고, 넘치면 minSize까지 줄인 뒤 말줄임
-        static void FitDetailText(TMP_Text t, float width, float minSize)
-        {
-            if (t == null) return;
-            var rt = t.rectTransform;
-            float left = rt.anchoredPosition.x - rt.sizeDelta.x * rt.pivot.x;
-            // [UI 개편] 창 폭이 좁아져도 정보 칸 오른쪽 밖으로 나가지 않게 (부모 가운데 기준 좌표)
-            if (rt.parent is RectTransform p) width = Mathf.Min(width, p.rect.width * 0.5f - 24f - left);
-            rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
-            rt.anchoredPosition = new Vector2(left + width * rt.pivot.x, rt.anchoredPosition.y);
-            t.textWrappingMode = TextWrappingModes.NoWrap;
-            t.overflowMode = TextOverflowModes.Ellipsis;
-            t.alignment = TextAlignmentOptions.MidlineLeft;
-            t.fontSizeMax = t.fontSize;
-            t.fontSizeMin = minSize;
-            t.enableAutoSizing = true;
-        }
-
-        static void Center(RectTransform rt, Vector2 pos, Vector2 size)
-        {
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-        }
-
-        // 같은 이름 자식이 여러 개일 때 n번째 (Up 안 "Image"는 아이콘·막대 두 개)
-        static Transform FindChildByIndex(Transform parent, string name, int index)
-        {
-            int n = 0;
-            foreach (Transform c in parent)
-                if (c.name == name && n++ == index) return c;
-            return null;
-        }
-
-        // 칸 버튼을 화면 순서(위→아래, 왼→오른)로 무기에 맞춘다. 무기보다 많은 칸은 숨긴다
-        void BuildSlots(Transform mid)
-        {
-            var buttons = new List<Button>();
-            foreach (Transform c in mid)
-                if (c.TryGetComponent<Button>(out var b)) buttons.Add(b);
-            buttons.Sort((a, b) =>
-            {
-                var pa = ((RectTransform)a.transform).anchoredPosition;
-                var pb = ((RectTransform)b.transform).anchoredPosition;
-                return Mathf.Abs(pa.y - pb.y) > 1f ? pb.y.CompareTo(pa.y) : pa.x.CompareTo(pb.x);
-            });
-
-            for (int i = 0; i < buttons.Count; i++)
-            {
-                var b = buttons[i];
-                if (i >= Eq.Count) { b.gameObject.SetActive(false); continue; }
-                int index = i;
-                var rt = (RectTransform)b.transform;
-                var s = new Slot { button = b, bg = b.GetComponent<Image>() };
-
-                s.icon = NewImage("Icon", rt);
-                s.icon.transform.SetAsFirstSibling();
-                s.icon.sprite = Eq.Sprite(i);
-                var irt = s.icon.rectTransform;
-                irt.anchorMin = new Vector2(0f, 0.25f);
-                irt.anchorMax = Vector2.one;
-                irt.offsetMin = new Vector2(14f, 0f);
-                irt.offsetMax = new Vector2(-14f, -26f);
-
-                // 기존 글자(Lv.1)를 장수 줄로 쓴다
-                s.count = b.GetComponentInChildren<TMP_Text>(true);
-                if (s.count == null) s.count = NewText("Count", rt, 26f);
-                if (font != null) s.count.font = font;
-                s.count.fontSize = 26f;
-                s.count.alignment = TextAlignmentOptions.Bottom;
-                var crt = s.count.rectTransform;
-                crt.anchorMin = Vector2.zero;
-                crt.anchorMax = new Vector2(1f, 0.3f);
-                crt.offsetMin = new Vector2(4f, 6f);
-                crt.offsetMax = new Vector2(-4f, 0f);
-
-                s.badge = NewText("Badge", rt, 22f);
-                s.badge.alignment = TextAlignmentOptions.TopLeft;
-                s.badge.fontStyle = FontStyles.Bold;
-                var brt = s.badge.rectTransform;
-                brt.anchorMin = brt.anchorMax = new Vector2(0f, 1f);
-                brt.pivot = new Vector2(0f, 1f);
-                brt.anchoredPosition = new Vector2(8f, -6f);
-                brt.sizeDelta = new Vector2(170f, 30f);
-
-                b.onClick.RemoveAllListeners();
-                b.onClick.AddListener(() => { selected = index; Refresh(); });
-                slots.Add(s);
-            }
-        }
-
-        // 막대(Up의 두 번째 Image) 안에 채움과 "n/합성 개수" 글자를 붙인다
-        void BuildMergeBar(Transform bar)
-        {
-            if (bar == null) return;
-            var bg = bar.GetComponent<Image>();
-            if (bg != null && bg.sprite == null) Skin(bg, BarBackSprite, 1f);   // 그림이 있으면 그대로
-            var fill = NewImage("Fill", bar);
-            Skin(fill, BarFillSprite, 1f);
-            fill.preserveAspect = false;
-            mergeBarFill = fill.rectTransform;
-            mergeBarFill.anchorMin = Vector2.zero;
-            mergeBarFill.anchorMax = new Vector2(0f, 1f);
-            mergeBarFill.offsetMin = mergeBarFill.offsetMax = Vector2.zero;
-            mergeBarText = NewText("Text", bar, 22f);
-            var trt = mergeBarText.rectTransform;
-            trt.anchorMin = Vector2.zero;
-            trt.anchorMax = Vector2.one;
-            trt.offsetMin = trt.offsetMax = Vector2.zero;
-        }
-
-        TMP_Text AddRowText(Transform row)
-        {
-            if (row == null) return null;
-            var t = NewText("Text", row, 28f);
-            t.alignment = TextAlignmentOptions.MidlineLeft;
-            var rt = t.rectTransform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = new Vector2(20f, 0f);
-            rt.offsetMax = new Vector2(-20f, 0f);
-            return t;
         }
 
         // ── 동작 ──
@@ -326,15 +109,9 @@ namespace MoreMush.Mobile
             else MainNavigation.Open(MainNavigation.GachaTab);
         }
 
-        Toast toast;
-
         void Notify(string message)
         {
-            if (toast == null && toastPrefab != null)
-            {
-                var canvas = GetComponentInParent<Canvas>();
-                toast = Instantiate(toastPrefab, canvas != null ? canvas.rootCanvas.transform : transform);
-            }
+            if (toast == null) toast = FindFirstObjectByType<Toast>(FindObjectsInactive.Include);
             if (toast != null) toast.Show(message, 2f);
             else Debug.Log($"[{Eq.Title}] {message}");
         }
@@ -350,9 +127,10 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             int equipped = Eq.Equipped;
-            for (int i = 0; i < slots.Count; i++)
+            for (int i = 0; i < slots.Length; i++)
             {
                 var s = slots[i];
+                if (s.button == null) continue;
                 int lv = Eq.Level(i);
                 s.icon.color = Color.white;     // 못 얻은 것은 "미보유" 글자로 알린다
                 s.count.text = lv <= 0 ? Loc.T("equip.not_owned_short")
@@ -360,7 +138,6 @@ namespace MoreMush.Mobile
                     : $"Lv.{lv} <size=80%>({Eq.Copies(i)}/{Equipment.CopiesToNext(lv)})</size>";
                 s.badge.text = i == equipped ? "<color=#3A8F2E>" + Loc.T("common.equip") + "</color>" : "";
                 // [UI 개편 11-05] 보통 칸은 프리팹에 놓은 그림 그대로 (없을 때만 SlotSprite). 고른 칸·장착 칸만 바꿔 낀다
-                if (s.normal == null && s.bg != null) s.normal = s.bg.sprite != null ? s.bg.sprite : Resources.Load<Sprite>(SlotSprite);
                 s.bg.sprite = i == selected ? Resources.Load<Sprite>(SelectedSprite) : i == equipped ? Resources.Load<Sprite>(EquippedSprite) : s.normal;
                 s.bg.type = Image.Type.Sliced;
                 s.bg.color = Color.white;
@@ -387,33 +164,6 @@ namespace MoreMush.Mobile
             if (equipButton != null) equipButton.interactable = have && !isEquipped;
             if (equipLabel != null) equipLabel.text = Loc.T(isEquipped ? "equip.equipped_now" : "common.equip");
             if (mergeButton != null) mergeButton.interactable = Eq.CanMerge(selected);
-        }
-
-        Image NewImage(string name, Transform parent)
-        {
-            var img = new GameObject(name, typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-            img.transform.SetParent(parent, false);
-            img.preserveAspect = true;
-            img.raycastTarget = false;
-            return img;
-        }
-
-        TMP_Text NewText(string name, Transform parent, float size)
-        {
-            var t = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
-            t.transform.SetParent(parent, false);
-            if (font != null) t.font = font;
-            // [UI 개편] 칸 글자가 작아 1.25배·굵게, 넘치면 자동 축소 (UiSkin 글자 규격)
-            t.fontStyle = FontStyles.Bold;
-            t.enableAutoSizing = true;
-            t.fontSizeMax = size * 1.25f;
-            t.fontSizeMin = size * 0.75f;
-            t.fontSize = size * 1.25f;
-            t.color = new Color(0.25f, 0.2f, 0.15f);
-            t.alignment = TextAlignmentOptions.Center;
-            t.raycastTarget = false;
-            t.textWrappingMode = TextWrappingModes.NoWrap;
-            return t;
         }
     }
 }

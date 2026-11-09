@@ -25,10 +25,8 @@ namespace MoreMush.Mobile
         [SerializeField] string backScene = "Main";
         [SerializeField] RectTransform popupRoot;   // 팝업을 만들 부모 = 디자인 영역(SafeArea/Stage). 비우면 이 캔버스
 
-        [SerializeField] Toast toastPrefab;
+        [SerializeField] Toast toast;               // 씬에 배치한 안내 문구 (꺼 둔다)
         [SerializeField] float toastDuration = 3f;
-
-        Toast toast;
 
         void Awake()
         {
@@ -69,8 +67,7 @@ namespace MoreMush.Mobile
 
         public void ShowToast(string message)
         {
-            if (toastPrefab == null) return;
-            if (toast == null) toast = Instantiate(toastPrefab, popupRoot != null ? popupRoot : transform, false);
+            if (toast == null) return;
             toast.Show(message, toastDuration);
         }
     }

@@ -15,7 +15,7 @@ namespace MoreMush.Mobile
 
         protected override void Build()
         {
-            if (!HasTemplates(TemplateNames)) { BuildByCode(); return; }
+            if (!HasTemplates(TemplateNames)) { Debug.LogError("[TreeCraftPanel] Templates 견본이 빠졌다", this); return; }
             doneCount = CountDone();
             var crafts = WorldTree.Crafts;
             SetText(Use("Header"), null, Loc.F("craft.slots_header", crafts.Count, WorldTree.CraftSlots, WorldTree.RushLeft, WorldTree.RushPerDay));
@@ -88,33 +88,6 @@ namespace MoreMush.Mobile
             }
         }
 
-        // 견본이 없을 때: 예전 코드 화면
-        void BuildByCode()
-        {
-            doneCount = CountDone();
-            var crafts = WorldTree.Crafts;
-            TreeUi.Header(list, Loc.F("craft.slots_header", crafts.Count, WorldTree.CraftSlots, WorldTree.RushLeft, WorldTree.RushPerDay), font);
-            for (int i = 0; i < WorldTree.MaxCraftSlots; i++)
-            {
-                if (i < crafts.Count) CraftCard(i, crafts[i]);
-                else
-                {
-                    bool open = i < WorldTree.CraftSlots;
-                    var card = TreeUi.Card(list, 120f, open);
-                    TreeUi.Line(card, open ? Loc.T("craft.slot_empty") : Loc.F("craft.slot_locked", WorldTree.CraftSlotStage(i + 1)), 30f, TreeUi.Faint, font, 32f, 24f, 0f, 1f);
-                }
-            }
-
-            TreeUi.Header(list, Loc.T("craft.list"), font);
-            var decos = new List<DecoRow>(GameBalance.Decos);
-            decos.Sort((a, b) =>
-            {
-                int c = Order(a).CompareTo(Order(b));
-                return c != 0 ? c : a.grade != b.grade ? a.grade.CompareTo(b.grade) : a.index.CompareTo(b.index);
-            });
-            foreach (var d in decos) RecipeCard(d);
-        }
-
         static int CountDone()
         {
             int n = 0;
@@ -124,58 +97,6 @@ namespace MoreMush.Mobile
 
         // 제작이 끝나면 버튼이 받기로 바뀐다
         protected override bool OnTick() => CountDone() != doneCount;
-
-        void CraftCard(int i, WorldTree.Craft c)
-        {
-            var d = WorldTree.Deco(c.deco);
-            var card = TreeUi.Card(list, 160f);
-            TreeUi.Icon(card, WorldTree.DecoSprite(d), 120f);
-            TreeUi.Line(card, d != null ? d.Name : c.deco, 34f, TreeUi.Ink, font, 160f, 270f, 0.52f, 0.92f).fontStyle = FontStyles.Bold;
-            bool done = WorldTree.CraftDone(c);
-            if (done)
-            {
-                TreeUi.Line(card, Loc.T("craft.done"), 30f, TreeUi.Good, font, 160f, 270f, 0.1f, 0.5f);
-                TreeUi.Button(card, Loc.T("tree.claim"), true, () =>
-                {
-                    if (WorldTree.ClaimCraft(i)) Toast(Loc.F("craft.claim_toast", d?.Name));
-                }, font, tint: TreeUi.ButtonAlt);
-                return;
-            }
-            Live(TreeUi.Line(card, "", 30f, TreeUi.Ink, font, 160f, 270f, 0.1f, 0.5f), () => Loc.F("craft.remaining", TreeUi.Duration(WorldTree.CraftRemaining(c))));
-            var rush = TreeUi.Button(card, "", WorldTree.CanRush(i), () =>
-            {
-                if (WorldTree.Rush(i)) Toast(Loc.T("craft.rush_toast"));
-            }, font);
-            Live(rush.GetComponentInChildren<TMP_Text>(), () => Loc.F("craft.rush", Mycelite(WorldTree.RushCost(c))));
-        }
-
-        void RecipeCard(DecoRow d)
-        {
-            var fail = WorldTree.CanCraft(d);
-            bool locked = fail == WorldTree.CraftFail.Recipe || fail == WorldTree.CraftFail.Owned;
-            var card = TreeUi.Card(list, 200f, !locked);
-            TreeUi.Icon(card, WorldTree.DecoSprite(d), 140f);
-            TreeUi.Line(card, $"{d.Name}  <size=26>{WorldTree.DecoGradeName(d.grade)} · {WorldTree.ZoneName(d.zone)}</size>", 34f, TreeUi.Ink, font, 180f, 270f, 0.68f, 0.95f).fontStyle = FontStyles.Bold;
-            TreeUi.Line(card, WorldTree.EffectText(d.effect, d.value) + $"  ·  {Formation.Name(d.owner)}", 26f, TreeUi.Faint, font, 180f, 270f, 0.4f, 0.68f);
-            string cost = TreeUi.Check(Wallet.CanAfford(Currency.Gold, WorldTree.CraftGold(d)), Gold(WorldTree.CraftGold(d))) + "  "
-                + TreeUi.Check(Wallet.CanAfford(Currency.Mycelite, WorldTree.CraftMycelite(d)), Mycelite(WorldTree.CraftMycelite(d))) + "  "
-                + TreeUi.Duration(WorldTree.CraftSeconds(d));
-            TreeUi.Line(card, cost, 26f, TreeUi.Ink, font, 180f, 270f, 0.08f, 0.4f);
-
-            string label;
-            switch (fail)
-            {
-                case WorldTree.CraftFail.Owned: label = Loc.T("craft.owned"); break;
-                case WorldTree.CraftFail.Crafting: label = Loc.T("craft.crafting"); break;
-                case WorldTree.CraftFail.Recipe: label = Loc.F("craft.need_kid", Formation.Name(d.owner)); break;
-                case WorldTree.CraftFail.Slots: label = Loc.T("craft.slots_full"); break;
-                default: label = Loc.T("craft.make"); break;
-            }
-            TreeUi.Button(card, label, fail == WorldTree.CraftFail.None, () =>
-            {
-                if (WorldTree.StartCraft(d)) Toast(Loc.F("craft.start_toast", d.Name));
-            }, font);
-        }
 
         static int Order(DecoRow d)
         {

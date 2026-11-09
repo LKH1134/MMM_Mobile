@@ -5,28 +5,23 @@ using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    // 세계수 팝업(성장·꼬마·공방·꾸미기)의 Content에 붙인다. 처음 켜질 때 Content의 기존 자식(준비 중 문구 등)을 끄고 스크롤 목록을 만든다.
-    // 세계수·지갑·꼬마가 바뀌면 목록을 통째로 다시 만들고, 1초마다 Live 글자(남은 시간 등)만 고친다
+    // 세계수 팝업(공방·꾸미기)의 Content에 붙인다. 스크롤 목록(Scroll/List)은 프리팹 Content 안에 배치해 두고 list에 연결한다.
+    // 세계수·지갑·꼬마가 바뀌면 목록 칸(Templates 견본 복사)을 통째로 다시 만들고, 1초마다 Live 글자(남은 시간 등)만 고친다
     public abstract class TreePanel : MonoBehaviour
     {
-        protected TMP_FontAsset font;
-        protected RectTransform list;
+        [SerializeField] protected RectTransform list;     // 배치한 스크롤 목록의 내용 칸 (VerticalLayoutGroup)
         readonly List<(TMP_Text text, Func<string> value)> live = new List<(TMP_Text, Func<string>)>();
         float tick;
         bool dirty;
 
-        void Init()
-        {
-            var popup = GetComponentInParent<UiPopup>(true);
-            var sample = popup != null ? popup.GetComponentInChildren<TMP_Text>(true) : null;
-            font = sample != null ? sample.font : TMP_Settings.defaultFontAsset;
-            foreach (Transform child in transform) child.gameObject.SetActive(false);
-            list = TreeUi.ScrollList(transform);
-        }
-
         protected virtual void OnEnable()
         {
-            if (list == null) Init();
+            if (list == null)
+            {
+                Debug.LogError($"[{GetType().Name}] list(Scroll/List)를 연결한다", this);
+                enabled = false;
+                return;
+            }
             WorldTree.Changed += MarkDirty;
             Wallet.Changed += MarkDirty;
             Formation.Changed += MarkDirty;

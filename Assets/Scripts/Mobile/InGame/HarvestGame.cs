@@ -20,7 +20,8 @@ namespace MoreMush.Mobile
         [SerializeField] HarvestField field;
         [SerializeField] FieldInput input;
         [SerializeField] SkillEffects effects;       // 피버(콤보 계수)·도토리(점수) 배율. 비워도 된다
-        [SerializeField] PopupSlot resultPopup;      // 프리팹. 시간이 다 되면 HUD 캔버스 아래에 만든다
+        [SerializeField] PopupSlot resultPopup;      // 씬 HUD에 꺼 둔 결과 창. 시간이 다 되면 연다
+        [SerializeField] InGameTutorial tutorial;    // 첫 입장 안내 (HUD에 꺼 둔 채 배치)
         [SerializeField] float resultDelay = 0.6f;   // 멈춘 화면을 잠깐 보여 준 뒤 결과를 연다
         [SerializeField] RoundBase roundBase = new RoundBase();
 
@@ -96,7 +97,7 @@ namespace MoreMush.Mobile
         void Start()
         {
             hud.SetDuration(Stats.Duration);
-            if (!Simulating) InGameTutorial.Begin(field, hud.transform, hud.GetComponentInChildren<TMPro.TMP_Text>(true)?.font);
+            if (!Simulating && tutorial != null) tutorial.Begin(field);
         }
 
         // 보스 타격 점수는 보스 체력만큼까지만 (넘친 피해는 점수가 없다)

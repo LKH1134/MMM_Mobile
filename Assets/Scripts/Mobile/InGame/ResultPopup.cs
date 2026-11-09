@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     //   레벨을 깼으면 왼쪽은 "다음 레벨 (레벨 n)" — 씬이 다시 열리면 StageProgress.Current(= 던전 레벨)가 이미 다음이다. 못 깼으면 "다시 도전".
     //   입장 횟수를 다 썼으면 "광고 보고 도전 (n/2)" (광고 입장, DungeonTickets.AdPerDay), 그것도 없으면 막힌다.
     // "다음 레벨 자동 도전"(체크 상자, 기기에 저장): 켜져 있고, 레벨을 깼고, 입장 횟수가 남았으면 AutoNextSeconds초를 센 뒤 다음 레벨로 들어간다.
-    //   광고 입장은 자동으로 하지 않는다. 버튼을 누르거나 체크를 끄면 카운트를 멈춘다. 체크 상자는 프리팹을 고치지 않게 처음 열 때 만든다
+    //   광고 입장은 자동으로 하지 않는다. 버튼을 누르거나 체크를 끄면 카운트를 멈춘다. 체크 줄(AutoNextRow)은 프리팹에 배치되어 있다
     [RequireComponent(typeof(UiPopup))]
     public class ResultPopup : MonoBehaviour
     {
@@ -21,20 +21,18 @@ namespace MoreMush.Mobile
         [SerializeField] Button mainButton;
         [SerializeField] string mainScene = MainNavigation.MainScene;
         [SerializeField] float countUpDuration = 0.8f;   // 번 골드가 0부터 올라가는 시간
+        [Header("다음 레벨 자동 도전 줄")]
+        [SerializeField] Button autoRow;                 // 줄 전체 (누르면 켜고 끈다)
+        [SerializeField] Image check;                    // 체크 표시
+        [SerializeField] TMP_Text autoLabel;
         // 몇 번 던전인지는 DungeonSession.Current (벽돌깨기 던전 1~3이 이 씬을 같이 쓴다)
         static int dungeon => DungeonSession.Current;
 
         const string AutoNextKey = "Dungeon.AutoNext";
-        static readonly Vector2 AutoRowPos = new Vector2(0f, 250f);     // 창 아래 가운데 기준 (버튼 바로 위)
-        static readonly Vector2 AutoRowSize = new Vector2(760f, 64f);
-        const float BoxSize = 52f;
-        static readonly Color BoxColor = new Color(0.12f, 0.1f, 0.16f, 0.9f);
-        static readonly Color CheckColor = new Color(0.55f, 0.9f, 0.45f);
 
         UiPopup popup;
         Coroutine countUp, autoNext;
-        TMP_Text retryLabel, autoLabel;
-        Image check;
+        TMP_Text retryLabel;
         bool cleared;
 
         static float AutoNextSeconds => Mathf.Max(1f, (float)GameBalance.Const("dungeonAutoNextSeconds"));   // 상수 시트
@@ -52,7 +50,9 @@ namespace MoreMush.Mobile
             mainButton.onClick.AddListener(GoMain);
             retryLabel = retryButton.GetComponentInChildren<TMP_Text>(true);
             if (retryLabel != null) DungeonEntry.FitToWidth(retryLabel);   // "다음 레벨 (레벨 123)"·"광고 보고 도전 (2/2)"
-            BuildAutoRow();
+            if (autoRow != null) autoRow.onClick.AddListener(ToggleAutoNext);
+            if (check != null) check.enabled = AutoNext;
+            SetAutoLabel(-1);
         }
 
         public void Show(long earned) => Show(earned, 0, false);
@@ -142,61 +142,6 @@ namespace MoreMush.Mobile
             AutoNext = !AutoNext;
             if (check != null) check.enabled = AutoNext;
             RestartAutoNext();
-        }
-
-        // 버튼 바로 위 한 줄: [체크 상자] 다음 레벨 자동 도전 — 줄 전체를 눌러도 켜고 끈다
-        void BuildAutoRow()
-        {
-            var window = retryButton.transform.parent as RectTransform;
-            if (window == null || retryLabel == null) return;
-
-            var row = new GameObject("AutoNextRow", typeof(RectTransform), typeof(Image), typeof(Button));
-            var rt = (RectTransform)row.transform;
-            rt.SetParent(window, false);
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = AutoRowPos;
-            rt.sizeDelta = AutoRowSize;
-            var hit = row.GetComponent<Image>();
-            hit.color = Color.clear;        // 눌리는 자리만 (보이지 않음)
-            row.GetComponent<Button>().onClick.AddListener(ToggleAutoNext);
-
-            var box = NewImage("Box", rt, BoxColor, new Vector2(BoxSize, BoxSize));
-            ((RectTransform)box.transform).anchoredPosition = new Vector2(-AutoRowSize.x / 2f + BoxSize / 2f, 0f);
-            box.raycastTarget = false;
-            check = NewImage("Check", (RectTransform)box.transform, CheckColor, new Vector2(BoxSize - 18f, BoxSize - 18f));
-            check.raycastTarget = false;
-            check.enabled = AutoNext;
-            // [UI 개편] 색 상자 대신 그림: 상자 = 베이지 칸, 체크 = 체크 아이콘
-            box.sprite = Resources.Load<Sprite>("UI/UI_PP_In_Color_Beige2"); box.type = Image.Type.Sliced; box.color = Color.white;
-            check.sprite = Resources.Load<Sprite>("UI/Icon/check"); check.preserveAspect = true; check.color = Color.white;
-
-            var labelGo = Instantiate(retryLabel.gameObject, rt, false);
-            labelGo.name = "Label";
-            foreach (Transform child in labelGo.transform) Destroy(child.gameObject);
-            autoLabel = labelGo.GetComponent<TMP_Text>();
-            autoLabel.raycastTarget = false;
-            autoLabel.alignment = TextAlignmentOptions.MidlineLeft;
-            autoLabel.enableAutoSizing = false;
-            autoLabel.fontSize = 40f;
-            var lrt = (RectTransform)labelGo.transform;
-            lrt.anchorMin = Vector2.zero;
-            lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = new Vector2(BoxSize + 20f, 0f);
-            lrt.offsetMax = Vector2.zero;
-            SetAutoLabel(-1);
-        }
-
-        static Image NewImage(string name, RectTransform parent, Color color, Vector2 size)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            var rt = (RectTransform)go.transform;
-            rt.SetParent(parent, false);
-            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = size;
-            var img = go.GetComponent<Image>();
-            img.color = color;
-            return img;
         }
 
         // 왼쪽 버튼: 입장 횟수가 있으면 하나 쓰고 이 씬을 다시 연다 (레벨을 깼으면 그게 다음 레벨), 없으면 광고 입장.

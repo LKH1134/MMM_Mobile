@@ -13,6 +13,7 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_Text messageText;
         [SerializeField] TMP_Text timerText;
         [SerializeField] AttendanceCellView[] cells;     // 1일째부터 차례로 (Attendance.Days개)
+        [SerializeField] Button claimButton;             // "받기" (오늘 받을 게 남았을 때만 보인다. 타이머 글자 자리)
 
         [Header("그림 (Resources 경로)")]
         [SerializeField] string cellSprite = "UI/UI_PP_In_Color_Beige1";
@@ -25,8 +26,6 @@ namespace MoreMush.Mobile
         int justClaimed;        // 이번에 열 때 방금 받은 날 (0 = 아직 안 받았거나 그냥 열기)
         int shownSecond = -1;
         Coroutine pop;
-        TMP_Text claimLabel;
-        Button claimButton;     //"받기" 버튼 (오늘 받을 게 남았을 때만 보인다. 처음 쓸 때 타이머 자리에 만든다)
 
         // 연다. 오늘 받을 보상이 남았으면 "받기" 버튼이 보이고, 누르지 않고 닫아도 닫을 때 받는다.
         // 받지 못한 채 닫혔다면(앱 강제 종료 등) 보상이 그대로 남아 다음 접속 때 다시 뜬다
@@ -45,37 +44,9 @@ namespace MoreMush.Mobile
             if (Attendance.Claim() == 0) { justClaimed = 0; Refresh(); }
         }
 
-        void EnsureClaimButton()
+        void Awake()
         {
-            if (claimButton != null || timerText == null) return;
-            var parent = timerText.transform.parent;
-            var img = new GameObject("ClaimButton", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-            img.transform.SetParent(parent, false);
-            img.sprite = Resources.Load<Sprite>("UI/UI_Btn_Red");
-            img.type = Image.Type.Sliced;
-            var rt = img.rectTransform;
-            var src = timerText.rectTransform;
-            rt.anchorMin = rt.anchorMax = (src.anchorMin + src.anchorMax) * 0.5f;
-            rt.sizeDelta = new Vector2(460f, 140f);
-            var corners = new Vector3[4];
-            src.GetWorldCorners(corners);
-            rt.position = (corners[0] + corners[2]) * 0.5f;      // 타이머 글자 자리 한가운데
-            var label = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
-            label.transform.SetParent(rt, false);
-            var lr = label.rectTransform;
-            lr.anchorMin = Vector2.zero; lr.anchorMax = Vector2.one; lr.offsetMin = lr.offsetMax = Vector2.zero;
-            label.font = timerText.font;
-            label.fontSize = 54f;
-            label.enableAutoSizing = true; label.fontSizeMax = 54f; label.fontSizeMin = 30f;
-            label.alignment = TextAlignmentOptions.Center;
-            label.color = Color.white;
-            label.raycastTarget = false;
-            claimLabel = label;
-            OutlineText.ApplyIfWhite(label);
-            claimButton = img.gameObject.AddComponent<Button>();
-            claimButton.targetGraphic = img;
-            UiSkin.GreyWhenDisabled(claimButton);
-            claimButton.onClick.AddListener(Claim);
+            if (claimButton != null) claimButton.onClick.AddListener(Claim);
         }
 
         void OnEnable()
@@ -131,10 +102,8 @@ namespace MoreMush.Mobile
         void Refresh()
         {
             if (cells == null) return;
-            EnsureClaimButton();
             bool toClaim = justClaimed == 0 && Attendance.CanClaim;       // 오늘 보상이 남았다 → 받기 버튼
             if (claimButton != null) claimButton.gameObject.SetActive(toClaim);
-            if (claimLabel != null) claimLabel.text = Loc.T("attendance.claim");
             int claimed = Attendance.Claimed;
             int nextDay = claimed < Attendance.Days ? claimed + 1 : 0;
             for (int i = 0; i < cells.Length; i++)

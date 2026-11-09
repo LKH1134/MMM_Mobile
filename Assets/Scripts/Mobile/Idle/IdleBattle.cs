@@ -101,7 +101,7 @@ namespace MoreMush.Mobile
         // 홈 밖에서는 숨긴 채 진행
         readonly List<CanvasGroup> views = new List<CanvasGroup>();
         bool atHome = true;
-        IdleReportPopup reportPopup;
+        [SerializeField] IdleReportPopup reportPopup;   // 정산·알림 창 (Main 씬 캔버스에 배치)
         HitEffects hitFx;           // 타격 이펙트 (MoreMustMush FX/hit 프레임)
         float markSeenIn;
         const float MarkSeenInterval = 5f;      // 앱이 갑자기 꺼져도 이만큼 이내 시각부터 앱 밖 보상을 셈한다
@@ -258,7 +258,7 @@ namespace MoreMush.Mobile
             if (reportPopup != null && reportPopup.IsOpen) return;     // 던전 결과·정산 창이 떠 있으면 정산은 다음에 (번 것은 IdleAway가 계속 모은다)
             var report = IdleAway.End();
             if (report == null || report.IsEmpty) return;
-            if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
+            if (reportPopup == null) return;
             reportPopup.Show(report);
         }
 
@@ -391,7 +391,7 @@ namespace MoreMush.Mobile
             try { SaveScheduler.Flush(); } catch (System.Exception e) { Debug.LogException(e); }
             try
             {
-                if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
+                if (reportPopup == null) { Restart(); return; }     // 안내 창이 없으면 바로 다시 시작
                 reportPopup.ShowMessage(Loc.T("battle.fatal_title"), Loc.T("battle.fatal_msg"), Restart);
             }
             catch (System.Exception e)

@@ -251,7 +251,7 @@ namespace MoreMush.Mobile
             if (dungeonGold > 0) sb.Append("<color=#FFD54A>").Append(Loc.F("idle.gold", Wallet.Format(dungeonGold))).Append("</color>").Append('\n');
             if (dungeonMycelite > 0) sb.Append("<color=#8FE3FF>").Append(Loc.F("idle.mycelite", Wallet.Format(dungeonMycelite))).Append("</color>").Append('\n');
             if (dungeonGold <= 0 && dungeonMycelite <= 0) sb.Append(Loc.T("battle.no_reward")).Append('\n');
-            if (reportPopup == null) reportPopup = IdleReportPopup.Create(font);
+            if (reportPopup == null) return;
             reportPopup.ShowMessage(title, sb.ToString().TrimEnd('\n'));
         }
 

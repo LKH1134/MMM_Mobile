@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     // 던전 시트 mode: Harvest = 씬(벽돌깨기)을 연다 · BossRush·BossLevel = 씬 없이 방치 화면에서 싸운다 (DungeonSession.TryEnterIdle, 던전 탭을 닫고 홈으로).
     // 둘 다 없거나 아직 해금 전이면 입장 버튼을 막는다. scene이 비어 있으면(아직 없는 던전) 횟수만 보여 준다.
     // 해금 조건은 던전 시트(스테이지 n 진입). 카드 안의 LockOverlay를 해금 전에만 켜고 LockText에 조건을 적는다.
-    // 레벨 문구는 카드 안 "LevelText"가 있으면 거기, 없으면 남은 횟수 위에 하나 만들어 쓴다 (프리팹을 고치지 않아도 되게)
+    // 레벨 문구는 카드 안에 배치한 "LevelText"(LevelPanel)에 쓴다 — 모양·자리는 프리팹 DungeonUI에서 고친다
     public class DungeonEntry : MonoBehaviour
     {
         [SerializeField] int dungeon = 1;           // 던전 번호 (DungeonTickets 저장 키)
@@ -40,7 +40,6 @@ namespace MoreMush.Mobile
                 else if (lockText == null && t.name == "LockText") lockText = t.GetComponent<TMP_Text>();
                 else if (levelText == null && t.name == "LevelText") levelText = t.GetComponent<TMP_Text>();
             }
-            if (levelText == null && countText != null) levelText = CreateLevelText(countText);
             ApplyTable();
         }
 
@@ -59,26 +58,6 @@ namespace MoreMush.Mobile
                 t.text = row.Name;
                 break;
             }
-        }
-
-        // 남은 횟수 칸(배경 + 문구)을 본떠 이름 칸 아래(카드 오른쪽 위)에 레벨 칸을 만든다
-        static readonly Vector2 LevelPanelPos = new Vector2(170f, 26f);
-        static readonly Vector2 LevelPanelSize = new Vector2(300f, 56f);
-
-        TMP_Text CreateLevelText(TMP_Text like)
-        {
-            var source = like.transform.parent != null && like.transform.parent != transform ? like.transform.parent : like.transform;
-            var go = Instantiate(source.gameObject, transform, false);
-            go.name = "LevelPanel";
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = LevelPanelPos;
-            rt.sizeDelta = LevelPanelSize;
-            if (lockOverlay != null) go.transform.SetSiblingIndex(lockOverlay.transform.GetSiblingIndex());   // 잠금 가림막 아래
-            var text = go.GetComponentInChildren<TMP_Text>(true);
-            text.name = "LevelText";
-            text.color = new Color(1f, 0.85f, 0.35f);
-            return text;
         }
 
         void OnEnable()

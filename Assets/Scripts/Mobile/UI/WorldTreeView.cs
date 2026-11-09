@@ -16,6 +16,7 @@ namespace MoreMush.Mobile
         [SerializeField] float decoSize = 0.2f;                                 // 장식 크기 (칸 너비 비율)
         // 단계별 나무 칸 크기 (정사각, 기준 해상도 px). 1단계 새싹 → 8단계 세계수. 단계가 더 많으면 마지막 값
         [SerializeField] float[] stageSizes = { 210f, 300f, 360f, 420f, 500f, 570f, 640f, 760f };
+        [SerializeField] Image decoTemplate;    // 장식 그림 견본 (이 칸 아래에 꺼 둔 DecoTemplate)
 
         Image image;
         RectTransform rt;
@@ -71,6 +72,7 @@ namespace MoreMush.Mobile
             var rt = (RectTransform)transform;
             Vector2 size = rt.rect.size;
             int used = 0;
+            if (decoTemplate == null) return;
             foreach (TreeZone zone in System.Enum.GetValues(typeof(TreeZone)))
             {
                 var placed = WorldTree.PlacedIn(zone);
@@ -90,14 +92,13 @@ namespace MoreMush.Mobile
             for (int i = used; i < decoImages.Count; i++) decoImages[i].gameObject.SetActive(false);
         }
 
+        // 놓은 장식 수만큼 견본(씬에 배치해 꺼 둔 decoTemplate)을 복사해 쓴다. 모양(그림자·재질 등)은 견본에서 고친다
         Image DecoImage(int i)
         {
             while (decoImages.Count <= i)
             {
-                var img = new GameObject("Deco", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-                img.transform.SetParent(transform, false);
-                img.raycastTarget = false;
-                img.preserveAspect = true;
+                var img = Instantiate(decoTemplate, transform, false);
+                img.name = "Deco";
                 decoImages.Add(img);
             }
             return decoImages[i];

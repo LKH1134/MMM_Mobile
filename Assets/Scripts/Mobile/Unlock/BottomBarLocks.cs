@@ -1,45 +1,56 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 하단바 탭의 해금 표시: 아직 안 열린 탭은 아이콘·글자를 어둡게 하고 자물쇠를 얹어 누름을 막는다 (누르면 "스테이지 N에 도달하면 열려요" 안내).
-    // 열렸지만 아직 한 번도 안 연 탭은 반짝여서 어디인지 알려 준다 (튜토리얼). 하단바가 있는 씬(Main·세계수)마다 자동으로 붙는다 — 씬·프리팹에 둘 것 없음
+    // 하단바 탭의 해금 표시: 아직 안 열린 탭은 아이콘·글자를 어둡게 하고 자물쇠 판(LockHit)을 켜 누름을 막는다 (누르면 "스테이지 N에 도달하면 열려요" 안내).
+    // 열렸지만 아직 한 번도 안 연 탭은 반짝여서(NewPulse) 어디인지 알려 준다.
+    // 하단바 프리팹(BottomBar)에 붙어 있다. 탭마다 LockHit·NewPulse 자식은 프리팹에 배치되어 있고, 여기서는 켜고 끄기만 한다
     public class BottomBarLocks : MonoBehaviour
     {
-        const string LockSprite = "UI/Icon/lock";
-        static readonly Color DimIcon = new Color(0.32f, 0.32f, 0.36f, 1f), DimLabel = new Color(1f, 1f, 1f, 0.45f);
-        static readonly Color PulseColor = new Color(1f, 0.86f, 0.3f, 1f);
-        const float PulseSpeed = 4f, PulseMin = 0.12f, PulseMax = 0.38f;
-
-        sealed class Entry
+        [System.Serializable]
+        public class Entry
         {
             public Feature feature;
             public Button button;
-            public Image icon;
-            public Color iconColor;
-            public TMP_Text[] labels;
-            public Color[] labelColors;
-            public GameObject lockHit;      // 자물쇠 + 누름을 받는 투명 판 (잠겨 있을 때만 켠다)
-            public Image pulse;
+            public GameObject lockHit;      // 자물쇠 + 누름을 받는 판 (잠겨 있을 때만 켠다)
+            public Button lockButton;       // lockHit의 버튼 (누르면 안내)
+            public Image pulse;             // 처음 열 때까지 반짝이는 판
         }
 
-        readonly List<Entry> entries = new List<Entry>();
-        bool built;
+        [SerializeField] Entry[] entries;
+        [SerializeField] Color dimIcon = new Color(0.32f, 0.32f, 0.36f, 1f);
+        [SerializeField] Color dimLabel = new Color(1f, 1f, 1f, 0.45f);
+        [SerializeField] Color pulseColor = new Color(1f, 0.86f, 0.3f, 1f);
+        [SerializeField] float pulseSpeed = 4f, pulseMin = 0.12f, pulseMax = 0.38f;
 
-        // 버튼 이름 → 기능 (하단바 프리팹의 버튼 이름)
-        static bool TryFeature(string buttonName, out Feature feature)
+        static BottomBarLocks current;
+
+        // 실행 중에 정해 두는 원래 색 (어둡게 했다가 되돌릴 때)
+        Image[] icons;
+        Color[] iconColors;
+        TMP_Text[][] labels;
+        Color[][] labelColors;
+
+        void Awake()
         {
-            switch (buttonName)
+            int n = entries != null ? entries.Length : 0;
+            icons = new Image[n]; iconColors = new Color[n];
+            labels = new TMP_Text[n][]; labelColors = new Color[n][];
+            for (int i = 0; i < n; i++)
             {
-                case "TeamBtn": feature = Feature.Team; return true;
-                case "GachaBtn": feature = Feature.Gacha; return true;
-                case "DungeonBtn": feature = Feature.Dungeon; return true;
-                case "WorldTreeBtn": feature = Feature.WorldTree; return true;
-                default: feature = default; return false;
+                var e = entries[i];
+                if (e.button == null) continue;
+                var lift = e.button.GetComponent<TabIconLift>();
+                icons[i] = lift != null ? lift.IconImage : null;
+                if (icons[i] != null) iconColors[i] = icons[i].color;
+                labels[i] = e.button.GetComponentsInChildren<TMP_Text>(true);
+                labelColors[i] = new Color[labels[i].Length];
+                for (int k = 0; k < labels[i].Length; k++) labelColors[i][k] = labels[i][k].color;
+                var feat = e.feature;
+                if (e.lockButton != null) e.lockButton.onClick.AddListener(() => UnlockAnnouncer.ShowHint(HintFor(feat)));
+                e.button.onClick.AddListener(() => FeatureUnlock.MarkOpened(feat));
             }
         }
 
@@ -48,94 +59,18 @@ namespace MoreMush.Mobile
             ? Loc.T("unlock.hint_gacha")
             : Loc.F("unlock.hint", IdleBattle.HudStageNumber(FeatureUnlock.UnlockStage(feature)));
 
-        // 이 기능의 하단바 버튼 (현재 씬에 없으면 null)
+        // 이 기능의 하단바 버튼 (지금 씬의 하단바에 없으면 null)
         public static Button FindButton(Feature feature)
         {
-            string name = feature == Feature.Team ? "TeamBtn" : feature == Feature.Gacha ? "GachaBtn" : feature == Feature.Dungeon ? "DungeonBtn" : "WorldTreeBtn";
-            foreach (var b in FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-                if (b.name == name && b.GetComponent<TabIconLift>() != null) return b;
+            if (current == null || current.entries == null) return null;
+            foreach (var e in current.entries)
+                if (e.feature == feature && e.button != null && e.button.gameObject.activeInHierarchy) return e.button;
             return null;
-        }
-
-        // ── 씬마다 붙이기 ──
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void Hook()
-        {
-            SceneManager.sceneLoaded += (s, m) => Install();
-            Install();
-        }
-
-        static void Install()
-        {
-            foreach (var b in FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            {
-                if (!TryFeature(b.name, out _)) continue;
-                var parent = b.transform.parent;
-                if (parent != null && parent.GetComponent<BottomBarLocks>() == null) parent.gameObject.AddComponent<BottomBarLocks>();
-            }
-        }
-
-        void Build()
-        {
-            built = true;
-            foreach (Transform child in transform)
-            {
-                if (!TryFeature(child.name, out var feature) || !child.TryGetComponent<Button>(out var button)) continue;
-                var e = new Entry { feature = feature, button = button };
-                var lift = child.GetComponent<TabIconLift>();
-                e.icon = lift != null ? lift.IconImage : null;
-                if (e.icon != null) e.iconColor = e.icon.color;
-                e.labels = child.GetComponentsInChildren<TMP_Text>(true);
-                e.labelColors = new Color[e.labels.Length];
-                for (int i = 0; i < e.labels.Length; i++) e.labelColors[i] = e.labels[i].color;
-
-                // 반짝임 (버튼 맨 뒤)
-                var pg = new GameObject("NewPulse", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
-                pg.GetComponent<LayoutElement>().ignoreLayout = true;
-                pg.transform.SetParent(child, false);
-                Stretch((RectTransform)pg.transform);
-                pg.transform.SetAsFirstSibling();
-                e.pulse = pg.GetComponent<Image>();
-                e.pulse.raycastTarget = false;
-                e.pulse.color = new Color(PulseColor.r, PulseColor.g, PulseColor.b, 0f);
-                pg.SetActive(false);
-
-                // 잠금 판 (맨 앞): 투명 판이 누름을 받아 안내를 띄운다. 가운데 자물쇠
-                var hit = new GameObject("LockHit", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-                hit.GetComponent<LayoutElement>().ignoreLayout = true;
-                hit.transform.SetParent(child, false);
-                Stretch((RectTransform)hit.transform);
-                hit.transform.SetAsLastSibling();
-                var hitImage = hit.GetComponent<Image>();
-                hitImage.color = new Color(0f, 0f, 0f, 0.35f);          // 칸 전체를 살짝 어둡게
-                var feat = feature;
-                hit.GetComponent<Button>().onClick.AddListener(() => UnlockAnnouncer.ShowHint(HintFor(feat)));
-                var lockIcon = new GameObject("Lock", typeof(RectTransform), typeof(Image));
-                lockIcon.transform.SetParent(hit.transform, false);
-                var lr = (RectTransform)lockIcon.transform;
-                lr.anchorMin = lr.anchorMax = new Vector2(0.5f, 0.5f);
-                lr.sizeDelta = new Vector2(90f, 90f);
-                var li = lockIcon.GetComponent<Image>();
-                li.sprite = Resources.Load<Sprite>(LockSprite);
-                li.preserveAspect = true;
-                li.raycastTarget = false;
-                e.lockHit = hit;
-
-                button.onClick.AddListener(() => FeatureUnlock.MarkOpened(feat));
-                entries.Add(e);
-            }
-        }
-
-        static void Stretch(RectTransform rt)
-        {
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            rt.localScale = Vector3.one;
         }
 
         void OnEnable()
         {
-            if (!built) Build();
+            current = this;
             FeatureUnlock.Changed += Apply;
             IdleProgress.Changed += FeatureUnlock.Check;
             FeatureUnlock.Check();
@@ -144,30 +79,34 @@ namespace MoreMush.Mobile
 
         void OnDisable()
         {
+            if (current == this) current = null;
             FeatureUnlock.Changed -= Apply;
             IdleProgress.Changed -= FeatureUnlock.Check;
         }
 
         void Apply()
         {
-            foreach (var e in entries)
+            if (entries == null) return;
+            for (int i = 0; i < entries.Length; i++)
             {
+                var e = entries[i];
                 if (e.button == null) continue;
                 bool open = FeatureUnlock.IsUnlocked(e.feature);
-                e.lockHit.SetActive(!open);
-                if (e.icon != null) e.icon.color = open ? e.iconColor : DimIcon;
-                for (int i = 0; i < e.labels.Length; i++)
-                    if (e.labels[i] != null) e.labels[i].color = open ? e.labelColors[i] : DimLabel;
-                e.pulse.gameObject.SetActive(open && !FeatureUnlock.IsOpened(e.feature));
+                if (e.lockHit != null) e.lockHit.SetActive(!open);
+                if (icons[i] != null) icons[i].color = open ? iconColors[i] : dimIcon;
+                for (int k = 0; k < labels[i].Length; k++)
+                    if (labels[i][k] != null) labels[i][k].color = open ? labelColors[i][k] : dimLabel;
+                if (e.pulse != null) e.pulse.gameObject.SetActive(open && !FeatureUnlock.IsOpened(e.feature));
             }
         }
 
         void Update()
         {
-            float a = Mathf.Lerp(PulseMin, PulseMax, (Mathf.Sin(Time.unscaledTime * PulseSpeed) + 1f) * 0.5f);
+            if (entries == null) return;
+            float a = Mathf.Lerp(pulseMin, pulseMax, (Mathf.Sin(Time.unscaledTime * pulseSpeed) + 1f) * 0.5f);
             foreach (var e in entries)
                 if (e.pulse != null && e.pulse.gameObject.activeSelf)
-                    e.pulse.color = new Color(PulseColor.r, PulseColor.g, PulseColor.b, a);
+                    e.pulse.color = new Color(pulseColor.r, pulseColor.g, pulseColor.b, a);
         }
     }
 }

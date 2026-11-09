@@ -4,12 +4,12 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 홈 강화 목록 (프리팹 UpgradeNotebook): 노트 모양 판에 강화 줄(UpgradeRow 프리팹)을 능력치 수만큼 세로로 놓는다.
-    // 모양은 두 프리팹에서 고치고, 이 스크립트는 IdleProgress 값만 넣는다. 예전 강화 목록(UpgradePanel, 지금은 지움)과 같은 규칙:
+    // 홈 강화 목록 (프리팹 UpgradeNotebook): 노트 모양 판의 content 아래에 강화 줄(UpgradeRow 프리팹 인스턴스)을 능력치마다 하나씩 배치해 둔다.
+    // 줄 순서·모양·아이콘은 프리팹에서 고치고, 이 스크립트는 IdleProgress 값만 넣는다. 예전 강화 목록(UpgradePanel, 지금은 지움)과 같은 규칙:
     // 잠긴 줄은 "OO Lv N 달성 시 잠금 해제"로 덮고, 누르고 있으면 계속 강화된다(HoldRepeat), 단계 제한이면 기준 레벨을 버튼에 적는다
     public class UpgradeNotebookView : MonoBehaviour
     {
-        [SerializeField] UpgradeRowView rowPrefab;
+        [SerializeField] List<UpgradeRowView> rows = new List<UpgradeRowView>();   // 배치한 줄 (줄마다 stat을 정해 둔다)
         [SerializeField] RectTransform content;     // 줄이 쌓이는 곳 (VerticalLayoutGroup + ContentSizeFitter)
 
         [Header("색")]
@@ -18,21 +18,21 @@ namespace MoreMush.Mobile
         [SerializeField] Sprite disabledButtonSprite;   // 살 수 없을 때 버튼 그림 (비우면 UI/UI_Btn_Grey)
         [SerializeField] float cappedLabelSize = 28f;   // 단계 제한 문구 글자 크기
 
-        readonly List<UpgradeRowView> rows = new List<UpgradeRowView>();
         RectTransform viewport;
         float shownContentY = float.NaN, shownViewportH = float.NaN;
         readonly Vector3[] corners = new Vector3[4];
 
         void Awake()
         {
-            if (rowPrefab == null || content == null)
+            if (content == null || rows.Count == 0)
             {
-                Debug.LogError("[UpgradeNotebookView] rowPrefab·content를 연결한다", this);
+                Debug.LogError("[UpgradeNotebookView] content·rows를 연결한다", this);
                 enabled = false;
                 return;
             }
             viewport = content.parent as RectTransform;
-            foreach (var d in IdleProgress.Defs) rows.Add(BuildRow(d));
+            rows.RemoveAll(r => r == null);
+            foreach (var r in rows) InitRow(r);
         }
 
         // 스프링: 목록 가림에 잘리지 않게 두고, 가운데가 목록(viewport) 위·아래 밖으로 나가면(= 반 넘게 나가면) 숨긴다.
@@ -110,23 +110,13 @@ namespace MoreMush.Mobile
             if (content != null) LayoutRebuilder.MarkLayoutForRebuild(content);
         }
 
-        UpgradeRowView BuildRow(IdleProgress.Def d)
+        // 배치된 줄에 강화 동작을 잇고 버튼 글자의 원래 자리를 기억한다 (아이콘·HoldRepeat은 프리팹에 넣어 두었다)
+        void InitRow(UpgradeRowView r)
         {
-            var r = Instantiate(rowPrefab, content);
-            r.name = "Row_" + d.stat;
-            r.stat = d.stat;
-            if (r.icon != null)
-            {
-                var sp = string.IsNullOrEmpty(d.icon) ? null : Resources.Load<Sprite>(d.icon);
-                r.icon.sprite = sp;
-                r.icon.enabled = sp != null;
-            }
-            WriteNames(r, d);
             if (r.button != null)
             {
-                var stat = d.stat;
+                var stat = r.stat;
                 r.button.onClick.AddListener(() => IdleProgress.TryUpgrade(stat));
-                if (!r.button.TryGetComponent<HoldRepeat>(out _)) r.button.gameObject.AddComponent<HoldRepeat>();
             }
             if (r.buttonText != null)
             {
@@ -135,7 +125,6 @@ namespace MoreMush.Mobile
                 r.labelHeight = rt.sizeDelta.y;
                 r.labelSize = r.buttonText.fontSize;
             }
-            return r;
         }
 
         void Refresh()

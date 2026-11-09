@@ -26,14 +26,16 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_Text coinLabel11;
         [SerializeField] TMP_Text coinLabel35;
         [SerializeField] TMP_Text infoText;         // 예전 레벨·결과 글자 — 경험치 막대(GachaCardView)로 바꿔 숨긴다
-        [SerializeField] TMP_Text titleText;        // 맨 위 띠의 뽑기 이름. 비우면 "Name" 띠 안에 만든다
-        [SerializeField] Image previewFrame;        // 왼쪽 큰 칸 — 이 뽑기의 대표 그림(임시)을 안에 띄운다. 비우면 "Image" 칸을 쓴다
+        [SerializeField] TMP_Text titleText;        // 맨 위 띠(Name)의 뽑기 이름
+        [SerializeField] Image previewImage;        // 왼쪽 큰 칸 안의 대표 그림(임시) — 그림만 종류에 맞게 바꾼다
         [SerializeField] Toast toast;               // 안내 문구 (없어도 된다)
 
-        GachaResultPopup resultPopup;
+        [Header("오른쪽 열 (프리팹에 배치)")]
+        [SerializeField] GachaCardView.ExpRow expRow;
+        [SerializeField] GachaCardView.ButtonText freeText, coin11Text, coin35Text;
+        [SerializeField] GachaResultPopup resultPopup;   // 비우면 씬에서 찾는다
+
         bool adBusy;            // 광고를 띄우는 중 (연타 방지). 광고가 닫히거나 실패하면 풀린다
-        GachaCardView.ExpRow expRow;
-        GachaCardView.ButtonText freeText, coin11Text, coin35Text;
         GachaProductRow adProduct, smallProduct, bigProduct;   // 뽑기상품 시트 (없으면 그 버튼을 막는다)
 
         // 이 종류의 상품: 광고 하나, 유료는 횟수 순서로 앞의 둘
@@ -60,23 +62,11 @@ namespace MoreMush.Mobile
             LoadProducts();
             if (coinButton11 != null) coinButton11.onClick.AddListener(() => PayAndRoll(smallProduct));
             if (coinButton35 != null) coinButton35.onClick.AddListener(() => PayAndRoll(bigProduct));
-            if (titleText == null) titleText = CreateTitle(transform.Find("Name"));
             if (titleText != null) titleText.text = Title(kind);
-            if (previewFrame == null) previewFrame = transform.Find("Image")?.GetComponent<Image>();
             ShowPreview();
-            BuildRightColumn();
-        }
-
-        void BuildRightColumn()
-        {
-            var font = titleText != null ? titleText.font : GetComponentInChildren<TMP_Text>(true)?.font;
-            if (infoText != null) infoText.gameObject.SetActive(false);
-            GachaCardView.Layout(freeButton, coinButton11, coinButton35);
-            expRow = GachaCardView.BuildExp((RectTransform)transform, font);
-            freeText = GachaCardView.Style(freeButton, freeLabel, GachaCardView.FreeSprite, GachaCardView.FreeColor, null, font);
-            GachaCardView.OneLine(freeText);   // [UI 개편 2026-11-05] "광고 보고 11회 소환" 한 줄
-            coin11Text = GachaCardView.Style(coinButton11, coinLabel11, GachaCardView.CoinSprite, GachaCardView.CoinColor, CostIcon(smallProduct), font);
-            coin35Text = GachaCardView.Style(coinButton35, coinLabel35, GachaCardView.CoinSprite, GachaCardView.CoinColor, CostIcon(bigProduct), font);
+            if (coin11Text != null && coin11Text.costIcon != null) coin11Text.costIcon.sprite = CostIcon(smallProduct);
+            if (coin35Text != null && coin35Text.costIcon != null) coin35Text.costIcon.sprite = CostIcon(bigProduct);
+            foreach (var b in new[] { freeButton, coinButton11, coinButton35 }) if (b != null) UiSkin.GreyWhenDisabled(b);
         }
 
         const string GemIcon = "UI/Icon/mycelium_stone";
@@ -85,50 +75,14 @@ namespace MoreMush.Mobile
         // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 별똥 꼬마 3단계
         void ShowPreview()
         {
-            if (previewFrame == null) return;
+            if (previewImage == null) return;
             var sprite = kind == GachaKind.Character ? Formation.Icon(PreviewCharacter, Formation.EvoStageCount)
                 : Equipment.Of(kind) is Equipment eq ? eq.Sprite(eq.Count - 1) : null;
-            if (sprite == null) return;
-            var img = new GameObject("Preview", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-            img.transform.SetParent(previewFrame.transform, false);
-            img.sprite = sprite;
-            img.preserveAspect = true;
-            img.raycastTarget = false;
-            var rt = img.rectTransform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = new Vector2(20f, 20f);
-            rt.offsetMax = new Vector2(-20f, -20f);
+            previewImage.sprite = sprite;
+            previewImage.enabled = sprite != null;
         }
 
         const string PreviewCharacter = "star";
-
-        // 왼쪽 위 리본(Name 이미지)을 꽉 채우는 글자. 글꼴은 이 패널의 다른 글자에서 가져온다
-        TMP_Text CreateTitle(Transform bar)
-        {
-            if (bar == null) return null;
-            var label = GetComponentInChildren<TMP_Text>(true);
-            var t = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
-            t.transform.SetParent(bar, false);
-            var rt = t.rectTransform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = new Vector2(20f, 2f);
-            rt.offsetMax = new Vector2(-20f, -2f);
-            if (label != null) t.font = label.font;
-            t.color = Color.white;              // Name 띠는 카드 그림 위 반투명 어두운 리본
-            // [UI 개편 11-05] 외곽선은 아래 OutlineText(공용 재질)로. 여기서 outlineWidth를 쓰면 예전 폰트 재질 복사본이 남아
-            //   새 폰트 글자를 엉뚱한 아틀라스에서 읽어 글자가 조각나 겹친다
-            t.fontStyle = FontStyles.Bold;
-            t.alignment = TextAlignmentOptions.Center;
-            t.enableAutoSizing = true;
-            t.fontSizeMin = 20f;
-            t.fontSizeMax = 40f;
-            t.textWrappingMode = TextWrappingModes.NoWrap;
-            t.raycastTarget = false;
-            OutlineText.ApplyIfWhite(t);   // [UI 개편 11-05] 흰 글자는 공용 바깥 외곽선
-            return t;
-        }
 
         void OnEnable()
         {
@@ -237,16 +191,11 @@ namespace MoreMush.Mobile
             Refresh();
         }
 
-        // 뽑기 연출 (GachaResultPopup). 처음 쓸 때 캔버스 맨 위에 만들고, 글꼴은 이 패널 글자에서 가져온다
+        // 뽑기 연출 (Main 씬에 배치한 GachaResultPopup)
         void ShowResult(List<GachaResultPopup.Entry> entries)
         {
-            if (resultPopup == null)
-            {
-                var canvas = GetComponentInParent<Canvas>();
-                var label = GetComponentInChildren<TMP_Text>(true);
-                resultPopup = GachaResultPopup.Create(canvas != null ? canvas.rootCanvas.transform : transform, label != null ? label.font : null);
-            }
-            resultPopup.Show(entries);
+            if (resultPopup == null) resultPopup = FindFirstObjectByType<GachaResultPopup>(FindObjectsInactive.Include);
+            if (resultPopup != null) resultPopup.Show(entries);
         }
 
         // 뽑은 순서를 섞어 보여 준다 (PickItems·PickCharacters는 낮은 등급부터 모아 돌려준다)
