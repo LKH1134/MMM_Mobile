@@ -157,6 +157,38 @@ namespace MoreMush.Mobile
             return true;
         }
 
+        public static bool AnyQuestClaimable
+        {
+            get
+            {
+                EnsureQuests();
+                foreach (var q in D.questDaily) if (QuestClaimable(q)) return true;
+                foreach (var q in D.questWeekly) if (QuestClaimable(q)) return true;
+                return false;
+            }
+        }
+
+        // 일괄 수령: 받을 수 있는 의뢰를 모두 ClaimQuest로 받는다 (개별 수령과 같은 지급·저장·알림).
+        // 일일을 먼저 받는다 — 일일을 받으면 주간 "일일 의뢰 n개"가 채워져 같은 번에 받을 수 있다
+        public static int ClaimAllQuests(out long exp)
+        {
+            exp = 0;
+            int count = 0;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                bool weekly = pass == 1;
+                var list = weekly ? WeeklyQuests : DailyQuests;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    int e = QuestRowOf(list[i])?.exp ?? 0;
+                    if (!ClaimQuest(weekly, i)) continue;
+                    exp += e;
+                    count++;
+                }
+            }
+            return count;
+        }
+
         // 일일 의뢰를 받았다 → 주간 "일일 의뢰 n개" 진행
         static void AddDailyDone()
         {

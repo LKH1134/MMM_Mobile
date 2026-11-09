@@ -132,6 +132,15 @@ namespace MoreMush.Mobile
             return true;
         }
 
+        // 일괄 수령: 받을 수 있는 퀘스트를 모두 Claim으로 받는다 (개별 수령과 같은 지급·저장·알림). 받은 개수
+        public static int ClaimAll()
+        {
+            Ensure();
+            int n = 0;
+            for (int i = 0; i < rows.Length; i++) if (Claim(i)) n++;
+            return n;
+        }
+
         public static string Describe(int i)
         {
             int n = Target(i);
