@@ -15,6 +15,8 @@ namespace MoreMush.Mobile
     public class ResultPopup : MonoBehaviour
     {
         [SerializeField] TMP_Text earnedText;
+        [SerializeField] GameObject myceliteRow;      // 균사석 아이콘 + 글자 줄 (골드 줄 아래)
+        [SerializeField] TMP_Text myceliteText;
         [SerializeField] Button retryButton;
         [SerializeField] Button mainButton;
         [SerializeField] string mainScene = MainNavigation.MainScene;
@@ -69,29 +71,11 @@ namespace MoreMush.Mobile
             RestartAutoNext();
         }
 
-        // 받은 균사석 한 줄: 골드 글자를 본떠 그 아래에 만든다 (프리팹을 고치지 않아도 되게)
-        TMP_Text myceliteText;
-        static readonly Color MyceliteColor = new Color(0.56f, 0.89f, 1f);
-
+        // 받은 균사석 한 줄 (프리팹 MyceliteRow: 균사석 아이콘 + 글자, 골드 줄과 같은 모양). 0이면 줄을 숨긴다
         void ShowMycelite(long mycelite)
         {
-            if (earnedText == null) return;
-            if (myceliteText == null)
-            {
-                if (mycelite <= 0) return;
-                var go = Instantiate(earnedText.gameObject, earnedText.transform.parent, false);
-                go.name = "MyceliteText";
-                foreach (Transform child in go.transform) Destroy(child.gameObject);
-                myceliteText = go.GetComponent<TMP_Text>();
-                var rt = (RectTransform)go.transform;
-                var src = earnedText.rectTransform;
-                rt.anchoredPosition = src.anchoredPosition - new Vector2(0f, Mathf.Max(60f, src.rect.height));
-                myceliteText.color = MyceliteColor;
-                myceliteText.fontSize = earnedText.fontSize * 0.75f;
-                myceliteText.enableAutoSizing = false;
-            }
-            myceliteText.gameObject.SetActive(mycelite > 0);
-            myceliteText.text = "균사석 +" + Wallet.Format(mycelite);
+            if (myceliteRow != null) myceliteRow.SetActive(mycelite > 0);
+            if (myceliteText != null) myceliteText.text = Wallet.Format(mycelite);
         }
 
         // 시간이 멈춰 있어도 돌도록 unscaled로 센다
