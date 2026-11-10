@@ -43,6 +43,7 @@ namespace MoreMush.Mobile
         static HarvestSettingRow[] harvestSettings;
         static DungeonRow[] dungeonList;
         static AttendanceRow[] attendance;
+        static SpeedStepRow[] speedSteps;
         static DexRow[] dexRows;
         static DexSetRow[] dexSets;
 
@@ -52,7 +53,7 @@ namespace MoreMush.Mobile
             EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
             EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", RouletteSheet = "룰렛", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투",
-            AttendanceSheet = "출석", DexSheet = "도감", DexSetSheet = "도감세트";
+            AttendanceSheet = "출석", DexSheet = "도감", DexSetSheet = "도감세트", SpeedStepSheet = "공격속도단계";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -85,6 +86,7 @@ namespace MoreMush.Mobile
             harvestSettings = null;
             dungeonList = null;
             attendance = null;
+            speedSteps = null;
             dexRows = null;
             dexSets = null;
         }
@@ -131,6 +133,7 @@ namespace MoreMush.Mobile
         public static IdleBattleRow IdleBattle { get { Ensure(); return idleBattle; } }
         public static IReadOnlyList<HarvestSettingRow> HarvestSettings { get { Ensure(); return harvestSettings; } }
         public static IReadOnlyList<AttendanceRow> Attendance { get { Ensure(); return attendance; } }   // day 순서 (1일째부터)
+        public static IReadOnlyList<SpeedStepRow> SpeedSteps { get { Ensure(); return speedSteps; } }   // 공격 속도 단계 (gateLevel 오름차순)
         public static IReadOnlyList<DexRow> DexRows { get { Ensure(); return dexRows; } }            // 종류·별 순서 (MushroomDex)
         public static IReadOnlyList<DexSetRow> DexSets { get { Ensure(); return dexSets; } }
 
@@ -237,7 +240,7 @@ namespace MoreMush.Mobile
             catch (Exception e) { throw new InvalidOperationException("[GameBalance] xlsx를 읽지 못했다: " + e.Message, e); }
 
             var issues = new List<string>();
-            var constRows = Read(new DataTable<ConstRow>(ConstSheet, 9001, 9999), sheets, issues);
+            var constRows = Read(new DataTable<ConstRow>(ConstSheet, 9001, 19099), sheets, issues);
             grades = ToSorted(Read(new DataTable<GradeRow>(GradeSheet, 8101, 8199), sheets, issues), (a, b) => a.grade.CompareTo(b.grade));
             gachaLevels = ToSorted(Read(new DataTable<GachaLevelRow>(GachaSheet, 8201, 8299), sheets, issues), (a, b) => a.level.CompareTo(b.level));
             upgrades = ToArray(Read(new DataTable<UpgradeRow>(UpgradeSheet, 4001, 4999), sheets, issues));
@@ -264,8 +267,9 @@ namespace MoreMush.Mobile
             var battleRows = Read(new DataTable<IdleBattleRow>(IdleBattleSheet, 13001, 13999), sheets, issues);
             idleBattle = battleRows.Count > 0 ? battleRows[0] : null;
             harvestSettings = ToArray(Read(new DataTable<HarvestSettingRow>(HarvestSheet, 14001, 14999), sheets, issues));
-            attendance = ToSorted(Read(new DataTable<AttendanceRow>(AttendanceSheet, 17001, 17999), sheets, issues), (a, b) => a.day.CompareTo(b.day));
+            attendance = ToSorted(Read(new DataTable<AttendanceRow>(AttendanceSheet, 19101, 19199), sheets, issues), (a, b) => a.day.CompareTo(b.day));
             dexRows = ToSorted(Read(new DataTable<DexRow>(DexSheet, 18001, 18099), sheets, issues), (a, b) => a.kind != b.kind ? a.kind.CompareTo(b.kind) : a.star.CompareTo(b.star));
+            speedSteps = ToSorted(Read(new DataTable<SpeedStepRow>(SpeedStepSheet, 19201, 19299), sheets, issues), (a, b) => a.gateLevel.CompareTo(b.gateLevel));
             dexSets = ToArray(Read(new DataTable<DexSetRow>(DexSetSheet, 18101, 18199), sheets, issues));
 
             foreach (var issue in issues)
@@ -293,7 +297,7 @@ namespace MoreMush.Mobile
                 throw new InvalidOperationException("[GameBalance] 업그레이드·꼬마·등급·뽑기·스테이지 시트 중 비어 있는 것이 있다");
             if (treeStages.Length == 0 || kidStars.Length == 0 || affinityLevels.Length == 0 || decoGrades.Length == 0)
                 throw new InvalidOperationException("[GameBalance] 세계수·꼬마진화·호감도·장식등급 시트 중 비어 있는 것이 있다");
-            if (equipment.Length == 0 || gachaProducts.Length == 0 || idleBattle == null || attendance.Length == 0 || dexRows.Length == 0)
+            if (equipment.Length == 0 || gachaProducts.Length == 0 || idleBattle == null || attendance.Length == 0 || speedSteps.Length == 0 || dexRows.Length == 0)
                 throw new InvalidOperationException("[GameBalance] 장비·뽑기상품·방치전투·출석·도감 시트 중 비어 있는 것이 있다");
             loaded = true;
         }
@@ -561,6 +565,13 @@ namespace MoreMush.Mobile
         public int formationSlots;     // Formation.SlotCount와 같아야 한다 (검증기)
         public int stagesPerChapter;
         public double flightTime, waveDelay, enemyAttackDelay;
+    }
+
+    // 공격 속도 단계: 공격력 강화가 gateLevel 이상이면 공격 속도를 capLevel까지 올릴 수 있다 (IdleProgress.SpeedCap). 첫 gateLevel = 공격 속도 해금 레벨
+    public class SpeedStepRow : TableRow
+    {
+        public int gateLevel;
+        public int capLevel;
     }
 
     // 출석: 7일 출석 보상 하루치 (Attendance). 행 수 = 출석 일수

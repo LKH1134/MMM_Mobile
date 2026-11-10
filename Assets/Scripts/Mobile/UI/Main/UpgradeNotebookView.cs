@@ -113,6 +113,13 @@ namespace MoreMush.Mobile
         // 배치된 줄에 강화 동작을 잇고 버튼 글자의 원래 자리를 기억한다 (아이콘·HoldRepeat은 프리팹에 넣어 두었다)
         void InitRow(UpgradeRowView r)
         {
+            // 아이콘 = 업그레이드 시트 resourceId (못 읽으면 프리팹에 놓은 그림 그대로)
+            if (r.icon != null)
+            {
+                var path = IdleProgress.Get(r.stat)?.icon;
+                var sprite = string.IsNullOrEmpty(path) ? null : Resources.Load<Sprite>(path);
+                if (sprite != null) r.icon.sprite = sprite;
+            }
             if (r.button != null)
             {
                 var stat = r.stat;

@@ -78,10 +78,10 @@ namespace MoreMush.Mobile
                 PlayerPrefs.SetInt(RewardKey, reward);
                 return;
             }
-            // 할 수 있는 반복 목표가 하나도 없으면 몬스터 처치로
+            // 할 수 있는 반복 목표가 하나도 없으면 몬스터 처치로 (상수 guideFallbackKills·guideFallbackMycelite)
             kind = GuideKind.Kill;
-            target = 50;
-            reward = 50;
+            target = Mathf.Max(1, GameBalance.ConstInt("guideFallbackKills"));
+            reward = Mathf.Max(0, GameBalance.ConstInt("guideFallbackMycelite"));
         }
 
         static int ScaledTarget(GuideLoopRow row, int statLevel)

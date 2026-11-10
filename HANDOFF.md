@@ -48,7 +48,7 @@
 | **가이드 퀘스트** (11-10 KHD `3d2bc82`) | ✅ 전투력 위 한 줄 바(`GuideBarView`), `가이드` 시트 고정 11단계 → `가이드반복` 시트 반복 목표, 보상 균사석 (`GuideQuests`) |
 | **꼬마 성장** (11-10 KHD `3d2bc82`) | ✅ Lv.5·10 관문에서 균사석으로 성장(1→2→3단계), 편성 화면 성장 버튼. 상수 `ggomaCopiesBase`·`ggomaGrowMycelite2/3` 등 9090~9098 |
 | **도감 세트 보너스** (11-10 LKH `d3a6597`) | ✅ 방치 보스 처치마다 열린 무리(종류 × ★1~5)에서 새 버섯, 무리 완성 = 식용 공격력·약용 체력/재생·독성 공격 속도 %. `도감`·`도감세트` 시트, `MushroomDex`. 진행 영향 실측 전 |
-| **룰렛** (11-10 KHD) | ✅ 홈 왼쪽 버튼, 하루 3회·5분 대기, 골드·균사석 6칸 (`룰렛` 시트 18201~, 상수 9104·9105) |
+| **룰렛** (11-10 KHD) | ✅ 홈 왼쪽 버튼, 하루 3회·5분 대기, 골드·균사석 6칸 (`룰렛` 시트 18201~, 상수 19006·19007 — 11-10 전수 조사 2차에서 9104·9105에서 옮김) |
 | **던전 1~5** (11-06 KHD `dc3c7a2`) | ✅ 던전 시트 `mode`로 진행 방식: 1 수확·2 골드·3 균사석 = `Harvest`(InGame 씬 재사용, `DungeonSession.Current`로 구분, 보상만 다름) / 4 보스 러시 = `BossRush`(방치 화면, 스테이지 보스 `bossRushCount` 5마리 연속, 보스마다 보상 1/n) / 5 보스 토벌 = `BossLevel`(방치 화면, 한 마리를 잡을 때마다 레벨업, `bossLv*` 상수, 60초). 해금 스테이지 **5/10/20/30/50**(아래 줄의 5/25/150/250/400은 옛 값). 입장권은 보상 받을 때 씀. 실기기 전 |
 | **기능 해금** (11-09 KHD `6c206b6`, `Unlock/`) | ✅ 편성 = 스테이지 3(1-3 진입) · 소환 = 편성 화면 처음 열기 · 던전 = 던전 시트 가장 낮은 `unlockStage` · 세계수 = 스테이지 7 (`FeatureUnlock`, PlayerPrefs `Unlock.<기능>`, 한 번 열리면 안 잠김). 잠긴 탭 어둡게+자물쇠·눌러서 안내(`BottomBarLocks`), "새로운 콘텐츠!" 창(`UnlockAnnouncer`, 코드 생성 오버레이), 탭 가리키기(`TutorialSpotlight`) |
 | **언어 (한국어·영어)** (11-09 KHD `4fbf3b0`) | ✅ `Assets/Data/Tables/String.xlsx`(key·ko·en·memo, 약 520행) → `Resources/Tables/String.bytes`. `Loc`(첫 실행 때 기기 언어: 한국어 기기 = 한국어, 나머지 = 영어, 옵션에서 바꿈 `Option.Language`), 글자에 `LocalizedText`, 언어 버튼 `LanguageButton`. 번역 없으면 한국어, key 없으면 기본 문구. **새 화면 글자는 문자열 표에 key로 넣을 것** |
@@ -116,6 +116,19 @@
 | `95449fe` | LKH | KHD → LKH 머지 (맨 위 요약: 룰렛·상수 ID 옮김, OptionPopup 루트 끔) |
 | `9eb2de6`·`eaba113` | LKH | 도감 버튼 위치 복구, 세트 목록 "(n-n부터)" 삭제 |
 
+### 2026-11-10 (`LKH`) — 데이터 전수 조사 2차 (커밋 전)
+
+오늘 들어온 코드(가이드·강화 개편·룰렛·도감·퀘스트 합침 등, `34bcc5f` 이후 51파일)를 다시 훑고 `Tools/audit_game_data.py`로 표 전체를 대조했다. 표 편집 스크립트 `밸런스설계/tools/table_audit_1110.py`(엑셀 XML 직접 수정).
+
+- **새 시트 `공격속도단계`**(19201~19208, `SpeedStepRow`: gateLevel·capLevel) ← `IdleProgress.SpeedSteps` 배열(공격력 20/375/…/2500 → 공격 속도 30/60/…/275). 검증기: 행 있음·둘 다 오름차순·첫 gateLevel = 공격 속도 `unlockLevel`(20)·마지막 capLevel ≤ `maxLevel`(275).
+- **상수 19008~19013**: `guideFallbackKills` 50·`guideFallbackMycelite` 50(`GuideQuests` — 반복 목표가 없을 때 대신 내는 처치 목표), `upgIncLinearLevel` 100·`upgIncCostStep1Level` 50·`upgIncCostStep1` 1·`upgIncCostStep2` 2(`IdleProgress` 증분 강화 구간, 검증기: step1Level ≤ linearLevel).
+- **리소스 7426~7437**: 미등록 그림 12개(강화 아이콘 `UI/Icon/Upgrade_Icon/*` 8장, `UI/Icon/warning`, `UI/roulette_pin`·`roulette_wheel`, `Sprite/BG/image2`). 감사 도구 문제 12 → **0**.
+- **업그레이드 아이콘**: 표 `resourceId`가 옛 그림(7021~7028 `Art/Dream/Icons`)을 가리켜 아무도 안 읽고, 화면은 프리팹에 놓은 그림을 썼다 → 표를 실제 그림으로(공격력 7366 `UI/Icon/sword`, 나머지 7428~7434) 바꾸고 `UpgradeNotebookView`가 줄 아이콘을 표에서 읽는다(못 읽으면 프리팹 그림). 7021~7028 행은 남겨 둠.
+- **시트끼리 겹치던 index 정리**(지금까지 검사는 시트 안만 봤다): 상수 9099~9105가 던전 9101~9105와, 출석 17001~가 가이드 17001~과 같은 번호였다 → **상수 9099~9105 → 19001~19007**(상수는 이제 9001~9099 + 19001~19099 두 대역, 게임 읽기 범위 9001~19099), **출석 → 19101~19107**(범위 19101~19199). 코드는 key로 읽어 동작은 같다. 검증기 `ValidateUniqueIndex`가 시트를 넘는 겹침을, `ValidateConsts`가 상수 대역을 막는다. **새 시트는 빈 대역(19301~ 등)을 쓸 것.**
+- 시뮬 `밸런스설계/test/sim/Tables.cs`: 상수 범위 9001~19099, `speedSteps` 주입. ※ 시뮬 csproj의 게임 dll 경로가 다른 세션 scratchpad(`b_cur`)를 가리켜 그대로는 빌드가 안 된다(가이드 등 없음) — `Library/ScriptAssemblies` dll로 바꿔 빌드하면 오류 0, `smoke` 실행·검증기 문제 0 확인.
+- 확인: 컴파일 오류 없음, Reimport Tables **1387행 OK·폰트 경고 없음**, 에디터에서 옛 코드 식과 대조 — 공격 속도 단계 cap(공격력 0~3000)·다음 단계 gate(Lv 0~274)·증분 비용/값(공격력·체력·재생 Lv 0~3000) **불일치 0**, 상수·출석(7일·무기 11010) 값 그대로, 강화 아이콘 8개 로드 확인.
+- **표로 옮기지 않은 것**(구조·연출·안전값): 룰렛 칸 수 6(`Roulette.SliceCount` — 원판 프리팹 칸 수, 검증기가 행 6개 확인), 도감 별 5·종 수 31(저장 비트), 꼬마 성장 2회(`Formation.GrowStageCount`), 룰렛 회전 시간·5초 누르기·가이드 바 깜빡임·적 공격 연출·뽑기 반짝임 시간, 퀘스트 보상 넘침 보호(9e18). 버섯 **이름**은 아직 정해지지 않아 표에 없음(도감 화면 임시 "식용 희귀 3").
+
 ### 2026-11-10 (`LKH`) — 방치 스테이지 표기 통일 (`1fe2c8d`)
 
 - 방치 스테이지 글자는 모두 `IdleBattle.HudStageNumber(stage)` = **`챕터-칸`** (스테이지 번호 s → `(s-1)/stagesPerChapter+1`-`(s-1)%stagesPerChapter+1`, 5 → 1-5, 11 → 2-1)로 쓴다. 표·코드 안의 값(해금 스테이지 등)은 계속 번호로 적고 **보여 줄 때만** 바꾼다.
@@ -138,8 +151,8 @@
 ### 2026-11-10 (`LKH`, main `c58cbcf` 위) — 코드에 있던 콘텐츠 수치를 표로
 
 - 조사: 콘텐츠 코드의 `const`·리터럴·하드코딩 문자열을 훑음(`Tools/audit_game_data.py`는 상수 key·리소스·수확전투만 봄). 남아 있던 것은 11-06~11-09에 들어온 콘텐츠 값뿐이었다.
-- **새 시트 `출석`**(17001~17007, `AttendanceRow`): day·kind(`AttendanceRewardKind`)·amount·equipId. 출석 일수 = 행 수(`Attendance.Days`가 const → 표). 7일째 무기는 이름("날다람쥐") 대신 **장비.index 11010**. 검증기: day 1부터 연속, 무기 equipId는 장비 시트 무기, 재화 양수.
-- **상수 9099~9103** (main이 9090~9098을 먼저 써서 병합 때 옮김): `adBoxGoldChance` 0.5·`adBoxMaxSameInRow` 2(`AdBox.NextReward`), `bossRushEasyLevels` 5(`DungeonRewards.Stage`), `unlockTeamStage` 3·`unlockWorldTreeStage` 7(`FeatureUnlock`, 이제 const가 아니라 속성).
+- **새 시트 `출석`**(17001~17007 → 전수 조사 2차에서 **19101~19107**, `AttendanceRow`): day·kind(`AttendanceRewardKind`)·amount·equipId. 출석 일수 = 행 수(`Attendance.Days`가 const → 표). 7일째 무기는 이름("날다람쥐") 대신 **장비.index 11010**. 검증기: day 1부터 연속, 무기 equipId는 장비 시트 무기, 재화 양수.
+- **상수 9099~9103** (main이 9090~9098을 먼저 써서 병합 때 옮김 → 전수 조사 2차에서 **19001~19005**): `adBoxGoldChance` 0.5·`adBoxMaxSameInRow` 2(`AdBox.NextReward`), `bossRushEasyLevels` 5(`DungeonRewards.Stage`), `unlockTeamStage` 3·`unlockWorldTreeStage` 7(`FeatureUnlock`, 이제 const가 아니라 속성).
 - 방치 보스 체력 꼬리의 챕터 길이(`IdleProgress.ChapterLength` 10) → `방치전투.stagesPerChapter`(10).
 - **리소스 7425** `UI/Icon/advertisement_mycelite`(광고 상자 균사석 그림, 미등록이었음). 감사 도구 문제 1 → 0.
 - 값은 모두 옮기기 전과 같다(에디터에서 출석 7일·무기 날다람쥐·해금 3/7/5·보스 러시 레벨 1~5 기준 스테이지 30 → 6부터 +5·보스 체력 710 벽 ×1.4 확인). 표 편집 스크립트 `밸런스설계/tools/add_attendance_consts.py`(엑셀 XML 직접 수정), Reimport Tables 1297행 OK.
@@ -756,6 +769,8 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 1. **오늘 들어온 보상원을 시뮬에 함께 넣어 다시 재기:** 도감 세트(아래), 주간 퀘스트 보상, 룰렛(하루 3회 골드·균사석) — KHD `f6dcef5` 측정에는 셋 다 없다. 셋이 겹치면 초중반이 빨라질 수 있음
 2. **플레이 확인:** KHD 머지 뒤 Main 왼쪽 버튼 열(룰렛·도감·퀘스트)·가이드 바·전투 영역 위치, 옵션 창 데이터 초기화(사용자 세이브 말고 테스트 세이브로), 실기기 터치
 3. 1장 아래쪽 옛 설명(광고 상자 "골드와 균사석", 던전 해금 5/25/150/250/400 등)은 새 줄 기준으로 읽을 것
+4. **시뮬 csproj 게임 dll 경로**(`IdleSim.csproj`의 `b_cur` scratchpad 경로)가 낡아 그대로는 빌드 실패 — `밸런스설계/test/build/mkproj.py`로 다시 만들거나 `Library/ScriptAssemblies`를 가리키게 고칠 것
+5. 버섯 이름 표(도감 시트 열)는 이름이 정해지면 추가
 
 ### 2026-11-10 남은 일 (퀘스트 합침)
 

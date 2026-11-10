@@ -41,7 +41,7 @@ static class Tables
         if (vi.Count > 0) { Console.WriteLine("validator issues=" + vi.Count); foreach (var i in vi.Take(10)) Console.WriteLine("  " + i); }
         var sheets = XlsxReader.Read(bytes);
         var issues = new List<string>();
-        Set("consts", Rows<ConstRow>(sheets, "상수", 9001, 9999, issues).ToDictionary(r => r.key, r => r.value));
+        Set("consts", Rows<ConstRow>(sheets, "상수", 9001, 19099, issues).ToDictionary(r => r.key, r => r.value));
         Set("grades", Rows<GradeRow>(sheets, "등급", 8101, 8199, issues).OrderBy(r => r.grade).ToArray());
         Set("gachaLevels", Rows<GachaLevelRow>(sheets, "뽑기", 8201, 8299, issues).OrderBy(r => r.level).ToArray());
         Set("upgrades", Rows<UpgradeRow>(sheets, "업그레이드", 4001, 4999, issues));
@@ -56,6 +56,7 @@ static class Tables
         Set("guides", Rows<GuideRow>(sheets, "가이드", 17001, 17099, issues));            // 11-10 가이드 퀘스트
         Set("guideLoops", Rows<GuideLoopRow>(sheets, "가이드반복", 17101, 17199, issues));
         Set("gachaProducts", Rows<GachaProductRow>(sheets, "뽑기상품", 12001, 12999, issues));   // 광고 뽑기 횟수
+        Set("speedSteps", Rows<SpeedStepRow>(sheets, "공격속도단계", 19201, 19299, issues).OrderBy(r => r.gateLevel).ToArray());   // 11-10 공격 속도 단계 (코드 → 표)
         Set("loaded", true);
         Equipment.ReloadAll();      // 표를 바꿔 읽으면 장비 배치·상수를 다시 읽게 (table= 주입)
         Dungeons.Clear();

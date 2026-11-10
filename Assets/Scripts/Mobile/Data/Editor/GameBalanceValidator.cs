@@ -40,6 +40,7 @@ namespace MoreMush.Mobile.EditorTools
             { "출석", "index:int key:string day:int kind:AttendanceRewardKind amount:long equipId:int" },
             { "도감", "index:int key:string kind:MushroomKind star:int count:int resourceId:int unlockStage:int dropChance:double" },
             { "도감세트", "index:int key:string kind:MushroomKind star:int stat:DexStat value:double" },
+            { "공격속도단계", "index:int key:string gateLevel:int capLevel:int" },
         };
 
         // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
@@ -74,6 +75,8 @@ namespace MoreMush.Mobile.EditorTools
             ("harvestFarmRounds", 1, true), ("harvestCycleLength", 1, true), ("offlineRateMinSeconds", 0.001, false),
             ("adBoxGoldChance", 0, false), ("adBoxMaxSameInRow", 0, true), ("bossRushEasyLevels", 1, true),
             ("unlockTeamStage", 1, true), ("unlockWorldTreeStage", 1, true),
+            ("guideFallbackKills", 1, true), ("guideFallbackMycelite", 0, true),
+            ("upgIncLinearLevel", 1, true), ("upgIncCostStep1Level", 0, true), ("upgIncCostStep1", 0, false), ("upgIncCostStep2", 0, false),
         };
 
         sealed class Row
@@ -215,6 +218,8 @@ namespace MoreMush.Mobile.EditorTools
             ValidateImplementedDefinitions(tables, issues);
             ValidateAttendance(tables["출석"], tables["장비"], issues);
             ValidateDex(tables["도감"], tables["도감세트"], resources, issues, checkAssets);
+            ValidateSpeedSteps(tables["공격속도단계"], tables["업그레이드"], issues);
+            ValidateUniqueIndex(tables, issues);
             return count;
         }
 
@@ -424,6 +429,49 @@ namespace MoreMush.Mobile.EditorTools
                 issues.Add("[상수] copiesBase + copiesPerLevel은 1 이상이어야 한다 (Lv.1→2 조각이 0개가 되지 않게)");
             if (byKey.TryGetValue("adBoxGoldChance", out var chance) && chance.Number("value") > 1)
                 issues.Add(chance.At("value") + ": adBoxGoldChance는 0~1 확률이다");
+            if (byKey.TryGetValue("upgIncLinearLevel", out var lin) && byKey.TryGetValue("upgIncCostStep1Level", out var step1) && step1.Number("value") > lin.Number("value"))
+                issues.Add(step1.At("value") + ": upgIncCostStep1Level은 upgIncLinearLevel 이하여야 한다");
+            // 상수 번호: 9001~9099가 차서 19001~19099를 이어 쓴다 (9100~는 던전·퀘스트 등 다른 시트 번호)
+            foreach (var r in rows)
+            {
+                int index = r.Int("index");
+                if (!(index >= 9001 && index <= 9099) && !(index >= 19001 && index <= 19099)) issues.Add(r.At("index") + ": 상수 index는 9001~9099 또는 19001~19099여야 한다");
+            }
+        }
+
+        // 공격속도단계: 행이 있고, gateLevel·capLevel 모두 커지기만 하고, 첫 gateLevel = 공격 속도 해금 레벨, 마지막 capLevel ≤ 공격 속도 최대 레벨
+        static void ValidateSpeedSteps(List<Row> rows, List<Row> upgrades, List<string> issues)
+        {
+            if (rows.Count == 0) { issues.Add("[공격속도단계] 행이 없다"); return; }
+            var sorted = rows.OrderBy(r => r.Int("gateLevel")).ToList();
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                var r = sorted[i];
+                if (r.Int("capLevel") <= 0) issues.Add(r.At("capLevel") + ": 0보다 커야 한다");
+                if (i == 0) continue;
+                if (r.Int("gateLevel") == sorted[i - 1].Int("gateLevel")) issues.Add(r.At("gateLevel") + ": 같은 gateLevel이 겹친다");
+                if (r.Int("capLevel") <= sorted[i - 1].Int("capLevel")) issues.Add(r.At("capLevel") + ": gateLevel이 높을수록 capLevel도 커야 한다");
+            }
+            var speed = upgrades.Find(u => u.Text("stat") == IdleStat.Speed.ToString());
+            if (speed == null) return;
+            if (sorted[0].Int("gateLevel") != speed.Int("unlockLevel"))
+                issues.Add(sorted[0].At("gateLevel") + $": 첫 단계는 공격 속도 해금 레벨({speed.Int("unlockLevel")})과 같아야 한다");
+            if (sorted[sorted.Count - 1].Int("capLevel") > speed.Int("maxLevel"))
+                issues.Add(sorted[sorted.Count - 1].At("capLevel") + $": 공격 속도 최대 레벨({speed.Int("maxLevel")})을 넘는다");
+        }
+
+        // index는 시트를 넘어서도 겹치지 않게 (시트마다 번호 대역을 나눠 쓴다 — 병합 때 같은 번호를 두 시트가 쓰던 일을 막는다)
+        static void ValidateUniqueIndex(Dictionary<string, List<Row>> tables, List<string> issues)
+        {
+            var owner = new Dictionary<int, string>();
+            foreach (var pair in tables)
+                foreach (var r in pair.Value)
+                {
+                    int index = r.Int("index");
+                    if (index == 0) continue;
+                    if (owner.TryGetValue(index, out var other) && other != pair.Key) issues.Add(r.At("index") + $": {index}는 [{other}] 시트도 쓴다 — 시트마다 다른 번호 대역을 쓴다");
+                    else owner[index] = pair.Key;
+                }
         }
 
         // 출석: day는 1부터 빠짐없이, 재화 보상은 양수, 무기 보상은 장비 시트의 무기(index)를 가리킨다

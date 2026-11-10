@@ -138,18 +138,23 @@ namespace MoreMush.Mobile
             return (int)System.Math.Min(d.maxLv, cap);
         }
 
-        // 공격 속도 단계표: 공격력이 gate 이상이면 공격 속도를 cap레벨까지 올릴 수 있다 (gate는 5의 배수, 첫 gate = 해금 레벨).
-        // 속도 1.5(Lv 87.5)까지는 30레벨씩, 2.0(Lv 150)까지 40, 그 뒤 3.0(Lv 275)까지 50. 마지막 단계(공격력 2500)에서 3.0/s 마스터
-        static readonly (int gate, int cap)[] SpeedSteps =
-        {
-            (20, 30), (375, 60), (730, 90), (1085, 130), (1440, 170), (1795, 220), (2150, 270), (2500, 275),
-        };
+        // 공격 속도 단계표 = 표 공격속도단계 시트: 공격력이 gateLevel 이상이면 공격 속도를 capLevel까지 올릴 수 있다 (첫 gateLevel = 해금 레벨, 검증기가 확인).
+        // 지금 값: 속도 1.5(Lv 87.5)까지는 30레벨씩, 2.0(Lv 150)까지 40, 그 뒤 3.0(Lv 275)까지 50. 마지막 단계(공격력 2500)에서 3.0/s 마스터
+        static System.Collections.Generic.IReadOnlyList<SpeedStepRow> SpeedSteps => GameBalance.SpeedSteps;
 
         static int SpeedCap(int gateLv, int maxLv)
         {
             int cap = 0;
-            foreach (var step in SpeedSteps) if (gateLv >= step.gate) cap = step.cap;
+            foreach (var step in SpeedSteps) if (gateLv >= step.gateLevel) cap = step.capLevel;
             return System.Math.Min(maxLv, cap);
+        }
+
+        // lv보다 높은 단계가 열리는 공격력 레벨 (다 열렸으면 마지막 단계)
+        static int SpeedGateAbove(int lv)
+        {
+            var steps = SpeedSteps;
+            foreach (var step in steps) if (step.capLevel > lv) return step.gateLevel;
+            return steps[steps.Count - 1].gateLevel;
         }
 
         // 열렸지만 단계 제한에 막혀 더 못 올린다
@@ -159,11 +164,7 @@ namespace MoreMush.Mobile
         public static int NextCapGateLevel(IdleStat stat)
         {
             var d = Get(stat);
-            if (stat == IdleStat.Speed)
-            {
-                foreach (var step in SpeedSteps) if (step.cap > Level(stat)) return step.gate;
-                return SpeedSteps[SpeedSteps.Length - 1].gate;
-            }
+            if (stat == IdleStat.Speed) return SpeedGateAbove(Level(stat));
             return d.capStep <= 0 ? d.unlockLv : d.unlockLv + Level(stat) / d.capStep * d.capEvery;
         }
 
@@ -218,11 +219,7 @@ namespace MoreMush.Mobile
         // lv → lv+1 강화가 열리는 기준 강화 레벨 (단계 제한이 없으면 해금 레벨)
         static int GateLevelFor(IdleStat stat, Def d, int lv)
         {
-            if (stat == IdleStat.Speed)
-            {
-                foreach (var step in SpeedSteps) if (step.cap > lv) return step.gate;
-                return SpeedSteps[SpeedSteps.Length - 1].gate;
-            }
+            if (stat == IdleStat.Speed) return SpeedGateAbove(lv);
             return d.capStep <= 0 ? d.unlockLv : d.unlockLv + lv / d.capStep * d.capEvery;
         }
 
@@ -239,9 +236,11 @@ namespace MoreMush.Mobile
         // Lv 100 뒤로 값 증가량은 perLevel × (1 + n/valueDivisor)²로 커지고, 비용에는 예전 곡선(n = Lv − 100 레벨)이 더해진다.
         // valueDivisor = √(perLevel × 1000 / (3 × baseValue))이면 후반 값이 예전 Power 곡선(× (1 + Lv/10)³)의 100레벨 뒤와 같아진다
         // (공격력 18.26·체력 5.77·재생 12.91) → 골드 대비 힘은 예전 그대로
-        const int IncLinearLv = 100;       // 여기까지 값·비용이 일정하게 오른다
-        const int IncCostStep1Lv = 50;     // 여기까지 비용 +1골드씩, 그 뒤 IncLinearLv까지 +2골드씩
-        const int IncCostStep1 = 1, IncCostStep2 = 2;
+        // 구간 값은 상수 시트: upgIncLinearLevel(100, 여기까지 값·비용이 일정하게 오른다)·upgIncCostStep1Level(50, 여기까지 비용 +upgIncCostStep1골드씩, 그 뒤 +upgIncCostStep2골드씩)
+        static int IncLinearLv => K.incLinearLv;
+        static int IncCostStep1Lv => K.incCostStep1Lv;
+        static double IncCostStep1 => K.incCostStep1;
+        static double IncCostStep2 => K.incCostStep2;
 
         static double IncrementalValue(Def d, int lv)
         {
@@ -357,6 +356,10 @@ namespace MoreMush.Mobile
             public readonly int wallBossLateFrom = GameBalance.ConstInt("wallBossLateFrom");
             public readonly double wallBossHpMul = GameBalance.Const("wallBossHpMul");
             public readonly double wallBossHpMulLate = GameBalance.Const("wallBossHpMulLate");
+            public readonly int incLinearLv = GameBalance.ConstInt("upgIncLinearLevel");
+            public readonly int incCostStep1Lv = GameBalance.ConstInt("upgIncCostStep1Level");
+            public readonly double incCostStep1 = GameBalance.Const("upgIncCostStep1");
+            public readonly double incCostStep2 = GameBalance.Const("upgIncCostStep2");
         }
 
         static Curve curve;
