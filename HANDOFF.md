@@ -1,5 +1,7 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
+> **2026-11-10 (LKH) 도감 세트 보너스:** 버섯 도감에 **수집·세트 보너스**를 붙였다. 방치 전투 보스를 잡을 때마다 열린 무리(종류 × ★1~5)마다 확률로 **아직 없는 버섯 1종**을 얻고(별이 높을수록 늦게 열림: ★1 s1 · ★2 s40 · ★3 s120 · ★4 s240 · ★5 s360), 한 무리를 다 모으면 세트 효과 — **식용 = 공격력 %, 약용 = 체력·체력 재생 %(장비 보유 효과 %에 더함), 독성 = 공격 속도 %(최종 속도에 곱함)**. ★5 식용·약용 = 전설 무기·방어구 1레벨 보유 효과(2187.5%·1250%). 표 `도감`(18001~18015)·`도감세트`(18101~18120), 코드 `MushroomDex.cs`, 도감 화면 세트 보너스 버튼 = 세트 진행·효과 목록. 수치·시기 근거 [밸런스설계/도감세트.md](밸런스설계/도감세트.md). **시뮬은 아직 도감을 모름 — 진행 영향 실측 전**(9장 "2026-11-10 남은 일").
+
 > **2026-11-09 (main, LKH·KHD):** 던전(벽돌깨기) 화면을 Main과 맞춤(`3ba8a59`, 배경·TopBar·장착 무기 그림·군락 그림 `BattleLooks`) → 수확 완료 팝업 폴리싱·군락 버섯 가림 수정·설정 창 광고 개인정보 글자 배치 → KHD: 화면 비율 대응(`SafeAreaDock`)·폰트 굽기 최적화(아틀라스 약 33%↓) → **영어 번역**(`4fbf3b0`, 문자열 표 `String.xlsx`·`Loc`·`LocalizedText`, 기기 언어 자동 선택) · **광고 상자 개편**(두 자리 배회, 골드 **또는** 균사석 50:50 한 가지) · 골드 던전 보상 20000→10000 → **해금 팝업**(`6c206b6`, `Unlock/` — 하단 탭 잠금·"새로운 콘텐츠!" 안내·탭 가리키기) → 의뢰 **일괄 수령** 버튼(세계수·메인)·확인 창 게임 UI 톤·편성 중 꼬마 카드 덮개(`2a205ca`). main에 머지(`16cbebc`) — **푸시 안 함**. KHD에 **머지 안 한 커밋 2개**(`50f354c` 코드 UI 캔버스화 64파일, `a1590aa` 출석 팝업 수정, main과 충돌 없음 확인). 커밋 표는 2장, 남은 일은 **9장 "2026-11-09 남은 일"**.
 
 > **2026-11-06 (KHD·LKH·PJS):** **던전 2~5 구현**(`dc3c7a2`, `DungeonSession`·`IdleBattle.Dungeon.cs`: 2 골드·3 균사석 = InGame 재사용, 4 보스 러시·5 보스 토벌 = 방치 화면, 해금 5/10/20/30/50) → PJS UI 개편 22~24차 머지(`29ad5b3`) + LKH 누락분 재적용(`b2c6eb1`) → **개발자 모드 출시 빌드 제외**(`bae4ea3`) → **출시 안정화 1·2차**(`bd85376`·`6f41e79`: 실제 광고 ID, `GameClock` 시계 조작 차단, 광고 동의 UMP, 전투 재시도, 세이브 백업 — 8장 "출시 안정화") → 출시 빌드 세팅(`bcb20cc`, 버전 코드 2) → 입장권·레이드 나가기·세계수 선물 → **7일 출석**. 작업 준비 문서 [작업준비_261106.md](작업준비_261106.md) 중 광고 버섯·던전 1~5는 끝, **꼬마별 트리는 안 함**.
@@ -82,6 +84,14 @@
 ---
 
 ## 2. 커밋
+
+### 2026-11-10 (`LKH`) — 도감 세트 보너스
+
+- **표**: 새 시트 `도감`(18001~18015, `DexRow`: kind `MushroomKind`·star·count·resourceId·unlockStage·dropChance)·`도감세트`(18101~18120, `DexSetRow`: kind·star·stat `DexStat`·value %). 그림은 기존 리소스 7275~7289(`Art/Dream/Index` 15장, 조각 = 종). `info` 3행. 스크립트 `밸런스설계/tools/add_dex_sets.py`·문구 `add_dex_strings.py`(String `dex.drop`·`dex.set_done`·`dex.set_header`·`dex.set_from`·`dex.set_active`).
+- **검증기**: 두 스키마, `MushroomKind`·`DexStat` 자료형, 종류×별 한 행·star 1~5·count 1~31(저장 비트)·dropChance 0~1·그림 시트에 `시트이름_0..count-1` 조각, 세트 행은 도감 무리를 가리키고 무리·능력치 중복 없음·값 양수. `link.xml`에 두 행 클래스. Reimport Tables **1357행 OK, 폰트 경고 없음**.
+- **코드**: `MushroomDex`(저장 `Dex.<index>` 비트·`RollBossDrop`·`Percent(DexStat)` 캐시·`Changed`), `IdleProgress.AttackMultiplier`/`HpMultiplier`/새 `HpRegenMultiplier`에 도감 % 더함, 새 `SpeedMultiplier`를 `FinalSpeed`에 곱함(전투력·통계 창도 따라감), `IdleBattle` 방치 보스 처치 때 드롭(던전 보스 제외) + 보스 자리 위 "도감 +1 식용 ★2"·"… 세트 완성!" 글자.
+- **UI** (`DexScreenView`·`DexScreen.prefab`): 목록을 도감 시트로 만듦(전엔 그림 폴더를 훑음), 못 얻은 버섯 = 그림자 + "???", **세트 보너스 버튼**(전엔 꺼둠) = `Body/SetPanel`(Scroll 자리에 TMP 한 장): 종류 탭별 수집 수·★1~5 모은 수/종 수·효과(완성 초록)·아직 안 열린 무리는 "(n-n부터)"·적용 중 합. 도감 버튼 = 다시 목록.
+- 확인: 에디터에서 ★1·★5 무리를 채워 배율이 표대로 오르는지(공격 ×+22.05, 체력·재생 +12.6, 속도 ×1.33), 스테이지 1에선 ★1만 나오는지, 그림 누락 0, 플레이 모드 도감 목록·세트 목록 화면. 시험 저장 키는 지움(사용자 세이브 그대로).
 
 ### 2026-11-10 (`LKH`, main `c58cbcf` 위) — 코드에 있던 콘텐츠 수치를 표로
 
@@ -576,7 +586,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 알림·확인 팝업은 `PopupSlot`으로 들고 있다가 **처음 열 때 Stage 아래에 만듭니다**. Main의 팝업·패널은 씬/프리팹에 미리 있습니다. 정렬 순서: Main 캔버스 10000, 편성 안 팝업 +10, `UiPopup`·뽑기 결과 +100, 토스트 +200 (`PopupLayer`), 방치 정산 30000, 절전 31000, 로딩 팝업 32000.
 
-**연결 안 된 UI (10-30, 11-02 갱신):** 옵션 팝업 남은 항목(위 표), Main 던전 2~5 입장(잠김). 세계수는 11-02 연결(3.3). **도감 팝업(`CollectPopup`) 프리팹은 참조 0이라 11-05 삭제**(`c1e73d8`) — 도감이 다시 필요하면 새로 만든다. `ConfirmPopup` 프리팹은 남김.
+**연결 안 된 UI (10-30, 11-02 갱신):** 옵션 팝업 남은 항목(위 표), Main 던전 2~5 입장(잠김). 세계수는 11-02 연결(3.3). 옛 도감 팝업(`CollectPopup`)은 11-05 삭제 — 지금 도감은 `DexScreen`(11-10 수집·세트 보너스 연결, `MushroomDex`). 황금 토글은 아직 모양만. `ConfirmPopup` 프리팹은 남김.
 
 **데이터 초기화:** 설정 팝업 버튼은 10-30 제거. 개발 중에는 메뉴 `MoreMush/방치형 진행 초기화` 또는 `PlayerPrefs.DeleteAll()` 뒤 `Wallet.Reload()`·`IdleProgress.ReloadLevels()`(`DataResetButton.cs`가 그 순서).
 
@@ -586,7 +596,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 **메뉴:** `MoreMush/Data/Reimport Tables` · `MoreMush/Fonts/Bake Static Atlases`(11-05, 아래 "폰트") · `MoreMush/Debug/Go To Next Boss Stage` · `MoreMush/Debug/Reset Stage` · `MoreMush/Debug/Run Benchmark` · `MoreMush/Debug/Open Benchmark Folder`
 **PlayerPrefs 키:** `Skill.Level.<index>`, `Stage.Current`, `Stage.FarmLeft`, `Stage.LastNormalScore`, `Stage.LastNormalGold`, `Stage.Cleared`, `Wallet.Gold`, `Wallet.Mycelite`, `Wallet.TestGrant`, `Wallet.TestReclaimed`, `InGame.SpeedIndex`, `Option.BgmVolume`, `Option.SfxVolume`, `Dungeon.<n>.Day`·`Dungeon.<n>.Used`(던전 입장 횟수, 한국 날짜)
-방치형: `Idle.Stage`, `Idle.Lv.<stat>`, `Idle.GoldPerSec`, `Idle.LastSeen`, `Formation.<칸>`·`Formation.Level.<id>`·`Formation.Copies.<id>`·`Formation.MigratedLevel`(예전 `Formation.Owned.<id>`는 한 번 옮기고 지움), `Gacha.*`(광고 뽑기 날짜는 예전 키 `Gacha.<종류>.AdDay` 그대로 + 11-02 하루 사용 수 `Gacha.<종류>.AdCount`), 장비 `Weapon.*`·`Armor.*`(`.Level.<i>`·`.Copies.<i>`·`.Equipped`·`.Layout` — 번호 = 장비 시트 itemIndex, 배치가 바뀌면 `Equipment.RemapLayout`이 한 번 옮김. 11-04 펫 삭제로 `Pet.*`·`Gacha.Pet.*`는 안 읽음), **세계수 `WorldTree.Save`**(JSON 하나: 단계·나이테·경험치·창고·꼬마 ★·호감도·부탁·제작·장식·보따리).
+방치형: `Idle.Stage`, `Idle.Lv.<stat>`, `Idle.GoldPerSec`, `Idle.LastSeen`, `Formation.<칸>`·`Formation.Level.<id>`·`Formation.Copies.<id>`·`Formation.MigratedLevel`(예전 `Formation.Owned.<id>`는 한 번 옮기고 지움), `Gacha.*`(광고 뽑기 날짜는 예전 키 `Gacha.<종류>.AdDay` 그대로 + 11-02 하루 사용 수 `Gacha.<종류>.AdCount`), 장비 `Weapon.*`·`Armor.*`(`.Level.<i>`·`.Copies.<i>`·`.Equipped`·`.Layout` — 번호 = 장비 시트 itemIndex, 배치가 바뀌면 `Equipment.RemapLayout`이 한 번 옮김. 11-04 펫 삭제로 `Pet.*`·`Gacha.Pet.*`는 안 읽음), **세계수 `WorldTree.Save`**(JSON 하나: 단계·나이테·경험치·창고·꼬마 ★·호감도·부탁·제작·장식·보따리), **도감 `Dex.<도감.index>`**(11-10, 모은 종 비트 — 번호 i = 그림 조각 `시트이름_i`).
 **메뉴 `MoreMush/방치형 진행 초기화`는 `Idle.Stage`와 강화 8종 레벨만 지웁니다** — 지갑·장비·꼬마·뽑기·던전·세계수는 남음. **전부 지우려면 `MoreMush/게임 기록 전체 초기화`**(11-03, `Editor/SaveDataMenu.cs`): 확인 창 → PlayerPrefs 전부 삭제 + 메모리 캐시(`Wallet`·`IdleProgress`·`Formation`·`Equipment`·`WorldTree`·`DailyQuests`·광고 상자) 버림. 플레이 중이면 플레이를 끝낸 뒤 지움(끝날 때 `SaveScheduler`가 메모리 값을 다시 저장하므로). 지우는 코드는 설정 팝업용 `DataResetButton.ClearSaves()`와 같음. 벤치마크 결과 파일(`persistentDataPath/Benchmark`)은 안 지움.
 
 **밸런스 측정기 (`BalanceBot`, InGame 씬 플레이 모드에서 MCP `execute_code`로)**
@@ -699,11 +709,19 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 7. **스토어:** `moremustmush-0.1.0-2.aab`(버전 코드 2) Play Console 내부 테스트 업로드, 개인정보처리방침·데이터 보안 양식 (8장 "출시 준비")
 8. 1장 던전·광고 상자 줄 아래쪽 설명에 옛 값(해금 5/25/150/250/400, 골드+균사석 둘 다)이 남아 있음 — 새 줄 기준으로 읽을 것
 
+### 2026-11-10 남은 일 (도감 세트 보너스)
+
+1. **진행 영향 실측:** 시뮬(`밸런스설계/test/sim/Player.cs`)에 도감 % 합(공격·체력·재생은 장비%에 더하고 속도는 곱함)과 보스 처치 드롭을 넣고 보통·무광고를 다시 잰다 (idle-test). 예상: D3~D14 구간이 빨라지고 끝 지점 DPS 약 ×2.6 (`밸런스설계/도감세트.md` 마지막 절). 빠르면 표의 `dropChance`·`unlockStage`나 ★3·★4 값을 낮춘다
+2. 버섯 **이름**이 없다 — 칸 이름은 "식용 희귀 3" 임시. 이름 표가 생기면 도감 시트에 열을 더한다
+3. 이미 모은 버섯은 다시 안 나와서 겹침 보상이 없다 / 앱 밖 시간엔 드롭이 없다 — 필요하면 기획 결정
+4. 황금 버섯(황금 토글)은 그림·기록이 없어 그대로 모양만
+5. 개발자 모드에 도감 채우기 버튼이 없다 (`MushroomDex.DevSetGroup`은 있음)
+
 ### 2026-11-05 남은 일
 
 1. **밸런스 시뮬·이론 모델 상수 고치기:** `밸런스설계/test/sim/Driver.cs`·`밸런스설계/theory/progress.py`가 지운 상수 `adBoxMyceliteBosses`를 아직 읽음 → `adBoxMycelite`(90, 스테이지와 무관한 고정값)로 바꿔야 다음 실측·이론이 돈다. 게임은 원래 90을 줬고 모델은 "보스 균사석 × 5 = 10"으로 가정했었음(`HANDOFF_BALANCE_V3.md` 참고). 지운 `dungeonSweepMul`을 읽는 `theory/run_pet.py`·`세계수/theory/idle_feed.py`·`세계수/verify/feed.py`도 소탕 계산을 빼야 함
 2. 스테이지 `enemyIds`는 아직 게임이 안 읽음(적 그림은 `IdleBattle`이 종류 비율로 뽑음) — 읽게 할지 결정
-3. 판단 보류: `Assets/Scenes/NewInGame.unity`(kms 작업 씬), `Resources/Art/Dream/Index` 임시도감 그림(리소스 시트에는 등록됨)
+3. 판단 보류: `Assets/Scenes/NewInGame.unity`(kms 작업 씬). (`Resources/Art/Dream/Index` 도감 그림은 11-10부터 도감 시트가 씀)
 4. **개발자 모드:** 실기기에서 여는 입구(지금은 `` ` `` 키뿐), ~~출시 빌드에 개발자 모드가 없는지 확인~~ ✅ 11-06 `bae4ea3` 컴파일 제외 ([HANDOFF_DEVMODE.md](HANDOFF_DEVMODE.md))
 5. ~~표 `info` 마무리(보스 예시값·개편 기록 2행)가 미커밋.~~ (`c6d8675`로 커밋됨) **커밋에서 뺄 것:** `ProjectSettings/GvhProjectSettings.xml`, GoogleMobileAds placeholder 프리팹(`768x1024.prefab`)
 6. 확인 못 한 것: 새 보스 10종·꼬마/버섯 크기·세계수 나무 크기·BGM을 실기기에서
@@ -745,7 +763,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 1. **던전 다듬기:** 던전 1은 InGame으로 연결, 입장 횟수(하루 2회) 완료. 남은 것: 던전 2~5 내용·해금 조건, 보상 규칙, `DungeonRequest`로 던전 종류·스테이지 넘기기(지금은 늘 기본값)
 2. **InGame ↔ Main 이동에 로딩 팝업:** `Benchmark`만 남음 (`InGameOption`·`ResultPopup`은 10-30 완료)
 3. **꼬마 강화 다듬기:** 레벨당 +5%는 임시값 → 밸런스 곡선에 맞춰 정하기. 꺼 둔 `Char` 아래 버튼 줄은 지울지 결정 (`Formation` 캐시는 10-30 완료)
-4. **도감:** `CollectPopup` 프리팹은 11-05 삭제 — 도감이 필요하면 새로 만들기
+4. ~~도감~~ ✅ 11-10 `DexScreen` 수집·세트 보너스 (9장 "2026-11-10 남은 일")
 5. 옵션 팝업 기능 연결: 언어·진동·알림·SFX (BGM 음량은 11-05 연결. 게임 종료·도움말·데이터 초기화는 10-30 버튼 제거)
 6. ~~세계수를 다시 만들지~~ ✅ 11-02 WorldTree 씬으로 구현(3.3). 스킬 트리를 다시 쓸지(`Backup/SkillTree/`)
 7. 무료 뽑기·던전 횟수의 시간 조작 대응(지금은 기기 시계의 UTC 기준), 광고 보상이 다시 필요하면 `GachaPanel` 무료 버튼 자리에

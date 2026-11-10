@@ -43,6 +43,8 @@ namespace MoreMush.Mobile
         static TreeQuestRow[] treeQuests;
         static DungeonRow[] dungeonList;
         static AttendanceRow[] attendance;
+        static DexRow[] dexRows;
+        static DexSetRow[] dexSets;
 
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
@@ -50,7 +52,7 @@ namespace MoreMush.Mobile
             EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
             EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰",
-            AttendanceSheet = "출석";
+            AttendanceSheet = "출석", DexSheet = "도감", DexSetSheet = "도감세트";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -84,6 +86,8 @@ namespace MoreMush.Mobile
             treeQuests = null;
             dungeonList = null;
             attendance = null;
+            dexRows = null;
+            dexSets = null;
         }
 
         // ── 읽기 ──
@@ -128,6 +132,8 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<HarvestSettingRow> HarvestSettings { get { Ensure(); return harvestSettings; } }
         public static IReadOnlyList<TreeQuestRow> TreeQuests { get { Ensure(); return treeQuests; } }
         public static IReadOnlyList<AttendanceRow> Attendance { get { Ensure(); return attendance; } }   // day 순서 (1일째부터)
+        public static IReadOnlyList<DexRow> DexRows { get { Ensure(); return dexRows; } }            // 종류·별 순서 (MushroomDex)
+        public static IReadOnlyList<DexSetRow> DexSets { get { Ensure(); return dexSets; } }
 
         // 장비 시트에서 그 종류의 장비를 저장 인덱스(itemIndex) 순서로
         public static EquipmentRow[] EquipmentOf(GachaKind kind)
@@ -260,6 +266,8 @@ namespace MoreMush.Mobile
             harvestSettings = ToArray(Read(new DataTable<HarvestSettingRow>(HarvestSheet, 14001, 14999), sheets, issues));
             treeQuests = ToArray(Read(new DataTable<TreeQuestRow>(TreeQuestSheet, 9901, 9999), sheets, issues));
             attendance = ToSorted(Read(new DataTable<AttendanceRow>(AttendanceSheet, 17001, 17999), sheets, issues), (a, b) => a.day.CompareTo(b.day));
+            dexRows = ToSorted(Read(new DataTable<DexRow>(DexSheet, 18001, 18099), sheets, issues), (a, b) => a.kind != b.kind ? a.kind.CompareTo(b.kind) : a.star.CompareTo(b.star));
+            dexSets = ToArray(Read(new DataTable<DexSetRow>(DexSetSheet, 18101, 18199), sheets, issues));
 
             foreach (var issue in issues)
                 if (!Ignorable(issue)) Debug.LogError("[GameBalance] " + issue);
@@ -286,8 +294,8 @@ namespace MoreMush.Mobile
                 throw new InvalidOperationException("[GameBalance] 업그레이드·꼬마·등급·뽑기·스테이지 시트 중 비어 있는 것이 있다");
             if (treeStages.Length == 0 || kidStars.Length == 0 || affinityLevels.Length == 0 || decoGrades.Length == 0)
                 throw new InvalidOperationException("[GameBalance] 세계수·꼬마진화·호감도·장식등급 시트 중 비어 있는 것이 있다");
-            if (equipment.Length == 0 || gachaProducts.Length == 0 || idleBattle == null || attendance.Length == 0)
-                throw new InvalidOperationException("[GameBalance] 장비·뽑기상품·방치전투·출석 시트 중 비어 있는 것이 있다");
+            if (equipment.Length == 0 || gachaProducts.Length == 0 || idleBattle == null || attendance.Length == 0 || dexRows.Length == 0)
+                throw new InvalidOperationException("[GameBalance] 장비·뽑기상품·방치전투·출석·도감 시트 중 비어 있는 것이 있다");
             loaded = true;
         }
 
@@ -562,6 +570,26 @@ namespace MoreMush.Mobile
         public AttendanceRewardKind kind;   // Gold = 적 처치 골드 × amount · Mycelite = amount개 · Weapon = equipId 무기
         public long amount;
         public int equipId;                 // Weapon일 때 장비.index
+    }
+
+    // 도감: 버섯 무리 하나 (종류 × 별). 보스를 잡을 때 unlockStage가 지났으면 dropChance로 아직 없는 종 1개를 얻는다 (MushroomDex)
+    public class DexRow : TableRow
+    {
+        public MushroomKind kind;
+        public int star;           // 1~5
+        public int count;          // 종 수 = 그림 시트 조각 "시트이름_0" ~ "_count-1"
+        public int resourceId;     // 그림 시트 (리소스.index)
+        public int unlockStage;
+        public double dropChance;  // 보스 하나당 0~1
+    }
+
+    // 도감세트: 도감 무리(kind·star)를 다 모으면 stat이 value% 오른다. 한 무리에 여러 행을 둘 수 있다
+    public class DexSetRow : TableRow
+    {
+        public MushroomKind kind;
+        public int star;
+        public DexStat stat;
+        public double value;       // %. Attack·Hp·HpRegen은 장비 보유 효과 %에 더하고, Speed는 최종 공격 속도에 곱한다
     }
 
     // 수확전투: 던전 수확 판의 수치 하나. scope(RoundBase·HarvestField·Harvester·Cluster·Single·Bar·FieldInput)의 field에 value를 넣는다 (HarvestTuning)

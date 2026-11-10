@@ -292,14 +292,18 @@ namespace MoreMush.Mobile
             return d.multiply ? d.baseValue * (1 + d.perLevel * lv) : d.baseValue + d.perLevel * lv;
         }
 
-        // 보유 효과까지 더한 실제 값: 무기 → 공격력 %, 방어구 → 체력·체력 재생 %
-        public static double AttackMultiplier => 1 + GachaProgress.OwnPercent(GachaKind.Weapon) / 100.0;
-        public static double HpMultiplier => 1 + GachaProgress.OwnPercent(GachaKind.Accessory) / 100.0;
+        // 보유 효과까지 더한 실제 값: 무기 → 공격력 %, 방어구 → 체력·체력 재생 %.
+        // 도감 세트(MushroomDex)의 공격력·체력·체력 재생 %는 장비 보유 효과 %에 더한다 (보유 효과와 같은 자리)
+        public static double AttackMultiplier => 1 + (GachaProgress.OwnPercent(GachaKind.Weapon) + MushroomDex.Percent(DexStat.Attack)) / 100.0;
+        public static double HpMultiplier => 1 + (GachaProgress.OwnPercent(GachaKind.Accessory) + MushroomDex.Percent(DexStat.Hp)) / 100.0;
+        public static double HpRegenMultiplier => 1 + (GachaProgress.OwnPercent(GachaKind.Accessory) + MushroomDex.Percent(DexStat.HpRegen)) / 100.0;
+        // 도감 독성 세트: 공격 속도 % (속도는 보유 효과 자리가 없어 따로 곱한다)
+        public static double SpeedMultiplier => 1 + MushroomDex.Percent(DexStat.Speed) / 100.0;
         // 세계수 효과(가호·꼬마 특기·장식)도 여기서 곱한다 (WorldTree.Bonus)
         public static double FinalAttack => Value(IdleStat.Attack) * AttackMultiplier * Value(IdleStat.AdvancedAttack) * WorldTree.Mul(TreeEffect.Attack);
         public static double FinalHp => Value(IdleStat.Hp) * HpMultiplier * WorldTree.Mul(TreeEffect.Hp);
-        public static double FinalHpRegen => Value(IdleStat.HpRegen) * HpMultiplier * WorldTree.Mul(TreeEffect.Hp);
-        public static double FinalSpeed => Value(IdleStat.Speed) * WorldTree.Mul(TreeEffect.Speed);
+        public static double FinalHpRegen => Value(IdleStat.HpRegen) * HpRegenMultiplier * WorldTree.Mul(TreeEffect.Hp);
+        public static double FinalSpeed => Value(IdleStat.Speed) * SpeedMultiplier * WorldTree.Mul(TreeEffect.Speed);
         public static double FinalCritChance => System.Math.Min(1, Value(IdleStat.CritChance) + WorldTree.Bonus(TreeEffect.CritChance));
         public static double FinalCritDamage => Value(IdleStat.CritDamage) + WorldTree.Bonus(TreeEffect.CritDamage);
 

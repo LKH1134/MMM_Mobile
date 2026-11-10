@@ -504,6 +504,7 @@ namespace MoreMush.Mobile
                 Wallet.Add(Currency.Mycelite, mycelite);
                 IdleAway.AddMycelite(mycelite);
                 IdleAway.AddStage();
+                ShowDexDrops(e.rt.position);     // 도감 버섯 (잡은 스테이지 기준으로 굴린다)
                 partyHp = partyMaxHp;
                 stage++;
                 IdleProgress.Stage = stage;
@@ -513,6 +514,20 @@ namespace MoreMush.Mobile
                 nextWaveIn = waveDelay * 2f;
             }
             RefreshHud();
+        }
+
+        // 보스를 잡으면 도감 버섯을 굴리고, 얻은 버섯·완성한 세트를 보스 자리 위에 띄운다
+        void ShowDexDrops(Vector3 at)
+        {
+            var drops = MushroomDex.RollBossDrop(stage);
+            float step = enemyArea.rect.height * 0.08f * enemyArea.lossyScale.y;
+            for (int i = 0; i < drops.Count; i++)
+            {
+                var d = drops[i];
+                string label = MushroomDex.GroupLabel(d.group);
+                ShowText(at + Vector3.up * step * (i + 1), d.completedSet ? Loc.F("dex.set_done", label) : Loc.F("dex.drop", label),
+                    d.completedSet ? new Color(1f, 0.6f, 0.9f) : new Color(0.6f, 1f, 0.6f), d.completedSet ? 44f : 36f, d.completedSet ? 2.4f : 1.6f);
+            }
         }
 
         // ── 꼬마 무리 체력: 적 공격·재생·패배 ──

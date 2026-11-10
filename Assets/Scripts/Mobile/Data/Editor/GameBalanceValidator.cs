@@ -38,6 +38,8 @@ namespace MoreMush.Mobile.EditorTools
             { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int flightTime:double waveDelay:double enemyAttackDelay:double" },
             { "수확전투", "index:int key:string dungeon:int scope:string field:string dataType:string value:double" },
             { "출석", "index:int key:string day:int kind:AttendanceRewardKind amount:long equipId:int" },
+            { "도감", "index:int key:string kind:MushroomKind star:int count:int resourceId:int unlockStage:int dropChance:double" },
+            { "도감세트", "index:int key:string kind:MushroomKind star:int stat:DexStat value:double" },
         };
 
         // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
@@ -127,7 +129,7 @@ namespace MoreMush.Mobile.EditorTools
                 }
             }
 
-            foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드", "세계수", "장식", "장비" })
+            foreach (string name in new[] { "적", "보스", "꼬마", "업그레이드", "세계수", "장식", "장비", "도감" })
                 foreach (var r in tables[name]) Reference(r, "resourceId", resources, issues);
 
             // 보스 그림 조각: resourceId 시트에 "시트이름_cell" 조각이 있어야 한다. 같은 조각을 두 보스가 쓰면 안 된다
@@ -211,6 +213,7 @@ namespace MoreMush.Mobile.EditorTools
             ValidateWorldTree(tables, enemies, issues);
             ValidateImplementedDefinitions(tables, issues);
             ValidateAttendance(tables["출석"], tables["장비"], issues);
+            ValidateDex(tables["도감"], tables["도감세트"], resources, issues, checkAssets);
             return count;
         }
 
@@ -458,6 +461,40 @@ namespace MoreMush.Mobile.EditorTools
             }
         }
 
+        // 도감: 종류 × 별(1~5)은 한 행씩, 종 수는 저장 비트(int) 안, 그림 시트에 "시트이름_0" ~ "_count-1" 조각이 있어야 한다.
+        // 도감세트: 도감에 있는 무리를 가리키고, 같은 무리·능력치는 한 행, 값은 양수
+        static void ValidateDex(List<Row> rows, List<Row> sets, Dictionary<int, Row> resources, List<string> issues, bool checkAssets)
+        {
+            if (rows.Count == 0) { issues.Add("[도감] 행이 없다"); return; }
+            var groups = new HashSet<string>();
+            foreach (var r in rows)
+            {
+                Between(r, "star", 1, MushroomDex.MaxStar, issues);
+                Between(r, "count", 1, MushroomDex.MaxPerGroup, issues);
+                Between(r, "unlockStage", 1, int.MaxValue, issues);
+                Between(r, "dropChance", 0, 1, issues);
+                if (!groups.Add(r.Text("kind") + "_" + r.Int("star"))) issues.Add(r.At("star") + ": 같은 종류·별 행이 겹친다");
+                if (checkAssets && resources.TryGetValue(r.Int("resourceId"), out var res))
+                {
+                    string path = res.Text("path");
+                    string sheet = path.Substring(path.LastIndexOf('/') + 1);
+                    var cells = new HashSet<string>(Resources.LoadAll<Sprite>(path).Select(sp => sp.name));
+                    for (int i = 0; i < r.Int("count"); i++)
+                        if (!cells.Contains(sheet + "_" + i)) { issues.Add(r.At("count") + $": '{path}'에 조각 '{sheet}_{i}'이 없다"); break; }
+                }
+            }
+            foreach (MushroomKind kind in Enum.GetValues(typeof(MushroomKind)))
+                if (!rows.Any(r => r.Text("kind") == kind.ToString())) issues.Add($"[도감] {kind} 행이 없다");
+            var effects = new HashSet<string>();
+            foreach (var r in sets)
+            {
+                Positive(r, "value", issues);
+                string group = r.Text("kind") + "_" + r.Int("star");
+                if (!groups.Contains(group)) issues.Add(r.At("star") + $": 도감 시트에 {r.Text("kind")} ★{r.Int("star")} 행이 없다");
+                if (!effects.Add(group + "_" + r.Text("stat"))) issues.Add(r.At("stat") + ": 같은 무리·능력치 행이 겹친다");
+            }
+        }
+
         // checkAssets = false: Unity 밖(밸런스 시뮬)에서 부를 때. 빌드 설정은 에디터 안에서만 읽을 수 있어 씬 검사를 건너뛴다
         static void ValidateDungeons(List<Row> rows, List<string> issues, bool checkAssets)
         {
@@ -613,6 +650,8 @@ namespace MoreMush.Mobile.EditorTools
             if (type == "TreeZone") return Enum.TryParse<TreeZone>(raw, out var zone) && Enum.IsDefined(typeof(TreeZone), zone);
             if (type == "GachaKind") return Enum.TryParse<GachaKind>(raw, out var kind) && Enum.IsDefined(typeof(GachaKind), kind);
             if (type == "EquipStat") return Enum.TryParse<EquipStat>(raw, out var equip) && Enum.IsDefined(typeof(EquipStat), equip);
+            if (type == "MushroomKind") return Enum.TryParse<MushroomKind>(raw, out var mush) && Enum.IsDefined(typeof(MushroomKind), mush);
+            if (type == "DexStat") return Enum.TryParse<DexStat>(raw, out var dexStat) && Enum.IsDefined(typeof(DexStat), dexStat);
             if (type == "AttendanceRewardKind") return Enum.TryParse<AttendanceRewardKind>(raw, out var reward) && Enum.IsDefined(typeof(AttendanceRewardKind), reward);
             if (type == "bool") return bool.TryParse(raw, out _) || raw == "0" || raw == "1";
             if (!double.TryParse(raw, NumberStyles.Float, Inv, out double d) || double.IsNaN(d) || double.IsInfinity(d)) return false;
