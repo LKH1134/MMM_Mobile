@@ -26,6 +26,7 @@ namespace MoreMush.Mobile
         static QuestRow[] quests;
         static GuideRow[] guides;
         static GuideLoopRow[] guideLoops;
+        static RouletteRow[] rouletteSlices;
         static EnemyRow[] enemies;
         static Dictionary<int, BossRow> bosses;
         static HashSet<string> bossSpriteNames;
@@ -48,7 +49,7 @@ namespace MoreMush.Mobile
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트", GuideSheet = "가이드", GuideLoopSheet = "가이드반복",
             EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
-            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰";
+            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", RouletteSheet = "룰렛", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -120,6 +121,7 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<AffinityRow> AffinityLevels { get { Ensure(); return affinityLevels; } }
         public static IReadOnlyList<DecoRow> Decos { get { Ensure(); return decos; } }
         public static IReadOnlyList<DecoGradeRow> DecoGrades { get { Ensure(); return decoGrades; } }
+        public static IReadOnlyList<RouletteRow> RouletteSlices { get { Ensure(); return rouletteSlices; } }
         public static IReadOnlyList<GachaProductRow> GachaProducts { get { Ensure(); return gachaProducts; } }
         public static IdleBattleRow IdleBattle { get { Ensure(); return idleBattle; } }
         public static IReadOnlyList<HarvestSettingRow> HarvestSettings { get { Ensure(); return harvestSettings; } }
@@ -251,6 +253,7 @@ namespace MoreMush.Mobile
             decoGrades = ToSorted(Read(new DataTable<DecoGradeRow>(DecoGradeSheet, 9801, 9899), sheets, issues), (a, b) => a.grade.CompareTo(b.grade));
             equipment = ToArray(Read(new DataTable<EquipmentRow>(EquipmentSheet, 11001, 11999), sheets, issues));
             gachaProducts = ToArray(Read(new DataTable<GachaProductRow>(GachaProductSheet, 12001, 12999), sheets, issues));
+            rouletteSlices = ToArray(Read(new DataTable<RouletteRow>(RouletteSheet, 18001, 18099), sheets, issues));
             var battleRows = Read(new DataTable<IdleBattleRow>(IdleBattleSheet, 13001, 13999), sheets, issues);
             idleBattle = battleRows.Count > 0 ? battleRows[0] : null;
             harvestSettings = ToArray(Read(new DataTable<HarvestSettingRow>(HarvestSheet, 14001, 14999), sheets, issues));
@@ -408,6 +411,14 @@ namespace MoreMush.Mobile
         public double baseTarget, perStage, perLevel;
         public int step;           // 목표 수를 이 단위로 맞춘다 (1 = 그대로)
         public int mycelite;
+    }
+
+    // 룰렛: 원판 한 칸 (행 순서 = 원판 시계 방향 0번부터). kind = Gold(지금 스테이지 적 1마리 골드 × amount) / Mycelite(amount개). weight = 나올 비중
+    public class RouletteRow : TableRow
+    {
+        public string kind;
+        public long amount;
+        public int weight;
     }
 
     // 던전: 던전 번호별 해금 조건

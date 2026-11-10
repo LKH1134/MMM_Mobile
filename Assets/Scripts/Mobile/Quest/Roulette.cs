@@ -13,12 +13,14 @@ namespace MoreMush.Mobile
     // 저장: PlayerPrefs "Roulette.Day"(마지막으로 돌린 한국 날짜) · "Roulette.Used"(그날 돌린 수) · "Roulette.Last"(마지막으로 돌린 시각, 틱) · "Roulette.Pending"(대기 보상 칸 번호, 없으면 -1)
     public static class Roulette
     {
-        public const int PerDay = 3;
-        public const double CooldownSeconds = 300.0;     // 5분
         public const int SliceCount = 6;
 
+        // 하루 횟수·대기 시간·칸별 보상은 GameBalance 표(상수 rouletteDailyCount·rouletteCooldownMinutes, 룰렛 시트)에서 읽는다
+        public static int PerDay => Math.Max(1, GameBalance.ConstInt("rouletteDailyCount"));
+        public static double CooldownSeconds => Math.Max(0.0, GameBalance.Const("rouletteCooldownMinutes")) * 60.0;
+
         // 칸의 보상. 골드는 "지금 스테이지 적 1마리 골드 × amount(마리)", 균사석은 amount개.
-        // weight = 나올 비중(합 100). 칸은 원판에서 시계 방향으로 0번(맨 위)부터. 수치는 임시값 — 균사석은 뽑기 11회 = 100, 광고 상자 = 90 기준
+        // weight = 나올 비중(상대값). 칸은 원판에서 시계 방향으로 0번(맨 위)부터 (표의 행 순서)
         public readonly struct Slice
         {
             public readonly RouletteKind kind;
@@ -27,15 +29,23 @@ namespace MoreMush.Mobile
             public Slice(RouletteKind kind, long amount, int weight) { this.kind = kind; this.amount = amount; this.weight = weight; }
         }
 
-        public static readonly Slice[] Slices =
+        static Slice[] slices;
+        public static Slice[] Slices => slices ??= Load();
+
+        static Slice[] Load()
         {
-            new Slice(RouletteKind.Gold, 1000, 26),
-            new Slice(RouletteKind.Mycelite, 30, 22),
-            new Slice(RouletteKind.Gold, 2000, 20),
-            new Slice(RouletteKind.Mycelite, 50, 16),
-            new Slice(RouletteKind.Gold, 4000, 10),
-            new Slice(RouletteKind.Mycelite, 100, 6),
-        };
+            var rows = GameBalance.RouletteSlices;
+            var list = new Slice[rows.Count];
+            for (int i = 0; i < list.Length; i++)
+            {
+                Enum.TryParse(rows[i].kind, true, out RouletteKind kind);
+                list[i] = new Slice(kind, rows[i].amount, Math.Max(1, rows[i].weight));
+            }
+            return list;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() { slices = null; Changed = null; }
 
         const string DayKey = "Roulette.Day", UsedKey = "Roulette.Used", LastKey = "Roulette.Last", PendingKey = "Roulette.Pending";
 
