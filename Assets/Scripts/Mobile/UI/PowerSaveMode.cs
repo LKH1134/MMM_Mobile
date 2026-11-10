@@ -97,7 +97,7 @@ namespace MoreMush.Mobile
         {
             nextRefresh = Time.unscaledTime + RefreshEvery;
             goldText.text = "+" + Wallet.Format(System.Math.Max(0, Wallet.Gold - startGold));
-            stageText.text = Loc.F("hud.stage", IdleProgress.Stage);
+            stageText.text = IdleBattle.HudStageLabel(IdleProgress.Stage);
         }
     }
 }

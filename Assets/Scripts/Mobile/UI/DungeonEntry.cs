@@ -161,7 +161,7 @@ namespace MoreMush.Mobile
         string UnlockMessage()
         {
             int stage = DungeonTickets.UnlockStage(dungeon);
-            return stage < 0 ? Loc.T("dungeon.locked") : Loc.F("dungeon.unlock_at_stage", stage);
+            return stage < 0 ? Loc.T("dungeon.locked") : Loc.F("dungeon.unlock_at_stage", IdleBattle.HudStageNumber(stage));
         }
     }
 }

@@ -154,7 +154,7 @@ namespace MoreMush.Mobile
             // 방치 진행
             TreeUi.Header(list, "방치 전투", font);
             var stage = Row(150f);
-            Live(TreeUi.Line(stage, "", 32f, TreeUi.Ink, font, 24f, 24f, 0.55f, 0.95f), () => $"방치 스테이지 {IdleProgress.Stage}");
+            Live(TreeUi.Line(stage, "", 32f, TreeUi.Ink, font, 24f, 24f, 0.55f, 0.95f), () => $"방치 스테이지 {IdleBattle.HudStageNumber(IdleProgress.Stage)} ({IdleProgress.Stage})");
             Buttons(stage, ("−10", () => IdleProgress.Stage -= 10), ("−1", () => IdleProgress.Stage -= 1), ("+1", () => IdleProgress.Stage += 1),
                            ("+10", () => IdleProgress.Stage += 10), ("+100", () => IdleProgress.Stage += 100),
                            ("=입력", () => { if (TryInput(out long v)) IdleProgress.Stage = (int)Math.Min(v, int.MaxValue); }));

@@ -504,7 +504,7 @@ namespace MoreMush.Mobile
                 partyHp = partyMaxHp;
                 stage++;
                 IdleProgress.Stage = stage;
-                ShowText(Center(), Loc.F("hud.stage", stage), Color.white, 72f, 1.4f);
+                ShowText(Center(), HudStageLabel(stage), Color.white, 72f, 1.4f);
                 wave = 0;
                 nextWaveIn = waveDelay * 2f;
             }
@@ -929,8 +929,7 @@ namespace MoreMush.Mobile
 
         static string StageLabel(int stage)
         {
-            int s = Mathf.Max(1, stage) - 1;
-            return Loc.F("battle.stage_banner", $"{s / StagesPerChapter + 1}-{s % StagesPerChapter + 1}");
+            return Loc.F("battle.stage_banner", HudStageNumber(stage));
         }
 
         // 진행 막대에 웨이브 사이 눈금을 (waves - 1)개 둔다

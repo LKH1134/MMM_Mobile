@@ -16,7 +16,7 @@ namespace MoreMush.Mobile
 
         public static string HudStageLabel(int stage) => Loc.F("hud.stage", HudStageNumber(stage));
 
-        // "7-7" (챕터-칸) 표기
+        // 방치 스테이지 표기는 모두 이것으로: "7-7" (챕터-칸). 스테이지 번호 s → ((s-1)/챕터당 스테이지 + 1)-((s-1)%챕터당 스테이지 + 1). 예: 5 → 1-5, 11 → 2-1
         public static string HudStageNumber(int stage)
         {
             int s = Mathf.Max(1, stage) - 1;
