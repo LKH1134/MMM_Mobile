@@ -29,6 +29,35 @@ namespace MoreMush.Mobile
         // 다음 한국 00시까지 남은 시간
         public static TimeSpan UntilReset => KstNow.Date.AddDays(1) - KstNow;
 
+        // 이번 주(한국 월요일 00시 시작) 첫날 yyyyMMdd — 주간 퀘스트·세계수 주간 부탁
+        public static string ThisWeek
+        {
+            get
+            {
+                var now = KstNow.Date;
+                return now.AddDays(-(((int)now.DayOfWeek + 6) % 7)).ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture);
+            }
+        }
+
+        // 저장된 주(월요일 yyyyMMdd)보다 이번 주가 뒤면 새 주. 저장값이 크게 앞서 있으면 틀린 시계였던 것으로 본다 (IsNewDay와 같은 규칙)
+        public static bool IsNewWeek(string storedWeek)
+        {
+            if (!DateTime.TryParseExact(storedWeek, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var stored)) return true;
+            var monday = DateTime.ParseExact(ThisWeek, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture);
+            return monday > stored || stored - KstNow.Date > IdleAway.MaxClockSkew;
+        }
+
+        // 다음 월요일 한국 00시까지 남은 시간
+        public static TimeSpan UntilWeekReset
+        {
+            get
+            {
+                var now = KstNow;
+                return now.Date.AddDays(7 - ((int)now.DayOfWeek + 6) % 7) - now;
+            }
+        }
+
         static string DayKey(int dungeon) => $"Dungeon.{dungeon}.Day";
         static string UsedKey(int dungeon) => $"Dungeon.{dungeon}.Used";
 

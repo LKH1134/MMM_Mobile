@@ -80,7 +80,7 @@ namespace MoreMush.Mobile
 
         public static string EnemyName(int index) => Enemy(index)?.Name ?? index.ToString();
 
-        // 적 아이콘 (창고·의뢰). 군락 시트면 보스로 쓰지 않는 첫 조각 (보스 조각은 일반 적 그림으로 쓰지 않는다)
+        // 적 아이콘 (창고·부탁). 군락 시트면 보스로 쓰지 않는 첫 조각 (보스 조각은 일반 적 그림으로 쓰지 않는다)
         static readonly Dictionary<int, Sprite> enemySprites = new Dictionary<int, Sprite>();   // 1초마다 칸마다 불린다 — 시트 전체 LoadAll을 한 번만
 
         public static Sprite EnemySprite(int index)
@@ -153,7 +153,6 @@ namespace MoreMush.Mobile
                 enemyBySprite[spriteName] = enemy;     // 조각 이름도 적어 둔다 — 처치마다 문자열을 자르지 않게 (-1 = 세계수 적 아님)
             }
             if (enemy < 0) return;
-            QuestKill(enemy);
             double amount = GameBalance.Const("treeHarvestPerKill") * (1 + Bonus(TreeEffect.Harvest));
             long n = (long)Math.Floor(amount);
             if (UnityEngine.Random.value < amount - n) n++;
@@ -196,6 +195,14 @@ namespace MoreMush.Mobile
             D.exp += exp;
             Notify(true);
             return exp;
+        }
+
+        // 메인 퀘스트(DailyQuests) 보상으로 세계수 경험치를 받는다. 마지막 단계에서도 쌓인다 (예전 세계수 의뢰와 같음)
+        public static void AddQuestExp(long exp)
+        {
+            if (exp <= 0) return;
+            D.exp += exp;
+            Notify(true);
         }
     }
 }

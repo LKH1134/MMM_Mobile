@@ -530,6 +530,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20127d31144ba2c4c8dd637591946a76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.QuestScreenView
+  titleText: {fileID: 2922473167515037350}
   resetText: {fileID: 4535851051676031021}
   grid: {fileID: 5054254586016050183}
   cardTemplate: {fileID: 411727273670673110}
@@ -541,9 +542,13 @@ MonoBehaviour:
   upgradeIcon: UI/Icon/upgrade
   gachaIcon: UI/Icon/roulette
   adIcon: UI/Icon/advertisement
+  dungeonIcon: UI/Icon/dungeon
+  dailyIcon: UI/Icon/calendar
   claimSprite: UI/UI_Btn_Green
   doneSprite: UI/UI_Btn_Grey
   barFillSprite: UI/UI_PP_Bar_Gauge_Green
+  tabOnSprite: UI/UI_Btn_Green
+  tabOffSprite: UI/UI_Btn_Beige
 --- !u!1 &1925499884769543909
 GameObject:
   m_ObjectHideFlags: 0

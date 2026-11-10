@@ -173,8 +173,8 @@ namespace MoreMush.Mobile
                 DungeonMycelite = reward.mycelite;
                 StageProgress.Complete(Stats.BossRound, StageCleared, Score, Gold);
                 GuideQuests.Report(GuideKind.Dungeon);
-                try { WorldTree.QuestDungeon(); }
-                catch (System.Exception e) { Debug.LogException(e); }   // 세계수 의뢰가 실패해도 결과 창은 뜨게
+                try { DailyQuests.Add(QuestKind.Dungeon); }
+                catch (System.Exception e) { Debug.LogException(e); }   // 퀘스트 진행이 실패해도 결과 창은 뜨게
             }
             try { GameOver?.Invoke(TotalGold); }
             catch (System.Exception e) { Debug.LogException(e); }

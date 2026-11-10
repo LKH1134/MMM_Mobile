@@ -222,7 +222,7 @@ namespace MoreMush.Mobile
             }
             if (rush && cleared) DungeonTickets.LevelUp(d);
             GuideQuests.Report(GuideKind.Dungeon);
-            try { WorldTree.QuestDungeon(); }
+            try { DailyQuests.Add(QuestKind.Dungeon); }
             catch (System.Exception e) { Debug.LogException(e); }
 
             foreach (var e in enemies) if (!e.dead) Kill(e, false);

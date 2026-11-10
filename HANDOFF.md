@@ -1,5 +1,7 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
+> **2026-11-10 (LKH) 세계수 의뢰 → 메인 퀘스트 + 주간 퀘스트 (커밋 전):** 세계수 화면의 **의뢰(일일·주간)를 없애고** 메인 퀘스트(`DailyQuests`·`QuestScreenView`)로 합쳤다. 퀘스트 시트에 `period`(daily/weekly)·`treeExp`(세계수 경험치) 열과 **주간 4행**(9211 일일 퀘스트 25개 · 9212 보스 도전 350 · 9213 처치 40,000 · 9214 던전 10판)을 더했고, 종류에 `dungeon`(던전 한 판, `HarvestGame`·방치 던전 끝)·`daily`(일일 받은 수, 주간만)를 더했다. 세계수 경험치는 예전 의뢰와 같은 합으로 맞춤: 일일 5행 × 600 = 하루 3,000, 주간 3,500+2,500+2,500+1,500 = 10,000. 주간 골드·균사석(goldKills 10,000/5,000, 균사석 100/50/50/50)은 **임시값**. `의뢰` 시트·상수 `treeQuestDaily`·`WorldTree.Quests.cs`·`TreeQuestPanel.cs`·`QuestPopup` 프리팹·세계수 씬 Quest 버튼 삭제, 지정 버섯(species) 의뢰는 없앰. 주간 초기화 = 월요일 한국 00시(`DungeonTickets.ThisWeek`·`IsNewWeek`·`UntilWeekReset`, 일일과 같은 '뒤의 날만' 규칙). 저장: 일일은 예전 키 그대로(`Quest.Day`·`Quest.<일일 순번>.P/.C`), 주간 `QuestW.Week`·`QuestW.<행 index>.P/.C`. 옛 세계수 의뢰 진행(`WorldTree.Save` JSON의 quest* 필드)은 읽지 않고 다음 저장 때 빠진다 — 받지 않은 의뢰 보상은 사라짐. 퀘스트 창: 하단 주간/일일 버튼이 탭(고른 탭 초록·흰 글자), 제목 메모 일일 의뢰/주간 의뢰, 주간은 "초기화까지 n일 hh:mm:ss", 보상 줄 둘째 줄에 세계수 경험치, 일괄 수령·빨간 점은 일일+주간. 도구 `밸런스설계/tools/merge_tree_quests.py`·`add_weekly_quest_strings.py`. 컴파일·Reimport Tables 경고 없음, 플레이 모드 확인(일일 저장 유지·주간 탭·주간 수령 → 세계수 경험치 +1,500·두 번 수령 안 됨·세계수 화면 버튼 없음). 남은 일 9장 "2026-11-10 남은 일 (퀘스트 합침)".
+
 > **2026-11-10 (LKH) 도감 세트 보너스:** 버섯 도감에 **수집·세트 보너스**를 붙였다. 방치 전투 보스를 잡을 때마다 열린 무리(종류 × ★1~5)마다 확률로 **아직 없는 버섯 1종**을 얻고(별이 높을수록 늦게 열림: ★1 s1 · ★2 s40 · ★3 s120 · ★4 s240 · ★5 s360), 한 무리를 다 모으면 세트 효과 — **식용 = 공격력 %, 약용 = 체력·체력 재생 %(장비 보유 효과 %에 더함), 독성 = 공격 속도 %(최종 속도에 곱함)**. ★5 식용·약용 = 전설 무기·방어구 1레벨 보유 효과(2187.5%·1250%). 표 `도감`(18001~18015)·`도감세트`(18101~18120), 코드 `MushroomDex.cs`, 도감 화면 세트 보너스 버튼 = 세트 진행·효과 목록. 수치·시기 근거 [밸런스설계/도감세트.md](밸런스설계/도감세트.md). **시뮬은 아직 도감을 모름 — 진행 영향 실측 전**(9장 "2026-11-10 남은 일").
 
 > **2026-11-09 (main, LKH·KHD):** 던전(벽돌깨기) 화면을 Main과 맞춤(`3ba8a59`, 배경·TopBar·장착 무기 그림·군락 그림 `BattleLooks`) → 수확 완료 팝업 폴리싱·군락 버섯 가림 수정·설정 창 광고 개인정보 글자 배치 → KHD: 화면 비율 대응(`SafeAreaDock`)·폰트 굽기 최적화(아틀라스 약 33%↓) → **영어 번역**(`4fbf3b0`, 문자열 표 `String.xlsx`·`Loc`·`LocalizedText`, 기기 언어 자동 선택) · **광고 상자 개편**(두 자리 배회, 골드 **또는** 균사석 50:50 한 가지) · 골드 던전 보상 20000→10000 → **해금 팝업**(`6c206b6`, `Unlock/` — 하단 탭 잠금·"새로운 콘텐츠!" 안내·탭 가리키기) → 의뢰 **일괄 수령** 버튼(세계수·메인)·확인 창 게임 UI 톤·편성 중 꼬마 카드 덮개(`2a205ca`). main에 머지(`16cbebc`) — **푸시 안 함**. KHD에 **머지 안 한 커밋 2개**(`50f354c` 코드 UI 캔버스화 64파일, `a1590aa` 출석 팝업 수정, main과 충돌 없음 확인). 커밋 표는 2장, 남은 일은 **9장 "2026-11-09 남은 일"**.
@@ -62,7 +64,7 @@
 | 성능 벤치마크 (FPS·CPU·GPU·메모리) + Firebase Test Lab Game Loop | ✅ 2026-10-28 (8장) |
 | 데이터 초기화 | 🗑️ 10-30 설정 팝업에서 버튼 제거 (`DataResetButton` 스크립트만 남음) |
 | **세계수 (WorldTree 씬)** | ✅ 11-02 LKH. 성장·꼬마·공방·꾸미기 동작(플레이 모드 확인, 수확 보따리는 11-03 KHD `b28b237`에서 제거). 11-05 나무 그림 4장·장식 24종 새 그림, 수치는 표, 밸런스 v4(11-03 KHD 방치 v3 위에서 재검증 통과). 하단바 세계수 = `SceneButton`(WorldTree). 실기기·터치 확인 전. **전투 효과 크기(U1)는 사용자 결정 대기** (3.3) |
-| **세계수 의뢰 (일일·주간)** | ✅ 11-03 LKH. PC `Game.Quests` 기반, `QuestPopup`(의뢰 버튼)에 연결, 수치는 `의뢰` 시트(이론 v5 → 라운드 6 통과). 플레이 모드 확인, 실기기 전 (3.3) |
+| **세계수 의뢰 (일일·주간)** | 🗑️ 11-10 삭제 → 메인 퀘스트로 합침 (세계수 경험치 = 퀘스트 `treeExp`). 11-03 원래 구현 기록은 3.3 |
 | 표 ↔ 게임 연동 (장비·뽑기상품·방치전투·수확전투·수확등급·던전) | ✅ 11-02 LKH (6.0). 플레이 모드에서 값이 표대로 들어가는 것 확인 |
 | 지갑 (골드·균사석 저장, Main 재화 바 표시) | ✅ 동작 |
 | 스킬 가격 (배우기 때 차감) | ✅ 동작 |
@@ -70,7 +72,7 @@
 | 밸런스 측정기 `BalanceBot` | ✅ 헤드리스 캠페인·보스 반복 측정 |
 | **AdMob (구글 테스트 ID)** | ✅ 11-02 SDK(Google Mobile Ads Unity 11.6.0 + EDM 2.1.0)를 `origin/Admob`에서 가져와 연결. 앱 ID·리워드 단위 ID 모두 구글 공식 **테스트 ID** — **출시 전에 실제 ID로 교체** (`GoogleMobileAdsSettings.asset`, `Ads/AdService.cs`). 에디터·실기기 확인 전 |
 | **광고 상자** (`Ads/AdBox.cs`·`AdBoxPopup.cs`) | ✅ **11-09 개편: 전투 화면 위 빈 풀밭 두 자리(왼쪽 의뢰 버튼 옆·오른쪽 전투력 옆)를 오가고, 보상은 나올 때 골드 또는 균사석 중 하나(50:50, 코드 `Random.value < 0.5`) — 아래 "골드와 균사석" 설명은 옛 동작.** 11-06 실제 광고 ID로 교체(KHD `bd85376`). 실기기 확인 전. 홈 화면을 볼 때만 시간이 가고(`adBoxIntervalHours` 1시간), 왼쪽에서 상자가 날아와 `adBoxStaySeconds` 60초 머문다. 누르면 "광고 보기" 창 → 리워드 광고를 끝까지 보면 골드(스테이지 적 처치 골드 × `adBoxGoldKills`)와 균사석(고정 `adBoxMycelite` 90 — 11-05 상수화, 쓰지 않던 `adBoxMyceliteBosses`는 삭제). 놓치거나 보면 쿨타임 처음부터. 수치는 상수 시트(임시값). 상자 그림은 임시(`icon_chest`) |
-| **일일 퀘스트** (`Quest/DailyQuests.cs`·`DailyQuestPopup.cs`·`QuestButton.cs`) | ✅ 코드 완료, 에디터 확인 전. 전투 화면 왼쪽(배너 왼쪽) 퀘스트 버튼 → 팝업. 목록·목표·보상은 **퀘스트 시트**(kill/stage/upgrade/gacha/ad, 임시값): 보상 골드 = 지금 스테이지 적 처치 골드 × `goldKills`, 균사석 고정. 한국 00시 초기화. 진행도는 라이브 플레이만 센다(앱 밖 정산분 제외). 받을 보상이 있으면 버튼에 빨간 점. 버튼 그림은 임시(`quest` 아이콘) |
+| **일일·주간 퀘스트** (`Quest/DailyQuests.cs`·`UI/Main/QuestScreenView.cs`) | ✅ **11-10 주간 퀘스트 추가·세계수 의뢰 합침**(맨 위 요약): 퀘스트 시트 `period` daily/weekly, 보상에 `treeExp`, 종류 dungeon·daily 추가, 창 하단 주간/일일 탭. 아래는 처음 상태 — ✅ 코드 완료, 에디터 확인 전. 전투 화면 왼쪽(배너 왼쪽) 퀘스트 버튼 → 팝업. 목록·목표·보상은 **퀘스트 시트**(kill/stage/upgrade/gacha/ad, 임시값): 보상 골드 = 지금 스테이지 적 처치 골드 × `goldKills`, 균사석 고정. 한국 00시 초기화. 진행도는 라이브 플레이만 센다(앱 밖 정산분 제외). 받을 보상이 있으면 버튼에 빨간 점. 버튼 그림은 임시(`quest` 아이콘) |
 | 사운드 | 🟡 11-05 **BGM만**: 메인 BGM Glowing Woodland(`BgmPlayer`, `Resources/Audio/Bgm`, Start 다음 씬부터 반복·씬 전환에도 유지, 광고 중 `AudioListener.pause`), 모든 옵션 창 배경음 슬라이더 = BGM 음량(`BgmVolumeSlider`, `Option.BgmVolume`). **효과음은 없음**(SFX 슬라이더는 값만 저장) |
 | 개발자 모드 | ✅ 11-05 (`` ` `` 키, 에디터·Development Build만) — [HANDOFF_DEVMODE.md](HANDOFF_DEVMODE.md). 11-06 출시 빌드에서 컴파일 제외(`UNITY_EDITOR \|\| DEVELOPMENT_BUILD`, `bae4ea3`) |
 | 7일 출석 · 의뢰 일괄 수령 | ✅ 출석 11-06 KHD(2장). 11-09 세계수 의뢰 창 하단 탭 줄·메인 일일 의뢰 창 하단(주간/일일/일괄 수령)에 **일괄 수령**(일일 먼저, 받을 게 없으면 회색, `2a205ca`) |
@@ -348,7 +350,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 | `WorldTree.Craft.cs` | **공방:** 주인 꼬마를 가진 장식만 목록에 열림, 골드·균사석·시간(장식등급), 슬롯 수 = 단계 `craftSlots`, 다 되면 받아야 생김. 가속 = 남은 `craftRushSeconds`마다 균사석 1, 하루 `craftRushPerDay`번. **꾸미기:** 장식을 자기 자리(뿌리·줄기·가지·수관)에 놓음, 자리별 칸 수 = 단계 `rootSlots` 등. 놓은 장식만 효과. 처음 놓으면 균사석·주인 꼬마 호감도, 한 꼬마의 장식을 다 놓으면 세트 |
 | `WorldTree.Bonus.cs` | 효과 합계 = 가호 + 꼬마 특기 + 놓은 장식 (**캐시**, 세계수·꼬마 보유가 바뀔 때만 다시 셈). `Mul(effect)` = 1 + 합. **보따리:** 시간당 골드(지금 스테이지 적 처치 골드 × `bagKillsPerHour`)·균사석(`bagMycelitePerHour`)이 보관 시간(`bagCapHours` + BagHours 효과)까지 쌓임, 배율 = 나이테 + 꼬마 기여 + 보따리 효과. 비율이 바뀌는 행동 전에 `SettleBag`. long 넘침은 `ClampToLong` |
 | `WorldTree/UI/TreePanel.cs` 외 | 시트 팝업 껍데기(`GrowPopup` 등 프리팹)는 그대로 두고 **Content 안을 코드로 채움**: `TreeGrowPanel`(성장)·`TreeKidPanel`(꼬마·부탁)·`TreeCraftPanel`(공방)·`TreeDecoPanel`(꾸미기)·`TreeBagButton`(보따리 받기). `TreePanel`은 `Changed`에 다시 만들고 1초마다 남은 시간 글자만 갱신. 조각·색은 `TreeUi` |
-| `WorldTree.Quests.cs` · `UI/TreeQuestPanel.cs` | **의뢰 (11-03):** PC `Game.Quests` 기반. 일일 = `의뢰` 시트 daily 행에서 하루(KST) `treeQuestDaily`(3)개, 주간 = weekly 행 전부(월요일 KST 00시), 날짜는 '뒤의 날'만 새로 뽑음. 종류: `stage` 보스 도전(`IdleBattle.StartWave` 보스 등장, 메인 일일 퀘스트 Stage와 같은 지점) · `kill` 일반 적 처치·`species` 지정 적 처치(`AddHarvest` 안, 라이브만) · `dungeon` 던전 1 판 수(`HarvestGame.Finish`; 소탕은 11-05 삭제) · `daily` 일일 받은 수(주간). 보상 = 세계수 경험치. 의뢰마다 가진 꼬마 하나가 의뢰인. 패널은 프리팹 `QuestPopup`에 놓인 칸을 이름으로 채움(주간 카드 3 = 의뢰 완료 버튼, 일일 칸 = Desc 눌러 받기, 남는 칸 숨김). 저장은 `WorldTree.Save` 안 |
+| ~~`WorldTree.Quests.cs` · `UI/TreeQuestPanel.cs`~~ | **🗑️ 11-10 삭제 — 메인 퀘스트(`DailyQuests`)로 합침, 세계수 경험치는 퀘스트 `treeExp`. 아래는 기록용.** **의뢰 (11-03):** PC `Game.Quests` 기반. 일일 = `의뢰` 시트 daily 행에서 하루(KST) `treeQuestDaily`(3)개, 주간 = weekly 행 전부(월요일 KST 00시), 날짜는 '뒤의 날'만 새로 뽑음. 종류: `stage` 보스 도전(`IdleBattle.StartWave` 보스 등장, 메인 일일 퀘스트 Stage와 같은 지점) · `kill` 일반 적 처치·`species` 지정 적 처치(`AddHarvest` 안, 라이브만) · `dungeon` 던전 1 판 수(`HarvestGame.Finish`; 소탕은 11-05 삭제) · `daily` 일일 받은 수(주간). 보상 = 세계수 경험치. 의뢰마다 가진 꼬마 하나가 의뢰인. 패널은 프리팹 `QuestPopup`에 놓인 칸을 이름으로 채움(주간 카드 3 = 의뢰 완료 버튼, 일일 칸 = Desc 눌러 받기, 남는 칸 숨김). 저장은 `WorldTree.Save` 안 |
 | `UI/WorldTreeView.cs` | 단계별 나무 그림(세계수 시트 → 리소스 시트, `Resources/Art/Dream/Farm/Tree/Tree01~04` — 11-05 새 그림, 1 / 2~4 / 5~7 / 8단계가 공유, 옛 PC판 `tree_0~7` 삭제). 칸 크기 `stageSizes` 210→760px로 단계마다 커지고 땅(아래 변)은 고정. 놓은 장식을 자리별로 배치(`Farm/Props`, 11-05 새 그림 24종) |
 | `UI/WorldTreeScreen.cs` | 재화 글자·옵션·메뉴 버튼 → 시트 팝업(`PopupSlot`), 뒤로 = Main. 예전 바구니 코드는 지움(보따리가 대신함) |
 
@@ -708,6 +710,15 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 6. **실기기 확인:** 해금 팝업·잠긴 탭, 광고 상자 배회·실제 광고·UMP 동의, 던전 2~5, 영어 화면, 확인 창 새 디자인
 7. **스토어:** `moremustmush-0.1.0-2.aab`(버전 코드 2) Play Console 내부 테스트 업로드, 개인정보처리방침·데이터 보안 양식 (8장 "출시 준비")
 8. 1장 던전·광고 상자 줄 아래쪽 설명에 옛 값(해금 5/25/150/250/400, 골드+균사석 둘 다)이 남아 있음 — 새 줄 기준으로 읽을 것
+
+### 2026-11-10 남은 일 (퀘스트 합침)
+
+1. **주간 퀘스트 골드·균사석 확정:** 지금 임시값(주간 균사석 합 250 = 일일 한 주 2,625의 약 10%). 시뮬(`밸런스설계/test/sim`)에는 퀘스트 보상이 없으니 넣을지 idle-test로 결정
+2. **세계수 경험치 재검증(선택):** 합은 예전 의뢰와 같지만 메인 일일 목표가 의뢰보다 쉽다(처치 300 vs 4,000, 보스 3 vs 30) — 다 하는 사람 기준 8단계 약 40일은 그대로, 일부만 하는 사람은 빨라짐. 필요하면 worldtree-verify
+3. 세계수 화면에 "세계수 경험치는 퀘스트에서" 안내가 없다 — 성장 창 문구나 홈 퀘스트로 가는 버튼이 필요하면 추가
+4. 옛 세계수 의뢰에서 다 채우고 안 받은 보상은 옮기지 않았다(사라짐). 출시 전 데이터라 그대로 둠
+5. String.xlsx의 `treequest.*` 문구는 `treequest.in_progress`(꼬마 부탁 칸)만 쓰고 나머지는 안 쓴다 — 정리해도 됨
+6. 실기기: 주간 탭 버튼 터치·보상 둘째 줄 글자 크기(작음) 확인
 
 ### 2026-11-10 남은 일 (도감 세트 보너스)
 

@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     // 꾸미기 자리 (탭): 뿌리·줄기·가지·수관
     public enum TreeZone { Root, Trunk, Branch, Crown }
 
-    // 세계수: 성장(나이테·공물·가호)·꼬마(호감도·진화·부탁)·공방·꾸미기·의뢰(일일·주간). 수치는 GameBalance.xlsx 세계수 시트들에서 온다.
+    // 세계수: 성장(나이테·공물·가호)·꼬마(호감도·진화·부탁)·공방·꾸미기. 세계수 경험치 퀘스트 보상은 메인 퀘스트(DailyQuests treeExp)에서 온다. 수치는 GameBalance.xlsx 세계수 시트들에서 온다.
     // 저장은 PlayerPrefs("WorldTree.Save") JSON 하나. 자주 바뀌는 값(창고 버섯은 처치마다)은 메모리만 고치고
     // SaveScheduler가 저장할 때 JSON을 쓴다. 진화·제작처럼 드문 쓰기는 바로 저장한다.
     // PC MoreMustMush의 Game.Farm*.cs를 모바일 방치형에 맞게 옮겼다 (창고 버섯 = 방치 전투 처치, 꼬마 = 뽑기 꼬마. 수확 보따리는 앱 밖 보상과 겹쳐 11-03에 뺐다)
@@ -40,9 +40,7 @@ namespace MoreMush.Mobile
             public List<string> decosOwned = new List<string>();
             public List<string> decosPlaced = new List<string>();
             public List<string> decosFirstPlaced = new List<string>();
-            public string questDay = "", questWeek = "";
-            public List<Quest> questDaily = new List<Quest>();
-            public List<Quest> questWeekly = new List<Quest>();
+            // 11-10까지의 세계수 의뢰(questDay·questWeek·questDaily·questWeekly)는 메인 퀘스트로 옮겼다. 옛 세이브 JSON에 남은 그 필드는 JsonUtility가 무시한다
             public int enemyRev;        // 적 ID 개편 차수 (1 = 11-05 식용 10종 → 5등급)
         }
 
@@ -68,7 +66,6 @@ namespace MoreMush.Mobile
         {
             data = null;
             pending = false;
-            nextEnsureTicks = 0;
             bonusDirty = true;
             enemyBySprite = null;
             enemySprites.Clear();
@@ -130,8 +127,6 @@ namespace MoreMush.Mobile
             }
             data.store = merged;
             foreach (var r in data.requests) r.enemy = Map(r.enemy);
-            foreach (var q in data.questDaily) q.arg = Map(q.arg);
-            foreach (var q in data.questWeekly) q.arg = Map(q.arg);
             data.enemyRev = EnemyRev;
             pending = true;
         }
@@ -201,16 +196,11 @@ namespace MoreMush.Mobile
         static long NowTicks => GameClock.NowTicks;   // 시계를 되돌려도 제작·쿨타임이 뒤로 가지 않게
         static string Today => DungeonTickets.Today;
 
+        // 개수 글자 (창고 마리 수 등): 1,500처럼 쉼표 (Wallet.Format은 1.5a 같은 재화 단위)
+        public static string Count(long v) => v.ToString("#,0", System.Globalization.CultureInfo.InvariantCulture);
+
         // 이번 주(월요일 시작) 첫날
-        static string ThisWeek
-        {
-            get
-            {
-                var now = DungeonTickets.KstNow.Date;
-                int back = ((int)now.DayOfWeek + 6) % 7;
-                return now.AddDays(-back).ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture);
-            }
-        }
+        static string ThisWeek => DungeonTickets.ThisWeek;
 
         // ── 표 ──
         public static int MaxStage => GameBalance.TreeStages.Count;

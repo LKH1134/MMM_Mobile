@@ -40,7 +40,6 @@ namespace MoreMush.Mobile
         static GachaProductRow[] gachaProducts;
         static IdleBattleRow idleBattle;
         static HarvestSettingRow[] harvestSettings;
-        static TreeQuestRow[] treeQuests;
         static DungeonRow[] dungeonList;
         static AttendanceRow[] attendance;
         static DexRow[] dexRows;
@@ -51,7 +50,7 @@ namespace MoreMush.Mobile
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트", GuideSheet = "가이드", GuideLoopSheet = "가이드반복",
             EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
-            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰",
+            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투",
             AttendanceSheet = "출석", DexSheet = "도감", DexSetSheet = "도감세트";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -83,7 +82,6 @@ namespace MoreMush.Mobile
             gachaProducts = null;
             idleBattle = null;
             harvestSettings = null;
-            treeQuests = null;
             dungeonList = null;
             attendance = null;
             dexRows = null;
@@ -130,7 +128,6 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<GachaProductRow> GachaProducts { get { Ensure(); return gachaProducts; } }
         public static IdleBattleRow IdleBattle { get { Ensure(); return idleBattle; } }
         public static IReadOnlyList<HarvestSettingRow> HarvestSettings { get { Ensure(); return harvestSettings; } }
-        public static IReadOnlyList<TreeQuestRow> TreeQuests { get { Ensure(); return treeQuests; } }
         public static IReadOnlyList<AttendanceRow> Attendance { get { Ensure(); return attendance; } }   // day 순서 (1일째부터)
         public static IReadOnlyList<DexRow> DexRows { get { Ensure(); return dexRows; } }            // 종류·별 순서 (MushroomDex)
         public static IReadOnlyList<DexSetRow> DexSets { get { Ensure(); return dexSets; } }
@@ -264,7 +261,6 @@ namespace MoreMush.Mobile
             var battleRows = Read(new DataTable<IdleBattleRow>(IdleBattleSheet, 13001, 13999), sheets, issues);
             idleBattle = battleRows.Count > 0 ? battleRows[0] : null;
             harvestSettings = ToArray(Read(new DataTable<HarvestSettingRow>(HarvestSheet, 14001, 14999), sheets, issues));
-            treeQuests = ToArray(Read(new DataTable<TreeQuestRow>(TreeQuestSheet, 9901, 9999), sheets, issues));
             attendance = ToSorted(Read(new DataTable<AttendanceRow>(AttendanceSheet, 17001, 17999), sheets, issues), (a, b) => a.day.CompareTo(b.day));
             dexRows = ToSorted(Read(new DataTable<DexRow>(DexSheet, 18001, 18099), sheets, issues), (a, b) => a.kind != b.kind ? a.kind.CompareTo(b.kind) : a.star.CompareTo(b.star));
             dexSets = ToArray(Read(new DataTable<DexSetRow>(DexSetSheet, 18101, 18199), sheets, issues));
@@ -396,13 +392,15 @@ namespace MoreMush.Mobile
         public double enemyHp, bossHp;      // 1웨이브 일반 적 체력·보스 체력. 0이면 기대 성장 곡선으로 계산한다 (IdleProgress.EnemyHp/BossHp)
     }
 
-    // 퀘스트: 일일 퀘스트 한 줄. kind = QuestKind 이름(대소문자 무시)
+    // 퀘스트: 일일·주간 퀘스트 한 줄 (DailyQuests). period = daily/weekly, kind = QuestKind 이름(대소문자 무시)
     public class QuestRow : TableRow
     {
+        public string period;
         public string kind;
         public int target;         // 목표 횟수
         public int goldKills;      // 보상 골드 = 지금 스테이지 적 처치 골드 × 이 횟수
         public int mycelite;       // 보상 균사석 (고정)
+        public int treeExp;        // 보상 세계수 경험치 (고정, 0이면 없음)
     }
 
     // 가이드: 처음 시작할 때 정해진 순서로 보여 주는 안내 목표 (GuideQuests). kind = GuideKind 이름(대소문자 무시)
@@ -518,15 +516,6 @@ namespace MoreMush.Mobile
     }
 
     // 장식등급: 제작 비용·시간
-    // 의뢰: 세계수 일일·주간 의뢰 한 종 (WorldTree.Quests). period = daily/weekly, kind = stage(보스 도전)/kill/species/dungeon/daily
-    public class TreeQuestRow : TableRow
-    {
-        public string period;
-        public string kind;
-        public int target;
-        public int exp;            // 받으면 세계수 경험치. 설명 글은 desc ({n} = 목표, {m} = 지정한 적 이름)
-    }
-
     public class DecoGradeRow : TableRow
     {
         public int grade;

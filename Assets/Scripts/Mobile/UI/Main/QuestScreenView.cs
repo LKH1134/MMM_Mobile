@@ -5,17 +5,19 @@ using UnityEngine.UI;
 
 namespace MoreMush.Mobile
 {
-    // 일일 의뢰 화면 (프리팹 QuestScreen, 와이어프레임 '06. 일일/주간 의뢰'·목업 '일일 의뢰'):
-    //   제목 메모 · 초기화까지 남은 시간 · 2열 카드(이름 · 그림 · 설명 · 보상 · 달성도 막대 · 의뢰 완료 버튼) · 주간/일일 버튼 · 하단 띠 X.
-    // 데이터는 예전 DailyQuestPopup과 같은 DailyQuests를 쓴다. 주간 의뢰는 아직 없어 버튼을 회색으로 둔다
+    // 일일·주간 의뢰 화면 (프리팹 QuestScreen, 와이어프레임 '06. 일일/주간 의뢰'·목업 '일일 의뢰'):
+    //   제목 메모 · 초기화까지 남은 시간 · 2열 카드(이름 · 그림 · 설명 · 보상 · 달성도 막대 · 의뢰 완료 버튼) · 주간/일일 탭 버튼 · 일괄 수령 · 하단 띠 X.
+    // 데이터는 DailyQuests (퀘스트 시트 period daily/weekly). 고른 탭은 초록 버튼·흰 글자, 다른 탭은 베이지·진한 글자.
+    // 11-10: 세계수 의뢰를 합쳤다 — 보상 줄에 세계수 경험치(treeExp)도 보인다
     public class QuestScreenView : MonoBehaviour
     {
+        [SerializeField] TMP_Text titleText;             // 제목 메모 글자 (일일 의뢰 / 주간 의뢰)
         [SerializeField] TMP_Text resetText;
         [SerializeField] RectTransform grid;
         [SerializeField] QuestCardView cardTemplate;     // 꺼 둔 원본
         [SerializeField] Button weeklyButton;
         [SerializeField] Button dailyButton;
-        [SerializeField] Button claimAllButton;          // 일괄 수령 (받을 의뢰가 없으면 회색)
+        [SerializeField] Button claimAllButton;          // 일괄 수령 (일일·주간 모두, 받을 의뢰가 없으면 회색)
 
         [Header("그림 (Resources 경로)")]
         [SerializeField] string killIcon = "UI/Icon/sword";
@@ -23,18 +25,23 @@ namespace MoreMush.Mobile
         [SerializeField] string upgradeIcon = "UI/Icon/upgrade";
         [SerializeField] string gachaIcon = "UI/Icon/roulette";
         [SerializeField] string adIcon = "UI/Icon/advertisement";
+        [SerializeField] string dungeonIcon = "UI/Icon/dungeon";
+        [SerializeField] string dailyIcon = "UI/Icon/calendar";
         [SerializeField] string claimSprite = "UI/UI_Btn_Green";      // 받을 수 있음
         [SerializeField] string doneSprite = "UI/UI_Btn_Grey";        // 받음
         [SerializeField] string barFillSprite = "UI/UI_PP_Bar_Gauge_Green";
+        [SerializeField] string tabOnSprite = "UI/UI_Btn_Green";      // 고른 탭
+        [SerializeField] string tabOffSprite = "UI/UI_Btn_Beige";
 
         readonly List<QuestCardView> cards = new List<QuestCardView>();
         int shownSecond = -1;
+        QuestPeriod period = QuestPeriod.Daily;
 
         void Awake()
         {
             if (cardTemplate != null) cardTemplate.gameObject.SetActive(false);
-            if (weeklyButton != null) weeklyButton.interactable = false;     // 주간 의뢰는 아직 없다
-            if (dailyButton != null) dailyButton.interactable = true;
+            if (weeklyButton != null) { weeklyButton.interactable = true; weeklyButton.onClick.AddListener(() => Show(QuestPeriod.Weekly)); }
+            if (dailyButton != null) { dailyButton.interactable = true; dailyButton.onClick.AddListener(() => Show(QuestPeriod.Daily)); }
             if (claimAllButton != null)
             {
                 claimAllButton.onClick.AddListener(() => DailyQuests.ClaimAll());
@@ -50,6 +57,10 @@ namespace MoreMush.Mobile
             DailyQuests.Changed += Refresh;
             Loc.Changed += OnLanguageChanged;
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed += CloseOnTab;
+            // 일일에 받을 것이 없고 주간에만 있으면 주간 탭으로 연다
+            period = DailyQuests.ClaimableCountOf(QuestPeriod.Daily) == 0 && DailyQuests.ClaimableCountOf(QuestPeriod.Weekly) > 0
+                ? QuestPeriod.Weekly : QuestPeriod.Daily;
+            shownSecond = -1;
             Refresh();
         }
 
@@ -70,13 +81,23 @@ namespace MoreMush.Mobile
 
         void CloseOnTab(int tab) => gameObject.SetActive(false);
 
+        void Show(QuestPeriod p)
+        {
+            if (period == p) return;
+            period = p;
+            shownSecond = -1;
+            Refresh();
+        }
+
         void Update()
         {
-            var t = DailyQuests.UntilReset;
+            var t = DailyQuests.UntilReset(period);
             int sec = (int)t.TotalSeconds;
             if (sec == shownSecond || resetText == null) return;
             shownSecond = sec;
-            resetText.text = Loc.F("quest.reset_in", (int)t.TotalHours, t.Minutes, t.Seconds);
+            resetText.text = t.TotalDays >= 1
+                ? Loc.F("quest.reset_week", (int)t.TotalDays, t.Hours, t.Minutes, t.Seconds)
+                : Loc.F("quest.reset_in", (int)t.TotalHours, t.Minutes, t.Seconds);
         }
 
         string IconOf(QuestKind k)
@@ -87,6 +108,8 @@ namespace MoreMush.Mobile
                 case QuestKind.Stage: return stageIcon;
                 case QuestKind.Upgrade: return upgradeIcon;
                 case QuestKind.Gacha: return gachaIcon;
+                case QuestKind.Dungeon: return dungeonIcon;
+                case QuestKind.Daily: return dailyIcon;
                 default: return adIcon;
             }
         }
@@ -99,21 +122,46 @@ namespace MoreMush.Mobile
                 case QuestKind.Stage: return Loc.T("quest.title_stage");
                 case QuestKind.Upgrade: return Loc.T("quest.title_upgrade");
                 case QuestKind.Gacha: return Loc.T("quest.title_gacha");
+                case QuestKind.Dungeon: return Loc.T("quest.title_dungeon");
+                case QuestKind.Daily: return Loc.T("quest.title_daily");
                 default: return Loc.T("common.watch_ad");
             }
+        }
+
+        void SetTab(Button b, bool on)
+        {
+            if (b == null) return;
+            if (b.image != null) b.image.sprite = Resources.Load<Sprite>(on ? tabOnSprite : tabOffSprite);
+            var label = b.GetComponentInChildren<TMP_Text>(true);
+            if (label != null) label.color = on ? Color.white : UiSkin.Ink;
+        }
+
+        // 보상 줄: 0인 보상은 빼고, 세계수 경험치는 다음 줄에
+        static string RewardLine(QuestPeriod p, int i)
+        {
+            long gold = DailyQuests.RewardGold(p, i), myc = DailyQuests.RewardMycelite(p, i), exp = DailyQuests.RewardTreeExp(p, i);
+            string line = "";
+            if (gold > 0) line = Loc.F("idle.gold", Wallet.Format(gold));
+            if (myc > 0) line += (line.Length > 0 ? "   " : "") + Loc.F("idle.mycelite", Wallet.Format(myc));
+            if (exp > 0) line += (line.Length > 0 ? "\n" : "") + Loc.F("quest.tree_exp", exp.ToString("N0"));
+            return line;
         }
 
         void Refresh()
         {
             if (cardTemplate == null || grid == null) return;
-            int n = DailyQuests.Count;
+            var p = period;
+            int n = DailyQuests.Count(p);
+            SetTab(dailyButton, p == QuestPeriod.Daily);
+            SetTab(weeklyButton, p == QuestPeriod.Weekly);
+            if (titleText != null) titleText.text = Loc.T(p == QuestPeriod.Weekly ? "quest.weekly" : "quest.daily");
             if (claimAllButton != null) claimAllButton.interactable = DailyQuests.ClaimableCount > 0;
             while (cards.Count < n)
             {
                 var c = Instantiate(cardTemplate, grid);
                 c.gameObject.SetActive(true);
                 int index = cards.Count;
-                c.button.onClick.AddListener(() => DailyQuests.Claim(index));
+                c.button.onClick.AddListener(() => DailyQuests.Claim(period, index));
                 cards.Add(c);
             }
             for (int i = 0; i < cards.Count; i++)
@@ -121,14 +169,14 @@ namespace MoreMush.Mobile
                 var c = cards[i];
                 c.gameObject.SetActive(i < n);
                 if (i >= n) continue;
-                var kind = DailyQuests.Kind(i);
-                int target = DailyQuests.Target(i), done = Mathf.Min(DailyQuests.Progress(i), target);
-                bool claimed = DailyQuests.IsClaimed(i), can = DailyQuests.CanClaim(i);
+                var kind = DailyQuests.Kind(p, i);
+                int target = DailyQuests.Target(p, i), done = Mathf.Min(DailyQuests.Progress(p, i), target);
+                bool claimed = DailyQuests.IsClaimed(p, i), can = DailyQuests.CanClaim(p, i);
                 c.name = "Quest" + i;
                 if (c.title != null) c.title.text = TitleOf(kind);
                 if (c.icon != null) c.icon.sprite = Resources.Load<Sprite>(IconOf(kind));
-                if (c.desc != null) c.desc.text = DailyQuests.Describe(i);
-                if (c.reward != null) c.reward.text = Loc.F("idle.gold", Wallet.Format(DailyQuests.RewardGold(i))) + "   " + Loc.F("idle.mycelite", Wallet.Format(DailyQuests.RewardMycelite(i)));
+                if (c.desc != null) c.desc.text = DailyQuests.Describe(p, i);
+                if (c.reward != null) c.reward.text = RewardLine(p, i);
                 if (c.progress != null) c.progress.text = $"{done:N0} / {target:N0}";
                 if (c.barFill != null)
                 {
