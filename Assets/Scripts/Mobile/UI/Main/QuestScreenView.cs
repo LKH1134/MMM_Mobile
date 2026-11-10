@@ -15,6 +15,7 @@ namespace MoreMush.Mobile
         [SerializeField] QuestCardView cardTemplate;     // 꺼 둔 원본
         [SerializeField] Button weeklyButton;
         [SerializeField] Button dailyButton;
+        [SerializeField] Button claimAllButton;          // 일괄 수령 (받을 의뢰가 없으면 회색)
 
         [Header("그림 (Resources 경로)")]
         [SerializeField] string killIcon = "UI/Icon/sword";
@@ -34,6 +35,11 @@ namespace MoreMush.Mobile
             if (cardTemplate != null) cardTemplate.gameObject.SetActive(false);
             if (weeklyButton != null) weeklyButton.interactable = false;     // 주간 의뢰는 아직 없다
             if (dailyButton != null) dailyButton.interactable = true;
+            if (claimAllButton != null)
+            {
+                claimAllButton.onClick.AddListener(() => DailyQuests.ClaimAll());
+                UiSkin.GreyWhenDisabled(claimAllButton);
+            }
         }
 
         void OnEnable()
@@ -101,6 +107,7 @@ namespace MoreMush.Mobile
         {
             if (cardTemplate == null || grid == null) return;
             int n = DailyQuests.Count;
+            if (claimAllButton != null) claimAllButton.interactable = DailyQuests.ClaimableCount > 0;
             while (cards.Count < n)
             {
                 var c = Instantiate(cardTemplate, grid);

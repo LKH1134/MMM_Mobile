@@ -6,7 +6,7 @@ namespace MoreMush.Mobile
 {
     // 의뢰 시트 (QuestPopup의 Content에 붙인다): 주간 의뢰 카드 3장 · 일일 의뢰 칸 · 초기화까지 남은 시간 (규칙은 WorldTree.Quests).
     // 다른 세계수 시트와 달리 프리팹에 놓인 칸을 이름으로 찾아 채운다:
-    //   PageTabs/WeeklyTab·DailyTab(Toggle) · WeeklyTitle·DailyTitle · RemainTime
+    //   PageTabs/WeeklyTab·DailyTab(Toggle) · WeeklyTitle·DailyTitle · RemainTime · ClaimAllBtn(Button, 받을 의뢰가 없으면 회색)
     //   WeeklyPage/Quest_1~ (Name·Portrait·NpcName·Desc/Text·Progress·CompleteBtn/Label)
     //   DailyPage/Viewport/Content/Daily_1~ (Name·Icon·Desc(Button)/Text·Progress) — 일일은 Desc를 눌러 받는다. 의뢰보다 많은 칸은 숨긴다
     public class TreeQuestPanel : MonoBehaviour
@@ -39,6 +39,7 @@ namespace MoreMush.Mobile
         Toggle weeklyTab, dailyTab;
         GameObject weeklyPage, dailyPage, weeklyTitle, dailyTitle;
         TMP_Text remain;
+        Button claimAll;
         float tick;
         bool dirty;
 
@@ -51,6 +52,12 @@ namespace MoreMush.Mobile
             weeklyTitle = transform.Find("WeeklyTitle")?.gameObject;
             dailyTitle = transform.Find("DailyTitle")?.gameObject;
             remain = Find<TMP_Text>("RemainTime");
+            claimAll = Find<Button>("ClaimAllBtn");
+            if (claimAll != null)
+            {
+                claimAll.onClick.AddListener(ClaimAll);
+                UiSkin.GreyWhenDisabled(claimAll);
+            }
             weekly = Cards(weeklyPage != null ? weeklyPage.transform : null, "Quest_", true);
             daily = Cards(dailyPage != null ? dailyPage.transform.Find("Viewport/Content") : null, "Daily_", false);
             if (weeklyTab != null) weeklyTab.onValueChanged.AddListener(on => { if (on) ShowPage(true); });
@@ -119,6 +126,7 @@ namespace MoreMush.Mobile
             RefreshRemain();
             Fill(weekly, WorldTree.WeeklyQuests, true);
             Fill(daily, WorldTree.DailyQuests, false);
+            if (claimAll != null) claimAll.interactable = WorldTree.AnyQuestClaimable;
         }
 
         void Fill(Card[] cards, System.Collections.Generic.IReadOnlyList<WorldTree.Quest> quests, bool isWeekly)
@@ -177,6 +185,18 @@ namespace MoreMush.Mobile
             if (!WorldTree.ClaimQuest(isWeekly, i)) return;
             var screen = FindAnyObjectByType<WorldTreeScreen>();
             if (screen != null) screen.ShowToast(Loc.F("treequest.claim_toast", WorldTree.Count(exp)));
+            Refresh();
+        }
+
+        // 일괄 수령: 주간·일일 모두 받을 수 있는 의뢰를 받는다 (보이는 쪽만이 아니라)
+        void ClaimAll()
+        {
+            int count = WorldTree.ClaimAllQuests(out long exp);
+            if (count == 0) { Refresh(); return; }
+            var screen = FindAnyObjectByType<WorldTreeScreen>();
+            if (screen != null)
+                screen.ShowToast(count == 1 ? Loc.F("treequest.claim_toast", WorldTree.Count(exp))
+                    : Loc.F("treequest.claim_all_toast", count, WorldTree.Count(exp)));
             Refresh();
         }
 
