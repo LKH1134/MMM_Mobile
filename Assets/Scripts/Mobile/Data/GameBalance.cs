@@ -24,6 +24,8 @@ namespace MoreMush.Mobile
         static Dictionary<int, string> resources;
         static Dictionary<int, DungeonRow> dungeons;
         static QuestRow[] quests;
+        static GuideRow[] guides;
+        static GuideLoopRow[] guideLoops;
         static EnemyRow[] enemies;
         static Dictionary<int, BossRow> bosses;
         static HashSet<string> bossSpriteNames;
@@ -43,7 +45,7 @@ namespace MoreMush.Mobile
 
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
-            ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트",
+            ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트", GuideSheet = "가이드", GuideLoopSheet = "가이드반복",
             EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
             EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰";
@@ -63,6 +65,8 @@ namespace MoreMush.Mobile
             resources = null;
             dungeons = null;
             quests = null;
+            guides = null;
+            guideLoops = null;
             enemies = null;
             treeStages = null;
             blessings = null;
@@ -106,6 +110,8 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<GachaLevelRow> GachaLevels { get { Ensure(); return gachaLevels; } }
         public static int StageCount { get { Ensure(); return stages.Length; } }
         public static IReadOnlyList<QuestRow> Quests { get { Ensure(); return quests; } }
+        public static IReadOnlyList<GuideRow> Guides { get { Ensure(); return guides; } }
+        public static IReadOnlyList<GuideLoopRow> GuideLoops { get { Ensure(); return guideLoops; } }
         public static IReadOnlyList<EnemyRow> Enemies { get { Ensure(); return enemies; } }
         public static IReadOnlyList<TreeStageRow> TreeStages { get { Ensure(); return treeStages; } }
         public static IReadOnlyList<BlessRow> Blessings { get { Ensure(); return blessings; } }
@@ -232,6 +238,8 @@ namespace MoreMush.Mobile
             var dungeonRows = Read(new DataTable<DungeonRow>(DungeonSheet, 9101, 9199), sheets, issues);
             dungeonList = ToArray(dungeonRows);
             quests = ToArray(Read(new DataTable<QuestRow>(QuestSheet, 9201, 9299), sheets, issues));
+            guides = ToArray(Read(new DataTable<GuideRow>(GuideSheet, 17001, 17099), sheets, issues));
+            guideLoops = ToArray(Read(new DataTable<GuideLoopRow>(GuideLoopSheet, 17101, 17199), sheets, issues));
             enemies = ToArray(Read(new DataTable<EnemyRow>(EnemySheet, 1001, 1999), sheets, issues));
             var bossRows = Read(new DataTable<BossRow>(BossSheet, 2001, 2999), sheets, issues);
             treeStages = ToSorted(Read(new DataTable<TreeStageRow>(TreeSheet, 9301, 9399), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
@@ -334,7 +342,7 @@ namespace MoreMush.Mobile
     {
         public IdleStat stat;
         public double baseValue, perLevel;
-        public string valueMode;   // Add: base + perLevel × Lv / Multiply: base × (1 + perLevel × Lv) / Power: base × (1 + Lv / valueDivisor)^valueExponent
+        public string valueMode;   // Add: base + perLevel × Lv / Multiply: base × (1 + perLevel × Lv) / Power: base × (1 + Lv / valueDivisor)^valueExponent / Incremental: Lv 100까지 base + perLevel × Lv, 뒤로 증가량 perLevel × (1 + n / valueDivisor)² (IdleProgress)
         public double valueExponent, valueDivisor;   // Power에서만 쓴다 (다른 모드는 0)
         public long price;         // 비용 = price × (1 + Lv / priceDivisor)^priceExponent × e^(Lv / priceScale)
         public double priceExponent, priceDivisor, priceScale;
@@ -382,6 +390,24 @@ namespace MoreMush.Mobile
         public int target;         // 목표 횟수
         public int goldKills;      // 보상 골드 = 지금 스테이지 적 처치 골드 × 이 횟수
         public int mycelite;       // 보상 균사석 (고정)
+    }
+
+    // 가이드: 처음 시작할 때 정해진 순서로 보여 주는 안내 목표 (GuideQuests). kind = GuideKind 이름(대소문자 무시)
+    public class GuideRow : TableRow
+    {
+        public string kind;
+        public string stat;        // UpgradeLevel일 때 강화 종류 (IdleStat 이름). 다른 종류는 비운다
+        public int target;         // 목표 수 (UpgradeLevel = 목표 레벨)
+        public int mycelite;       // 보상 균사석
+    }
+
+    // 가이드반복: 고정 순서 뒤에 행 순서대로 돌며 만드는 목표. 목표 수 = round(baseTarget + perStage × (스테이지 − 1) + perLevel × 강화 레벨, step 단위) (UpgradeCount만 perLevel)
+    public class GuideLoopRow : TableRow
+    {
+        public string kind;
+        public double baseTarget, perStage, perLevel;
+        public int step;           // 목표 수를 이 단위로 맞춘다 (1 = 그대로)
+        public int mycelite;
     }
 
     // 던전: 던전 번호별 해금 조건

@@ -159,6 +159,7 @@ namespace MoreMush.Mobile
         {
             var result = GachaProgress.Roll(kind, count);
             DailyQuests.Add(QuestKind.Gacha, count);
+            GuideQuests.Report(GuideKind.Gacha, count);
             if (kind == GachaKind.Character)
             {
                 var ids = GachaProgress.PickCharacters(result);

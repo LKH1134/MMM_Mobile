@@ -30,6 +30,8 @@ namespace MoreMush.Mobile
         [SerializeField] RectTransform infoBarFill;           // 조각 막대 (anchorMax.x = 비율)
         [SerializeField] TMP_Text infoBarText;
         [SerializeField] Button mergeButton;
+        [SerializeField] Button growButton;                  // 관문(Lv.5·10)에서 합성 버튼 자리에 대신 나온다
+        [SerializeField] TMP_Text growLabel;
         [SerializeField] Button placeButton;
         [SerializeField] TMP_Text placeLabel;
         [SerializeField] Button mergeAllButton;
@@ -77,12 +79,14 @@ namespace MoreMush.Mobile
             if (autoButton != null) autoButton.onClick.AddListener(Formation.AutoArrange);
             if (mergeButton != null) mergeButton.onClick.AddListener(MergeSelected);
             if (mergeAllButton != null) mergeAllButton.onClick.AddListener(MergeAll);
+            if (growButton != null) growButton.onClick.AddListener(GrowSelected);
             if (placeButton != null) placeButton.onClick.AddListener(PlaceSelected);
         }
 
         void OnEnable()
         {
             Formation.Changed += Refresh;
+            GuideQuests.Report(GuideKind.OpenFormation);
             if (string.IsNullOrEmpty(selectedId)) selectedId = FirstShown();
             Refresh();
         }
@@ -129,6 +133,18 @@ namespace MoreMush.Mobile
             Refresh();
         }
 
+        void GrowSelected()
+        {
+            if (string.IsNullOrEmpty(selectedId) || !Formation.NeedsGrowth(selectedId)) return;
+            string name = Formation.Name(selectedId);
+            if (Formation.TryGrow(selectedId))
+            {
+                if (message != null) message.text = Loc.F("formation.grow_done", name, Formation.EvoStage(selectedId));
+            }
+            else if (message != null) message.text = Loc.T("gacha.no_funds");
+            Refresh();
+        }
+
         void MergeAll()
         {
             int up = Formation.MergeAll();
@@ -170,20 +186,30 @@ namespace MoreMush.Mobile
             if (string.IsNullOrEmpty(id)) return;
             int level = Formation.Level(id), copies = Formation.Copies(id), need = Formation.CopiesToNext(level);
             bool have = level > 0, max = level >= Formation.MaxLevel;
+            bool grow = Formation.NeedsGrowth(id);
             int stage = Formation.EvoStage(id);
             if (infoIcon != null) infoIcon.sprite = Formation.Icon(id);
-            if (infoLevel != null) infoLevel.text = have ? (max ? $"Lv.{level} {Loc.T("upgrade.max")}" : $"Lv.{level}") : Loc.T("formation.not_owned");
+            if (infoLevel != null) infoLevel.text = have ? (max ? $"Lv.{level} {Loc.T("upgrade.max")}" : grow ? $"Lv.{level} {Loc.T("formation.grow_tag")}" : $"Lv.{level}") : Loc.T("formation.not_owned");
             if (infoName != null) infoName.text = Loc.F("formation.stage_name", stage, Formation.Name(id));
             int shown = Mathf.Max(1, level);
             if (infoStat != null) infoStat.text = Loc.F("formation.attack_mul", Formation.AttackMultiplierAt(id, shown));
             if (infoNext != null)
             {
                 string evo = stage < Formation.EvoStageCount ? Loc.F("formation.evo_at", Formation.EvoLevel(stage + 1), stage + 1) : Loc.T("formation.evo_final");
-                infoNext.text = have && !max ? Loc.F("formation.next_level", Formation.AttackMultiplierAt(id, level + 1), evo) : evo;
+                infoNext.text = have && !max && !grow ? Loc.F("formation.next_level", Formation.AttackMultiplierAt(id, level + 1), evo) : evo;
             }
             if (infoBarFill != null) infoBarFill.anchorMax = new Vector2(max ? 1f : have ? Mathf.Clamp01(copies / (float)need) : 0f, 1f);
-            if (infoBarText != null) infoBarText.text = !have ? Loc.T("formation.get_by_summon") : max ? Loc.T("formation.max_level") : Loc.F("formation.shards", copies, need);
-            if (mergeButton != null) mergeButton.interactable = Formation.CanMerge(id);
+            if (infoBarText != null) infoBarText.text = !have ? Loc.T("formation.get_by_summon") : max ? Loc.T("formation.max_level") : grow ? Loc.F("formation.need_grow", level) : Loc.F("formation.shards", copies, need);
+            if (mergeButton != null)
+            {
+                mergeButton.gameObject.SetActive(!grow);
+                mergeButton.interactable = Formation.CanMerge(id);
+            }
+            if (growButton != null)
+            {
+                growButton.gameObject.SetActive(grow);
+                if (growLabel != null) growLabel.text = grow ? Loc.F("formation.grow", Formation.GrowCost(id)) : "";
+            }
             int from = Formation.SlotOf(id);
             if (placeButton != null) placeButton.interactable = have;
             if (placeLabel != null) placeLabel.text = from >= 0 && (targetSlot < 0 || targetSlot == from) ? Loc.T("formation.remove") : Loc.T("formation.place");

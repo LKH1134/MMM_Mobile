@@ -23,6 +23,8 @@ namespace MoreMush.Mobile
             public readonly double[] attackMuls;
             public readonly int maxLevel = GameBalance.ConstInt("ggomaMaxLevel");
             public readonly double levelBonus = GameBalance.Const("ggomaLevelBonus");
+            public readonly int growCost2 = GameBalance.ConstInt("ggomaGrowMycelite2"), growCost3 = GameBalance.ConstInt("ggomaGrowMycelite3");
+            public readonly int copiesBase = GameBalance.ConstInt("ggomaCopiesBase"), copiesPerLevel = GameBalance.ConstInt("ggomaCopiesPerLevel");
             public readonly int evoLevel2 = GameBalance.ConstInt("ggomaEvoLevel2"), evoLevel3 = GameBalance.ConstInt("ggomaEvoLevel3");
             public readonly double evoMul2 = GameBalance.Const("ggomaEvoMul2"), evoMul3 = GameBalance.Const("ggomaEvoMul3");
             public readonly Dictionary<string, Sprite[]> sheets = new Dictionary<string, Sprite[]>();   // 경로 → 칸 번호 순 조각
@@ -70,7 +72,7 @@ namespace MoreMush.Mobile
         // 쓸 때 둘 다 고친다. PlayerPrefs를 밖에서 지웠으면 Reload
         static readonly string[] SlotKeys = BuildKeys(SlotCount, i => "Formation." + i);
         static string[] slots;          // 저장된 칸 id (가졌는지는 Get이 본다). null = 아직 안 읽음
-        static int[] levels, copies;    // Ids 순서
+        static int[] levels, copies, growth;    // Ids 순서 (growth = 성장 횟수 0~2)
 
         static string[] BuildKeys(int n, System.Func<int, string> key)
         {
@@ -83,7 +85,7 @@ namespace MoreMush.Mobile
         public static void Reload()
         {
             slots = null;
-            levels = copies = null;
+            levels = copies = growth = null;
             migrated = false;
             table = null;       // 표는 처음 쓸 때 다시 만든다 (이 훅은 리소스가 준비되기 전에 돈다)
         }
@@ -95,15 +97,25 @@ namespace MoreMush.Mobile
             var t = T;
             var lv = new int[t.ids.Length];
             var cp = new int[t.ids.Length];
+            var gr = new int[t.ids.Length];
             for (int i = 0; i < t.ids.Length; i++)
             {
                 lv[i] = Mathf.Clamp(PlayerPrefs.GetInt(t.levelKeys[i], t.startLevels[i]), 0, MaxLevel);
                 cp[i] = Mathf.Max(0, PlayerPrefs.GetInt(t.copiesKeys[i], 0));
+                // 성장 기록이 없는 예전 세이브: 이미 넘은 관문은 성장한 것으로 본다 (레벨이 갇히지 않게). 기록은 바로 남겨 두 번 다시 레벨로 추정하지 않는다
+                string gk = GrowKey(t.ids[i]);
+                if (PlayerPrefs.HasKey(gk)) gr[i] = Mathf.Clamp(PlayerPrefs.GetInt(gk, 0), 0, GrowStageCount);
+                else
+                {
+                    gr[i] = lv[i] >= t.evoLevel3 ? 2 : lv[i] >= t.evoLevel2 ? 1 : 0;
+                    PlayerPrefs.SetInt(gk, gr[i]);
+                }
             }
             var s = new string[SlotCount];
             for (int i = 0; i < SlotCount; i++) s[i] = PlayerPrefs.GetString(SlotKeys[i], t.defaults[i]);
             levels = lv;
             copies = cp;
+            growth = gr;
             slots = s;
         }
 
@@ -158,13 +170,13 @@ namespace MoreMush.Mobile
             return copies[i];
         }
 
-        // 레벨 lv → lv+1에 드는 조각 수 (장비와 같음: Lv.1→2는 2개, 레벨마다 1개씩 늘어난다)
-        public static int CopiesToNext(int lv) => Equipment.CopiesToNext(lv);
+        // 레벨 lv → lv+1에 드는 조각 수 (장비와 따로): 상수 시트 ggomaCopiesBase + ggomaCopiesPerLevel × lv (기본 Lv.1→2 = 8개, 레벨마다 +3개)
+        public static int CopiesToNext(int lv) => T.copiesBase + T.copiesPerLevel * lv;
 
         public static bool CanMerge(string id)
         {
             int lv = Level(id);
-            return lv > 0 && lv < MaxLevel && Copies(id) >= CopiesToNext(lv);
+            return lv > 0 && lv < LevelCap(id) && Copies(id) >= CopiesToNext(lv);
         }
 
         // 조각으로 올릴 수 있는 만큼 레벨을 올린다. 오른 레벨 수
@@ -187,7 +199,8 @@ namespace MoreMush.Mobile
         {
             int lv = Level(id), left = Copies(id), up = 0;
             if (lv <= 0) return 0;
-            while (lv < MaxLevel && left >= CopiesToNext(lv))
+            int cap = LevelCap(id);
+            while (lv < cap && left >= CopiesToNext(lv))
             {
                 left -= CopiesToNext(lv);
                 lv++;
@@ -294,20 +307,57 @@ namespace MoreMush.Mobile
             Changed?.Invoke();
         }
 
-        // ── 진화: 꼬마(도감) 레벨로 정해진다 (따로 저장하지 않는다) ──
+        // ── 성장(진화): 레벨 관문(ggomaEvoLevel2·3 = 5·10)에 닿으면 레벨이 막히고, 균사석을 내고 "성장"해야 다음 단계가 된다 ──
+        // 성장 전에는 조각이 있어도 관문 레벨을 넘지 못한다. 성장하면 진화 단계(그림·공격 배율)가 오르고 다음 관문까지 올릴 수 있다.
+        // 저장: PlayerPrefs("Formation.Grow.<id>" = 성장 횟수 0~2)
         public const int EvoStageCount = 3;     // 1·2·3단계
+        public const int GrowStageCount = 2;    // 성장 횟수 (1→2단계, 2→3단계)
         public const int EvoCellCount = 8;      // 진화 그림 시트 한 장의 칸 수 (4×2)
 
-        // 레벨 lv의 진화 단계 (1~3). 0레벨(미보유)은 1단계로 본다
-        public static int EvoStageAt(int lv)
+        static string GrowKey(string id) => "Formation.Grow." + id;
+
+        // 성장한 횟수 (0~2). 안 가졌으면 0
+        public static int Growth(string id)
         {
-            lv = Mathf.Max(1, lv);
-            return lv >= T.evoLevel3 ? 3 : lv >= T.evoLevel2 ? 2 : 1;
+            int i = System.Array.IndexOf(Ids, id);
+            if (i < 0) return 0;
+            EnsureLoaded();
+            return growth[i];
         }
 
-        public static int EvoStage(string id) => EvoStageAt(Level(id));
+        // 지금 올릴 수 있는 최대 레벨: 성장 전 5, 한 번 성장 10, 두 번 성장 MaxLevel
+        public static int LevelCap(string id)
+        {
+            int g = Growth(id);
+            return g >= GrowStageCount ? MaxLevel : Mathf.Min(MaxLevel, g == 1 ? T.evoLevel3 : T.evoLevel2);
+        }
 
-        // 이 단계가 되는 레벨 (1단계 = 1)
+        // 관문 레벨에 닿아 성장을 해야 레벨을 더 올릴 수 있다
+        public static bool NeedsGrowth(string id)
+        {
+            int lv = Level(id);
+            return lv > 0 && Growth(id) < GrowStageCount && lv >= LevelCap(id);
+        }
+
+        // 지금 성장에 드는 균사석
+        public static int GrowCost(string id) => Growth(id) == 0 ? T.growCost2 : T.growCost3;
+
+        // 성장: 균사석을 내고 진화 단계를 올린다. 못 하면 false (관문이 아니거나 균사석이 모자란다)
+        public static bool TryGrow(string id)
+        {
+            if (!NeedsGrowth(id)) return false;
+            if (!Wallet.TrySpend(Currency.Mycelite, GrowCost(id))) return false;
+            int i = System.Array.IndexOf(Ids, id);
+            growth[i]++;
+            PlayerPrefs.SetInt(GrowKey(id), growth[i]);
+            Save();
+            return true;
+        }
+
+        // 진화 단계 (1~3) = 1 + 성장 횟수
+        public static int EvoStage(string id) => 1 + Growth(id);
+
+        // 이 단계로 성장하는 관문 레벨 (1단계 = 1)
         public static int EvoLevel(int stage) => stage >= 3 ? T.evoLevel3 : stage == 2 ? T.evoLevel2 : 1;
 
         // 단계 공격 배율 (1단계 = 1)
@@ -320,7 +370,7 @@ namespace MoreMush.Mobile
         {
             int i = System.Array.IndexOf(Ids, id);
             lv = Mathf.Max(1, lv);
-            return i >= 0 ? T.attackMuls[i] * EvoMul(EvoStageAt(lv)) * (1 + LevelBonus * (lv - 1)) : 0;
+            return i >= 0 ? T.attackMuls[i] * EvoMul(EvoStage(id)) * (1 + LevelBonus * (lv - 1)) : 0;
         }
 
         // 지금 편성된 꼬마들의 공격 배율 합 (전투력 계산용)
