@@ -145,6 +145,7 @@ namespace MoreMush.Mobile
                     c.button.image.enabled = can;     // 받은 뒤에는 회색 바탕을 그리지 않는다
                 }
                 if (c.buttonText != null) c.buttonText.text = Loc.T(claimed ? "quest.done" : "quest.complete");
+                DoneCover.Set(c.transform, claimed, c.button != null ? c.button.transform : null);   // 받은 의뢰는 회색 (11-10)
             }
         }
     }

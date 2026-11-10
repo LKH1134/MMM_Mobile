@@ -26,7 +26,9 @@ namespace MoreMush.Mobile
 
         [Header("배치")]
         [SerializeField] float maxCell = 200f;          // 적게 뽑았을 때 칸 최대 크기
-        [SerializeField] float gap = 16f;
+        [SerializeField] float cellGap = 44f;           // 칸 사이 (가로) — 붙어 보이지 않게 넓게
+        [SerializeField] float rowGap = 52f;            // 줄 사이 (위 칸의 NEW 글자 자리 포함)
+        [SerializeField] int columns = 5;               // 한 줄 칸 수 (35회도 5칸씩 7줄)
         [SerializeField] float areaWidth = 940f;        // 칸을 늘어놓는 폭
         [SerializeField] float windowPad = 44f;         // 칸과 창 테두리 사이
         [SerializeField] float newSpace = 0.15f;        // 맨 윗줄 위 NEW 글자 자리 (칸 크기 배율)
@@ -65,22 +67,22 @@ namespace MoreMush.Mobile
             gameObject.SetActive(false);
         }
 
-        // 15개까지(11회)는 5칸씩, 그보다 많으면 7칸씩 줄을 채운다. 순서는 뽑힌 순서 그대로
+        // 한 줄 columns칸(5)씩 채운다 — 35회도 5칸 × 7줄로 크게. 순서는 뽑힌 순서 그대로
         void Layout(IList<Entry> entries)
         {
             foreach (var c in cells) Destroy(c.gameObject);
             cells.Clear();
 
-            int cols = entries.Count > 15 ? 7 : Mathf.Clamp(entries.Count, 1, 5);
+            int cols = Mathf.Clamp(entries.Count, 1, Mathf.Max(1, columns));
             int rows = (entries.Count + cols - 1) / cols;
-            float cell = Mathf.Min(maxCell, (areaWidth - gap * (cols - 1)) / cols);
-            float step = cell + gap * 2.2f;     // 줄 사이는 NEW 글자 자리만큼 넓게
+            float cell = Mathf.Min(maxCell, (areaWidth - cellGap * (Mathf.Max(cols, columns) - 1)) / Mathf.Max(cols, columns));   // 적게 뽑아도 같은 크기
+            float step = cell + rowGap;
             var templateRect = (RectTransform)cellTemplate.transform;
             cellScale = cell / Mathf.Max(1f, templateRect.rect.width);
             for (int i = 0; i < entries.Count; i++)
             {
                 int r = i / cols, c = i % cols;
-                float x = (c - (cols - 1) * 0.5f) * (cell + gap);     // 마지막 줄은 왼쪽부터
+                float x = (c - (cols - 1) * 0.5f) * (cell + cellGap);     // 마지막 줄은 왼쪽부터
                 float y = ((rows - 1) * 0.5f - r) * step;
                 cells.Add(BuildCell(entries[i], new Vector2(x, y)));
             }
@@ -88,7 +90,7 @@ namespace MoreMush.Mobile
             // 창 = 칸 영역 + 여백 (위는 NEW 글자 자리, 아래는 등급 테두리 10). 닫기는 창 바로 아래
             float top = (rows - 1) * 0.5f * step + cell * (0.5f + newSpace) + windowPad;
             float bottom = -(rows - 1) * 0.5f * step - cell * 0.5f - 10f - windowPad;
-            float width = cols * cell + (cols - 1) * gap + windowPad * 2f;
+            float width = cols * cell + (cols - 1) * cellGap + windowPad * 2f;
             if (window != null)
             {
                 window.sizeDelta = new Vector2(width, top - bottom);
@@ -110,6 +112,7 @@ namespace MoreMush.Mobile
             if (cell.nameText != null)
                 cell.nameText.text = !string.IsNullOrEmpty(e.label) ? e.label : GachaProgress.GradeNames[Mathf.Clamp(e.grade, 0, GachaProgress.GradeCount - 1)];
             if (cell.newBadge != null) cell.newBadge.SetActive(e.isNew);
+            cell.Grade = e.grade;
             rt.localScale = Vector3.zero;
             return rt;
         }
@@ -127,7 +130,7 @@ namespace MoreMush.Mobile
             playing = null;
         }
 
-        // 0 → 1.15 → 1 (칸 배율 기준)
+        // 0 → 1.15 → 1 (칸 배율 기준). 다 뜨면 등급 이펙트 시작
         IEnumerator Pop(RectTransform cell)
         {
             for (float t = 0f; t < popTime; t += Time.unscaledDeltaTime)
@@ -138,7 +141,15 @@ namespace MoreMush.Mobile
                 cell.localScale = Vector3.one * (s * cellScale);
                 yield return null;
             }
-            if (cell != null) cell.localScale = Vector3.one * cellScale;
+            if (cell == null) yield break;
+            cell.localScale = Vector3.one * cellScale;
+            StartEffect(cell);
+        }
+
+        void StartEffect(RectTransform cell)
+        {
+            var c = cell.GetComponent<GachaResultCell>();
+            if (c != null) c.StartGradeEffect(cellScale);
         }
 
         // 연출 중에 누르면 남은 칸을 한 번에 띄운다
@@ -147,7 +158,7 @@ namespace MoreMush.Mobile
             if (playing == null) return;
             StopAllCoroutines();
             playing = null;
-            foreach (var c in cells) c.localScale = Vector3.one * cellScale;
+            foreach (var c in cells) { c.localScale = Vector3.one * cellScale; StartEffect(c); }
             closeButton.gameObject.SetActive(true);
         }
     }

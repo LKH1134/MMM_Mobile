@@ -174,6 +174,7 @@ namespace MoreMush.Mobile
                     if (c.button.image != null) c.button.image.enabled = claimable;
                 }
                 if (c.buttonLabel != null) c.buttonLabel.text = q.claimed ? (c.reward != null ? Loc.T("tree.done") : Loc.T("treequest.done_full")) : done ? Loc.T("treequest.complete") : Loc.T("treequest.in_progress");
+                DoneCover.Set(c.go.transform, q.claimed, c.button != null ? c.button.transform : null);   // 받은 의뢰는 회색 (11-10)
             }
         }
 
