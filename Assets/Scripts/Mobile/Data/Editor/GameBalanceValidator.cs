@@ -35,6 +35,7 @@ namespace MoreMush.Mobile.EditorTools
             { "뽑기상품", "index:int key:string name:string kind:GachaKind pullCount:int price:long currency:Currency dailyLimit:int requiresAd:bool" },
             { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int flightTime:double waveDelay:double enemyAttackDelay:double" },
             { "수확전투", "index:int key:string dungeon:int scope:string field:string dataType:string value:double" },
+            { "출석", "index:int key:string day:int kind:AttendanceRewardKind amount:long equipId:int" },
         };
 
         // 상수 시트의 필수 key. min 이상이어야 하고, integer면 정수만 허용한다 (게임이 정수로 읽는 값)
@@ -66,6 +67,8 @@ namespace MoreMush.Mobile.EditorTools
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
             ("harvestHpRateExp", 0, false),
             ("harvestFarmRounds", 1, true), ("harvestCycleLength", 1, true), ("offlineRateMinSeconds", 0.001, false),
+            ("adBoxGoldChance", 0, false), ("adBoxMaxSameInRow", 0, true), ("bossRushEasyLevels", 1, true),
+            ("unlockTeamStage", 1, true), ("unlockWorldTreeStage", 1, true),
         };
 
         sealed class Row
@@ -202,6 +205,7 @@ namespace MoreMush.Mobile.EditorTools
             ValidateQuests(tables["퀘스트"], issues);
             ValidateWorldTree(tables, enemies, issues);
             ValidateImplementedDefinitions(tables, issues);
+            ValidateAttendance(tables["출석"], tables["장비"], issues);
             return count;
         }
 
@@ -423,6 +427,27 @@ namespace MoreMush.Mobile.EditorTools
             if (byKey.ContainsKey("copiesBase") && byKey.ContainsKey("copiesPerLevel")
                 && byKey["copiesBase"].Number("value") + byKey["copiesPerLevel"].Number("value") < 1)
                 issues.Add("[상수] copiesBase + copiesPerLevel은 1 이상이어야 한다 (Lv.1→2 조각이 0개가 되지 않게)");
+            if (byKey.TryGetValue("adBoxGoldChance", out var chance) && chance.Number("value") > 1)
+                issues.Add(chance.At("value") + ": adBoxGoldChance는 0~1 확률이다");
+        }
+
+        // 출석: day는 1부터 빠짐없이, 재화 보상은 양수, 무기 보상은 장비 시트의 무기(index)를 가리킨다
+        static void ValidateAttendance(List<Row> rows, List<Row> equipment, List<string> issues)
+        {
+            if (rows.Count == 0) { issues.Add("[출석] 행이 없다"); return; }
+            var days = rows.Select(r => r.Int("day")).ToList();
+            if (days.Distinct().Count() != days.Count || days.Min() != 1 || days.Max() != days.Count)
+                issues.Add("[출석] day는 1부터 빠짐없이 겹치지 않게 이어져야 한다");
+            var weapons = new HashSet<int>(equipment.Where(e => e.Text("kind") == GachaKind.Weapon.ToString()).Select(e => e.Int("index")));
+            foreach (var r in rows)
+            {
+                string kind = r.Text("kind");
+                if (kind == AttendanceRewardKind.Weapon.ToString())
+                {
+                    if (!weapons.Contains(r.Int("equipId"))) issues.Add(r.At("equipId") + $": 장비 시트의 무기 index가 아니다 ({r.Int("equipId")})");
+                }
+                else if (!(r.Number("amount") > 0)) issues.Add(r.At("amount") + ": 0보다 커야 한다");
+            }
         }
 
         // checkAssets = false: Unity 밖(밸런스 시뮬)에서 부를 때. 빌드 설정은 에디터 안에서만 읽을 수 있어 씬 검사를 건너뛴다
@@ -554,6 +579,7 @@ namespace MoreMush.Mobile.EditorTools
             if (type == "TreeZone") return Enum.TryParse<TreeZone>(raw, out var zone) && Enum.IsDefined(typeof(TreeZone), zone);
             if (type == "GachaKind") return Enum.TryParse<GachaKind>(raw, out var kind) && Enum.IsDefined(typeof(GachaKind), kind);
             if (type == "EquipStat") return Enum.TryParse<EquipStat>(raw, out var equip) && Enum.IsDefined(typeof(EquipStat), equip);
+            if (type == "AttendanceRewardKind") return Enum.TryParse<AttendanceRewardKind>(raw, out var reward) && Enum.IsDefined(typeof(AttendanceRewardKind), reward);
             if (type == "bool") return bool.TryParse(raw, out _) || raw == "0" || raw == "1";
             if (!double.TryParse(raw, NumberStyles.Float, Inv, out double d) || double.IsNaN(d) || double.IsInfinity(d)) return false;
             if (type == "int") return d == Math.Floor(d) && d >= int.MinValue && d <= int.MaxValue;

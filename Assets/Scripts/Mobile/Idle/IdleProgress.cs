@@ -334,7 +334,7 @@ namespace MoreMush.Mobile
             return ExpectedDps(stage) * K.bossKillSeconds;
         }
 
-        const int ChapterLength = 10;   // 10의 배수 스테이지 = 챕터 보스 (표에서는 체력 ×1.4)
+        static int ChapterLength => Mathf.Max(1, GameBalance.IdleBattle.stagesPerChapter);   // 챕터 마지막 스테이지 = 챕터 보스 (방치전투 시트, 지금 10. 표에서는 체력 ×1.4)
         static int TailStage => GameBalance.StageCount > 1 && GameBalance.StageCount % ChapterLength == 0 ? GameBalance.StageCount - 1 : GameBalance.StageCount;
         static StageRow TailRow => GameBalance.Stage(TailStage);
         static double Tail(int stage, double growth) => System.Math.Pow(growth, stage - TailStage);

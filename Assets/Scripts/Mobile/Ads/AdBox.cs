@@ -114,6 +114,8 @@ namespace MoreMush.Mobile
                 intervalSeconds = Mathf.Max(MinIntervalSeconds, (float)(GameBalance.Const("adBoxIntervalHours") * 3600.0));
                 staySeconds = Mathf.Max(MinStaySeconds, (float)GameBalance.Const("adBoxStaySeconds"));
                 goldKills = (long)GameBalance.Const("adBoxGoldKills");
+                goldChance = Mathf.Clamp01((float)GameBalance.Const("adBoxGoldChance"));
+                maxSameInRow = Mathf.Max(0, GameBalance.ConstInt("adBoxMaxSameInRow"));
             }
             catch (System.Exception e)
             {
@@ -226,15 +228,18 @@ namespace MoreMush.Mobile
         static float EaseOut(float t) => 1f - Mathf.Pow(1f - Mathf.Clamp01(t), 3f);
         static float EaseIn(float t) => Mathf.Pow(Mathf.Clamp01(t), 3f);
 
-        // 다음 상자의 종류: 50 대 50으로 뽑되, 같은 종류가 3번 연속 나오지 않게 한다 (운이 몰려 한쪽만 나오는 느낌을 막는다)
-        const int MaxSameInRow = 2;
+        // 다음 상자의 종류: 골드 확률 adBoxGoldChance로 뽑되, 같은 종류가 adBoxMaxSameInRow번을 넘겨 연속 나오지 않게 한다
+        // (운이 몰려 한쪽만 나오는 느낌을 막는다. 0 = 제한 없음). 값은 상수 시트, 표를 못 읽으면 50:50·2번
+        static float goldChance = 0.5f;
+        static int maxSameInRow = 2;
         static Reward lastReward = Reward.Mycelite;
         static int sameInRow;
 
         static Reward NextReward()
         {
-            Reward pick = Random.value < 0.5f ? Reward.Gold : Reward.Mycelite;
-            if (sameInRow >= MaxSameInRow && pick == lastReward) pick = lastReward == Reward.Gold ? Reward.Mycelite : Reward.Gold;
+            if (!configured) Configure();
+            Reward pick = Random.value < goldChance ? Reward.Gold : Reward.Mycelite;
+            if (maxSameInRow > 0 && sameInRow >= maxSameInRow && pick == lastReward) pick = lastReward == Reward.Gold ? Reward.Mycelite : Reward.Gold;
             sameInRow = pick == lastReward ? sameInRow + 1 : 1;
             lastReward = pick;
             return pick;

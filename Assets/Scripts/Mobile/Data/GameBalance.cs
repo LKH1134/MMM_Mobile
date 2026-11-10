@@ -40,13 +40,15 @@ namespace MoreMush.Mobile
         static HarvestSettingRow[] harvestSettings;
         static TreeQuestRow[] treeQuests;
         static DungeonRow[] dungeonList;
+        static AttendanceRow[] attendance;
 
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트",
             EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
-            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰";
+            EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투", TreeQuestSheet = "의뢰",
+            AttendanceSheet = "출석";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload()
@@ -77,6 +79,7 @@ namespace MoreMush.Mobile
             harvestSettings = null;
             treeQuests = null;
             dungeonList = null;
+            attendance = null;
         }
 
         // ── 읽기 ──
@@ -118,6 +121,7 @@ namespace MoreMush.Mobile
         public static IdleBattleRow IdleBattle { get { Ensure(); return idleBattle; } }
         public static IReadOnlyList<HarvestSettingRow> HarvestSettings { get { Ensure(); return harvestSettings; } }
         public static IReadOnlyList<TreeQuestRow> TreeQuests { get { Ensure(); return treeQuests; } }
+        public static IReadOnlyList<AttendanceRow> Attendance { get { Ensure(); return attendance; } }   // day 순서 (1일째부터)
 
         // 장비 시트에서 그 종류의 장비를 저장 인덱스(itemIndex) 순서로
         public static EquipmentRow[] EquipmentOf(GachaKind kind)
@@ -247,6 +251,7 @@ namespace MoreMush.Mobile
             idleBattle = battleRows.Count > 0 ? battleRows[0] : null;
             harvestSettings = ToArray(Read(new DataTable<HarvestSettingRow>(HarvestSheet, 14001, 14999), sheets, issues));
             treeQuests = ToArray(Read(new DataTable<TreeQuestRow>(TreeQuestSheet, 9901, 9999), sheets, issues));
+            attendance = ToSorted(Read(new DataTable<AttendanceRow>(AttendanceSheet, 17001, 17999), sheets, issues), (a, b) => a.day.CompareTo(b.day));
 
             foreach (var issue in issues)
                 if (!Ignorable(issue)) Debug.LogError("[GameBalance] " + issue);
@@ -273,8 +278,8 @@ namespace MoreMush.Mobile
                 throw new InvalidOperationException("[GameBalance] 업그레이드·꼬마·등급·뽑기·스테이지 시트 중 비어 있는 것이 있다");
             if (treeStages.Length == 0 || kidStars.Length == 0 || affinityLevels.Length == 0 || decoGrades.Length == 0)
                 throw new InvalidOperationException("[GameBalance] 세계수·꼬마진화·호감도·장식등급 시트 중 비어 있는 것이 있다");
-            if (equipment.Length == 0 || gachaProducts.Length == 0 || idleBattle == null)
-                throw new InvalidOperationException("[GameBalance] 장비·뽑기상품·방치전투 시트 중 비어 있는 것이 있다");
+            if (equipment.Length == 0 || gachaProducts.Length == 0 || idleBattle == null || attendance.Length == 0)
+                throw new InvalidOperationException("[GameBalance] 장비·뽑기상품·방치전투·출석 시트 중 비어 있는 것이 있다");
             loaded = true;
         }
 
@@ -522,6 +527,15 @@ namespace MoreMush.Mobile
         public int formationSlots;     // Formation.SlotCount와 같아야 한다 (검증기)
         public int stagesPerChapter;
         public double flightTime, waveDelay, enemyAttackDelay;
+    }
+
+    // 출석: 7일 출석 보상 하루치 (Attendance). 행 수 = 출석 일수
+    public class AttendanceRow : TableRow
+    {
+        public int day;                     // N일째 (1부터)
+        public AttendanceRewardKind kind;   // Gold = 적 처치 골드 × amount · Mycelite = amount개 · Weapon = equipId 무기
+        public long amount;
+        public int equipId;                 // Weapon일 때 장비.index
     }
 
     // 수확전투: 던전 수확 판의 수치 하나. scope(RoundBase·HarvestField·Harvester·Cluster·Single·Bar·FieldInput)의 field에 value를 넣는다 (HarvestTuning)

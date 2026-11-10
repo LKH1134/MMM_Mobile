@@ -6,13 +6,21 @@ namespace MoreMush.Mobile
     public enum Feature { Team, Gacha, Dungeon, WorldTree }
 
     // 기능 해금: 지금 싸우는 스테이지가 해금 스테이지 이상이 되면 한 번 열리고, 그 뒤로는 스테이지가 내려가도 다시 잠기지 않는다 (PlayerPrefs "Unlock.<기능>").
-    //   편성 = 1-2를 깨면(= 1-3 진입) · 소환 = 편성 화면에 처음 들어가면 · 던전 = 던전 시트에서 가장 먼저 열리는 던전의 unlockStage · 세계수 = WorldTreeStage
+    //   편성 = 1-2를 깨면(= 1-3 진입, 상수 unlockTeamStage) · 소환 = 편성 화면에 처음 들어가면 · 던전 = 던전 시트에서 가장 먼저 열리는 던전의 unlockStage · 세계수 = 상수 unlockWorldTreeStage
     // 열린 뒤에는 한 번 "새로운 콘텐츠!" 안내(Seen)를 보여 주고 그 탭을 가리킨다. 그 탭을 처음 열 때까지(Opened) 탭이 반짝인다 (UnlockAnnouncer·BottomBarLocks)
     public static class FeatureUnlock
     {
-        // 해금 스테이지 (스테이지 번호 1부터. 1-2를 깨고 1-3에 들어가면 스테이지 3 — HUD 표기는 IdleBattle.HudStageNumber)
-        public const int TeamStage = 3, WorldTreeStage = 7;
-        const int FallbackDungeonStage = 5;
+        // 해금 스테이지 (스테이지 번호 1부터. 1-2를 깨고 1-3에 들어가면 스테이지 3 — HUD 표기는 IdleBattle.HudStageNumber). 값은 상수 시트
+        public static int TeamStage => StageConst("unlockTeamStage");
+        public static int WorldTreeStage => StageConst("unlockWorldTreeStage");
+        const int FallbackDungeonStage = 5;     // 표를 못 읽을 때만 (던전 시트에 열린 던전이 없을 때)
+
+        // 표를 못 읽으면 잠근 채로 둔다 (스테이지가 닿지 않는 값) — 오류는 GameBalance가 시작 화면에서 알린다
+        static int StageConst(string key)
+        {
+            try { return Mathf.Max(1, GameBalance.ConstInt(key)); }
+            catch (System.Exception e) { Debug.LogException(e); return int.MaxValue; }
+        }
 
         public static readonly Feature[] All = { Feature.Team, Feature.Gacha, Feature.Dungeon, Feature.WorldTree };
 

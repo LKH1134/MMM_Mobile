@@ -13,12 +13,12 @@ namespace MoreMush.Mobile
         {
             var row = GameBalance.Dungeon(dungeon);
             if (row == null || row.baseStage <= 0) return 0;
-            // 보스 러시: 레벨 RushEasyLevels까지는 기준 스테이지 그대로(쉽게 깬다), 그 뒤부터 레벨마다 stageStep씩 강해진다
+            // 보스 러시: 레벨 bossRushEasyLevels까지는 기준 스테이지 그대로(쉽게 깬다), 그 뒤부터 레벨마다 stageStep씩 강해진다
             int steps = DungeonSession.Mode(dungeon) == DungeonMode.BossRush ? level - RushEasyLevels : level - 1;
             return row.baseStage + row.stageStep * Mathf.Max(0, steps);
         }
 
-        const int RushEasyLevels = 5;
+        static int RushEasyLevels => Mathf.Max(1, GameBalance.ConstInt("bossRushEasyLevels"));   // 상수 시트
 
         // 보스 한 마리 레벨 보스: 기준 스테이지 방치 보스 × hpMul·atkMul, 제한 시간은 그 스테이지 보스 시간
         public static double BossHp(int dungeon, int level) => IdleProgress.BossHp(Stage(dungeon, level)) * Mul(dungeon, true);

@@ -83,6 +83,16 @@
 
 ## 2. 커밋
 
+### 2026-11-10 (`LKH`, main `c58cbcf` 위) — 코드에 있던 콘텐츠 수치를 표로
+
+- 조사: 콘텐츠 코드의 `const`·리터럴·하드코딩 문자열을 훑음(`Tools/audit_game_data.py`는 상수 key·리소스·수확전투만 봄). 남아 있던 것은 11-06~11-09에 들어온 콘텐츠 값뿐이었다.
+- **새 시트 `출석`**(17001~17007, `AttendanceRow`): day·kind(`AttendanceRewardKind`)·amount·equipId. 출석 일수 = 행 수(`Attendance.Days`가 const → 표). 7일째 무기는 이름("날다람쥐") 대신 **장비.index 11010**. 검증기: day 1부터 연속, 무기 equipId는 장비 시트 무기, 재화 양수.
+- **상수 9090~9094**: `adBoxGoldChance` 0.5·`adBoxMaxSameInRow` 2(`AdBox.NextReward`), `bossRushEasyLevels` 5(`DungeonRewards.Stage`), `unlockTeamStage` 3·`unlockWorldTreeStage` 7(`FeatureUnlock`, 이제 const가 아니라 속성).
+- 방치 보스 체력 꼬리의 챕터 길이(`IdleProgress.ChapterLength` 10) → `방치전투.stagesPerChapter`(10).
+- **리소스 7425** `UI/Icon/advertisement_mycelite`(광고 상자 균사석 그림, 미등록이었음). 감사 도구 문제 1 → 0.
+- 값은 모두 옮기기 전과 같다(에디터에서 출석 7일·무기 날다람쥐·해금 3/7/5·보스 러시 레벨 1~5 기준 스테이지 30 → 6부터 +5·보스 체력 710 벽 ×1.4 확인). 표 편집 스크립트 `밸런스설계/tools/add_attendance_consts.py`(엑셀 XML 직접 수정), Reimport Tables 1297행 OK.
+- **표로 옮기지 않은 것**(게임 데이터가 아니라 동작·안전값): 연출 시간·크기, 저장 주기, 광고 재시도, 절전 3분(`PowerSaveMode.IdleSeconds`), 표를 못 읽을 때 기본값(`AdBox` 간격, `FeatureUnlock` 던전 5), 방어력 상한 0.9 같은 계산 보호값, 세이브 옮기기용 옛 값(`Wallet.TestMycelite`·`Equipment.OldGradeCount`), 코드 구조 상수(`Formation.SlotCount` — 검증기가 표와 같은지 봄, `GachaProgress.GradeCount`).
+
 ### 2026-11-09 (`LKH`·`KHD` → `main` 머지 `0110323`·`667987a`·`1af7e60`·`16cbebc`)
 
 | 커밋 | 작성 | 내용 |
@@ -680,8 +690,8 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 ### 2026-11-09 남은 일 (가장 먼저)
 
-1. **KHD 미머지 2커밋 머지** (`50f354c` 코드 UI 캔버스화·`a1590aa` 출석 팝업) → Unity 컴파일·Main/세계수/뽑기/출석 플레이 확인. 충돌은 없음(11-10 `merge-tree` 확인)
-2. **로컬 main 푸시** — origin/main보다 4커밋 앞섬(`16cbebc` 머지 포함)
+1. ~~KHD 미머지 2커밋 머지~~ ✅ 11-10 KHD가 main에 머지(`c58cbcf`). Main/세계수/뽑기/출석 플레이 확인은 남음
+2. ~~로컬 main 푸시~~ ✅ 11-10
 3. **꼬마별 트리** ([작업준비_261106.md](작업준비_261106.md) 2장) — 손대지 않음. Q2(효과를 팀 전체에 줄지 그 꼬마에만 줄지)·Q3(비용 재화) 결정부터
 4. **밸런스 모델이 지금 던전과 다름:** 해금 5/25/150/250/400 → 5/10/20/30/50, 던전 2·3 보상 성격 변경(골드·균사석), 4·5 새 방식(보스 러시·토벌), 광고 상자 한 가지 보상(기대값 절반), 출석 균사석 6,000·전설 무기. `밸런스설계/` 시뮬·이론은 이 변화 전 기준 — 11-05 남은 일 1번(지운 상수)과 함께 고쳐 다시 재기
 5. **번역 누락:** 코드로 만든 화면(`UnlockAnnouncer`·`AdBox` 등)과 새 프리팹 글자가 문자열 표에 다 있는지, 영어 칸이 빈 key 확인. 영어 글자가 정적 폰트 아틀라스에 있는지(`Bake Static Atlases`)
