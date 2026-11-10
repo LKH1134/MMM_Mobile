@@ -35,7 +35,8 @@ sealed class Player
 
     // 꼬마 9종
     public string[] ids = Formation.Ids;
-    public int[] mLv, mCp;
+    public int[] mLv, mCp, mGr;          // 꼬마 레벨·조각·성장 횟수(0~2, Formation.Growth)
+    double[] mBase;                       // 꼬마 1단계 공격 배율 (꼬마 시트 attackMultiplier)
     public double[] slotMul = new double[5];
 
     // 뽑기 종류별(GachaKind 값 0~3, 쓰지 않는 값은 안 씀) 레벨·경험치
@@ -51,6 +52,7 @@ sealed class Player
 
     // 이벤트 (퀘스트 집계)
     public Action<int> onUpgradeBought, onPulled;
+    public Action<int> onUpgradeStat;     // 산 강화 종류 (가이드 퀘스트)
 
     public Player(int seed)
     {
@@ -58,7 +60,9 @@ sealed class Player
         var rows = GameBalance.Mascots;
         mLv = new int[ids.Length];
         mCp = new int[ids.Length];
-        for (int i = 0; i < ids.Length; i++) mLv[i] = rows[i].initialOwned;
+        mGr = new int[ids.Length];
+        mBase = new double[ids.Length];
+        for (int i = 0; i < ids.Length; i++) { mLv[i] = rows[i].initialOwned; mBase[i] = rows[i].attackMultiplier; }
         Refresh();
     }
 
@@ -99,7 +103,7 @@ sealed class Player
         cd = IdleProgress.Value(IdleStat.CritDamage, lv[(int)IdleStat.CritDamage]);
         // 자동 편성: 가진 꼬마 중 공격 배율 높은 순 5명 (Formation.AutoArrange)
         var muls = new List<double>();
-        for (int i = 0; i < ids.Length; i++) if (mLv[i] > 0) muls.Add(Formation.AttackMultiplierAt(ids[i], mLv[i]));
+        for (int i = 0; i < ids.Length; i++) if (mLv[i] > 0) muls.Add(MascotMul(i));
         muls.Sort((a, b) => b.CompareTo(a));
         mulSum = 0;
         for (int i = 0; i < 5; i++) { slotMul[i] = i < muls.Count ? muls[i] : 0; mulSum += slotMul[i]; }
@@ -182,6 +186,7 @@ sealed class Player
             dirty = true;
             n++;
             onUpgradeBought?.Invoke(1);
+            onUpgradeStat?.Invoke(s);
         }
         return n;
     }
@@ -227,7 +232,7 @@ sealed class Player
             }
             // 합성(Formation.MergeAll)
             for (int i = 0; i < ids.Length; i++)
-                while (mLv[i] > 0 && mLv[i] < Formation.MaxLevel && mCp[i] >= Formation.CopiesToNext(mLv[i])) { mCp[i] -= Formation.CopiesToNext(mLv[i]); mLv[i]++; }
+                while (mLv[i] > 0 && mLv[i] < MascotCap(i) && mCp[i] >= Formation.CopiesToNext(mLv[i])) { mCp[i] -= Formation.CopiesToNext(mLv[i]); mLv[i]++; }
         }
         else
         {
@@ -267,15 +272,34 @@ sealed class Player
     // 균사석 쓰기: 300 이상이면 35회, 100 이상이면 11회, 뽑기 종류(Kinds)를 돌려가며
     public static bool NoGacha;
     public static bool EquipGame;     // true = 게임처럼 처음 얻은 묶음에서만 자동 장착 (민감도), false = 늘 최선으로 바꿔 낌 (기본)
+    // Formation.AttackMultiplierAt/LevelCap을 저장소 없이 옮김 (게임 함수는 PlayerPrefs의 성장 횟수를 읽는다)
+    double MascotMul(int i) => mBase[i] * Formation.EvoMul(1 + mGr[i]) * (1 + Formation.LevelBonus * (Math.Max(1, mLv[i]) - 1));
+    int MascotCap(int i) => mGr[i] >= Formation.GrowStageCount ? Formation.MaxLevel : Math.Min(Formation.MaxLevel, Formation.EvoLevel(mGr[i] == 1 ? 3 : 2));
+    static readonly int[] GrowCost = { GameBalance.ConstInt("ggomaGrowMycelite2"), GameBalance.ConstInt("ggomaGrowMycelite3") };
+
+    // 성장(Formation.TryGrow): 관문 레벨에 닿은 꼬마를 균사석으로 성장 — 뽑기보다 먼저 (배율 ×1.5·×2가 크다)
+    void GrowMascots()
+    {
+        for (int i = 0; i < ids.Length; i++)
+            while (mLv[i] > 0 && mGr[i] < Formation.GrowStageCount && mLv[i] >= MascotCap(i) && myc >= GrowCost[mGr[i]])
+            {
+                myc -= GrowCost[mGr[i]]; mGr[i]++;
+                while (mLv[i] < MascotCap(i) && mCp[i] >= Formation.CopiesToNext(mLv[i])) { mCp[i] -= Formation.CopiesToNext(mLv[i]); mLv[i]++; }
+            }
+    }
+
     public void SpendMycelite()
     {
         if (NoGacha) return;
+        GrowMascots();
         while (myc >= 100)
         {
             int count = myc >= 300 ? 35 : 11;
             myc -= count == 35 ? 300 : 100;
             Pull(Kinds[nextKind], count);
             nextKind = (nextKind + 1) % Kinds.Length;
+            GrowMascots();
         }
+        Refresh();
     }
 }

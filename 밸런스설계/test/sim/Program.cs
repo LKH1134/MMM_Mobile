@@ -22,6 +22,9 @@ static class Program
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
         string tbl = Arg(args, "table", TablePath);       // theory 수치안: 고친 xlsx(또는 bytes) 경로를 주입
         Tables.Load(tbl);
+        // 11-09 번역(Loc)이 Resources.Load를 부른다 — 유니티 밖에선 못 쓰니 빈 문자열 표를 넣는다 (이름은 표 name으로 대신 나옴)
+        typeof(Loc).GetField("table", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, new Dictionary<string, string[]>());
+        typeof(Loc).GetField("hasLanguage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, true);   // 언어 = 기본값(한국어), PlayerPrefs 안 읽음
         foreach (var kv in Arg(args, "const", "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))   // 상수 덮어쓰기 key:value,key:value
         {
             var q = kv.Split(':');
@@ -158,6 +161,7 @@ static class Program
             p.dungeonAd = int.Parse(Arg(a, "dungAd", p.dungeonAd.ToString()));
             string ak = Arg(a, "adKinds", ""); if (ak != "") p.gachaKinds = ak == "-" ? new int[0] : ak.Split(',').Select(int.Parse).ToArray();
         }
+        p.dungeonAdRate = adsAll ? 1.0 : adsHalf ? 0.5 : 0;   // 11-10: 던전 광고 입장(상수 dungeonAdPerDay) 시청률 — 상자·정산과 같은 비율
         string seg = Arg(a, "seg", "");
         if (seg != "")   // 광고 구간 (이론.md 9.1·9.2): none 0 · light 0.25 · half 0.5 · heavy 1.0 — 상자·정산2배·던전 광고 = 시청률, 광고 뽑기 = round(4r)종 (무기·펫·방어구·꼬마 순)
         {
@@ -200,7 +204,7 @@ static class Program
         }
         Console.WriteLine($"첫7일 골드: 전투={(sc.snap7 == null ? -1 : sc.snap7[0]):E3} 앱밖={(sc.snap7 == null ? -1 : sc.snap7[1]):E3} 퀘스트상자={(sc.snap7 == null ? -1 : sc.snap7[2]):E3} 던전={(sc.snap7 == null ? -1 : sc.snap7[3]):E3}");
         Console.WriteLine($"첫사용(벽시계 분): 던전={(sc.firstDungeon < 0 ? -1 : sc.firstDungeon / 60):F1} 뽑기={(sc.firstPull < 0 ? -1 : sc.firstPull / 60):F1} 퀘스트={(sc.firstQuest < 0 ? -1 : sc.firstQuest / 60):F1} · 첫1시간 강화={sc.upg1h}");
-        Console.WriteLine($"재화 합계: 처치골드={sc.totKillGold:E3} 앱밖={sc.totOfflineGold:E3} 퀘스트골드={sc.totQuestGold:E3} 상자골드={sc.totChestGold:E3} 던전골드={sc.totDungeonGold:E3} | 균사석 보스={sc.totBossMyc} 퀘스트={sc.totQuestMyc} 상자={sc.totChestMyc} 던전={sc.totDungeonMyc} | 광고 {sc.adViews}회(상자 {sc.chestCount}) 뽑기 {sc.P.pulls}회 · 일수 {sc.dayCount}");
+        Console.WriteLine($"재화 합계: 처치골드={sc.totKillGold:E3} 앱밖={sc.totOfflineGold:E3} 퀘스트골드={sc.totQuestGold:E3} 상자골드={sc.totChestGold:E3} 던전골드={sc.totDungeonGold:E3} | 균사석 보스={sc.totBossMyc} 퀘스트={sc.totQuestMyc} 상자={sc.totChestMyc} 던전={sc.totDungeonMyc} 가이드={sc.totGuideMyc}({sc.guideDone}개) 출석={sc.totAttendMyc} | 광고 {sc.adViews}회(상자 {sc.chestCount}) 뽑기 {sc.P.pulls}회 · 일수 {sc.dayCount}");
         Console.WriteLine($"던전: 입장 {sc.dungeonRuns}회 (레벨 미달 실패 {sc.dungeonFails}회) · 퀘스트 균사석 합 {sc.totQuestMyc} · 하루 평균 {sc.totQuestMyc / Math.Max(1.0, sc.dayCount):F1}");
         Console.WriteLine($"최종 강화 Lv: {string.Join(",", sc.P.lv)} · 편성 {string.Join(",", sc.P.slotMul.Select(x => x.ToString("F2")))} · 장비% {string.Join(" ", Enumerable.Range(0, Player.EqN).Select(e => Player.EqName(e) + "=" + sc.P.eqPct[e].ToString("F0")))} 공격배율%={sc.P.atkPctSum:F0} · 뽑기 Lv {string.Join(",", sc.P.gLv)}");
     }
