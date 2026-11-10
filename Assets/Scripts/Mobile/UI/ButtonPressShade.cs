@@ -49,14 +49,22 @@ namespace MoreMush.Mobile
         class Scanner : MonoBehaviour
         {
             float wait;
+            Selectable[] buffer = new Selectable[64];
 
+            // 씬 전체를 뒤지지 않고 Unity가 들고 있는 켜진 Selectable 목록만 본다 (FindObjectsByType는 모바일에서 무겁고 배열을 새로 만든다)
             void Update()
             {
                 wait -= Time.unscaledDeltaTime;
                 if (wait > 0f) return;
                 wait = 0.5f;
-                foreach (var b in FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-                    if (!b.TryGetComponent<ButtonPressShade>(out _)) b.gameObject.AddComponent<ButtonPressShade>();
+                int n = Selectable.allSelectableCount;
+                if (buffer.Length < n) buffer = new Selectable[Mathf.NextPowerOfTwo(n)];
+                n = Selectable.AllSelectablesNoAlloc(buffer);
+                for (int i = 0; i < n; i++)
+                {
+                    if (buffer[i] is Button b && !b.TryGetComponent<ButtonPressShade>(out _)) b.gameObject.AddComponent<ButtonPressShade>();
+                    buffer[i] = null;       // 꺼진 버튼을 잡아 두지 않게
+                }
             }
         }
 

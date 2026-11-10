@@ -68,7 +68,7 @@ namespace MoreMush.Mobile
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetTables() { defs = null; curve = null; }
+        static void ResetTables() { defs = null; curve = null; costCacheLv = null; }
 
         public static event System.Action Changed;
 
@@ -170,7 +170,27 @@ namespace MoreMush.Mobile
         // 다음 레벨로 올리는 값
         public static long Cost(IdleStat stat) => Cost(stat, Level(stat));
 
+        // 마지막으로 계산한 레벨의 비용 (강화 버튼은 갱신마다 같은 레벨 비용을 묻는다 — 거듭제곱·지수를 다시 하지 않게)
+        static int[] costCacheLv;
+        static long[] costCacheValue;
+
         public static long Cost(IdleStat stat, int lv)
+        {
+            int si = (int)stat;
+            if (costCacheLv == null)
+            {
+                int n = System.Enum.GetValues(typeof(IdleStat)).Length;
+                costCacheLv = new int[n];
+                costCacheValue = new long[n];
+                for (int i = 0; i < n; i++) costCacheLv[i] = -1;
+            }
+            if (si >= 0 && si < costCacheLv.Length && costCacheLv[si] == lv) return costCacheValue[si];
+            long cost = ComputeCost(stat, lv);
+            if (si >= 0 && si < costCacheLv.Length) { costCacheLv[si] = lv; costCacheValue[si] = cost; }
+            return cost;
+        }
+
+        static long ComputeCost(IdleStat stat, int lv)
         {
             var d = Get(stat);
             if (d.incremental) return IncrementalCost(d, lv);

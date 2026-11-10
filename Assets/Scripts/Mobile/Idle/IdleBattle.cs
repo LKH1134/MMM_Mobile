@@ -712,6 +712,7 @@ namespace MoreMush.Mobile
         Enemy Spawn(bool isBoss, Vector2 local)
         {
             var e = freeEnemies.Count > 0 ? freeEnemies.Pop() : NewEnemy();
+            var kind = MushroomKind.Edible;
             if (isBoss)
             {
                 // 보스 그림 = 스테이지.bossId → 보스.resourceId (표). 못 찾으면 식용 적 그림
@@ -720,7 +721,7 @@ namespace MoreMush.Mobile
             }
             else
             {
-                var sprites = PickEnemyPool();
+                var sprites = PickEnemyPool(out kind);
                 e.img.sprite = sprites.Length > 0 ? sprites[Random.Range(0, sprites.Length)] : white;
             }
             float size = isBoss ? bossSize : enemySize;
@@ -728,7 +729,8 @@ namespace MoreMush.Mobile
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
             e.boss = isBoss;
             // 보스는 그림이 독버섯 군락이어도 식용으로 친다 (꼬마 스킬의 독·약용 배율을 보스에 걸지 않는다 — 옛 보스 그림과 같은 밸런스)
-            e.kind = isBoss ? MushroomKind.Edible : GgomaSkills.KindOf(e.img.sprite != null ? e.img.sprite.name : null);
+            // 종류는 고른 묶음으로 안다 (sprite.name은 부를 때마다 문자열을 새로 만든다)
+            e.kind = isBoss ? MushroomKind.Edible : kind;
             e.maxHp = e.hp = isBoss ? IdleProgress.BossHp(stage) : IdleProgress.EnemyHp(stage, wave);
             e.gold = IdleProgress.ClampToLong((isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage)) * WorldTree.Mul(TreeEffect.KillGold), 1);
             e.incoming = 0;
@@ -765,12 +767,13 @@ namespace MoreMush.Mobile
         }
 
         // 일반 적 그림 묶음: 독성·약용은 상수 비율대로, 나머지는 식용 (그림이 없으면 식용)
-        Sprite[] PickEnemyPool()
+        Sprite[] PickEnemyPool(out MushroomKind kind)
         {
             float r = Random.value;
             float toxic = (float)GameBalance.Const("enemyToxicRate"), medicinal = (float)GameBalance.Const("enemyMedicinalRate");
-            if (r < toxic && toxicSprites != null && toxicSprites.Length > 0) return toxicSprites;
-            if (r >= toxic && r < toxic + medicinal && medicinalSprites != null && medicinalSprites.Length > 0) return medicinalSprites;
+            if (r < toxic && toxicSprites != null && toxicSprites.Length > 0) { kind = MushroomKind.Toxic; return toxicSprites; }
+            if (r >= toxic && r < toxic + medicinal && medicinalSprites != null && medicinalSprites.Length > 0) { kind = MushroomKind.Medicinal; return medicinalSprites; }
+            kind = MushroomKind.Edible;
             return enemySprites;
         }
 

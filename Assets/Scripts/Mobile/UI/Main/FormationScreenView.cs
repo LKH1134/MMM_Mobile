@@ -130,7 +130,7 @@ namespace MoreMush.Mobile
         {
             int up = Formation.Merge(selectedId);
             if (message != null) message.text = up > 0 ? $"{Formation.Name(selectedId)} Lv.{Formation.Level(selectedId)} (+{up})" : "";
-            Refresh();
+            // 화면 갱신은 Formation.Changed가 한다 (바뀐 게 없으면 다시 그릴 것도 없다)
         }
 
         void GrowSelected()
@@ -142,14 +142,12 @@ namespace MoreMush.Mobile
                 if (message != null) message.text = Loc.F("formation.grow_done", name, Formation.EvoStage(selectedId));
             }
             else if (message != null) message.text = Loc.T("gacha.no_funds");
-            Refresh();
         }
 
         void MergeAll()
         {
             int up = Formation.MergeAll();
             if (message != null) message.text = up > 0 ? Loc.F("formation.merge_all_done", up) : Loc.T("formation.nothing_to_merge");
-            Refresh();
         }
 
         void Refresh()

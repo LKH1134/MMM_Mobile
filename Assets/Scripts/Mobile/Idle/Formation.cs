@@ -68,6 +68,9 @@ namespace MoreMush.Mobile
 
         public static event System.Action Changed;
 
+        // 보유·레벨·성장·편성 칸이 바뀔 때마다 오른다 — 이 값으로 계산해 둔 것(꼬마 스킬 합 등)이 낡았는지 안다
+        public static int Version { get; private set; }
+
         // 칸·레벨·조각은 전투 중 던질 때마다 읽는다 → PlayerPrefs(안드로이드에서 느림)를 처음 한 번만 읽고 메모리에 둔다.
         // 쓸 때 둘 다 고친다. PlayerPrefs를 밖에서 지웠으면 Reload
         static readonly string[] SlotKeys = BuildKeys(SlotCount, i => "Formation." + i);
@@ -86,6 +89,7 @@ namespace MoreMush.Mobile
         {
             slots = null;
             levels = copies = growth = null;
+            Version++;
             migrated = false;
             table = null;       // 표는 처음 쓸 때 다시 만든다 (이 훅은 리소스가 준비되기 전에 돈다)
         }
@@ -117,18 +121,21 @@ namespace MoreMush.Mobile
             copies = cp;
             growth = gr;
             slots = s;
+            Version++;
         }
 
         static void SetSlot(int slot, string id)
         {
             slots[slot] = id;
             PlayerPrefs.SetString(SlotKeys[slot], id);
+            Version++;
         }
 
         static void SetLevel(int i, int lv)
         {
             levels[i] = Mathf.Clamp(lv, 0, MaxLevel);
             PlayerPrefs.SetInt(T.levelKeys[i], levels[i]);
+            Version++;
         }
 
         static void SetCopies(int i, int n)
@@ -350,6 +357,7 @@ namespace MoreMush.Mobile
             int i = System.Array.IndexOf(Ids, id);
             growth[i]++;
             PlayerPrefs.SetInt(GrowKey(id), growth[i]);
+            Version++;
             Save();
             return true;
         }
