@@ -36,6 +36,7 @@ namespace MoreMush.Mobile
             if (apply && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return "취소";
             var report = new StringBuilder();
             reasons.Clear();
+            kept.Clear();
             int total = 0, off = 0;
             string startScene = SceneManager.GetActiveScene().path;
 
@@ -71,7 +72,7 @@ namespace MoreMush.Mobile
             if (!string.IsNullOrEmpty(startScene)) EditorSceneManager.OpenScene(startScene, OpenSceneMode.Single);
             string head = $"raycastTarget 켜진 그래픽 {total}개 중 끌 수 있는 것 {off}개 ({(apply ? "적용함" : "점검만")})\n";
             foreach (var kv in reasons) head += $"  남김 — {kv.Key}: {kv.Value}\n";
-            File.WriteAllText(ReportPath, head + report);
+            File.WriteAllText(ReportPath, head + report + "\n[다른 이유로 남긴 것]\n" + kept);
             Debug.Log("[RaycastTargetAudit] " + head + "자세한 목록: " + ReportPath);
             return head;
         }
@@ -89,12 +90,18 @@ namespace MoreMush.Mobile
                 if (!skipPrefabInstances && PrefabUtility.IsPartOfPrefabInstance(g) && PrefabUtility.GetNearestPrefabInstanceRoot(g) != root) continue;   // 중첩 프리팹은 그 원본에서
                 string why = WhyKeep(g, targetGraphics);
                 if (why == null) result.Add(g);
-                else { reasons.TryGetValue(why, out int n); reasons[why] = n + 1; }
+                else
+                {
+                    reasons.TryGetValue(why, out int n);
+                    reasons[why] = n + 1;
+                    if (why != "버튼 판정 그래픽") kept.Append("    (남김: ").Append(why).Append(") ").Append(g.GetType().Name).Append(' ').Append(PathOf(g.transform, null)).Append('\n');
+                }
             }
             return result;
         }
 
         static readonly Dictionary<string, int> reasons = new Dictionary<string, int>();
+        static readonly StringBuilder kept = new StringBuilder();     // 버튼 판정 말고 다른 이유로 남긴 것 (손으로 볼 목록)
 
         // 끄면 안 되는 이유 (null이면 꺼도 된다)
         static string WhyKeep(Graphic g, HashSet<Graphic> targetGraphics)
