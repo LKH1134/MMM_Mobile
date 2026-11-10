@@ -21,8 +21,14 @@ namespace MoreMush.Mobile
             }
             if (cover == null) cover = Create(card);
             cover.gameObject.SetActive(true);
-            cover.SetAsLastSibling();
-            if (keepOnTop != null && keepOnTop.parent == card) keepOnTop.SetAsLastSibling();
+            // 순서가 이미 맞으면 건드리지 않는다 (형제 순서를 바꾸면 레이아웃이 다시 돈다)
+            bool keep = keepOnTop != null && keepOnTop.parent == card;
+            int last = card.childCount - 1;
+            if (cover.GetSiblingIndex() != (keep ? last - 1 : last) || (keep && keepOnTop.GetSiblingIndex() != last))
+            {
+                cover.SetAsLastSibling();
+                if (keep) keepOnTop.SetAsLastSibling();
+            }
         }
 
         static Transform Create(Transform card)

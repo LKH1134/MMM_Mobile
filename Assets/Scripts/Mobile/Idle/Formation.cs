@@ -369,8 +369,11 @@ namespace MoreMush.Mobile
         public static double AttackMultiplierAt(string id, int lv)
         {
             int i = System.Array.IndexOf(Ids, id);
+            if (i < 0) return 0;
+            EnsureLoaded();
             lv = Mathf.Max(1, lv);
-            return i >= 0 ? T.attackMuls[i] * EvoMul(EvoStage(id)) * (1 + LevelBonus * (lv - 1)) : 0;
+            // 공격마다 불린다 — 찾은 번호로 성장 횟수를 바로 읽는다 (EvoStage가 Ids를 다시 찾지 않게)
+            return T.attackMuls[i] * EvoMul(1 + growth[i]) * (1 + LevelBonus * (lv - 1));
         }
 
         // 지금 편성된 꼬마들의 공격 배율 합 (전투력 계산용)

@@ -86,7 +86,8 @@ namespace MoreMush.Mobile
 
         void Apply()
         {
-            if (entries == null) return;
+            // icons·labels는 Awake에서 만든다 — 플레이 중 스크립트를 다시 컴파일하면 Awake 없이 OnEnable만 다시 불려 비어 있다
+            if (entries == null || icons == null || labels == null) return;
             for (int i = 0; i < entries.Length; i++)
             {
                 var e = entries[i];

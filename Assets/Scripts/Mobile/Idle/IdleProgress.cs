@@ -178,7 +178,7 @@ namespace MoreMush.Mobile
             if (d.costScale > 0) c *= System.Math.Exp(lv / d.costScale);
             if (stat == IdleStat.Speed) c *= SpeedCostRamp(lv, d.maxLv);
             c *= GateCostFactor(stat, d, lv);
-            return (long)System.Math.Min(9e18, System.Math.Ceiling(c));
+            return (long)System.Math.Max(1, System.Math.Min(9e18, System.Math.Ceiling(c)));
         }
 
         // 증분 강화(공격력 등)로 해금·단계가 열리는 강화의 비용 보정: 그 레벨이 열리는 기준 레벨에서
@@ -191,7 +191,8 @@ namespace MoreMush.Mobile
             int gate = GateLevelFor(stat, d, lv);
             double old = g.costBase * System.Math.Pow(1 + gate / g.costDivisor, g.costExp);
             if (g.costScale > 0) old *= System.Math.Exp(gate / g.costScale);
-            return old > 0 ? System.Math.Min(1.0, IncrementalCost(g, gate) / old) : 1.0;
+            if (!(old > 0) || double.IsInfinity(old)) return 1.0;    // 지수가 넘치면 보정하지 않는다 (비용이 0이 되지 않게)
+            return System.Math.Min(1.0, IncrementalCost(g, gate) / old);
         }
 
         // lv → lv+1 강화가 열리는 기준 강화 레벨 (단계 제한이 없으면 해금 레벨)

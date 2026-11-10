@@ -874,6 +874,7 @@ namespace MoreMush.Mobile
             if (e.attackIn <= 0f)
             {
                 e.attackIn += EnemyAttackInterval;
+                if (e.attackIn <= 0f) e.attackIn = EnemyAttackInterval;   // 앱 복귀 직후처럼 dt가 아주 크면 한 번만 휘두른다
                 e.attackAnim = 0f;
             }
             if (e.attackAnim < 0f) return 0f;

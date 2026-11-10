@@ -37,6 +37,7 @@ namespace MoreMush.Mobile
         IEnumerator PulseLoop(float baseScale)
         {
             var rt = (RectTransform)transform;
+            var wait = new WaitForSecondsRealtime(PulseInterval);     // 반복마다 새로 만들지 않는다
             while (true)
             {
                 for (float t = 0f; t < PulseTime; t += Time.unscaledDeltaTime)
@@ -46,7 +47,7 @@ namespace MoreMush.Mobile
                     yield return null;
                 }
                 rt.localScale = Vector3.one * baseScale;
-                yield return new WaitForSecondsRealtime(PulseInterval);
+                yield return wait;
             }
         }
 
@@ -55,17 +56,20 @@ namespace MoreMush.Mobile
             var band = CreateShine();
             var size = ((RectTransform)transform).rect.size;
             float travel = size.x + size.y;     // 기울어진 띠가 칸 밖에서 밖으로 지나갈 거리
+            var wait = new WaitForSecondsRealtime(ShineInterval);
+            // 띠가 아니라 가림막째 켜고 끈다: 켜진 RectMask2D는 매 프레임 자르기 계산을 하고 묶음 그리기를 끊는다 (칸이 많을 때 모바일 부담)
+            var mask = band.parent.gameObject;
             while (true)
             {
-                band.gameObject.SetActive(true);
+                mask.SetActive(true);
                 for (float t = 0f; t < ShineTime; t += Time.unscaledDeltaTime)
                 {
                     float k = t / ShineTime;
                     band.anchoredPosition = new Vector2(Mathf.Lerp(-travel, travel, k) * 0.5f, 0f);
                     yield return null;
                 }
-                band.gameObject.SetActive(false);
-                yield return new WaitForSecondsRealtime(ShineInterval);
+                mask.SetActive(false);
+                yield return wait;
             }
         }
 
@@ -86,7 +90,7 @@ namespace MoreMush.Mobile
             var img = band.GetComponent<Image>();
             img.color = new Color(1f, 1f, 1f, ShineAlpha);
             img.raycastTarget = false;
-            band.gameObject.SetActive(false);
+            mask.gameObject.SetActive(false);
             return band;
         }
     }

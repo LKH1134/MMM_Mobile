@@ -47,8 +47,11 @@ namespace MoreMush.Mobile
 
         static void LoadGenerated()
         {
-            kind = (GuideKind)PlayerPrefs.GetInt(KindKey, 0);
-            stat = (IdleStat)PlayerPrefs.GetInt(StatKey, 0);
+            int k = PlayerPrefs.GetInt(KindKey, 0), s = PlayerPrefs.GetInt(StatKey, 0);
+            // 저장값이 지금 종류에 없으면(버전이 바뀜 등) 새로 만든다 — 맞출 수 없는 목표에 갇히지 않게
+            if (!Enum.IsDefined(typeof(GuideKind), k)) { Generate(); return; }
+            kind = (GuideKind)k;
+            stat = Enum.IsDefined(typeof(IdleStat), s) ? (IdleStat)s : IdleStat.Attack;
             target = Mathf.Max(1, PlayerPrefs.GetInt(TargetKey, 1));
             reward = Mathf.Max(0, PlayerPrefs.GetInt(RewardKey, 0));
         }

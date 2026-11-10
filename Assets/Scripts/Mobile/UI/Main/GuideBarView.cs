@@ -46,7 +46,8 @@ namespace MoreMush.Mobile
         void OnEnable()
         {
             GuideQuests.Changed += Refresh;
-            Loc.Changed += Refresh;
+            Loc.Changed += OnLanguageChanged;
+            textDirty = true;
             Refresh();
         }
 
@@ -60,7 +61,7 @@ namespace MoreMush.Mobile
         void OnDisable()
         {
             GuideQuests.Changed -= Refresh;
-            Loc.Changed -= Refresh;
+            Loc.Changed -= OnLanguageChanged;
         }
 
         void OnDestroy()
@@ -68,9 +69,24 @@ namespace MoreMush.Mobile
             if (TabGroup.MainBar != null) TabGroup.MainBar.Changed -= OnTabChanged;
         }
 
+        bool visible = true;            // 홈 탭이라 보이는 중 (안 보이면 박동하지 않는다)
+
+        // 처치마다 Refresh가 불린다 → 값이 바뀐 글자만 다시 만든다 (모바일: 문자열 할당·TMP 메시 재생성 줄이기)
+        bool textDirty = true;          // 언어가 바뀌었거나 받은 양을 보여 준 뒤 — 전부 다시 쓴다
+        GuideKind shownKind; IdleStat shownStat;
+        int shownTarget = -1, shownProg = -1; bool shownDone; long shownReward = -1;
+        float shownFill = -1f; bool shownFillDone;
+
+        void OnLanguageChanged()
+        {
+            textDirty = true;
+            Refresh();
+        }
+
         void OnTabChanged(int tab)
         {
             bool home = tab < 0;        // 전투력 표시와 같이 홈 전용
+            visible = home;
             group.alpha = home ? 1f : 0f;
             group.blocksRaycasts = home;
             group.interactable = home;
@@ -91,6 +107,7 @@ namespace MoreMush.Mobile
             rect.localScale = Vector3.one;
             if (label != null) label.text = Loc.F("guide.claimed", reward);
             if (progressText != null) progressText.text = "";
+            textDirty = true;           // 다음 Refresh에서 목표 글자를 다시 쓴다
             SetFill(1f, true);
         }
 
@@ -101,23 +118,33 @@ namespace MoreMush.Mobile
                 flashLeft -= Time.unscaledDeltaTime;
                 if (flashLeft <= 0f) Refresh();
             }
-            rect.localScale = done ? Vector3.one * (1f + PulseSize * Mathf.Sin(Time.unscaledTime * PulseSpeed)) : Vector3.one;
+            // 달성해서 보이는 동안만 박동한다. 그 밖에는 크기가 1이 아닐 때 한 번만 되돌린다
+            if (done && visible) rect.localScale = Vector3.one * (1f + PulseSize * Mathf.Sin(Time.unscaledTime * PulseSpeed));
+            else if (rect.localScale != Vector3.one) rect.localScale = Vector3.one;
         }
 
         void Refresh()
         {
             if (flashLeft > 0f) return;      // 받은 양을 보여 주는 동안은 그대로
             done = GuideQuests.IsDone;
+            var kind = GuideQuests.Kind;
+            var stat = GuideQuests.Stat;
             int target = GuideQuests.Target, prog = GuideQuests.Progress;
-            if (label != null) label.text = GuideQuests.Describe();
-            if (progressText != null) progressText.text = done ? Loc.T("guide.claim") : $"{prog:N0}/{target:N0}";
-            if (rewardText != null) rewardText.text = "+" + GuideQuests.Reward.ToString("N0");
+            long reward = GuideQuests.Reward;
+            bool goalChanged = textDirty || kind != shownKind || stat != shownStat || target != shownTarget;
+            if (goalChanged && label != null) label.text = GuideQuests.Describe();
+            if ((goalChanged || prog != shownProg || done != shownDone) && progressText != null)
+                progressText.text = done ? Loc.T("guide.claim") : $"{prog:N0}/{target:N0}";
+            if ((textDirty || reward != shownReward) && rewardText != null) rewardText.text = "+" + reward.ToString("N0");
+            shownKind = kind; shownStat = stat; shownTarget = target; shownProg = prog; shownDone = done; shownReward = reward;
+            textDirty = false;
             SetFill(target <= 0 ? 0f : Mathf.Clamp01(prog / (float)target), done);
         }
 
         void SetFill(float k, bool isDone)
         {
-            if (fill == null) return;
+            if (fill == null || (k == shownFill && isDone == shownFillDone)) return;   // 같으면 레이아웃·메시를 건드리지 않는다
+            shownFill = k; shownFillDone = isDone;
             fill.sprite = isDone && doneSprite != null ? doneSprite : normalSprite;
             fill.rectTransform.anchorMax = new Vector2(k, 1f);
             fill.gameObject.SetActive(k > 0f);
