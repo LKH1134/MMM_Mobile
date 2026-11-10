@@ -33,6 +33,7 @@ namespace MoreMush.Mobile.EditorTools
             { "장식", "index:int key:string name:string owner:string grade:int zone:TreeZone effect:TreeEffect value:double resourceId:int" },
             { "장식등급", "index:int key:string name:string grade:int goldKills:int mycelite:int hours:double" },
             { "장비", "index:int key:string name:string kind:GachaKind stat:EquipStat itemIndex:int grade:int sub:int resourceId:int" },
+            { "룰렛", "index:int key:string kind:string amount:long weight:int" },
             { "뽑기상품", "index:int key:string name:string kind:GachaKind pullCount:int price:long currency:Currency dailyLimit:int requiresAd:bool" },
             { "방치전투", "index:int key:string formationSlots:int stagesPerChapter:int flightTime:double waveDelay:double enemyAttackDelay:double" },
             { "수확전투", "index:int key:string dungeon:int scope:string field:string dataType:string value:double" },
@@ -48,7 +49,7 @@ namespace MoreMush.Mobile.EditorTools
             ("equipTopGradeMul", 0.001, false), ("weaponEffectMul", 0.001, false),
             ("copiesBase", 0, true), ("copiesPerLevel", 0, true), ("ggomaGrowMycelite2", 0, true), ("ggomaGrowMycelite3", 0, true), ("ggomaCopiesBase", 0, true), ("ggomaCopiesPerLevel", 0, true),
             ("ggomaMaxLevel", 1, true), ("ggomaLevelBonus", 0, false),
-            ("ggomaSplashRadius", 0, false), ("enemyToxicRate", 0, false), ("enemyMedicinalRate", 0, false), ("ggomaEvoLevel2", 1, true), ("ggomaEvoLevel3", 1, true), ("ggomaEvoMul2", 0.001, false), ("ggomaEvoMul3", 0.001, false), ("dungeonPerDay", 0, true),
+            ("ggomaSplashRadius", 0, false), ("enemyToxicRate", 0, false), ("enemyMedicinalRate", 0, false), ("ggomaEvoLevel2", 1, true), ("ggomaEvoLevel3", 1, true), ("ggomaEvoMul2", 0.001, false), ("ggomaEvoMul3", 0.001, false), ("dungeonPerDay", 0, true), ("rouletteDailyCount", 1, true), ("rouletteCooldownMinutes", 0, false),
             ("offlineCapHours", 0, false), ("offlineMinSeconds", 0, false), ("powerOffenseSeconds", 0, false), ("powerRegenSeconds", 0, false),
             ("levelsPerStage", 0, true), ("expSpeedPerStage", 0, false), ("expRegenRatio", 0, false), ("expCritChanceRatio", 0, false),
             ("expCritDamageRatio", 0, false), ("expAdvancedAttackRatio", 0, false), ("expNormalDamageDivisor", 1, true),
@@ -208,6 +209,7 @@ namespace MoreMush.Mobile.EditorTools
             ValidateGachaLevels(tables["뽑기"], issues);
             ValidateDungeons(tables["던전"], issues, checkAssets);
             ValidateQuests(tables["퀘스트"], issues);
+            ValidateRoulette(tables["룰렛"], issues);
             ValidateGuides(tables["가이드"], tables["가이드반복"], issues);
             ValidateWorldTree(tables, enemies, issues);
             ValidateImplementedDefinitions(tables, issues);
@@ -528,6 +530,18 @@ namespace MoreMush.Mobile.EditorTools
             foreach (var r in rows)
                 if (r.Text("period") == "weekly" && string.Equals(r.Text("kind"), "daily", StringComparison.OrdinalIgnoreCase) && r.Int("target") > dailyClaimable)
                     issues.Add(r.At("target") + $": 한 주에 받을 수 있는 일일 퀘스트는 {dailyClaimable}개 (일일 {dailyRows}행 × 7)");
+        }
+
+        static void ValidateRoulette(List<Row> rows, List<string> issues)
+        {
+            if (rows.Count != 6) issues.Add($"[룰렛] 원판은 6칸이라 행이 6개여야 한다 (지금 {rows.Count}개)");
+            foreach (var r in rows)
+            {
+                if (!Enum.TryParse<RouletteKind>(r.Text("kind"), true, out _))
+                    issues.Add(r.At("kind") + $": 모르는 종류 '{r.Text("kind")}' ({string.Join("/", Enum.GetNames(typeof(RouletteKind)))} 중 하나)");
+                Between(r, "amount", 1, long.MaxValue, issues);
+                Between(r, "weight", 1, 100000, issues);
+            }
         }
 
         static void ValidateGuides(List<Row> fixedRows, List<Row> loopRows, List<string> issues)

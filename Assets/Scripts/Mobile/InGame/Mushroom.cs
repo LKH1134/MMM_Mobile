@@ -46,12 +46,15 @@ namespace MoreMush.Mobile
         }
 
         bool isBoss;
-        public Vector2 Position => rect.anchoredPosition;
+        // 충돌 판정이 수확기 이동 단계마다 모든 버섯에 묻는다 — RectTransform을 읽지 않고 Place가 적어 둔 값을 쓴다 (버섯은 Place로만 움직인다)
+        public Vector2 Position => position;
+        Vector2 position;
         internal PrefabPool<Mushroom> Pool { get; set; }
 
         void Awake()
         {
             rect = (RectTransform)transform;
+            position = rect.anchoredPosition;
             if (visual != null) tintTarget = visual.GetComponent<Graphic>();
             if (tintTarget is Image img) defaultSprite = img.sprite;
         }
@@ -98,7 +101,11 @@ namespace MoreMush.Mobile
             punchTime = -1f;
         }
 
-        public void Place(Vector2 position) => rect.anchoredPosition = position;
+        public void Place(Vector2 at)
+        {
+            position = at;
+            rect.anchoredPosition = at;
+        }
 
         // 맞으면 체력을 깎는다. 이번에 캐졌으면 true
         public bool Hit(int damage)

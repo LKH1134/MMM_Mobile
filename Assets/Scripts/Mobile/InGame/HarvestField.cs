@@ -423,7 +423,7 @@ namespace MoreMush.Mobile
                     bool overlap = d.sqrMagnitude < min * min;
                     if (!overlap)
                     {
-                        o.inside.Remove(h);
+                        if (o.inside.Count > 0) o.inside.Remove(h);     // 비었으면 찾지 않는다 (이동 단계마다 불린다)
                         continue;
                     }
                     if (!o.inside.Contains(h))
@@ -446,7 +446,7 @@ namespace MoreMush.Mobile
                     float min = r + m.Radius;
                     if (d.sqrMagnitude >= min * min)
                     {
-                        touching.Remove(m);
+                        if (touching.Count > 0) touching.Remove(m);     // 관통 중이 아니면 비어 있다 — 버섯마다 목록을 뒤지지 않게
                         continue;
                     }
                     // 관통 중에 겹쳐 지나가는 동안에는 한 번만 때린다
