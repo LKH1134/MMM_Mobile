@@ -164,9 +164,7 @@ namespace MoreMush.Mobile
                     sb.Append(Effect(effects[i].stat, effects[i].value));
                     if (done) sum[(int)effects[i].stat] += effects[i].value;
                 }
-                if (!done && IdleProgress.Stage < g.unlockStage)
-                    sb.Append("  ").Append(Loc.F("dex.set_from", IdleBattle.HudStageNumber(g.unlockStage)));
-                sb.Append("</color>\n");
+                sb.Append("</color>\n");     // 11-10: 아직 안 나오는 무리의 '(n-nn부터)' 등장 스테이지 표시는 뺐다 (사용자)
             }
             sb.Append("\n<b>").Append(Loc.T("dex.set_active")).Append("</b>  ");
             bool any = false;
