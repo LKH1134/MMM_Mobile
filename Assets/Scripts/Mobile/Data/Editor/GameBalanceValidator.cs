@@ -23,6 +23,8 @@ namespace MoreMush.Mobile.EditorTools
             { "뽑기", "index:int key:string level:int expToNext:int oddsNormal:double oddsRare:double oddsEpic:double oddsLegend:double" },
             { "던전", "index:int key:string dungeon:int unlockStage:int mode:string name:string scene:string implemented:bool baseStage:int stageStep:int rewardKills:int rewardMyc:int rewardGrowth:double hpMul:double atkMul:double" },
             { "퀘스트", "index:int key:string kind:string target:int goldKills:int mycelite:int" },
+            { "가이드", "index:int key:string kind:string stat:string target:int mycelite:int" },
+            { "가이드반복", "index:int key:string kind:string baseTarget:double perStage:double perLevel:double step:int mycelite:int" },
             { "세계수", "index:int key:string name:string stage:int evoExp:int evoGoldKills:int evoMycelite:int ringKills:double craftSlots:int rootSlots:int trunkSlots:int branchSlots:int crownSlots:int preferIds:int[] resourceId:int" },
             { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
             { "꼬마진화", "index:int key:string star:int mycelite:int needLevel:int" },
@@ -43,7 +45,7 @@ namespace MoreMush.Mobile.EditorTools
         {
             ("equipMaxLevel", 1, true), ("equipLevelBonus", 0, false), ("equipRatio", 0, false),
             ("equipTopGradeMul", 0.001, false), ("weaponEffectMul", 0.001, false),
-            ("copiesBase", 0, true), ("copiesPerLevel", 0, true),
+            ("copiesBase", 0, true), ("copiesPerLevel", 0, true), ("ggomaGrowMycelite2", 0, true), ("ggomaGrowMycelite3", 0, true), ("ggomaCopiesBase", 0, true), ("ggomaCopiesPerLevel", 0, true),
             ("ggomaMaxLevel", 1, true), ("ggomaLevelBonus", 0, false),
             ("ggomaSplashRadius", 0, false), ("enemyToxicRate", 0, false), ("enemyMedicinalRate", 0, false), ("ggomaEvoLevel2", 1, true), ("ggomaEvoLevel3", 1, true), ("ggomaEvoMul2", 0.001, false), ("ggomaEvoMul3", 0.001, false), ("dungeonPerDay", 0, true),
             ("offlineCapHours", 0, false), ("offlineMinSeconds", 0, false), ("powerOffenseSeconds", 0, false), ("powerRegenSeconds", 0, false),
@@ -65,6 +67,7 @@ namespace MoreMush.Mobile.EditorTools
             ("bossLvSpeedGrowth", 1, false), ("bossLvDefPerLevel", 0, false), ("bossLvDefMax", 0, false),
             ("offlineGoldRate", 0, false), ("speedCostRampFromLv", 0, true), ("speedCostRamp", 0, false),
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
+            ("wallBossEvery", 0, true), ("wallBossFrom", 0, true), ("wallBossHpMul", 1, false), ("wallBossLateFrom", 0, true), ("wallBossHpMulLate", 1, false),
             ("harvestHpRateExp", 0, false),
             ("harvestFarmRounds", 1, true), ("harvestCycleLength", 1, true), ("offlineRateMinSeconds", 0.001, false),
             ("adBoxGoldChance", 0, false), ("adBoxMaxSameInRow", 0, true), ("bossRushEasyLevels", 1, true),
@@ -164,7 +167,8 @@ namespace MoreMush.Mobile.EditorTools
                 foreach (string col in new[] { "baseValue", "perLevel", "priceExponent", "priceScale", "unlockLevel", "capEvery", "capStep" }) Between(r, col, 0, double.MaxValue, issues);
                 if (r.Int("capEvery") > 0 && (r.Int("capStep") <= 0 || r.Int("unlockLevel") <= 0)) issues.Add(r.At("capEvery") + ": 단계 제한은 capStep과 unlockLevel이 0보다 커야 한다");
                 string mode = r.Text("valueMode");
-                if (mode != "Add" && mode != "Multiply" && mode != "Power") issues.Add(r.At("valueMode") + ": Add·Multiply·Power 중 하나여야 한다");
+                if (mode != "Add" && mode != "Multiply" && mode != "Power" && mode != "Incremental") issues.Add(r.At("valueMode") + ": Add·Multiply·Power·Incremental 중 하나여야 한다");
+                if (mode == "Incremental" && (!(r.Number("perLevel") > 0) || !(r.Number("valueDivisor") > 0))) issues.Add(r.At("valueDivisor") + ": Incremental은 perLevel·valueDivisor가 0보다 커야 한다");
                 if (mode == "Power" && (!(r.Number("valueExponent") > 0) || !(r.Number("valueDivisor") > 0))) issues.Add(r.At("valueExponent") + ": Power는 valueExponent·valueDivisor가 0보다 커야 한다");
                 if (r.Text("currency") != "Gold") issues.Add(r.At("currency") + ": 현재 강화는 Gold를 사용한다");
             }
@@ -203,6 +207,7 @@ namespace MoreMush.Mobile.EditorTools
             ValidateGachaLevels(tables["뽑기"], issues);
             ValidateDungeons(tables["던전"], issues, checkAssets);
             ValidateQuests(tables["퀘스트"], issues);
+            ValidateGuides(tables["가이드"], tables["가이드반복"], issues);
             ValidateWorldTree(tables, enemies, issues);
             ValidateImplementedDefinitions(tables, issues);
             ValidateAttendance(tables["출석"], tables["장비"], issues);
@@ -424,6 +429,9 @@ namespace MoreMush.Mobile.EditorTools
             if (byKey.ContainsKey("enemyToxicRate") && byKey.ContainsKey("enemyMedicinalRate")
                 && byKey["enemyToxicRate"].Number("value") + byKey["enemyMedicinalRate"].Number("value") > 1)
                 issues.Add("[상수] enemyToxicRate + enemyMedicinalRate는 1 이하여야 한다 (나머지가 식용 버섯)");
+            if (byKey.ContainsKey("ggomaCopiesBase") && byKey.ContainsKey("ggomaCopiesPerLevel")
+                && byKey["ggomaCopiesBase"].Number("value") + byKey["ggomaCopiesPerLevel"].Number("value") < 1)
+                issues.Add("[상수] ggomaCopiesBase + ggomaCopiesPerLevel은 1 이상이어야 한다");
             if (byKey.ContainsKey("copiesBase") && byKey.ContainsKey("copiesPerLevel")
                 && byKey["copiesBase"].Number("value") + byKey["copiesPerLevel"].Number("value") < 1)
                 issues.Add("[상수] copiesBase + copiesPerLevel은 1 이상이어야 한다 (Lv.1→2 조각이 0개가 되지 않게)");
@@ -487,6 +495,32 @@ namespace MoreMush.Mobile.EditorTools
                 Between(r, "mycelite", 0, int.MaxValue, issues);
             }
             if (rows.Count == 0) issues.Add("[퀘스트] 행이 하나도 없다");
+        }
+
+        static void ValidateGuides(List<Row> fixedRows, List<Row> loopRows, List<string> issues)
+        {
+            foreach (var r in fixedRows)
+            {
+                if (!Enum.TryParse<GuideKind>(r.Text("kind"), true, out var kind))
+                    issues.Add(r.At("kind") + $": 모르는 종류 '{r.Text("kind")}' ({string.Join("/", Enum.GetNames(typeof(GuideKind)))} 중 하나)");
+                else if (kind == GuideKind.UpgradeLevel && !Enum.TryParse<IdleStat>(r.Text("stat"), true, out _))
+                    issues.Add(r.At("stat") + $": UpgradeLevel은 강화 종류(IdleStat 이름)가 필요하다 ('{r.Text("stat")}')");
+                Between(r, "target", 1, int.MaxValue, issues);
+                Between(r, "mycelite", 0, int.MaxValue, issues);
+            }
+            foreach (var r in loopRows)
+            {
+                if (!Enum.TryParse<GuideKind>(r.Text("kind"), true, out var kind))
+                    issues.Add(r.At("kind") + $": 모르는 종류 '{r.Text("kind")}'");
+                else if (kind == GuideKind.UpgradeLevel || kind == GuideKind.OpenFormation)
+                    issues.Add(r.At("kind") + ": 반복 목표에는 쓸 수 없는 종류다 (UpgradeLevel·OpenFormation은 고정 순서 전용)");
+                Between(r, "baseTarget", 1, int.MaxValue, issues);
+                Between(r, "perStage", 0, 1000, issues);
+                Between(r, "perLevel", 0, 1000, issues);
+                Between(r, "step", 1, 1000000, issues);
+                Between(r, "mycelite", 0, int.MaxValue, issues);
+            }
+            if (loopRows.Count == 0) issues.Add("[가이드반복] 행이 하나도 없다 (고정 순서가 끝난 뒤 이어질 목표가 필요하다)");
         }
 
         static void ValidateGrades(List<Row> rows, List<string> issues)

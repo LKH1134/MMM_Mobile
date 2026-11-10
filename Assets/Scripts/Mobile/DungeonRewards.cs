@@ -21,7 +21,7 @@ namespace MoreMush.Mobile
         static int RushEasyLevels => Mathf.Max(1, GameBalance.ConstInt("bossRushEasyLevels"));   // 상수 시트
 
         // 보스 한 마리 레벨 보스: 기준 스테이지 방치 보스 × hpMul·atkMul, 제한 시간은 그 스테이지 보스 시간
-        public static double BossHp(int dungeon, int level) => IdleProgress.BossHp(Stage(dungeon, level)) * Mul(dungeon, true);
+        public static double BossHp(int dungeon, int level) => IdleProgress.BossHpNoWall(Stage(dungeon, level)) * Mul(dungeon, true);
         public static double BossAttack(int dungeon, int level) => IdleProgress.BossAttack(Stage(dungeon, level)) * Mul(dungeon, false);
         public static float BossTime(int dungeon, int level) => IdleProgress.BossTime(Stage(dungeon, level));
 
@@ -57,7 +57,7 @@ namespace MoreMush.Mobile
         // 보스를 하나 잡을 때마다 레벨 보상의 1/n을 받는다 — 다 잡으면 레벨 보상 전부 + 다음 레벨
         public static int RushCount => Mathf.Max(1, GameBalance.ConstInt("bossRushCount"));
         public static int RushStage(int dungeon, int level, int i) => Mathf.Max(1, Stage(dungeon, level) - (RushCount - 1 - i));
-        public static double RushHp(int dungeon, int level, int i) => IdleProgress.BossHp(RushStage(dungeon, level, i)) * Mul(dungeon, true);
+        public static double RushHp(int dungeon, int level, int i) => IdleProgress.BossHpNoWall(RushStage(dungeon, level, i)) * Mul(dungeon, true);
         public static double RushAttack(int dungeon, int level, int i) => IdleProgress.BossAttack(RushStage(dungeon, level, i)) * Mul(dungeon, false);
         public static float RushTime(int dungeon, int level, int i) => IdleProgress.BossTime(RushStage(dungeon, level, i));
         // i번째 보스(0부터)를 잡았다: 레벨 보상을 n등분하되, 반올림으로 새지 않게 "i+1마리까지 몫 − i마리까지 몫"을 준다 (다 잡으면 정확히 레벨 보상 전부)
@@ -73,7 +73,7 @@ namespace MoreMush.Mobile
         // 기준 = 지금 방치 스테이지 보스 (플레이어 성장에 맞춰 늘 같은 체감). 레벨 1 = 방치 보스 × hpMul·atkMul,
         // 레벨마다 체력 × bossLvHpGrowth, 공격 × bossLvAtkGrowth, 공격 속도 × bossLvSpeedGrowth, 방어력 + bossLvDefPerLevel (상한 bossLvDefMax).
         // 공격 속도는 초당 공격 = 공격력 × 속도로 셈한다 (방치 전투의 적 공격은 초당 피해다)
-        public static double LevelHp(int dungeon, int n) => IdleProgress.BossHp(IdleProgress.Stage) * Mul(dungeon, true) * Grow("bossLvHpGrowth", n);
+        public static double LevelHp(int dungeon, int n) => IdleProgress.BossHpNoWall(IdleProgress.Stage) * Mul(dungeon, true) * Grow("bossLvHpGrowth", n);
         public static double LevelAttack(int dungeon, int n) => IdleProgress.BossAttack(IdleProgress.Stage) * Mul(dungeon, false) * Grow("bossLvAtkGrowth", n);
         public static double LevelSpeed(int n) => Grow("bossLvSpeedGrowth", n);
         const double DefenseCap = 0.9;     // 표가 1 이상이어도 피해가 0·음수(보스 회복)가 되지 않게

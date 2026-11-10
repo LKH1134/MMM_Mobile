@@ -221,6 +221,7 @@ namespace MoreMush.Mobile
                 DungeonSession.EndIdle();
             }
             if (rush && cleared) DungeonTickets.LevelUp(d);
+            GuideQuests.Report(GuideKind.Dungeon);
             try { WorldTree.QuestDungeon(); }
             catch (System.Exception e) { Debug.LogException(e); }
 

@@ -29,6 +29,7 @@ namespace MoreMush.Mobile
             public double costDivisor;          // 비용 식의 (1 + Lv/costDivisor)
             public bool multiply;               // true면 값 = baseValue × (1 + perLevel × Lv) (공격 속도)
             public bool power;                  // true면 값 = baseValue × (1 + Lv / valueDivisor)^valueExponent
+            public bool incremental;            // true면 초반 IncLinearLv까지 레벨당 perLevel씩, 그 뒤 증가량이 (1 + n / valueDivisor)²배로 커진다 (값은 정수로 반올림)
             public IdleStat unlockStat;         // 이 강화가 unlockLv 이상이어야 열린다 (unlockLv 0 = 처음부터)
             public int unlockLv;
             public int capEvery, capStep;       // 단계 제한: 열린 뒤 unlockStat이 capEvery 오를 때마다 capStep레벨씩 더 올릴 수 있다 (0 = 제한 없음)
@@ -56,6 +57,7 @@ namespace MoreMush.Mobile
                     costBase = r.price, costExp = r.priceExponent, costScale = r.priceScale, costDivisor = r.priceDivisor,
                     multiply = r.valueMode == "Multiply",
                     power = r.valueMode == "Power" && r.valueDivisor > 0,
+                    incremental = r.valueMode == "Incremental" && r.valueDivisor > 0,
                     valueExponent = r.valueExponent, valueDivisor = r.valueDivisor,
                     unlockStat = r.unlockStat, unlockLv = r.unlockLevel, capEvery = r.capEvery, capStep = r.capStep,
                 };
@@ -66,7 +68,7 @@ namespace MoreMush.Mobile
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetTables() { defs = null; curve = null; }
+        static void ResetTables() { defs = null; curve = null; costCacheLv = null; }
 
         public static event System.Action Changed;
 
@@ -129,10 +131,25 @@ namespace MoreMush.Mobile
         public static int CapLevel(IdleStat stat, int gateLv)
         {
             var d = Get(stat);
+            if (stat == IdleStat.Speed) return SpeedCap(gateLv, d.maxLv);
             if (d.capEvery <= 0) return d.maxLv;
             if (gateLv < d.unlockLv) return 0;
             long cap = ((long)(gateLv - d.unlockLv) / d.capEvery + 1) * d.capStep;
             return (int)System.Math.Min(d.maxLv, cap);
+        }
+
+        // 공격 속도 단계표: 공격력이 gate 이상이면 공격 속도를 cap레벨까지 올릴 수 있다 (gate는 5의 배수, 첫 gate = 해금 레벨).
+        // 속도 1.5(Lv 87.5)까지는 30레벨씩, 2.0(Lv 150)까지 40, 그 뒤 3.0(Lv 275)까지 50. 마지막 단계(공격력 2500)에서 3.0/s 마스터
+        static readonly (int gate, int cap)[] SpeedSteps =
+        {
+            (20, 30), (375, 60), (730, 90), (1085, 130), (1440, 170), (1795, 220), (2150, 270), (2500, 275),
+        };
+
+        static int SpeedCap(int gateLv, int maxLv)
+        {
+            int cap = 0;
+            foreach (var step in SpeedSteps) if (gateLv >= step.gate) cap = step.cap;
+            return System.Math.Min(maxLv, cap);
         }
 
         // 열렸지만 단계 제한에 막혀 더 못 올린다
@@ -142,19 +159,71 @@ namespace MoreMush.Mobile
         public static int NextCapGateLevel(IdleStat stat)
         {
             var d = Get(stat);
+            if (stat == IdleStat.Speed)
+            {
+                foreach (var step in SpeedSteps) if (step.cap > Level(stat)) return step.gate;
+                return SpeedSteps[SpeedSteps.Length - 1].gate;
+            }
             return d.capStep <= 0 ? d.unlockLv : d.unlockLv + Level(stat) / d.capStep * d.capEvery;
         }
 
         // 다음 레벨로 올리는 값
         public static long Cost(IdleStat stat) => Cost(stat, Level(stat));
 
+        // 마지막으로 계산한 레벨의 비용 (강화 버튼은 갱신마다 같은 레벨 비용을 묻는다 — 거듭제곱·지수를 다시 하지 않게)
+        static int[] costCacheLv;
+        static long[] costCacheValue;
+
         public static long Cost(IdleStat stat, int lv)
         {
+            int si = (int)stat;
+            if (costCacheLv == null)
+            {
+                int n = System.Enum.GetValues(typeof(IdleStat)).Length;
+                costCacheLv = new int[n];
+                costCacheValue = new long[n];
+                for (int i = 0; i < n; i++) costCacheLv[i] = -1;
+            }
+            if (si >= 0 && si < costCacheLv.Length && costCacheLv[si] == lv) return costCacheValue[si];
+            long cost = ComputeCost(stat, lv);
+            if (si >= 0 && si < costCacheLv.Length) { costCacheLv[si] = lv; costCacheValue[si] = cost; }
+            return cost;
+        }
+
+        static long ComputeCost(IdleStat stat, int lv)
+        {
             var d = Get(stat);
+            if (d.incremental) return IncrementalCost(d, lv);
             double c = d.costBase * System.Math.Pow(1 + lv / d.costDivisor, d.costExp);
             if (d.costScale > 0) c *= System.Math.Exp(lv / d.costScale);
             if (stat == IdleStat.Speed) c *= SpeedCostRamp(lv, d.maxLv);
-            return (long)System.Math.Min(9e18, System.Math.Ceiling(c));
+            c *= GateCostFactor(stat, d, lv);
+            return (long)System.Math.Max(1, System.Math.Min(9e18, System.Math.Ceiling(c)));
+        }
+
+        // 증분 강화(공격력 등)로 해금·단계가 열리는 강화의 비용 보정: 그 레벨이 열리는 기준 레벨에서
+        // 기준 강화의 비용이 예전 곡선보다 줄어든 비율을 곱한다 → "해금 시점의 공격력 비용 대비 몇 배"가 예전 설계 그대로
+        static double GateCostFactor(IdleStat stat, Def d, int lv)
+        {
+            if (d.unlockLv <= 0 && stat != IdleStat.Speed) return 1.0;
+            var g = Get(d.unlockStat);
+            if (!g.incremental) return 1.0;
+            int gate = GateLevelFor(stat, d, lv);
+            double old = g.costBase * System.Math.Pow(1 + gate / g.costDivisor, g.costExp);
+            if (g.costScale > 0) old *= System.Math.Exp(gate / g.costScale);
+            if (!(old > 0) || double.IsInfinity(old)) return 1.0;    // 지수가 넘치면 보정하지 않는다 (비용이 0이 되지 않게)
+            return System.Math.Min(1.0, IncrementalCost(g, gate) / old);
+        }
+
+        // lv → lv+1 강화가 열리는 기준 강화 레벨 (단계 제한이 없으면 해금 레벨)
+        static int GateLevelFor(IdleStat stat, Def d, int lv)
+        {
+            if (stat == IdleStat.Speed)
+            {
+                foreach (var step in SpeedSteps) if (step.cap > lv) return step.gate;
+                return SpeedSteps[SpeedSteps.Length - 1].gate;
+            }
+            return d.capStep <= 0 ? d.unlockLv : d.unlockLv + lv / d.capStep * d.capEvery;
         }
 
         // 공격 속도 후반 비용 가중: 시작 레벨까지는 1배, 그 뒤로 마지막 강화(만렙 - 1)까지 1 → 1 + speedCostRamp배로 이어서 오른다 (한 레벨에서 튀지 않게)
@@ -163,6 +232,38 @@ namespace MoreMush.Mobile
             int from = GameBalance.ConstInt("speedCostRampFromLv");
             if (lv <= from || maxLv - 1 <= from) return 1.0;
             return 1.0 + GameBalance.Const("speedCostRamp") * (System.Math.Min(lv, maxLv - 1) - from) / (maxLv - 1 - from);
+        }
+
+        // ── 증분(Incremental) 강화: 공격력·체력·체력 재생 ──
+        // 초반은 숫자가 작고 고르게: 값은 레벨마다 perLevel씩(공격력 +10·체력 +10·재생 +1), 비용은 Lv 50까지 1골드씩·Lv 100까지 2골드씩 오른다.
+        // Lv 100 뒤로 값 증가량은 perLevel × (1 + n/valueDivisor)²로 커지고, 비용에는 예전 곡선(n = Lv − 100 레벨)이 더해진다.
+        // valueDivisor = √(perLevel × 1000 / (3 × baseValue))이면 후반 값이 예전 Power 곡선(× (1 + Lv/10)³)의 100레벨 뒤와 같아진다
+        // (공격력 18.26·체력 5.77·재생 12.91) → 골드 대비 힘은 예전 그대로
+        const int IncLinearLv = 100;       // 여기까지 값·비용이 일정하게 오른다
+        const int IncCostStep1Lv = 50;     // 여기까지 비용 +1골드씩, 그 뒤 IncLinearLv까지 +2골드씩
+        const int IncCostStep1 = 1, IncCostStep2 = 2;
+
+        static double IncrementalValue(Def d, int lv)
+        {
+            int lin = System.Math.Min(lv, IncLinearLv);
+            double n = System.Math.Max(0, lv - IncLinearLv), k = d.valueDivisor;
+            // Σ_{j=1..n} (1 + j/k)² = n + n(n+1)/k + n(n+1)(2n+1)/(6k²)
+            double grow = n + n * (n + 1) / k + n * (n + 1) * (2 * n + 1) / (6 * k * k);
+            return System.Math.Round(d.baseValue + d.perLevel * (lin + grow), System.MidpointRounding.AwayFromZero);
+        }
+
+        static long IncrementalCost(Def d, int lv)
+        {
+            double c = d.costBase + IncCostStep1 * System.Math.Min(lv, IncCostStep1Lv)
+                     + IncCostStep2 * System.Math.Max(0, lv - IncCostStep1Lv);
+            int n = lv - IncLinearLv;
+            if (n > 0)
+            {
+                double old = d.costBase * System.Math.Pow(1 + n / d.costDivisor, d.costExp);
+                if (d.costScale > 0) old *= System.Math.Exp(n / d.costScale);
+                c += old - d.costBase;
+            }
+            return (long)System.Math.Min(9e18, System.Math.Ceiling(c));
         }
 
         public static bool TryUpgrade(IdleStat stat)
@@ -174,6 +275,7 @@ namespace MoreMush.Mobile
             PlayerPrefs.SetInt(LevelKeys[(int)stat], next);
             SaveScheduler.MarkDirty();      // 꾹 누르면 초당 수십 번 — 파일 쓰기는 SaveScheduler가 모아서
             DailyQuests.Add(QuestKind.Upgrade);
+            GuideQuests.ReportUpgrade(stat);
             Changed?.Invoke();
             return true;
         }
@@ -185,6 +287,7 @@ namespace MoreMush.Mobile
         {
             var d = Get(stat);
             lv = Mathf.Clamp(lv, 0, d.maxLv);
+            if (d.incremental) return IncrementalValue(d, lv);
             if (d.power) return d.baseValue * System.Math.Pow(1 + lv / d.valueDivisor, d.valueExponent);
             return d.multiply ? d.baseValue * (1 + d.perLevel * lv) : d.baseValue + d.perLevel * lv;
         }
@@ -245,6 +348,11 @@ namespace MoreMush.Mobile
             public readonly double tailAttackGrowth = GameBalance.Const("tailAttackGrowth");
             public readonly double tailGoldGrowth = GameBalance.Const("tailGoldGrowth");
             public readonly double tailWallMul = GameBalance.Const("tailWallMul");
+            public readonly int wallBossEvery = GameBalance.ConstInt("wallBossEvery");
+            public readonly int wallBossFrom = GameBalance.ConstInt("wallBossFrom");
+            public readonly int wallBossLateFrom = GameBalance.ConstInt("wallBossLateFrom");
+            public readonly double wallBossHpMul = GameBalance.Const("wallBossHpMul");
+            public readonly double wallBossHpMulLate = GameBalance.Const("wallBossHpMulLate");
         }
 
         static Curve curve;
@@ -326,7 +434,18 @@ namespace MoreMush.Mobile
             return first * (1 + K.enemyHpWaveGrowth * (wave - 1));
         }
 
-        public static double BossHp(int stage)
+        // 벽 보스(상수 wallBoss*): wallBossFrom부터 wallBossEvery 배수 스테이지 보스는 체력 × 벽 배율 — 방치·앱 밖·광고·던전으로 넘는 시간 장벽
+        public static double BossHp(int stage) => BossHpNoWall(stage) * WallBossMul(stage);
+
+        public static double WallBossMul(int stage)
+        {
+            var k = K;
+            if (k.wallBossEvery <= 0 || stage < k.wallBossFrom || stage % k.wallBossEvery != 0) return 1.0;
+            return stage >= k.wallBossLateFrom ? k.wallBossHpMulLate : k.wallBossHpMul;
+        }
+
+        // 벽 배율을 뺀 보스 체력: 던전 보스(보스 러시·토벌)는 이 값을 쓴다 — 벽에 막혔을 때 던전까지 막히지 않게
+        public static double BossHpNoWall(int stage)
         {
             if (GameBalance.InStageTable(stage) && GameBalance.Stage(stage).bossHp > 0) return GameBalance.Stage(stage).bossHp;
             if (!GameBalance.InStageTable(stage) && TailRow.bossHp > 0)

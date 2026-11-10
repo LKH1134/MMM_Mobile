@@ -81,7 +81,7 @@ sealed class Scenario
         {
             P.Refresh();
             double w = SnapAt[snapIdx++];
-            snaps.Add(new Snap { label = w < 86400 ? (w / 3600).ToString("0.##") + "h" : "D" + (w / 86400).ToString("0"), wall = wall, play = play, stage = P.stage, eq = (double[])P.eqPct.Clone(), atkPct = P.atkPctSum, pulls = P.pulls, myc = P.myc, gLv = (int[])P.gLv.Clone(), mycGain = totBossMyc + totQuestMyc + totChestMyc + totDungeonMyc });
+            snaps.Add(new Snap { label = w < 86400 ? (w / 3600).ToString("0.##") + "h" : "D" + (w / 86400).ToString("0"), wall = wall, play = play, stage = P.stage, eq = (double[])P.eqPct.Clone(), atkPct = P.atkPctSum, pulls = P.pulls, myc = P.myc, gLv = (int[])P.gLv.Clone(), mycGain = totBossMyc + totQuestMyc + totChestMyc + totDungeonMyc + totGuideMyc + totAttendMyc });
         }
     }
 
@@ -101,6 +101,85 @@ sealed class Scenario
         adToday = 0; Array.Clear(adGachaUsed, 0, 4);
         dToday.Clear();
         dayCount++;
+        Attend();
+    }
+
+    // 광고 뽑기 횟수 = 뽑기상품 시트의 광고 행 pullCount (11-10: 35)
+    static int AdPulls(int kind)
+    {
+        foreach (var r in GameBalance.GachaProducts) if (r.requiresAd && (int)r.kind == kind) return r.pullCount;
+        return 11;
+    }
+
+    // ── 7일 출석 (Attendance.cs Rewards): 하루 첫 접속에 받는다. 7일째 전설 무기는 시뮬에 넣지 않았다 ──
+    static readonly long[] AttendanceMyc = { 500, 500, 500, 1000, 1500, 2000, 0 };
+    int attendDay;
+    public long totAttendMyc;
+    void Attend()
+    {
+        if (!prm.quests || attendDay >= AttendanceMyc.Length) return;
+        long m = AttendanceMyc[attendDay++];
+        P.myc += m; totAttendMyc += m;
+    }
+
+    // ── 가이드 퀘스트 (GuideQuests.cs): 목표 하나씩, 달성하면 바로 받고 다음 목표 ──
+    int gStep, gProg, gTarget, gReward, gStat; string gKind;
+    public long totGuideMyc; public int guideDone;
+    void GuideSet()
+    {
+        var fixedRows = GameBalance.Guides;
+        gProg = 0;
+        if (gStep < fixedRows.Count)
+        {
+            var r = fixedRows[gStep];
+            gKind = r.kind; gTarget = Math.Max(1, r.target); gReward = r.mycelite;
+            gStat = Enum.TryParse(r.stat, true, out IdleStat st) ? (int)st : 0;
+            return;
+        }
+        var rows = GameBalance.GuideLoops; int loopIndex = gStep - fixedRows.Count;
+        for (int j = 0; j < rows.Count; j++)
+        {
+            var row = rows[(loopIndex + j) % rows.Count];
+            int stat = 0;
+            if (row.kind == "UpgradeCount")
+            {
+                var list = new List<int>();
+                for (int s = 0; s < P.lv.Length; s++)
+                {
+                    var st = (IdleStat)s; var d = IdleProgress.Get(st);
+                    bool unlocked = d.unlockLv <= 0 || P.lv[(int)d.unlockStat] >= d.unlockLv;
+                    if (unlocked && P.lv[s] < d.maxLv && P.lv[s] < IdleProgress.CapLevel(st, P.lv[(int)d.unlockStat])) list.Add(s);
+                }
+                if (list.Count == 0) continue;
+                stat = list[loopIndex % list.Count];
+            }
+            if (row.kind == "Dungeon" && !GameBalance.Dungeons.Any(d => d.implemented && d.unlockStage <= P.stage)) continue;
+            gKind = row.kind; gStat = stat; gReward = Math.Max(0, row.mycelite);
+            double n = row.baseTarget + row.perStage * (P.stage - 1) + row.perLevel * (row.kind == "UpgradeCount" ? P.lv[stat] : 0);
+            double unit = Math.Max(1, row.step);
+            gTarget = (int)Math.Min(Math.Max(unit, Math.Round(n / unit) * unit), 1000000);
+            return;
+        }
+        gKind = "Kill"; gTarget = 50; gReward = 50;
+    }
+    void Guide(string kind, int amount = 1, int stat = -1)
+    {
+        if (!prm.quests) return;
+        if (gKind == null) GuideSet();
+        for (int guard = 0; guard < 50; guard++)
+        {
+            bool done;
+            if (gKind == "UpgradeLevel") done = P.lv[gStat] >= gTarget;
+            else if (gKind == "OpenFormation") done = true;      // 편성 창은 처음 볼 때 연다고 본다
+            else
+            {
+                if (kind == gKind && (gKind != "UpgradeCount" || stat == gStat)) { gProg += amount; amount = 0; }
+                done = gProg >= gTarget;
+            }
+            if (!done) return;
+            P.myc += gReward; totGuideMyc += gReward; guideDone++;
+            gStep++; GuideSet();
+        }
     }
 
     void QuestAdd(string kind, int amount)
@@ -129,13 +208,15 @@ sealed class Scenario
     void Build()
     {
         P.onUpgradeBought = n => QuestAdd("upgrade", n);
-        P.onPulled = n => QuestAdd("gacha", n);
+        P.onPulled = n => { QuestAdd("gacha", n); Guide("Gacha", n); };
+        P.onUpgradeStat = s => Guide("UpgradeCount", 1, s);
         B = new Battle(P, prm.dt, prm.fps);
         if (prm.bossQuest) B.onBossStart += () => QuestAdd("stage", 1);
-        B.onKill += (g, boss) => { sessGold += g; totKillGold += g; if (boss) totBossMyc += B.sc.bMyc; QuestAdd("kill", 1); };
+        B.onKill += (g, boss) => { sessGold += g; totKillGold += g; if (boss) totBossMyc += B.sc.bMyc; QuestAdd("kill", 1); Guide("Kill"); if (boss) Guide("BossKill"); };
         B.onStageCleared += s =>
         {
             if (!prm.bossQuest) QuestAdd("stage", 1);
+            Guide("StageEnter");
             lastStageUpPlay = wall;
             Enter(P.stage);
         };
@@ -175,6 +256,7 @@ sealed class Scenario
 
     // 던전 시트(수치안 새 열) 모드: 레벨 L의 기준 스테이지 s_L = baseStage + stageStep×(L−1). 방치 스테이지가 s_L 이상일 때만 성공해 L+1,
     // 골드 던전 = EnemyGold(min(방치 스테이지, s_L)) × rewardKills, 균사석 = rewardMyc × (1 + rewardGrowth×(L−1)). 입장 = 무료 dungeonFree + 광고 슬롯 dungeonAd(시청률 dungeonAdRate, 하루 1번 결정)
+    public static int BossLvKills = 3;   // 보스 토벌 한 판에 잡는 보스 수 (근사)
     void DoDungeonSheet()
     {
         foreach (var ds in Tables.Dungeons)
@@ -182,10 +264,11 @@ sealed class Scenario
             if (P.stage < ds.unlockStage) continue;
             if (!dLevel.ContainsKey(ds.dungeon)) dLevel[ds.dungeon] = 1;
             if (!dToday.TryGetValue(ds.dungeon, out var t)) { t = new int[2]; dToday[ds.dungeon] = t; }
-            int free = prm.dungeonFree - t[0];
-            int adSlots = (t[1] == 0) ? prm.dungeonAd : 0;
+            int perDay = GameBalance.ConstInt("dungeonPerDay");   // 11-10: 상수 시트 값
+            int free = perDay - t[0];
+            int adSlots = (t[1] == 0) ? GameBalance.ConstInt("dungeonAdPerDay") : 0;
             int runs = Math.Max(0, free);
-            t[0] = prm.dungeonFree;
+            t[0] = perDay;
             int adRuns = 0;
             if (adSlots > 0)
             {
@@ -197,13 +280,25 @@ sealed class Scenario
                 if (i >= runs) AdView();
                 int L = dLevel[ds.dungeon];
                 int sL = ds.baseStage + ds.stageStep * (L - 1);
-                dungeonRuns++;
-                if (sL > P.stage) { dungeonFails++; continue; }
-                dLevel[ds.dungeon] = L + 1;
-                if (ds.currency == "Gold" || ds.currency == "Both")
-                { double g = (double)IdleProgress.EnemyGold(Math.Min(P.stage, sL)) * ds.rewardKills; P.gold += g; totDungeonGold += g; }
-                if (ds.currency == "Mycelite" || ds.currency == "Both")
-                { long m = (long)(ds.rewardMyc * (1 + ds.rewardGrowth * (L - 1))); P.myc += m; totDungeonMyc += m; }
+                dungeonRuns++; Guide("Dungeon");
+                // 11-10: 게임 보상 함수(DungeonRewards)를 그대로 쓴다. 성공 = 기준 스테이지가 방치 스테이지 이하(실력·전투는 근사),
+                // 실패 = 그 레벨 보상 × dungeonFailMul. 보스 토벌(BossLevel)은 지금 스테이지 기준으로 한 판에 BossLvKills마리 잡는다고 본다
+                double g; long m;
+                var row = GameBalance.Dungeon(ds.dungeon);
+                if (row != null && row.mode == "BossLevel")
+                {
+                    double gs = 0, ms = 0;
+                    for (int n = 1; n <= BossLvKills; n++) { double k = 1 + row.rewardGrowth * (n - 1); gs += (double)IdleProgress.EnemyGold(P.stage) * row.rewardKills * k; ms += row.rewardMyc * k; }
+                    g = gs; m = (long)Math.Round(ms);
+                }
+                else
+                {
+                    bool ok = sL <= P.stage;
+                    var r = ok ? DungeonRewards.Reward(ds.dungeon, L) : DungeonRewards.Reward(ds.dungeon, L, DungeonRewards.FailMul);
+                    if (ok) dLevel[ds.dungeon] = L + 1; else dungeonFails++;
+                    g = r.gold; m = r.mycelite;
+                }
+                P.gold += g; totDungeonGold += g; P.myc += m; totDungeonMyc += m;
             }
         }
     }
@@ -244,7 +339,7 @@ sealed class Scenario
         if (prm.killedEachAway) { if (sessSec >= 30) savedRate = sessGold / sessSec; sessGold = 0; sessSec = 0; }
         if (prm.ads)
             foreach (int k in prm.gachaKinds)
-                if (!adGachaUsed[k]) { adGachaUsed[k] = true; AdView(); P.Pull(k, (int)Tables.ConstOr("adGachaPulls", 11)); }
+                if (!adGachaUsed[k]) { adGachaUsed[k] = true; AdView(); P.Pull(k, AdPulls(k)); }
         DoDungeon();
     }
 
@@ -294,8 +389,10 @@ sealed class Scenario
                     goto skip;
                 watch:
                     chestCount++; AdView();
-                    double g = (double)IdleProgress.EnemyGold(P.stage) * GameBalance.Const("adBoxGoldKills");
-                    long m = (long)(IdleProgress.BossMycelite(P.stage) * GameBalance.Const("adBoxMyceliteBosses"));
+                    // 11-09 광고 상자: 골드 또는 균사석 한 가지(50:50, AdBox.cs) — 시뮬은 번갈아 준다 (기대값 같음)
+                    bool goldBox = chestCount % 2 == 1;
+                    double g = goldBox ? (double)IdleProgress.EnemyGold(P.stage) * GameBalance.Const("adBoxGoldKills") : 0;
+                    long m = goldBox ? 0 : GameBalance.ConstInt("adBoxMycelite");
                     P.gold += g; totChestGold += g; P.myc += m; totChestMyc += m;
                 skip:;
                 }

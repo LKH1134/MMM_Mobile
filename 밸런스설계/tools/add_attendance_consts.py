@@ -3,6 +3,7 @@
 #  - 상수: 광고 상자 보상 확률·연속 상한, 보스 러시 쉬운 레벨, 기능 해금 스테이지 (코드 const였던 값)
 #  - 리소스: UI/Icon/advertisement_mycelite (광고 상자 균사석 그림, 미등록)
 #  - info: 출석 시트 설명·개편 기록
+# 상수 번호: main이 9090~9098을 먼저 써서 9099~9103 (11-10 병합)
 # 엑셀 XML을 직접 고친다 (다른 시트의 서식·표를 건드리지 않게)
 import re, sys, zipfile
 from xml.sax.saxutils import escape
@@ -28,16 +29,16 @@ ATTENDANCE_ROWS = [
     (17007, 'day_7', 7, 'Weapon', 1, 11010, '전설 무기 날다람쥐 (weapon_09)'),
 ]
 CONSTS = [
-    (9090, 'adBoxGoldChance', 0.5, '광고 상자가 골드 상자로 나올 확률 (나머지는 균사석 상자). 0~1'),
-    (9091, 'adBoxMaxSameInRow', 2, '광고 상자 같은 보상이 연속으로 나올 수 있는 최대 횟수 (넘으면 다른 쪽이 나온다). 0 = 제한 없음'),
-    (9092, 'bossRushEasyLevels', 5, '보스 러시(던전 4): 이 레벨까지는 기준 스테이지 그대로, 그 뒤부터 레벨마다 stageStep씩 강해진다'),
-    (9093, 'unlockTeamStage', 3, '편성 탭 해금 스테이지 (진입 기준 — 3 = 1-2를 깨고 1-3 진입). 소환 탭은 편성 화면을 처음 열면 열린다'),
-    (9094, 'unlockWorldTreeStage', 7, '세계수 탭 해금 스테이지 (진입 기준). 던전 탭은 던전 시트 unlockStage 중 가장 작은 값'),
+    (9099, 'adBoxGoldChance', 0.5, '광고 상자가 골드 상자로 나올 확률 (나머지는 균사석 상자). 0~1'),
+    (9100, 'adBoxMaxSameInRow', 2, '광고 상자 같은 보상이 연속으로 나올 수 있는 최대 횟수 (넘으면 다른 쪽이 나온다). 0 = 제한 없음'),
+    (9101, 'bossRushEasyLevels', 5, '보스 러시(던전 4): 이 레벨까지는 기준 스테이지 그대로, 그 뒤부터 레벨마다 stageStep씩 강해진다'),
+    (9102, 'unlockTeamStage', 3, '편성 탭 해금 스테이지 (진입 기준 — 3 = 1-2를 깨고 1-3 진입). 소환 탭은 편성 화면을 처음 열면 열린다'),
+    (9103, 'unlockWorldTreeStage', 7, '세계수 탭 해금 스테이지 (진입 기준). 던전 탭은 던전 시트 unlockStage 중 가장 작은 값'),
 ]
 RESOURCE = (7425, 'asset_ui_icon_advertisement_mycelite', 'Sprite', 'UI/Icon/advertisement_mycelite')
 INFO_ROWS = [
     ('시트', '출석', '7일 출석 체크 보상. 한 행 = 하루 (day 1부터). 행 수가 출석 일수다 — 출석 창(AttendanceScreen) 칸 수와 같아야 한다. 무기 보상은 장비.index로 고른다.', '7행'),
-    ('개편', '2026-11-10 코드 수치 표로', '코드에 있던 콘텐츠 수치를 표로 옮김: 출석 보상 7일 → 출석 시트(17001~17007, 무기는 이름 대신 장비.index 11010). 상수 9090~9094 adBoxGoldChance·adBoxMaxSameInRow·bossRushEasyLevels·unlockTeamStage·unlockWorldTreeStage. 리소스 7425 광고 상자 균사석 그림. 방치 보스 체력 꼬리의 챕터 길이는 방치전투.stagesPerChapter를 읽는다.', '값은 옮기기 전과 같다'),
+    ('개편', '2026-11-10 코드 수치 표로', '코드에 있던 콘텐츠 수치를 표로 옮김: 출석 보상 7일 → 출석 시트(17001~17007, 무기는 이름 대신 장비.index 11010). 상수 9099~9103 adBoxGoldChance·adBoxMaxSameInRow·bossRushEasyLevels·unlockTeamStage·unlockWorldTreeStage. 리소스 7425 광고 상자 균사석 그림. 방치 보스 체력 꼬리의 챕터 길이는 방치전투.stagesPerChapter를 읽는다.', '값은 옮기기 전과 같다'),
 ]
 
 

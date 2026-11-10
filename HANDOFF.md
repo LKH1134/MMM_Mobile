@@ -87,7 +87,7 @@
 
 - 조사: 콘텐츠 코드의 `const`·리터럴·하드코딩 문자열을 훑음(`Tools/audit_game_data.py`는 상수 key·리소스·수확전투만 봄). 남아 있던 것은 11-06~11-09에 들어온 콘텐츠 값뿐이었다.
 - **새 시트 `출석`**(17001~17007, `AttendanceRow`): day·kind(`AttendanceRewardKind`)·amount·equipId. 출석 일수 = 행 수(`Attendance.Days`가 const → 표). 7일째 무기는 이름("날다람쥐") 대신 **장비.index 11010**. 검증기: day 1부터 연속, 무기 equipId는 장비 시트 무기, 재화 양수.
-- **상수 9090~9094**: `adBoxGoldChance` 0.5·`adBoxMaxSameInRow` 2(`AdBox.NextReward`), `bossRushEasyLevels` 5(`DungeonRewards.Stage`), `unlockTeamStage` 3·`unlockWorldTreeStage` 7(`FeatureUnlock`, 이제 const가 아니라 속성).
+- **상수 9099~9103** (main이 9090~9098을 먼저 써서 병합 때 옮김): `adBoxGoldChance` 0.5·`adBoxMaxSameInRow` 2(`AdBox.NextReward`), `bossRushEasyLevels` 5(`DungeonRewards.Stage`), `unlockTeamStage` 3·`unlockWorldTreeStage` 7(`FeatureUnlock`, 이제 const가 아니라 속성).
 - 방치 보스 체력 꼬리의 챕터 길이(`IdleProgress.ChapterLength` 10) → `방치전투.stagesPerChapter`(10).
 - **리소스 7425** `UI/Icon/advertisement_mycelite`(광고 상자 균사석 그림, 미등록이었음). 감사 도구 문제 1 → 0.
 - 값은 모두 옮기기 전과 같다(에디터에서 출석 7일·무기 날다람쥐·해금 3/7/5·보스 러시 레벨 1~5 기준 스테이지 30 → 6부터 +5·보스 체력 710 벽 ×1.4 확인). 표 편집 스크립트 `밸런스설계/tools/add_attendance_consts.py`(엑셀 XML 직접 수정), Reimport Tables 1297행 OK.

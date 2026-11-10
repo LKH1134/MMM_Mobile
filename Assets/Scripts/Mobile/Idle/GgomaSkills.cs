@@ -28,7 +28,38 @@ namespace MoreMush.Mobile
         static Dictionary<string, List<GgomaSkillRow>> byOwner;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void Reload() => byOwner = null;
+        static void Reload()
+        {
+            byOwner = null;
+            sums.Clear();
+            sumsVersion = -1;
+        }
+
+        // 꼬마별 해금된 효과 합 (효과 번호 순). 공격마다 여러 번 묻는다 — 편성 데이터(Formation.Version)가 바뀔 때만 다시 센다
+        static readonly Dictionary<string, double[]> sums = new Dictionary<string, double[]>();
+        static readonly int EffectCount = System.Enum.GetValues(typeof(GgomaSkillEffect)).Length;
+        static int sumsVersion = -1;
+        static double teamAttack;
+
+        static double[] SumsOf(string id)
+        {
+            if (sumsVersion != Formation.Version)
+            {
+                sums.Clear();
+                teamAttack = double.NaN;
+                sumsVersion = Formation.Version;
+            }
+            if (sums.TryGetValue(id, out var cached)) return cached;
+            var arr = new double[EffectCount];
+            var rows = Of(id);
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var r = rows[i];
+                if (IsUnlocked(r)) arr[(int)r.effect] += r.value;
+            }
+            sums[id] = arr;
+            return arr;
+        }
 
         // 이 꼬마의 스킬 (단계 순). 없으면 빈 목록
         public static IReadOnlyList<GgomaSkillRow> Of(string id)
@@ -53,16 +84,16 @@ namespace MoreMush.Mobile
         public static double Self(string id, GgomaSkillEffect effect)
         {
             if (string.IsNullOrEmpty(id)) return 0;
-            double sum = 0;
-            foreach (var r in Of(id)) if (r.effect == effect && IsUnlocked(r)) sum += r.value;
-            return sum;
+            return SumsOf(id)[(int)effect];
         }
 
         // 편성된 꼬마들의 TeamAttack 합
         public static double TeamAttack()
         {
+            if (sumsVersion == Formation.Version && !double.IsNaN(teamAttack)) return teamAttack;
             double sum = 0;
             for (int i = 0; i < Formation.SlotCount; i++) sum += Self(Formation.Get(i), GgomaSkillEffect.TeamAttack);
+            teamAttack = sum;       // Self가 낡은 합을 지웠으면 sumsVersion이 맞춰져 있다
             return sum;
         }
 

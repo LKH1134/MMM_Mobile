@@ -53,6 +53,9 @@ static class Tables
         Set("dungeonList", dungeonRows);
         Set("equipment", Rows<EquipmentRow>(sheets, "장비", 11001, 11999, issues));   // Equipment가 종류별 장비 수·등급·단계를 읽는다
         Set("quests", Rows<QuestRow>(sheets, "퀘스트", 9201, 9299, issues));
+        Set("guides", Rows<GuideRow>(sheets, "가이드", 17001, 17099, issues));            // 11-10 가이드 퀘스트
+        Set("guideLoops", Rows<GuideLoopRow>(sheets, "가이드반복", 17101, 17199, issues));
+        Set("gachaProducts", Rows<GachaProductRow>(sheets, "뽑기상품", 12001, 12999, issues));   // 광고 뽑기 횟수
         Set("loaded", true);
         Equipment.ReloadAll();      // 표를 바꿔 읽으면 장비 배치·상수를 다시 읽게 (table= 주입)
         Dungeons.Clear();

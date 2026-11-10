@@ -1,0 +1,24 @@
+validator issues=5
+  [상수] 'wallBossEvery' 행이 없다
+  [상수] 'wallBossFrom' 행이 없다
+  [상수] 'wallBossHpMul' 행이 없다
+  [상수] 'wallBossLateFrom' 행이 없다
+  [상수] 'wallBossHpMulLate' 행이 없다
+[종류] 장비 종류=Weapon(Attack),Accessory(Hp) 뽑기 종류(GachaKind 값)=0,1,3 펫있음=False
+[dll] C:\Project\MMM_Mobile\밸런스설계\test\sim\bin\Release\net10.0\Assembly-CSharp.dll · 2026-11-10 12:02:13
+[조건] name=B continuous=False quests=True ads=False offline=True sess=7/13/20h x 1h killedEachAway=True home=0.7 fps=60 dt=0.05 seed=2 maxDays=120 stuckDays=20 dungeon=True dungeonFlatMyc/day=0 구간= 보스도전퀘스트=False 던전광고율=0 광고 시청률: 상자 1 정산2배 1 (번갈아, 누적 올림 규칙), 광고뽑기 종류 [0,1,3], 던전광고 2/일 policy=bal gacha=on equip=best table=base_table.xlsx const=wallBossEvery:0,wallBossFrom:0,wallBossHpMul:1,wallBossLateFrom:0,wallBossHpMulLate:1 dungeonKills/myc/grow=0/0/0 speedMaxLv=275
+[끝] maxDays · 최종 스테이지 780 · 벽시계 120.33일 · 플레이 361.0시간 · 실행 3.4s
+stage,wallHours,wallDays,playHours
+10,7.03,0.29,0.03
+50,7.27,0.30,0.27
+100,13.34,0.56,1.34
+200,61.14,2.55,7.14
+300,127.13,5.30,15.13
+400,391.20,16.30,48.20
+500,823.00,34.29,102.00
+1000,미도달,,
+첫7일 골드: 전투=1.622E+013 앱밖=5.685E+013 퀘스트상자=8.896E+012 던전=2.586E+013
+첫사용(벽시계 분): 던전=420.0 뽑기=420.0 퀘스트=420.0 · 첫1시간 강화=2134
+재화 합계: 처치골드=4.396E+015 앱밖=1.529E+016 퀘스트골드=2.437E+015 상자골드=0.000E+000 던전골드=1.425E+016 | 균사석 보스=1558 퀘스트=30600 상자=0 던전=42837 가이드=5300(57개) 출석=6000 | 광고 0회(상자 0) 뽑기 9478회 · 일수 121
+던전: 입장 1210회 (레벨 미달 실패 599회) · 퀘스트 균사석 합 30600 · 하루 평균 252.9
+최종 강화 Lv: 9259,9259,5556,275,1000,1365,871,376 · 편성 1.84,1.84,1.84,1.84,1.84 · 장비% Weapon=11217 Accessory=6386 공격배율%=11217 · 뽑기 Lv 9,9,1,9

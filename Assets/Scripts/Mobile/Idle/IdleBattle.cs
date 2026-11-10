@@ -48,6 +48,7 @@ namespace MoreMush.Mobile
             public bool boss, dead;
             public MushroomKind kind;   // 그림 이름으로 정한다 (꼬마 스킬 식용·독성·약용 피해)
             public float bob, flash, age, deadT;
+            public float attackIn, attackAnim = -1f;   // 다음 공격까지 남은 초 / 공격 연출 진행(0~1, -1 = 쉬는 중)
             public Vector2 home;
             public long gold;
             public int gen;             // 풀에서 다시 꺼낼 때마다 +1 — 날아가던 수확기가 다른 적을 맞히지 않게
@@ -489,6 +490,8 @@ namespace MoreMush.Mobile
             pendingGold = IdleProgress.SaturatingAdd(pendingGold, e.gold);     // 아주 높은 스테이지에서 넘쳐 음수가 되면 골드가 사라진다
             IdleAway.AddKill();
             DailyQuests.Add(QuestKind.Kill);
+            GuideQuests.Report(GuideKind.Kill);
+            if (e.boss) GuideQuests.Report(GuideKind.BossKill);
             if (!e.boss && e.img.sprite != null) WorldTree.AddHarvest(e.img.sprite.name);     // 세계수 창고 버섯
             ShowText(e.rt.position, "+" + Wallet.Format(e.gold), new Color(1f, 0.85f, 0.25f), 34f, 0.8f);
             if (e.boss)
@@ -504,6 +507,7 @@ namespace MoreMush.Mobile
                 partyHp = partyMaxHp;
                 stage++;
                 IdleProgress.Stage = stage;
+                GuideQuests.Report(GuideKind.StageEnter);
                 ShowText(Center(), HudStageLabel(stage), Color.white, 72f, 1.4f);
                 wave = 0;
                 nextWaveIn = waveDelay * 2f;
@@ -708,6 +712,7 @@ namespace MoreMush.Mobile
         Enemy Spawn(bool isBoss, Vector2 local)
         {
             var e = freeEnemies.Count > 0 ? freeEnemies.Pop() : NewEnemy();
+            var kind = MushroomKind.Edible;
             if (isBoss)
             {
                 // 보스 그림 = 스테이지.bossId → 보스.resourceId (표). 못 찾으면 식용 적 그림
@@ -716,7 +721,7 @@ namespace MoreMush.Mobile
             }
             else
             {
-                var sprites = PickEnemyPool();
+                var sprites = PickEnemyPool(out kind);
                 e.img.sprite = sprites.Length > 0 ? sprites[Random.Range(0, sprites.Length)] : white;
             }
             float size = isBoss ? bossSize : enemySize;
@@ -724,7 +729,8 @@ namespace MoreMush.Mobile
             e.hpRoot.gameObject.SetActive(!isBoss);         // 보스 체력은 HUD 막대로 본다
             e.boss = isBoss;
             // 보스는 그림이 독버섯 군락이어도 식용으로 친다 (꼬마 스킬의 독·약용 배율을 보스에 걸지 않는다 — 옛 보스 그림과 같은 밸런스)
-            e.kind = isBoss ? MushroomKind.Edible : GgomaSkills.KindOf(e.img.sprite != null ? e.img.sprite.name : null);
+            // 종류는 고른 묶음으로 안다 (sprite.name은 부를 때마다 문자열을 새로 만든다)
+            e.kind = isBoss ? MushroomKind.Edible : kind;
             e.maxHp = e.hp = isBoss ? IdleProgress.BossHp(stage) : IdleProgress.EnemyHp(stage, wave);
             e.gold = IdleProgress.ClampToLong((isBoss ? IdleProgress.BossGold(stage) : IdleProgress.EnemyGold(stage)) * WorldTree.Mul(TreeEffect.KillGold), 1);
             e.incoming = 0;
@@ -732,6 +738,8 @@ namespace MoreMush.Mobile
             e.dead = false;
             e.age = 0f;
             e.flash = 0f;
+            e.attackIn = enemyAttackDelay + Random.Range(0f, 0.4f);   // 공격이 시작되는 시점부터 적마다 어긋나게 휘두른다
+            e.attackAnim = -1f;
             e.bob = Random.Range(0f, 6.28f);
             e.home = local;
             e.img.color = Color.white;
@@ -759,12 +767,13 @@ namespace MoreMush.Mobile
         }
 
         // 일반 적 그림 묶음: 독성·약용은 상수 비율대로, 나머지는 식용 (그림이 없으면 식용)
-        Sprite[] PickEnemyPool()
+        Sprite[] PickEnemyPool(out MushroomKind kind)
         {
             float r = Random.value;
             float toxic = (float)GameBalance.Const("enemyToxicRate"), medicinal = (float)GameBalance.Const("enemyMedicinalRate");
-            if (r < toxic && toxicSprites != null && toxicSprites.Length > 0) return toxicSprites;
-            if (r >= toxic && r < toxic + medicinal && medicinalSprites != null && medicinalSprites.Length > 0) return medicinalSprites;
+            if (r < toxic && toxicSprites != null && toxicSprites.Length > 0) { kind = MushroomKind.Toxic; return toxicSprites; }
+            if (r >= toxic && r < toxic + medicinal && medicinalSprites != null && medicinalSprites.Length > 0) { kind = MushroomKind.Medicinal; return medicinalSprites; }
+            kind = MushroomKind.Edible;
             return enemySprites;
         }
 
@@ -850,10 +859,31 @@ namespace MoreMush.Mobile
                 float scale = pop < 1f ? Mathf.Sin(pop * Mathf.PI * 0.5f) * 1.1f : 1f;
                 e.flash = Mathf.Max(0f, e.flash - dt * 6f);
                 scale *= 1f - 0.08f * e.flash;
+                float strike = AttackPulse(e, dt);     // 공격 연출: 0 → 1 → 0
+                scale *= 1f + (EnemyAttackScale - 1f) * strike;
                 e.rt.localScale = new Vector3(scale, scale, 1f);
                 e.rt.anchoredPosition = e.home + new Vector2(0f, Mathf.Abs(Mathf.Sin(Time.time * 3f + e.bob)) * 6f);
-                e.img.color = Color.Lerp(Color.white, new Color(1f, 0.55f, 0.55f), e.flash);
+                e.img.color = Color.Lerp(Color.Lerp(Color.white, new Color(1f, 0.55f, 0.55f), e.flash), EnemyAttackTint, strike);
             }
+        }
+
+        // 적 공격 연출: 일정 간격으로 잠깐 빨갛게 변하며 1.2배로 커졌다 줄어든다 (피해는 UpdateParty가 초당으로 따로 준다)
+        const float EnemyAttackInterval = 1.0f, EnemyAttackTime = 0.3f, EnemyAttackScale = 1.2f;
+        static readonly Color EnemyAttackTint = new Color(1f, 0.2f, 0.2f);
+
+        static float AttackPulse(Enemy e, float dt)
+        {
+            e.attackIn -= dt;
+            if (e.attackIn <= 0f)
+            {
+                e.attackIn += EnemyAttackInterval;
+                if (e.attackIn <= 0f) e.attackIn = EnemyAttackInterval;   // 앱 복귀 직후처럼 dt가 아주 크면 한 번만 휘두른다
+                e.attackAnim = 0f;
+            }
+            if (e.attackAnim < 0f) return 0f;
+            e.attackAnim += dt / EnemyAttackTime;
+            if (e.attackAnim >= 1f) { e.attackAnim = -1f; return 0f; }
+            return Mathf.Sin(e.attackAnim * Mathf.PI);
         }
 
         int AliveCount()
