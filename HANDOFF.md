@@ -1,5 +1,7 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
+> **2026-11-10 하루 정리 (main = LKH = `eaba113`, 둘 다 푸시됨):** 순서대로 — LKH 인계 문서(`83780b0`) → LKH **코드 수치 표로**(`34bcc5f`, 출석 시트·상수·리소스 7425) → KHD **밸런스 개편·가이드 퀘스트·꼬마 성장**(`3d2bc82`, 강화 Incremental 곡선·공격 속도 단계 해금·스테이지 71~200 적 2배·벽 보스, 광고 뽑기 35회) → KHD 뽑기 결과창·완료 회색(`61bb3ad`) → KHD **시뮬을 지금 규칙에 맞춤 + 11-10 측정**(`f6dcef5`) → KHD **모바일 최적화·안정성**(`702cf88`·`f0f912e`, 전투 영역 40 내림) → LKH **방치 스테이지 표기 `n-n` 통일**(`1fe2c8d`) → LKH main 머지(`11b63ed`, 상수 9090~ 겹침으로 LKH 상수를 9099~9103으로) → LKH **도감 세트 보너스**(`d3a6597`) → KHD 옵션 창 정리·데이터 초기화·판정 최적화·**룰렛**(`e52a545`·`25384f8`·`59cee33`·`61c9a5b`·`c1ec5a4`·`8e6fb58`) → LKH **세계수 의뢰 → 메인 일일·주간 퀘스트**(`5dc8fa1`) → LKH KHD 머지(`95449fe`) → 도감 버튼 위치·세트 목록 문구(`9eb2de6`·`eaba113`). 아래 요약 3개는 LKH 쪽 상세, 커밋 표는 2장 "2026-11-10", 남은 일은 9장 "2026-11-10 …".
+
 > **2026-11-10 (LKH) KHD 머지 (`8e6fb58`까지):** 룰렛(하루 3회·5분 대기)·옵션 창 정리·데이터 초기화(5초 누르기)·세계수 배경·강화 아이콘 등. 엑셀은 시트 단위로 합침(`밸런스설계/tools/merge_khd_roulette.py`): **ID가 겹쳐 KHD 쪽을 옮김** — 룰렛 18001~18006 → **18201~18206**(도감 18001~과 겹침, 코드 범위도 18201~18299), 상수 rouletteDailyCount·rouletteCooldownMinutes 9099·9100 → **9104·9105**(광고 상자 상수와 겹침). 리소스 7252는 KHD가 `imsi.png`를 `image.png`로 바꿔 `Sprite/BG/image`로 고침. WorldTree 씬은 KHD 판을 쓰고 의뢰 버튼·팝업만 다시 지움. KHD `OptionPopup.prefab` 루트가 켜진 채 저장돼 Start·WorldTree에서 설정 창이 저절로 뜨던 것을 꺼 둠(m_IsActive 한 줄). Reimport Tables 통과, 플레이 모드 확인.
 
 > **2026-11-10 (LKH) 세계수 의뢰 → 메인 퀘스트 + 주간 퀘스트 (커밋 전):** 세계수 화면의 **의뢰(일일·주간)를 없애고** 메인 퀘스트(`DailyQuests`·`QuestScreenView`)로 합쳤다. 퀘스트 시트에 `period`(daily/weekly)·`treeExp`(세계수 경험치) 열과 **주간 4행**(9211 일일 퀘스트 25개 · 9212 보스 도전 350 · 9213 처치 40,000 · 9214 던전 10판)을 더했고, 종류에 `dungeon`(던전 한 판, `HarvestGame`·방치 던전 끝)·`daily`(일일 받은 수, 주간만)를 더했다. 세계수 경험치는 예전 의뢰와 같은 합으로 맞춤: 일일 5행 × 600 = 하루 3,000, 주간 3,500+2,500+2,500+1,500 = 10,000. 주간 골드·균사석(goldKills 10,000/5,000, 균사석 100/50/50/50)은 **임시값**. `의뢰` 시트·상수 `treeQuestDaily`·`WorldTree.Quests.cs`·`TreeQuestPanel.cs`·`QuestPopup` 프리팹·세계수 씬 Quest 버튼 삭제, 지정 버섯(species) 의뢰는 없앰. 주간 초기화 = 월요일 한국 00시(`DungeonTickets.ThisWeek`·`IsNewWeek`·`UntilWeekReset`, 일일과 같은 '뒤의 날만' 규칙). 저장: 일일은 예전 키 그대로(`Quest.Day`·`Quest.<일일 순번>.P/.C`), 주간 `QuestW.Week`·`QuestW.<행 index>.P/.C`. 옛 세계수 의뢰 진행(`WorldTree.Save` JSON의 quest* 필드)은 읽지 않고 다음 저장 때 빠진다 — 받지 않은 의뢰 보상은 사라짐. 퀘스트 창: 하단 주간/일일 버튼이 탭(고른 탭 초록·흰 글자), 제목 메모 일일 의뢰/주간 의뢰, 주간은 "초기화까지 n일 hh:mm:ss", 보상 줄 둘째 줄에 세계수 경험치, 일괄 수령·빨간 점은 일일+주간. 도구 `밸런스설계/tools/merge_tree_quests.py`·`add_weekly_quest_strings.py`. 컴파일·Reimport Tables 경고 없음, 플레이 모드 확인(일일 저장 유지·주간 탭·주간 수령 → 세계수 경험치 +1,500·두 번 수령 안 됨·세계수 화면 버튼 없음). 남은 일 9장 "2026-11-10 남은 일 (퀘스트 합침)".
@@ -16,7 +18,7 @@
 
 > **2026-11-03 데이터 추가 조사:** 통합 23시트·Legacy 5종·게임 코드·씬/프리팹·Resources를 대조해 `수확전투` 16행(스킬 효과·환경 장치·보스 분신 기준·배속), `상수` 3행, `리소스` 26행을 추가했다. 등급 `#name`은 런타임 `name:string`으로 전환했다. 새 전투 설정·상수·등급명은 게임 연동, 기존 값·수식은 보존. Unity 검증 1,116행 OK. 조사 범위·제외 기준·검증은 [DATA_AUDIT.md](DATA_AUDIT.md), 재대조는 `python Tools/audit_game_data.py`.
 
-> 작성 2026-10-28 · **갱신 2026-11-10** · 기준 브랜치 `main` (`16cbebc`까지 — LKH `2a205ca`·KHD `25fdcb9` 머지 포함. KHD `50f354c`·`a1590aa`는 아직 미머지)
+> 작성 2026-10-28 · **갱신 2026-11-10** · 기준 브랜치 `main` (`eaba113`까지 — LKH와 같은 커밋, KHD `8e6fb58`까지 머지 포함, origin 푸시됨)
 > itch.io에 PC 웹빌드로 출시한 **MoreMustMush**를 모바일(세로)로 옮기는 Unity 프로젝트입니다. 이 문서는 지금까지의 구조와 다음 작업자가 알아야 할 것을 정리합니다. 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서"에 있습니다.
 >
 > **2026-10-29~30 방향 전환:** 게임은 **방치형**이 되었고 처음 화면은 `Main` 씬입니다. 기존 판 플레이(`InGame` 씬)는 10-30 한 번 지웠다가 KHD(`3183125`)가 **던전 1로 되살렸습니다**(Main 던전 탭 → InGame → 결과 팝업 → Main, 4장). **`SkillTree` 씬은 제거**(`Backup/SkillTree/`에 백업, 5장). **`WorldTree` 씬도 10-30 늦게 제거**(`Backup/WorldTree/`에 백업, 하단바 세계수 = "아직 개발중인 기능입니다." 알림). 방치형 화면은 **3장 3.1**, 기획 논의는 `HANDOFF_IDLE_PIVOT.md`, 방치형 수치는 `BALANCE_IDLE.md`·`밸런스설계/`를 보세요.
@@ -42,7 +44,11 @@
 | 항목 | 상태 |
 |---|---|
 | **Main 방치형 전투** (꼬마 5칸이 수확기 투척, 웨이브 5 + 보스, 패배 시 같은 스테이지 처음부터) | ✅ 동작 (3.1). 11-05: 보스 = 표의 10종(10스테이지마다 무작위 순서), 꼬마 169·버섯 121·보스 560px |
-| Main 강화 목록 (공격력·체력·재생·공격 속도·치명타 + 상급 공격력·일반 적 피해량) / 방치 정산 팝업 / 앱 밖 골드 | ✅ 동작 (성장 곡선 10-30 재설계, `BALANCE_IDLE.md`) |
+| Main 강화 목록 (공격력·체력·재생·공격 속도·치명타 + 상급 공격력·일반 적 피해량) / 방치 정산 팝업 / 앱 밖 골드 | ✅ 동작 (성장 곡선 10-30 재설계, `BALANCE_IDLE.md`). **11-10 KHD 개편 `3d2bc82`**: 공격력·체력·재생 Incremental 곡선, 공격 속도는 공격력 단계로 해금, 스테이지 71~200 적 2배·벽 보스 (2장) |
+| **가이드 퀘스트** (11-10 KHD `3d2bc82`) | ✅ 전투력 위 한 줄 바(`GuideBarView`), `가이드` 시트 고정 11단계 → `가이드반복` 시트 반복 목표, 보상 균사석 (`GuideQuests`) |
+| **꼬마 성장** (11-10 KHD `3d2bc82`) | ✅ Lv.5·10 관문에서 균사석으로 성장(1→2→3단계), 편성 화면 성장 버튼. 상수 `ggomaCopiesBase`·`ggomaGrowMycelite2/3` 등 9090~9098 |
+| **도감 세트 보너스** (11-10 LKH `d3a6597`) | ✅ 방치 보스 처치마다 열린 무리(종류 × ★1~5)에서 새 버섯, 무리 완성 = 식용 공격력·약용 체력/재생·독성 공격 속도 %. `도감`·`도감세트` 시트, `MushroomDex`. 진행 영향 실측 전 |
+| **룰렛** (11-10 KHD) | ✅ 홈 왼쪽 버튼, 하루 3회·5분 대기, 골드·균사석 6칸 (`룰렛` 시트 18201~, 상수 9104·9105) |
 | **던전 1~5** (11-06 KHD `dc3c7a2`) | ✅ 던전 시트 `mode`로 진행 방식: 1 수확·2 골드·3 균사석 = `Harvest`(InGame 씬 재사용, `DungeonSession.Current`로 구분, 보상만 다름) / 4 보스 러시 = `BossRush`(방치 화면, 스테이지 보스 `bossRushCount` 5마리 연속, 보스마다 보상 1/n) / 5 보스 토벌 = `BossLevel`(방치 화면, 한 마리를 잡을 때마다 레벨업, `bossLv*` 상수, 60초). 해금 스테이지 **5/10/20/30/50**(아래 줄의 5/25/150/250/400은 옛 값). 입장권은 보상 받을 때 씀. 실기기 전 |
 | **기능 해금** (11-09 KHD `6c206b6`, `Unlock/`) | ✅ 편성 = 스테이지 3(1-3 진입) · 소환 = 편성 화면 처음 열기 · 던전 = 던전 시트 가장 낮은 `unlockStage` · 세계수 = 스테이지 7 (`FeatureUnlock`, PlayerPrefs `Unlock.<기능>`, 한 번 열리면 안 잠김). 잠긴 탭 어둡게+자물쇠·눌러서 안내(`BottomBarLocks`), "새로운 콘텐츠!" 창(`UnlockAnnouncer`, 코드 생성 오버레이), 탭 가리키기(`TutorialSpotlight`) |
 | **언어 (한국어·영어)** (11-09 KHD `4fbf3b0`) | ✅ `Assets/Data/Tables/String.xlsx`(key·ko·en·memo, 약 520행) → `Resources/Tables/String.bytes`. `Loc`(첫 실행 때 기기 언어: 한국어 기기 = 한국어, 나머지 = 영어, 옵션에서 바꿈 `Option.Language`), 글자에 `LocalizedText`, 언어 버튼 `LanguageButton`. 번역 없으면 한국어, key 없으면 기본 문구. **새 화면 글자는 문자열 표에 key로 넣을 것** |
@@ -64,7 +70,7 @@
 | 일반 스테이지 | ✅ 목표 없음 — 판을 마치면 늘 다음 스테이지 (2026-10-28) |
 | 보스 HUD (이름 + 본체 체력 바) | ✅ 2026-10-28 |
 | 성능 벤치마크 (FPS·CPU·GPU·메모리) + Firebase Test Lab Game Loop | ✅ 2026-10-28 (8장) |
-| 데이터 초기화 | 🗑️ 10-30 설정 팝업에서 버튼 제거 (`DataResetButton` 스크립트만 남음) |
+| 데이터 초기화 | ✅ 11-10 KHD `25384f8` 옵션 창에 다시 넣음: 5초 누르기 경고 창(`HoldConfirmPopup`) → 기록 전체 삭제 → Main. (10-30에 한 번 뺐었음) |
 | **세계수 (WorldTree 씬)** | ✅ 11-02 LKH. 성장·꼬마·공방·꾸미기 동작(플레이 모드 확인, 수확 보따리는 11-03 KHD `b28b237`에서 제거). 11-05 나무 그림 4장·장식 24종 새 그림, 수치는 표, 밸런스 v4(11-03 KHD 방치 v3 위에서 재검증 통과). 하단바 세계수 = `SceneButton`(WorldTree). 실기기·터치 확인 전. **전투 효과 크기(U1)는 사용자 결정 대기** (3.3) |
 | **세계수 의뢰 (일일·주간)** | 🗑️ 11-10 삭제 → 메인 퀘스트로 합침 (세계수 경험치 = 퀘스트 `treeExp`). 11-03 원래 구현 기록은 3.3 |
 | 표 ↔ 게임 연동 (장비·뽑기상품·방치전투·수확전투·수확등급·던전) | ✅ 11-02 LKH (6.0). 플레이 모드에서 값이 표대로 들어가는 것 확인 |
@@ -73,7 +79,7 @@
 | 밸런스 (가격·스테이지 보상·보스 체력) | ⚠️ M2(10-27)에서 50보스 88.3분까지 맞췄으나, 그 측정은 일반 스테이지 목표가 있던 규칙 기준 — 목표 삭제·해금 조건 변경(10-28) 뒤 다시 재야 함 (6.2) |
 | 밸런스 측정기 `BalanceBot` | ✅ 헤드리스 캠페인·보스 반복 측정 |
 | **AdMob (구글 테스트 ID)** | ✅ 11-02 SDK(Google Mobile Ads Unity 11.6.0 + EDM 2.1.0)를 `origin/Admob`에서 가져와 연결. 앱 ID·리워드 단위 ID 모두 구글 공식 **테스트 ID** — **출시 전에 실제 ID로 교체** (`GoogleMobileAdsSettings.asset`, `Ads/AdService.cs`). 에디터·실기기 확인 전 |
-| **광고 상자** (`Ads/AdBox.cs`·`AdBoxPopup.cs`) | ✅ **11-09 개편: 전투 화면 위 빈 풀밭 두 자리(왼쪽 의뢰 버튼 옆·오른쪽 전투력 옆)를 오가고, 보상은 나올 때 골드 또는 균사석 중 하나(50:50, 코드 `Random.value < 0.5`) — 아래 "골드와 균사석" 설명은 옛 동작.** 11-06 실제 광고 ID로 교체(KHD `bd85376`). 실기기 확인 전. 홈 화면을 볼 때만 시간이 가고(`adBoxIntervalHours` 1시간), 왼쪽에서 상자가 날아와 `adBoxStaySeconds` 60초 머문다. 누르면 "광고 보기" 창 → 리워드 광고를 끝까지 보면 골드(스테이지 적 처치 골드 × `adBoxGoldKills`)와 균사석(고정 `adBoxMycelite` 90 — 11-05 상수화, 쓰지 않던 `adBoxMyceliteBosses`는 삭제). 놓치거나 보면 쿨타임 처음부터. 수치는 상수 시트(임시값). 상자 그림은 임시(`icon_chest`) |
+| **광고 상자** (`Ads/AdBox.cs`·`AdBoxPopup.cs`) | ✅ **11-09 개편: 전투 화면 위 빈 풀밭 두 자리(왼쪽 의뢰 버튼 옆·오른쪽 전투력 옆)를 오가고, 보상은 나올 때 골드 또는 균사석 중 하나(50:50, 11-10부터 상수 `adBoxGoldChance`·같은 보상 연속 상한 `adBoxMaxSameInRow` 2) — 아래 "골드와 균사석" 설명은 옛 동작.** 11-06 실제 광고 ID로 교체(KHD `bd85376`). 실기기 확인 전. 홈 화면을 볼 때만 시간이 가고(`adBoxIntervalHours` 1시간), 왼쪽에서 상자가 날아와 `adBoxStaySeconds` 60초 머문다. 누르면 "광고 보기" 창 → 리워드 광고를 끝까지 보면 골드(스테이지 적 처치 골드 × `adBoxGoldKills`)와 균사석(고정 `adBoxMycelite` 90 — 11-05 상수화, 쓰지 않던 `adBoxMyceliteBosses`는 삭제). 놓치거나 보면 쿨타임 처음부터. 수치는 상수 시트(임시값). 상자 그림은 임시(`icon_chest`) |
 | **일일·주간 퀘스트** (`Quest/DailyQuests.cs`·`UI/Main/QuestScreenView.cs`) | ✅ **11-10 주간 퀘스트 추가·세계수 의뢰 합침**(맨 위 요약): 퀘스트 시트 `period` daily/weekly, 보상에 `treeExp`, 종류 dungeon·daily 추가, 창 하단 주간/일일 탭. 아래는 처음 상태 — ✅ 코드 완료, 에디터 확인 전. 전투 화면 왼쪽(배너 왼쪽) 퀘스트 버튼 → 팝업. 목록·목표·보상은 **퀘스트 시트**(kill/stage/upgrade/gacha/ad, 임시값): 보상 골드 = 지금 스테이지 적 처치 골드 × `goldKills`, 균사석 고정. 한국 00시 초기화. 진행도는 라이브 플레이만 센다(앱 밖 정산분 제외). 받을 보상이 있으면 버튼에 빨간 점. 버튼 그림은 임시(`quest` 아이콘) |
 | 사운드 | 🟡 11-05 **BGM만**: 메인 BGM Glowing Woodland(`BgmPlayer`, `Resources/Audio/Bgm`, Start 다음 씬부터 반복·씬 전환에도 유지, 광고 중 `AudioListener.pause`), 모든 옵션 창 배경음 슬라이더 = BGM 음량(`BgmVolumeSlider`, `Option.BgmVolume`). **효과음은 없음**(SFX 슬라이더는 값만 저장) |
 | 개발자 모드 | ✅ 11-05 (`` ` `` 키, 에디터·Development Build만) — [HANDOFF_DEVMODE.md](HANDOFF_DEVMODE.md). 11-06 출시 빌드에서 컴파일 제외(`UNITY_EDITOR \|\| DEVELOPMENT_BUILD`, `bae4ea3`) |
@@ -82,19 +88,51 @@
 | 아트 | ⚠️ 일부 임시. 던전 버섯·수확기·링·화살표·배속 아이콘은 11-03 Codex 그림(`Art/Generated/InGame`, `Art/Placeholder`는 삭제). 등급·황금·버프·장치·보스는 여전히 색으로만 구분(던전 쪽). 11-05 세계수·장식·로딩·소환·던전 배너/카드·방치 보스 10종 그림 교체 |
 
 **환경:** Unity 6000.3.19f1 · URP · Input System (`InputSystemUIInputModule`) · TextMesh Pro · Unity MCP (`.mcp.json`, `http://localhost:8080/mcp`) · 이미지 생성은 Codex CLI(`codex exec`, `image_generation` 기능)
-**저장소:** `https://github.com/LKH1134/MMM_Mobile` (`main` — 11-06부터 LKH·KHD·PJS를 main에 모아 머지. 11-09 기준 로컬 main이 origin보다 4커밋 앞섬(푸시 안 함). 작업 브랜치: `LKH`(11-02 세계수·표 연동, 이 문서 기준. KHD `3d4631c`까지 머지됨) · `InGame`(10-30 방치형 통합) · `KHD`(장비·UI·방치 밸런스·최적화·광고). 원격에 `Admob`·`UI_SafeArea` 브랜치도 있음 — 이 문서는 다루지 않음)
+**저장소:** `https://github.com/LKH1134/MMM_Mobile` (`main` — 11-06부터 LKH·KHD·PJS를 main에 모아 머지. 11-10 기준 main = LKH = origin `eaba113`. 작업 브랜치: `LKH`(11-02 세계수·표 연동, 이 문서 기준. KHD `3d4631c`까지 머지됨) · `InGame`(10-30 방치형 통합) · `KHD`(장비·UI·방치 밸런스·최적화·광고). 원격에 `Admob`·`UI_SafeArea` 브랜치도 있음 — 이 문서는 다루지 않음)
 **커밋 규칙:** `[태그] YYMMDD 설명` (예: `[ADD] 261026 스테이지·보스 표 및 보스 기믹`)
 
 ---
 
 ## 2. 커밋
 
+### 2026-11-10 (`main` = `LKH` `eaba113`) — 하루 커밋 표
+
+| 커밋 | 작성 | 내용 |
+|---|---|---|
+| `83780b0` | LKH | 인계 문서 11-06~11-09 반영 |
+| `34bcc5f` | LKH | **코드에 있던 콘텐츠 수치를 표로** (아래 절) |
+| `3d2bc82` | KHD | **밸런스 개편** — 공격력·체력·재생 `valueMode` Incremental(Lv 100까지 +10/+10/+1, 비용 Lv 50까지 +1골드·100까지 +2골드, 뒤로 증가량 커짐), 공격 속도는 공격력 단계표로 해금(2500에서 3.0/s, 비용 가중 `speedCostRampFromLv` 30·`speedCostRamp` 115), 공격력으로 열리는 강화 비용 보정(`GateCostFactor`), 스테이지 71~200 적 체력·공격 2배, 벽 보스 `wallBoss*`(100·150·200 ×5, 250부터 50단위 ×2, 던전 4·5 제외). **가이드 퀘스트**(`GuideQuests`·`GuideBarView`, `가이드`·`가이드반복` 시트, 전투력 위 한 줄 바, 고정 11단계 뒤 반복, 균사석). **꼬마 성장**(Lv.5·10 관문에서 균사석, 편성 화면 성장 버튼, 상수 `ggoma*` 9090~9098). 광고 뽑기 11 → 35회, 적 공격 연출, 가이드 바 자리만큼 전투 영역·왼쪽 버튼 위로 |
+| `61bb3ad` | KHD | 뽑기 결과창 간격·등급 연출, 완료한 의뢰 회색(`DoneCover`), 강화 잠금 줄 모양 |
+| `f6dcef5` | KHD | **시뮬을 지금 게임 규칙에 맞춤**(`밸런스설계/test/sim`: 광고 상자 한 가지 보상·꼬마 성장·가이드 퀘스트·출석 균사석·광고 뽑기 횟수·던전 보상을 게임 함수로·던전 입장 상수) + 수치안·집계 스크립트(`밸런스설계/test/khd_prop.py`·`khd_dung.py`·`khd_agg.py`), 결과 `밸런스설계/test/out/khd1110`·`stage_k_*`·`snap_k_*` |
+| `702cf88`·`f0f912e` | KHD | **모바일 최적화·안정성**: 가이드 바 바뀐 글자만 갱신, 뽑기 반짝임 객체 재사용·RectMask2D 필요할 때만, 강화 비용 하한 1·지수 넘침 보정, 모르는 가이드 저장값 처리, 큰 dt 공격 연출 1회, 재컴파일 뒤 하단 잠금 NRE, 전투 영역 40 내림, 120일 안정성 시뮬(`stab_*`) |
+| `1fe2c8d` | LKH | **방치 스테이지 표기 `스테이지 n-n` 통일** (아래 절) |
+| `11b63ed` | LKH | main → LKH 머지 (아래 절) |
+| `d3a6597` | LKH | **도감 세트 보너스** (아래 절) |
+| `e52a545` | KHD | 옵션 창 미구현 기능 제거(진동·알림·연출 간소화), 언어 설정 가운데, 창 높이 360 줄임 |
+| `25384f8` | KHD | **옵션 창 데이터 초기화** 버튼 + 5초 누르기 경고 창(`HoldConfirmPopup`) — 전투를 먼저 멈추고 기록 전체를 지운 뒤 Main으로, 가이드·출석 캐시도 비움 |
+| `59cee33` | KHD | 판정 최적화: 수확 충돌에서 버섯 위치 캐시·빈 목록 검색 생략, 장식 그래픽 `raycastTarget` 끔, `RaycastTargetAudit`(메뉴 `MoreMush/Optimize`) |
+| `61c9a5b`·`c1ec5a4`·`8e6fb58` | KHD | **룰렛**(`Roulette`·`RouletteScreen`, 홈 왼쪽 버튼): 하루 3회(한국 00시), 한 번 돌린 뒤 5분 대기(게임 시계), 6칸 골드·균사석, 결과를 돌리는 순간 정해 저장. 수치는 `룰렛` 시트(머지 뒤 18201~18206)·상수 `rouletteDailyCount`·`rouletteCooldownMinutes`(9104·9105). 세계수 배경 변경 |
+| `5dc8fa1` | LKH | **세계수 의뢰 → 메인 일일·주간 퀘스트** (맨 위 요약) |
+| `95449fe` | LKH | KHD → LKH 머지 (맨 위 요약: 룰렛·상수 ID 옮김, OptionPopup 루트 끔) |
+| `9eb2de6`·`eaba113` | LKH | 도감 버튼 위치 복구, 세트 목록 "(n-n부터)" 삭제 |
+
+### 2026-11-10 (`LKH`) — 방치 스테이지 표기 통일 (`1fe2c8d`)
+
+- 방치 스테이지 글자는 모두 `IdleBattle.HudStageNumber(stage)` = **`챕터-칸`** (스테이지 번호 s → `(s-1)/stagesPerChapter+1`-`(s-1)%stagesPerChapter+1`, 5 → 1-5, 11 → 2-1)로 쓴다. 표·코드 안의 값(해금 스테이지 등)은 계속 번호로 적고 **보여 줄 때만** 바꾼다.
+- 고친 곳: 던전 카드 잠금 "스테이지 5 진입 시 해금" → "스테이지 1-5 …"(`DungeonEntry`), 스테이지가 오를 때 가운데 글자(`IdleBattle`), 절전 화면(`PowerSaveMode`), 개발자 모드 "방치 스테이지 2-5 (15)". 전투 배너는 같은 계산을 따로 하던 것을 합침. 원래 `n-n`이던 곳: Main HUD·방치 정산·잠긴 탭 안내.
+- 그대로 둔 것: 수확 던전(InGame) 상단 "스테이지 n"(던전 판 번호), 세계수·꼬마 "n단계", 가이드 "스테이지 n번 진입"(횟수). String `dungeon.unlock_at_stage` 메모 `{0}=챕터-칸 (1-5)`.
+
+### 2026-11-10 (`LKH`) — main 머지 (`11b63ed`)
+
+- 엑셀 4개(GameBalance·String xlsx/bytes)가 바이너리 충돌 → **main 표를 기준으로 LKH 변경만 다시 얹음**: `add_attendance_consts.py`를 main 표에 다시 돌림(출석 시트는 빈 시트 번호 자동), String 메모 1줄. **main(`3d2bc82` 꼬마 성장)이 상수 9090~9098을 먼저 써서 LKH 상수를 9099~9103으로 옮김**(코드는 key로 읽어 영향 없음, 스크립트 번호도 고침).
+- `IdleBattle.cs`: main의 `GuideQuests.Report(GuideKind.StageEnter)`와 LKH의 `HudStageLabel`을 함께 둠. 컴파일·Reimport Tables(1322행) 통과.
+
 ### 2026-11-10 (`LKH`) — 도감 세트 보너스
 
 - **표**: 새 시트 `도감`(18001~18015, `DexRow`: kind `MushroomKind`·star·count·resourceId·unlockStage·dropChance)·`도감세트`(18101~18120, `DexSetRow`: kind·star·stat `DexStat`·value %). 그림은 기존 리소스 7275~7289(`Art/Dream/Index` 15장, 조각 = 종). `info` 3행. 스크립트 `밸런스설계/tools/add_dex_sets.py`·문구 `add_dex_strings.py`(String `dex.drop`·`dex.set_done`·`dex.set_header`·`dex.set_from`·`dex.set_active`).
 - **검증기**: 두 스키마, `MushroomKind`·`DexStat` 자료형, 종류×별 한 행·star 1~5·count 1~31(저장 비트)·dropChance 0~1·그림 시트에 `시트이름_0..count-1` 조각, 세트 행은 도감 무리를 가리키고 무리·능력치 중복 없음·값 양수. `link.xml`에 두 행 클래스. Reimport Tables **1357행 OK, 폰트 경고 없음**.
 - **코드**: `MushroomDex`(저장 `Dex.<index>` 비트·`RollBossDrop`·`Percent(DexStat)` 캐시·`Changed`), `IdleProgress.AttackMultiplier`/`HpMultiplier`/새 `HpRegenMultiplier`에 도감 % 더함, 새 `SpeedMultiplier`를 `FinalSpeed`에 곱함(전투력·통계 창도 따라감), `IdleBattle` 방치 보스 처치 때 드롭(던전 보스 제외) + 보스 자리 위 "도감 +1 식용 ★2"·"… 세트 완성!" 글자.
-- **UI** (`DexScreenView`·`DexScreen.prefab`): 목록을 도감 시트로 만듦(전엔 그림 폴더를 훑음), 못 얻은 버섯 = 그림자 + "???", **세트 보너스 버튼**(전엔 꺼둠) = `Body/SetPanel`(Scroll 자리에 TMP 한 장): 종류 탭별 수집 수·★1~5 모은 수/종 수·효과(완성 초록)·아직 안 열린 무리는 "(n-n부터)"·적용 중 합. 도감 버튼 = 다시 목록.
+- **UI** (`DexScreenView`·`DexScreen.prefab`): 목록을 도감 시트로 만듦(전엔 그림 폴더를 훑음), 못 얻은 버섯 = 그림자 + "???", **세트 보너스 버튼**(전엔 꺼둠) = `Body/SetPanel`(Scroll 자리에 TMP 한 장): 종류 탭별 수집 수·★1~5 모은 수/종 수·효과(완성 초록)·적용 중 합(안 열린 무리의 "(n-n부터)" 표시는 `eaba113`에서 뺌). 도감 버튼 = 다시 목록. KHD 머지 뒤 화면 밖으로 밀린 Main 도감 버튼은 왼쪽 버튼 열 룰렛 아래로(`9eb2de6`).
 - 확인: 에디터에서 ★1·★5 무리를 채워 배율이 표대로 오르는지(공격 ×+22.05, 체력·재생 +12.6, 속도 ×1.33), 스테이지 1에선 ★1만 나오는지, 그림 누락 0, 플레이 모드 도감 목록·세트 목록 화면. 시험 저장 키는 지움(사용자 세이브 그대로).
 
 ### 2026-11-10 (`LKH`, main `c58cbcf` 위) — 코드에 있던 콘텐츠 수치를 표로
@@ -123,7 +161,7 @@
 | `25fdcb9` | KHD | 뽑기 결과 창 닫기 위치 (`GachaResultPopup`) |
 | `2a205ca` | LKH | **의뢰 일괄 수령**(세계수 `TreeQuestPanel`·`WorldTree.Quests`, 메인 `QuestScreen` 하단 주간/일일/일괄 수령), **확인 창 게임 UI 톤**(`ConfirmPopup`: 나무 테두리·노란 이름표·종이 안쪽·빨강/베이지 버튼 — 게임 종료·데이터 초기화·던전 나가기), 편성 중 꼬마 = 카드 전체 반투명 판 + "편성 중", Main 씬 Badge 오버라이드 제거, 문자열 `common.claim_all`·`treequest.claim_all_toast`·`formation.in_team` |
 
-**KHD에만 있고 main에 머지 안 함 (11-09 오후):** `50f354c` **코드 UI 캔버스화**(64파일 — 코드로 만들던 뽑기 카드·결과 창·세계수 패널·절전 모드·로딩 등을 프리팹으로, `TreeGrowPanel`·`TreeKidPanel`·`DailyQuestPopup`·`BarBackdrop` 삭제, `GachaResultCell` 추가), `a1590aa` 출석 팝업 수정. `git merge-tree`로 main과 충돌 없음 확인(11-10). 머지 뒤 Unity 컴파일·플레이 확인 필요.
+**(11-10 KHD가 main에 머지 `c58cbcf` — 기록용)** KHD에만 있던 11-09 오후 커밋: `50f354c` **코드 UI 캔버스화**(64파일 — 코드로 만들던 뽑기 카드·결과 창·세계수 패널·절전 모드·로딩 등을 프리팹으로, `TreeGrowPanel`·`TreeKidPanel`·`DailyQuestPopup`·`BarBackdrop` 삭제, `GachaResultCell` 추가), `a1590aa` 출석 팝업 수정. `git merge-tree`로 main과 충돌 없음 확인(11-10). 머지 뒤 Unity 컴파일·플레이 확인 필요.
 
 ### 2026-11-06 (`KHD`·`LKH`·`PJS` → `main`) — 던전 2~5 · UI 개편 머지 · 출시 안정화
 
@@ -707,11 +745,17 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 1. ~~KHD 미머지 2커밋 머지~~ ✅ 11-10 KHD가 main에 머지(`c58cbcf`). Main/세계수/뽑기/출석 플레이 확인은 남음
 2. ~~로컬 main 푸시~~ ✅ 11-10
 3. **꼬마별 트리** ([작업준비_261106.md](작업준비_261106.md) 2장) — 손대지 않음. Q2(효과를 팀 전체에 줄지 그 꼬마에만 줄지)·Q3(비용 재화) 결정부터
-4. **밸런스 모델이 지금 던전과 다름:** 해금 5/25/150/250/400 → 5/10/20/30/50, 던전 2·3 보상 성격 변경(골드·균사석), 4·5 새 방식(보스 러시·토벌), 광고 상자 한 가지 보상(기대값 절반), 출석 균사석 6,000·전설 무기. `밸런스설계/` 시뮬·이론은 이 변화 전 기준 — 11-05 남은 일 1번(지운 상수)과 함께 고쳐 다시 재기
+4. (11-10 KHD `f6dcef5`가 시뮬을 지금 규칙(던전 보상 함수·광고 상자 한 가지·출석·꼬마 성장·가이드)에 맞추고 다시 잼 — 결과 `밸런스설계/test/out/khd1110`. **도감 세트·주간 퀘스트·룰렛은 아직 시뮬에 없음**, 이론 모델 `theory/`는 확인 안 함) **밸런스 모델이 지금 던전과 다름:** 해금 5/25/150/250/400 → 5/10/20/30/50, 던전 2·3 보상 성격 변경(골드·균사석), 4·5 새 방식(보스 러시·토벌), 광고 상자 한 가지 보상(기대값 절반), 출석 균사석 6,000·전설 무기. `밸런스설계/` 시뮬·이론은 이 변화 전 기준 — 11-05 남은 일 1번(지운 상수)과 함께 고쳐 다시 재기
 5. **번역 누락:** 코드로 만든 화면(`UnlockAnnouncer`·`AdBox` 등)과 새 프리팹 글자가 문자열 표에 다 있는지, 영어 칸이 빈 key 확인. 영어 글자가 정적 폰트 아틀라스에 있는지(`Bake Static Atlases`)
 6. **실기기 확인:** 해금 팝업·잠긴 탭, 광고 상자 배회·실제 광고·UMP 동의, 던전 2~5, 영어 화면, 확인 창 새 디자인
 7. **스토어:** `moremustmush-0.1.0-2.aab`(버전 코드 2) Play Console 내부 테스트 업로드, 개인정보처리방침·데이터 보안 양식 (8장 "출시 준비")
 8. 1장 던전·광고 상자 줄 아래쪽 설명에 옛 값(해금 5/25/150/250/400, 골드+균사석 둘 다)이 남아 있음 — 새 줄 기준으로 읽을 것
+
+### 2026-11-10 남은 일 (공통)
+
+1. **오늘 들어온 보상원을 시뮬에 함께 넣어 다시 재기:** 도감 세트(아래), 주간 퀘스트 보상, 룰렛(하루 3회 골드·균사석) — KHD `f6dcef5` 측정에는 셋 다 없다. 셋이 겹치면 초중반이 빨라질 수 있음
+2. **플레이 확인:** KHD 머지 뒤 Main 왼쪽 버튼 열(룰렛·도감·퀘스트)·가이드 바·전투 영역 위치, 옵션 창 데이터 초기화(사용자 세이브 말고 테스트 세이브로), 실기기 터치
+3. 1장 아래쪽 옛 설명(광고 상자 "골드와 균사석", 던전 해금 5/25/150/250/400 등)은 새 줄 기준으로 읽을 것
 
 ### 2026-11-10 남은 일 (퀘스트 합침)
 
