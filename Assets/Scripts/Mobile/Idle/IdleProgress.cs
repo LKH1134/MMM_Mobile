@@ -195,25 +195,70 @@ namespace MoreMush.Mobile
         {
             var d = Get(stat);
             if (d.incremental) return IncrementalCost(d, lv);
-            double c = d.costBase * System.Math.Pow(1 + lv / d.costDivisor, d.costExp);
-            if (d.costScale > 0) c *= System.Math.Exp(lv / d.costScale);
-            if (stat == IdleStat.Speed) c *= SpeedCostRamp(lv, d.maxLv);
-            c *= GateCostFactor(stat, d, lv);
+            bool gated = (d.unlockLv > 0 || stat == IdleStat.Speed) && d.unlockStat != stat;
+            double c = gated ? GatedCost(stat, d, lv) : OwnCurve(stat, d, lv);
             return (long)System.Math.Max(1, System.Math.Min(9e18, System.Math.Ceiling(c)));
         }
 
-        // 증분 강화(공격력 등)로 해금·단계가 열리는 강화의 비용 보정: 그 레벨이 열리는 기준 레벨에서
-        // 기준 강화의 비용이 예전 곡선보다 줄어든 비율을 곱한다 → "해금 시점의 공격력 비용 대비 몇 배"가 예전 설계 그대로
-        static double GateCostFactor(IdleStat stat, Def d, int lv)
+        // 시트 가격 곡선: costBase × (1 + Lv/costDivisor)^costExp × e^(Lv/costScale) (공격 속도는 후반 가중까지)
+        static double OwnCurve(IdleStat stat, Def d, int lv)
         {
-            if (d.unlockLv <= 0 && stat != IdleStat.Speed) return 1.0;
-            var g = Get(d.unlockStat);
-            if (!g.incremental) return 1.0;
-            int gate = GateLevelFor(stat, d, lv);
-            double old = g.costBase * System.Math.Pow(1 + gate / g.costDivisor, g.costExp);
-            if (g.costScale > 0) old *= System.Math.Exp(gate / g.costScale);
-            if (!(old > 0) || double.IsInfinity(old)) return 1.0;    // 지수가 넘치면 보정하지 않는다 (비용이 0이 되지 않게)
-            return System.Math.Min(1.0, IncrementalCost(g, gate) / old);
+            double c = d.costBase * System.Math.Pow(1 + lv / d.costDivisor, d.costExp);
+            if (d.costScale > 0) c *= System.Math.Exp(lv / d.costScale);
+            if (stat == IdleStat.Speed) c *= SpeedCostRamp(lv, d.maxLv);
+            return c;
+        }
+
+        // 해금·단계로 열리는 강화(공격 속도·치명타·고급 공격력·일반 적 피해량)의 비용은 열리는 시점에 맞춘다:
+        // 단계 첫 레벨 = 그 단계를 연 기준 강화(공격력 등)를 그 기준 레벨에서 한 번 올리는 비용.
+        // 단계 안에서는 다음 단계 첫 비용까지 고르게(곱으로) 오르고, 다음 단계가 없으면 시트 가격 곡선 비율로 오른다
+        static double GatedCost(IdleStat stat, Def d, int lv)
+        {
+            int start = StepStartLevel(stat, d, lv);
+            double a = ComputeCost(d.unlockStat, GateLevelFor(stat, d, lv));
+            if (NextStep(stat, d, lv, out int nextStart, out int nextGate) && nextStart > start)
+            {
+                double b = ComputeCost(d.unlockStat, nextGate);
+                double t = (lv - start) / (double)(nextStart - start);
+                return a * System.Math.Pow(b / a, t);
+            }
+            double from = OwnCurve(stat, d, start);
+            return from > 0 && !double.IsInfinity(from) ? a * OwnCurve(stat, d, lv) / from : a;
+        }
+
+        // lv가 들어 있는 단계의 첫 레벨 (단계 제한이 없으면 0)
+        static int StepStartLevel(IdleStat stat, Def d, int lv)
+        {
+            if (stat == IdleStat.Speed)
+            {
+                int s = 0;
+                foreach (var step in SpeedSteps) if (step.capLevel <= lv) s = System.Math.Max(s, step.capLevel);
+                return s;
+            }
+            return d.capStep <= 0 ? 0 : lv / d.capStep * d.capStep;
+        }
+
+        // lv 다음 단계의 첫 레벨과 그 단계를 여는 기준 레벨 (다음 단계가 없으면 false)
+        static bool NextStep(IdleStat stat, Def d, int lv, out int nextStart, out int nextGate)
+        {
+            nextStart = 0; nextGate = 0;
+            if (stat == IdleStat.Speed)
+            {
+                var steps = SpeedSteps;
+                for (int i = 0; i < steps.Count; i++)
+                {
+                    if (steps[i].capLevel <= lv) continue;
+                    if (i + 1 >= steps.Count || steps[i].capLevel >= d.maxLv) return false;
+                    nextStart = steps[i].capLevel; nextGate = steps[i + 1].gateLevel;
+                    return true;
+                }
+                return false;
+            }
+            if (d.capStep <= 0) return false;
+            nextStart = StepStartLevel(stat, d, lv) + d.capStep;
+            if (nextStart >= d.maxLv) return false;
+            nextGate = GateLevelFor(stat, d, nextStart);
+            return true;
         }
 
         // lv → lv+1 강화가 열리는 기준 강화 레벨 (단계 제한이 없으면 해금 레벨)

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // 가이드 퀘스트 바 (프리팹 GuideBar): 홈 화면 전투력 바로 위 한 줄. 지금 안내 목표 · 진행도 · 보상(균사석)을 보여 준다.
-    // 달성하면 막대가 노랗게 차고 "받기"로 바뀌어 누르면 균사석을 받고, 잠깐 받은 양을 보여 준 뒤 다음 목표가 나온다.
+    // 달성하면 막대가 노랗게 차고 "받기"로 바뀌어 누르면 균사석을 받고 바로 다음 목표가 나온다.
     // 값은 GuideQuests에서 읽는다. 모양·자리는 프리팹에서 고친다. 홈이 아닌 탭(편성·던전·뽑기)에서는 숨긴다
     public class GuideBarView : MonoBehaviour
     {
@@ -21,11 +21,9 @@ namespace MoreMush.Mobile
         [SerializeField] string doneFillSprite = "UI/UI_PP_Bar_Gauge_Green";
         [SerializeField] string rewardIconSprite = "UI/Icon/mycelium_stone";
 
-        const float FlashSeconds = 0.9f;     // 받은 뒤 보상 문구를 보여 주는 시간
         const float PulseSpeed = 5f, PulseSize = 0.015f;
 
         Sprite normalSprite, doneSprite;
-        float flashLeft;
         bool done;
         CanvasGroup group;
         RectTransform rect;
@@ -94,30 +92,15 @@ namespace MoreMush.Mobile
 
         void OnClick()
         {
-            if (flashLeft > 0f || !GuideQuests.IsDone) return;
-            long reward = GuideQuests.Reward;
+            if (!GuideQuests.IsDone) return;
             if (!GuideQuests.Claim()) return;
-            flashLeft = FlashSeconds;
-            ShowClaimed(reward);
-        }
-
-        void ShowClaimed(long reward)
-        {
-            done = false;
-            rect.localScale = Vector3.one;
-            if (label != null) label.text = Loc.F("guide.claimed", reward);
-            if (progressText != null) progressText.text = "";
-            textDirty = true;           // 다음 Refresh에서 목표 글자를 다시 쓴다
-            SetFill(1f, true);
+            // 받은 양 알림("균사석 +n 획득!") 없이 바로 다음 목표를 보여 준다
+            textDirty = true;
+            Refresh();
         }
 
         void Update()
         {
-            if (flashLeft > 0f)
-            {
-                flashLeft -= Time.unscaledDeltaTime;
-                if (flashLeft <= 0f) Refresh();
-            }
             // 달성해서 보이는 동안만 박동한다. 그 밖에는 크기가 1이 아닐 때 한 번만 되돌린다
             if (done && visible) rect.localScale = Vector3.one * (1f + PulseSize * Mathf.Sin(Time.unscaledTime * PulseSpeed));
             else if (rect.localScale != Vector3.one) rect.localScale = Vector3.one;
@@ -125,7 +108,6 @@ namespace MoreMush.Mobile
 
         void Refresh()
         {
-            if (flashLeft > 0f) return;      // 받은 양을 보여 주는 동안은 그대로
             done = GuideQuests.IsDone;
             var kind = GuideQuests.Kind;
             var stat = GuideQuests.Stat;
