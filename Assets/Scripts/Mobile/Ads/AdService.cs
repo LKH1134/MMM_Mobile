@@ -69,12 +69,12 @@ namespace MoreMush.Mobile
             Consent = ConsentStep.Checking;
             ConsentInformation.Update(new ConsentRequestParameters(), updateError => OnMain(() =>
             {
-                if (updateError != null) Report($"광고 동의 정보 확인 실패: {updateError.Message}");
+                if (updateError != null) Report("ad.status_consent_failed", updateError.Message);
                 // 아직 동의를 받지 않은 동의 지역 사용자(= 처음 실행)면 양식이 뜬다 → 답할 때까지 기다린다
                 if (updateError == null && ConsentInformation.ConsentStatus == ConsentStatus.Required) Consent = ConsentStep.FormShowing;
                 ConsentForm.LoadAndShowConsentFormIfRequired(formError => OnMain(() =>
                 {
-                    if (formError != null) Report($"광고 동의 양식 실패: {formError.Message}");
+                    if (formError != null) Report("ad.status_form_failed", formError.Message);
                     Consent = ConsentStep.Done;
                     StartSdk();
                 }));
@@ -97,7 +97,7 @@ namespace MoreMush.Mobile
             MobileAds.Initialize(_ => OnMain(() =>
             {
                 sdkReady = true;
-                Report("SDK 초기화 완료");
+                Report("ad.status_sdk_ready");
                 LoadRewarded();
             }));
         }
@@ -109,7 +109,7 @@ namespace MoreMush.Mobile
         public static void ShowPrivacyOptions() =>
             ConsentForm.ShowPrivacyOptionsForm(error => OnMain(() =>
             {
-                if (error != null) Report($"광고 개인정보 설정 실패: {error.Message}");
+                if (error != null) Report("ad.status_privacy_failed", error.Message);
             }));
 
         static void OnMain(Action action) => MobileAdsEventExecutor.ExecuteInUpdate(action);
@@ -123,7 +123,7 @@ namespace MoreMush.Mobile
             if (!sdkReady || loading || rewardedAd != null) return;
             if (Time.realtimeSinceStartup < nextLoadAt) return;     // 실패 뒤 기다리는 중
             loading = true;
-            Report("광고 불러오는 중...");
+            Report("ad.status_loading");
 
             RewardedAd.Load(RewardedUnitId, new AdRequest(), (ad, error) => OnMain(() =>
             {
@@ -132,13 +132,13 @@ namespace MoreMush.Mobile
                 {
                     retryDelay = retryDelay <= 0f ? FirstRetrySeconds : Mathf.Min(retryDelay * 2f, MaxRetrySeconds);
                     nextLoadAt = Time.realtimeSinceStartup + retryDelay;
-                    Report($"광고 로드 실패: {error?.GetMessage()}");
+                    Report("ad.status_load_failed", error?.GetMessage());
                     return;
                 }
                 retryDelay = 0f;
                 rewardedAd = ad;
                 loadedAt = Time.realtimeSinceStartup;
-                Report("광고 준비됨");
+                Report("ad.status_ready");
             }));
         }
 
@@ -159,7 +159,7 @@ namespace MoreMush.Mobile
 #endif
             if (!IsReady)
             {
-                Report("아직 광고가 준비되지 않았습니다");
+                Report("ad.status_not_ready");
                 LoadRewarded();
                 return false;
             }
@@ -167,8 +167,8 @@ namespace MoreMush.Mobile
             var ad = rewardedAd;
             rewardedAd = null;   // 한 번 쓰면 끝. 닫힌 뒤 새로 불러온다
 
-            ad.OnAdFullScreenContentClosed += () => OnMain(() => Release(ad, "광고 닫힘"));
-            ad.OnAdFullScreenContentFailed += error => OnMain(() => Release(ad, $"광고 표시 실패: {error?.GetMessage()}"));
+            ad.OnAdFullScreenContentClosed += () => OnMain(() => Release(ad, "ad.status_closed"));
+            ad.OnAdFullScreenContentFailed += error => OnMain(() => Release(ad, "ad.status_show_failed", error?.GetMessage()));
             // 광고가 나오는 동안 게임 소리(BGM)를 멈춘다. 닫히거나 표시에 실패하면 Release가 다시 켠다
             AudioListener.pause = true;
             IsShowing = true;
@@ -185,22 +185,24 @@ namespace MoreMush.Mobile
             catch (Exception e) { Debug.LogException(e); }
             try { AdStats.Record(placement); }
             catch (Exception e) { Debug.LogException(e); }
-            Report("보상 지급");
+            Report("ad.status_rewarded");
         }
 
-        static void Release(RewardedAd ad, string message)
+        static void Release(RewardedAd ad, string key, string detail = null)
         {
             AudioListener.pause = false;
             IsShowing = false;
             ad.Destroy();
-            Report(message);
+            Report(key, detail);
             LoadRewarded();
         }
 
-        // 듣는 화면 하나가 예외를 던져도 다른 화면과 광고 흐름(다음 광고 불러오기 등)은 계속되게 하나씩 부른다
-        static void Report(string message)
+        // 듣는 화면 하나가 예외를 던져도 다른 화면과 광고 흐름(다음 광고 불러오기 등)은 계속되게 하나씩 부른다.
+        // key = 문자열 표의 상태 문구(ad.status_*) — 화면(광고 상자 창 상태 줄)에는 지금 언어 문구만, SDK 오류 내용(detail)은 로그에만
+        static void Report(string key, string detail = null)
         {
-            Debug.Log($"[AdService] {message}");
+            string message = Loc.T(key);
+            Debug.Log(string.IsNullOrEmpty(detail) ? $"[AdService] {message}" : $"[AdService] {message}: {detail}");
             var handlers = Status;
             if (handlers == null) return;
             foreach (Action<string> handler in handlers.GetInvocationList())

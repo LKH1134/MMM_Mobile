@@ -154,7 +154,11 @@ namespace MoreMush.Mobile
         void RefreshCells()
         {
             var owned = new List<string>(WorldTree.OwnedKids);
-            if (emptyText != null) emptyText.gameObject.SetActive(owned.Count == 0);
+            if (emptyText != null)
+            {
+                emptyText.gameObject.SetActive(owned.Count == 0);
+                if (owned.Count == 0) emptyText.text = Loc.T("kid.no_kids");
+            }
             if (string.IsNullOrEmpty(selected) || !owned.Contains(selected)) selected = owned.Count > 0 ? owned[0] : null;
             while (cells.Count < owned.Count && cellTemplate != null && grid != null)
             {

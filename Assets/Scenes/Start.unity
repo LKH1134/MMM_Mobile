@@ -890,6 +890,7 @@ GameObject:
   - component: {fileID: 1335512012}
   - component: {fileID: 1335512014}
   - component: {fileID: 1335512013}
+  - component: {fileID: 1335512015}
   m_Layer: 0
   m_Name: Version
   m_TagString: Untagged
@@ -1016,6 +1017,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1335512011}
   m_CullTransparentMesh: 1
+--- !u!114 &1335512015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335512011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e42a60e9467e07a4d8e779901063d6ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.VersionText
 --- !u!1 &1379400955
 GameObject:
   m_ObjectHideFlags: 0
