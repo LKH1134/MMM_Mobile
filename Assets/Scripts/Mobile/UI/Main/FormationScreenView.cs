@@ -237,6 +237,13 @@ namespace MoreMush.Mobile
         void OnAutoClicked() { if (traitOpen) traitPanel.ResetAll(); else Formation.AutoArrange(); }
         void OnTraitClicked() { if (!traitOpen) ShowTrait(true); else traitPanel.LevelUp(); }
 
+        // 특성 화면에서 꼬마를 바꿨다: 돌아갔을 때도 같은 꼬마가 골라져 있게 한다
+        void OnTraitGgoma(string id)
+        {
+            selectedId = id;
+            Refresh();
+        }
+
         void SetRowLabels(bool trait)
         {
             if (rowLabels == null) return;
@@ -275,6 +282,7 @@ namespace MoreMush.Mobile
             float y = rowY;
             if (on) Canvas.ForceUpdateCanvases();      // 화면이 막 켜진 프레임에도 안쪽 크기가 맞게
             traitPanel.StateChanged -= RefreshTraitButtons;
+            traitPanel.GgomaPicked -= OnTraitGgoma;
             ApplyTraitRowLayout(on);
             if (on) y = -(page.rect.height - rowButtons[0].rect.height - RowBottomGap);   // 아래 끝에 붙인다 (위 기준 anchor)
             foreach (var b in rowButtons) b.anchoredPosition = new Vector2(b.anchoredPosition.x, y);
@@ -291,7 +299,7 @@ namespace MoreMush.Mobile
             else traitPanel.Close();
             traitOpen = on;
             SetRowLabels(on);
-            if (on) { traitPanel.StateChanged += RefreshTraitButtons; RefreshTraitButtons(); }
+            if (on) { traitPanel.StateChanged += RefreshTraitButtons; traitPanel.GgomaPicked += OnTraitGgoma; RefreshTraitButtons(); }
             else
             {
                 if (mergeAllButton != null) mergeAllButton.interactable = true;

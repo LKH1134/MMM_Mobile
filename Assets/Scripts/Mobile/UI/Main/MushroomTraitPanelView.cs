@@ -53,6 +53,8 @@ namespace MoreMush.Mobile
 
         // 고른 칸·재화·레벨이 바뀌었다 (편성 화면이 아래 버튼을 켜고 끈다)
         public event System.Action StateChanged;
+        // 화면 안에서 꼬마를 바꿨다 (편성 화면도 같은 꼬마를 고른 것으로 맞춘다)
+        public event System.Action<string> GgomaPicked;
 
         static readonly Color LockedTint = new Color(0.62f, 0.62f, 0.62f, 1f);
 
@@ -63,6 +65,14 @@ namespace MoreMush.Mobile
         void Awake()
         {
             treeScroll = GetComponentInChildren<ScrollRect>(true);
+            // 왼쪽 위 꼬마 칸을 누르면 다음 꼬마로 바뀐다
+            if (ggomaIcon != null && ggomaIcon.transform.parent.TryGetComponent<Image>(out var box))
+            {
+                box.raycastTarget = true;
+                var button = box.gameObject.AddComponent<Button>();
+                button.targetGraphic = box;
+                button.onClick.AddListener(NextGgoma);
+            }
             // 특성 칸이 아닌 빈 곳(나무 바탕 · 화면 바탕)을 누르면 고른 칸을 푼다
             if (treeScroll != null) treeScroll.gameObject.AddComponent<ClickCatcher>().Clicked += Deselect;
             var block = transform.Find("Block");
@@ -116,11 +126,12 @@ namespace MoreMush.Mobile
             if (id == ggomaId) return;
             ggomaId = id;
             Refresh();
+            StateChanged?.Invoke();       // 꼬마마다 특성이 달라 초기화·Lv업 버튼도 다시 본다
         }
 
         // ── 특성 올리기 · 초기화 ──────────────────────────────
 
-        int LevelOf(int i) => Mathf.Clamp(MushroomTraits.Level(i), 0, nodes[i].max);
+        int LevelOf(int i) => Mathf.Clamp(MushroomTraits.Level(ggomaId, i), 0, nodes[i].max);   // 지금 보는 꼬마의 특성
         long MyceliteCost(int i) => MushroomTraits.MyceliteCost(nodes[i].tier, LevelOf(i));
 
         // 아래쪽 이어진 칸을 하나라도 올렸으면 열린다
@@ -136,7 +147,7 @@ namespace MoreMush.Mobile
         {
             get
             {
-                if (picked < 0 || LevelOf(picked) >= nodes[picked].max || !Unlocked(picked)) return false;
+                if (string.IsNullOrEmpty(ggomaId) || picked < 0 || LevelOf(picked) >= nodes[picked].max || !Unlocked(picked)) return false;
                 return Wallet.CanAfford(Currency.Mycelite, MyceliteCost(picked));
             }
         }
@@ -150,14 +161,14 @@ namespace MoreMush.Mobile
             return true;
         }
 
-        public bool CanReset => MushroomTraits.AnyLevel(nodes.Length) && Wallet.CanAfford(Currency.Mycelite, MushroomTraits.ResetMycelite);
+        public bool CanReset => MushroomTraits.AnyLevel(ggomaId, nodes.Length) && Wallet.CanAfford(Currency.Mycelite, MushroomTraits.ResetMycelite);
 
         public bool LevelUp()
         {
             if (!CanLevelUp) return false;
             int i = picked, level = LevelOf(i);
             if (!Wallet.TrySpend(Currency.Mycelite, MyceliteCost(i))) return false;
-            MushroomTraits.SetLevel(i, level + 1);
+            MushroomTraits.SetLevel(ggomaId, i, level + 1);
             Refresh();
             StateChanged?.Invoke();
             return true;
@@ -166,13 +177,30 @@ namespace MoreMush.Mobile
         public bool ResetAll()
         {
             if (!CanReset || !Wallet.TrySpend(Currency.Mycelite, MushroomTraits.ResetMycelite)) return false;
-            MushroomTraits.ResetAll(nodes.Length);
+            MushroomTraits.ResetAll(ggomaId, nodes.Length);
             Refresh();
             StateChanged?.Invoke();
             return true;
         }
 
         // ── 화면 ──────────────────────────────────────────────
+
+        // 가진 꼬마를 편성 화면 목록 순서대로 돌아가며 보여 준다 (끝까지 가면 처음으로)
+        void NextGgoma()
+        {
+            var ids = Formation.Ids;
+            int start = System.Array.IndexOf(ids, ggomaId);
+            for (int step = 1; step <= ids.Length; step++)
+            {
+                string id = ids[(start + step + ids.Length) % ids.Length];
+                if (id == ggomaId || !Formation.IsOwned(id)) continue;
+                ggomaId = id;
+                Refresh();
+                StateChanged?.Invoke();
+                GgomaPicked?.Invoke(id);
+                return;
+            }
+        }
 
         void Deselect()
         {

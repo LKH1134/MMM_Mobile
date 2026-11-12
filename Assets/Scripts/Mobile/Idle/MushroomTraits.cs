@@ -12,28 +12,35 @@ namespace MoreMush.Mobile
         public const int ResetMycelite = 10;                 // 특성 초기화 비용 (균사석)
         const long MyceliteStep = 5;                         // 1단계(맨 아래) 칸의 첫 레벨 균사석
 
+        // 특성은 꼬마(버섯)마다 따로 올린다: 저장 키 = "MushroomTrait.Level.<꼬마 id>.<칸 번호>"
         const string KeyPrefix = "MushroomTrait.Level.";
 
-        public static int Level(int node) => Mathf.Max(0, PlayerPrefs.GetInt(KeyPrefix + node, 0));
+        static string Key(string ggoma, int node) => KeyPrefix + ggoma + "." + node;
+
+        public static int Level(string ggoma, int node) =>
+            string.IsNullOrEmpty(ggoma) ? 0 : Mathf.Max(0, PlayerPrefs.GetInt(Key(ggoma, node), 0));
 
         // 이 칸을 level → level+1 로 올리는 값. tier = 1(맨 아래) … 6(맨 위)
         public static long MyceliteCost(int tier, int level) => MyceliteStep * Mathf.Max(1, tier) * (level + 1);
 
-        public static void SetLevel(int node, int level)
+        public static void SetLevel(string ggoma, int node, int level)
         {
-            PlayerPrefs.SetInt(KeyPrefix + node, Mathf.Max(0, level));
+            if (string.IsNullOrEmpty(ggoma)) return;
+            PlayerPrefs.SetInt(Key(ggoma, node), Mathf.Max(0, level));
             PlayerPrefs.Save();
         }
 
-        public static bool AnyLevel(int nodeCount)
+        public static bool AnyLevel(string ggoma, int nodeCount)
         {
-            for (int i = 0; i < nodeCount; i++) if (Level(i) > 0) return true;
+            for (int i = 0; i < nodeCount; i++) if (Level(ggoma, i) > 0) return true;
             return false;
         }
 
-        public static void ResetAll(int nodeCount)
+        // 이 꼬마의 특성만 0으로 (다른 꼬마는 그대로)
+        public static void ResetAll(string ggoma, int nodeCount)
         {
-            for (int i = 0; i < nodeCount; i++) PlayerPrefs.DeleteKey(KeyPrefix + i);
+            if (string.IsNullOrEmpty(ggoma)) return;
+            for (int i = 0; i < nodeCount; i++) PlayerPrefs.DeleteKey(Key(ggoma, i));
             PlayerPrefs.Save();
         }
     }
