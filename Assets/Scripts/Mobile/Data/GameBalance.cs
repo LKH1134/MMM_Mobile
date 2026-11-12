@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace MoreMush.Mobile
 {
-    // 방치형 통합 표 GameBalance.xlsx(→ Resources/Tables/GameBalance.bytes)를 처음 쓸 때 한 번 읽는다.
+    // 방치형 통합 표 MainTable.xlsx(→ Resources/Tables/MainTable.bytes)를 처음 쓸 때 한 번 읽는다.
     // 강화(IdleProgress)·꼬마(Formation)·장비(Equipment)·뽑기(GachaProgress)·던전 횟수·앱 밖 보상·전투력의 수치가 여기서 나온다.
     // 표가 없거나 필수 시트가 비면 숫자를 지어내지 않고 예외를 던진다 (임포터가 구조를 검증한 표만 bytes로 복사한다).
     // 읽는 시점은 처음 쓸 때다 — SubsystemRegistration에 도는 Reload 훅이 이 클래스를 건드려도 리소스를 읽지 않는다.
     // 스테이지의 enemyIds는 아직 게임이 읽지 않는다 (적 그림은 IdleBattle이 Enumy 폴더에서 종류 비율로 뽑는다). 체력은 IdleProgress 수식.
     public static class GameBalance
     {
-        public const string ResourceName = "Tables/GameBalance";
+        public const string ResourceName = "Tables/MainTable";
 
         static bool loaded;
         static Dictionary<string, double> consts;
@@ -34,7 +34,6 @@ namespace MoreMush.Mobile
         static BlessRow[] blessings;
         static KidStarRow[] kidStars;
         static GgomaSkillRow[] ggomaSkills;
-        static AffinityRow[] affinityLevels;
         static DecoRow[] decos;
         static DecoGradeRow[] decoGrades;
         static EquipmentRow[] equipment;
@@ -50,7 +49,7 @@ namespace MoreMush.Mobile
         // 표 이름(= 시트 이름)과 index 범위
         const string UpgradeSheet = "업그레이드", MascotSheet = "꼬마", StageSheet = "스테이지", ResourceSheet = "리소스",
             ConstSheet = "상수", GradeSheet = "등급", GachaSheet = "뽑기", DungeonSheet = "던전", QuestSheet = "퀘스트", GuideSheet = "가이드", GuideLoopSheet = "가이드반복",
-            EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬", AffinitySheet = "호감도",
+            EnemySheet = "적", BossSheet = "보스", TreeSheet = "세계수", BlessSheet = "가호", KidStarSheet = "꼬마진화", GgomaSkillSheet = "꼬마스킬",
             DecoSheet = "장식", DecoGradeSheet = "장식등급",
             EquipmentSheet = "장비", GachaProductSheet = "뽑기상품", RouletteSheet = "룰렛", IdleBattleSheet = "방치전투", HarvestSheet = "수확전투",
             AttendanceSheet = "출석", DexSheet = "도감", DexSetSheet = "도감세트", SpeedStepSheet = "공격속도단계";
@@ -77,7 +76,6 @@ namespace MoreMush.Mobile
             blessings = null;
             kidStars = null;
             ggomaSkills = null;
-            affinityLevels = null;
             decos = null;
             decoGrades = null;
             equipment = null;
@@ -125,7 +123,6 @@ namespace MoreMush.Mobile
         public static IReadOnlyList<BlessRow> Blessings { get { Ensure(); return blessings; } }
         public static IReadOnlyList<KidStarRow> KidStars { get { Ensure(); return kidStars; } }
         public static IReadOnlyList<GgomaSkillRow> GgomaSkills { get { Ensure(); return ggomaSkills; } }
-        public static IReadOnlyList<AffinityRow> AffinityLevels { get { Ensure(); return affinityLevels; } }
         public static IReadOnlyList<DecoRow> Decos { get { Ensure(); return decos; } }
         public static IReadOnlyList<DecoGradeRow> DecoGrades { get { Ensure(); return decoGrades; } }
         public static IReadOnlyList<RouletteRow> RouletteSlices { get { Ensure(); return rouletteSlices; } }
@@ -258,7 +255,6 @@ namespace MoreMush.Mobile
             blessings = ToSorted(Read(new DataTable<BlessRow>(BlessSheet, 9401, 9499), sheets, issues), (a, b) => a.stage.CompareTo(b.stage));
             kidStars = ToSorted(Read(new DataTable<KidStarRow>(KidStarSheet, 9501, 9599), sheets, issues), (a, b) => a.star.CompareTo(b.star));
             ggomaSkills = ToArray(Read(new DataTable<GgomaSkillRow>(GgomaSkillSheet, 16001, 16999), sheets, issues));
-            affinityLevels = ToSorted(Read(new DataTable<AffinityRow>(AffinitySheet, 9601, 9699), sheets, issues), (a, b) => a.level.CompareTo(b.level));
             decos = ToArray(Read(new DataTable<DecoRow>(DecoSheet, 9701, 9799), sheets, issues));
             decoGrades = ToSorted(Read(new DataTable<DecoGradeRow>(DecoGradeSheet, 9801, 9899), sheets, issues), (a, b) => a.grade.CompareTo(b.grade));
             equipment = ToArray(Read(new DataTable<EquipmentRow>(EquipmentSheet, 11001, 11999), sheets, issues));
@@ -295,8 +291,8 @@ namespace MoreMush.Mobile
                     throw new InvalidOperationException($"[GameBalance] 스테이지 시트가 1부터 이어지지 않는다 ({i + 1}번째 행 = stage {stages[i].stage})");
             if (upgrades.Length == 0 || mascots.Length == 0 || grades.Length == 0 || gachaLevels.Length == 0 || stages.Length == 0)
                 throw new InvalidOperationException("[GameBalance] 업그레이드·꼬마·등급·뽑기·스테이지 시트 중 비어 있는 것이 있다");
-            if (treeStages.Length == 0 || kidStars.Length == 0 || affinityLevels.Length == 0 || decoGrades.Length == 0)
-                throw new InvalidOperationException("[GameBalance] 세계수·꼬마진화·호감도·장식등급 시트 중 비어 있는 것이 있다");
+            if (treeStages.Length == 0 || kidStars.Length == 0 || decoGrades.Length == 0)
+                throw new InvalidOperationException("[GameBalance] 세계수·꼬마진화·장식등급 시트 중 비어 있는 것이 있다");
             if (equipment.Length == 0 || gachaProducts.Length == 0 || idleBattle == null || attendance.Length == 0 || speedSteps.Length == 0 || dexRows.Length == 0)
                 throw new InvalidOperationException("[GameBalance] 장비·뽑기상품·방치전투·출석·도감 시트 중 비어 있는 것이 있다");
             loaded = true;
@@ -329,7 +325,7 @@ namespace MoreMush.Mobile
             issue.Contains("기본값으로 둔다") && (issue.Contains("'name'") || issue.Contains("'desc'") || issue.Contains("'icon'"));
     }
 
-    // GameBalance.xlsx 시트의 행 정의. 필드 이름 = 엑셀 1행의 열 이름이고 리플렉션으로 채우므로 link.xml에도 적는다.
+    // MainTable.xlsx 시트의 행 정의. 필드 이름 = 엑셀 1행의 열 이름이고 리플렉션으로 채우므로 link.xml에도 적는다.
     // 열을 바꾸면 GameBalanceValidator.Schemas와 엑셀 열도 같이 바꾼다.
 
     // 상수: 장비·합성·꼬마 강화·던전·앱 밖 보상·전투력과 기대 성장 곡선의 단일 수치. key로 찾는다
@@ -377,7 +373,7 @@ namespace MoreMush.Mobile
         public int initialOwned;   // 새 저장 데이터의 시작 레벨 (기본 편성 꼬마 = 1)
         public int defaultSlot;    // 0~4 = 기본 편성 칸, -1 = 미편성
         public int resourceId;
-        public int[] favoriteIds;  // 좋아하는 버섯 (적.index): 선물 호감도 배수, 부탁 버섯
+        public int[] favoriteIds;  // 좋아하는 버섯 (적.index): 부탁 버섯
         public TreeEffect bonusEffect;   // 세계수 특기: 진화 ★(+장식 세트)마다 bonusValue씩
         public double bonusValue;
         public int evoStage;       // ★n 진화는 세계수 evoStage + n 단계부터
@@ -471,7 +467,7 @@ namespace MoreMush.Mobile
     public class EnemyRow : TableRow
     {
         public int resourceId;
-        public int value;          // 공물 경험치·선물 호감도 기본값 (1마리당)
+        public int value;          // 공물 경험치 기본값 (1마리당)
         public int requestCount;   // 꼬마 부탁 1건에 요구하는 수
     }
 
@@ -510,13 +506,6 @@ namespace MoreMush.Mobile
         public int star;
         public int mycelite;       // 이 ★로 진화하는 균사석
         public int needLevel;      // 필요한 꼬마(뽑기) 레벨
-    }
-
-    // 호감도: 레벨 (1부터)
-    public class AffinityRow : TableRow
-    {
-        public int level;
-        public int need;           // 다음 레벨까지 (최고 레벨 0)
     }
 
     // 장식: 공방에서 만들어 꾸미기 자리에 놓는다

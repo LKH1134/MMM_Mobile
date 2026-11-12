@@ -2,7 +2,7 @@
 # 사용: python 밸런스설계/test/make_proposal_xlsx.py  →  밸런스설계/test/out/GameBalance_proposal.xlsx
 import csv, openpyxl, os
 ROOT = r'C:\Project\MMM_Mobile'
-SRC = ROOT + r'\Assets\Data\Tables\GameBalance.xlsx'
+SRC = ROOT + r'\Assets\Data\Tables\MainTable.xlsx'
 CSV = ROOT + r'\밸런스설계\theory\stage_proposal.csv'
 OUT = ROOT + r'\밸런스설계\test\out\GameBalance_proposal.xlsx'
 wb = openpyxl.load_workbook(SRC)

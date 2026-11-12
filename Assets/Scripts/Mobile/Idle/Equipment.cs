@@ -38,7 +38,7 @@ namespace MoreMush.Mobile
         public static double LevelBonus => Cfg.levelBonus;
         public static double EquipRatio => Cfg.equipRatio;
         // 이름·그림·등급·단계는 장비 시트(종류별 itemIndex 순서). 저장 키 앞부분은 여기
-        public static readonly Equipment Weapon = new Equipment(GachaKind.Weapon, "Weapon", "무기", EquipStat.Attack);
+        public static readonly Equipment Weapon = new Equipment(GachaKind.Weapon, "Weapon", "수확기", EquipStat.Attack);
         public static readonly Equipment Armor = new Equipment(GachaKind.Accessory, "Armor", "방어구", EquipStat.Hp);
         // 펫(Pet)은 2026-11-04 삭제. 저장 키 Pet.* 는 쓰지 않는다
 

@@ -1,3 +1,4 @@
+# [11-12] 기록용: 보따리·호감도·의뢰 시트·꼬마 grade가 지워진 지금 표·wt_port에서는 돌지 않는다. 지금 표 재측정은 r8/run_r8.py.
 # 라운드 7 (기획서 Ver02 칸 + 9307 evoExp 41만 + 9711 O1): W1~W10 · W7′ (wt-verify). python r7/run_r7.py > r7/cases_r7.log
 import sys, os, json, copy
 sys.stdout.reconfigure(encoding='utf-8')

@@ -1,3 +1,4 @@
+# [11-12] 기록용: 보따리·호감도·의뢰 시트·꼬마 grade가 지워진 지금 표·wt_port에서는 돌지 않는다. 지금 표 재측정은 r8/run_r8.py.
 # 라운드 6: 세계수 의뢰(일일·주간)를 wt_port에 더한 독립 포팅 (wt-verify, theory/quest_model.py는 보지 않고 코드에서 옮김)
 # 출처 Assets/Scripts/Mobile/WorldTree/WorldTree.Quests.cs:
 #   일일 = 의뢰 시트 daily 행에서 하루(KST) treeQuestDaily개 무작위 (:96-110) — 여기서는 날마다 한 행씩 돌아가며 뺀다(각 행 3/4 날, 기대값 같음)
@@ -15,7 +16,7 @@ import sys, os, math, json
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.dirname(HERE))
 import openpyxl
 import wt_port as W
-XLSX = os.path.abspath(os.path.join(HERE, '../../../../Assets/Data/Tables/GameBalance.xlsx'))
+XLSX = os.path.abspath(os.path.join(HERE, '../../../../Assets/Data/Tables/MainTable.xlsx'))
 
 
 def load_quests():

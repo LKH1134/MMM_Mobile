@@ -1,40 +1,38 @@
-# v6 (기획서 「세계수 단계별 장식 개편 Ver02」 칸 수): 구역당 최대 3칸, 8단계 12칸 < 장식 24개 → 고르고 바꿔 끼우는 꾸미기.
-# wt_model.Tree를 상속해 놓기만 바꾼다:
-#   policy 'pace'  : 접속마다 가진 장식으로 구역별 칸을 채우는 가장 좋은 조합을 다시 고른다(교체 = Remove → Place, 공짜).
-#                    점수 = Σ 장식 가중치 + 세트(그 꼬마 장식 3개 모두 놓음) 가치. 가중치는 진행(버섯 획득) 우선.
-#   policy 'grade' : 지금 모델 그대로(높은 등급부터 빈 칸, 교체 안 함) — 비교용
+# 꾸미기 = 고르고 바꿔 끼우기 (기획서 「세계수 단계별 장식 개편 Ver02」 칸 수: 구역당 최대 3칸, 8단계 12칸 < 장식 24개).
+# wt_model.Tree를 상속해 놓기만 바꾼다 (2026-11-12 현행화: 보따리 효과·첫 배치 호감도 삭제를 반영):
+#   policy 'pace'    : 접속마다 가진 장식으로 구역별 칸을 채우는 가장 좋은 조합을 다시 고른다(교체 = Remove → Place, 공짜, Craft.cs:173-191).
+#                      점수 = Σ 장식 가중치 × value + 세트(그 꼬마 장식 3개 모두 놓음 → 특기 단계 +1, Kids.cs:78) 가치. 가중치는 진행(버섯 획득) 우선.
+#   policy 'grade'   : 높은 등급부터 빈 칸, 교체 안 함 (wt_model.Tree.place_all)
 #   policy 'firstall': 'pace' + 아직 첫 배치 보상을 안 받은 장식을 잠깐 놓았다 빼서 보상을 다 받는다(같은 접속)
-#   set_rule n: 세트 = 그 꼬마 장식 중 n개 이상 놓임 (지금 코드 = 전부 3). 대안 K4 확인용
-# 첫 배치 보상(decoFirstMycelite·decoFirstAffinity)은 장식마다 처음 놓을 때 한 번 (WorldTree.Craft.Place).
-import itertools, json, os, sys
+#   weights          : 목표별 가중치 (W7′(c) 목표 = 진행 / 골드 / 균사석 / 제작 / 전투)
+import itertools, os, sys
 sys.dont_write_bytecode = True
 import wt_model as M, wt_tables as WT
 
-W = dict(Harvest=10, BagMycelite=3, BagGold=2, CraftSpeed=1.5, BagHours=0.4, Hp=1, CritDamage=1, Attack=1)
+W = dict(Harvest=10, BossMycelite=3, KillGold=2, CraftSpeed=1.5, Hp=1, CritDamage=1, Attack=1)
+GOALS = {
+    '진행': W,
+    '골드': dict(W, KillGold=20, Harvest=2),
+    '균사석': dict(W, BossMycelite=20, Harvest=2),
+    '제작': dict(W, CraftSpeed=20, Harvest=2),
+    '전투': dict(W, Attack=40, Hp=40, CritDamage=20, Harvest=2),
+}
 
 
 class V6Tree(M.Tree):
-    def __init__(self, T, feed, policy='pace', set_rule=None, weights=None, **kw):
-        super().__init__(T, feed, **kw)
-        self.policy, self.set_rule, self.w = policy, set_rule, dict(W, **(weights or {}))
+    def __init__(self, T, feed, meta=None, policy='pace', weights=None, **kw):
+        super().__init__(T, feed, meta, **kw)
+        self.policy, self.w = policy, dict(weights or W)
         self._cache = {}
-        self.log['sets'] = []
-
-    def set_complete(self, kid):
-        mine = [d['key'] for d in self.T['decos'] if d['owner'] == kid]
-        n = sum(1 for m in mine if m in self.placed)
-        need = len(mine) if not self.set_rule else min(self.set_rule, len(mine))
-        return bool(mine) and n >= need
+        self._mine = {k: [d['key'] for d in T['decos'] if d['owner'] == k] for k in self.kids}
 
     def _util(self, keys):
         u = sum(self.w.get(self.deco(k)['effect'], 0) * self.deco(k)['value'] for k in keys)
         ks = set(keys)
         for kid, kk in self.kids.items():
-            mine = [d['key'] for d in self.T['decos'] if d['owner'] == kid]
-            need = len(mine) if not self.set_rule else min(self.set_rule, len(mine))
-            if kk['owned'] and sum(1 for m in mine if m in ks) >= need:
-                # 세트: 특기 ★ +1 (bonusValue 한 번 더) + 보따리 몫 × 1.2 (≈ 보따리 배율 +0.02~0.05)
-                u += self.w.get(kk['row']['bonusEffect'], 0) * kk['row']['bonusValue'] + self.w['BagGold'] * 0.03
+            mine = self._mine[kid]
+            if kk['owned'] and mine and all(m in ks for m in mine):
+                u += self.w.get(kk['row']['bonusEffect'], 0) * kk['row']['bonusValue']     # 세트 = 특기 bonusValue 한 번 더
         return u
 
     def _best(self):
@@ -56,14 +54,6 @@ class V6Tree(M.Tree):
         self._cache[key] = best
         return best
 
-    def _first(self, k):
-        if k not in self.first:
-            self.first.add(k)
-            self.myc_b += self.C['decoFirstMycelite']; self.acc['m_first'] += self.C['decoFirstMycelite']
-            d = self.deco(k)
-            if self.kids[d['owner']]['owned']:
-                self.kids[d['owner']]['aff'] += self.C['decoFirstAffinity']
-
     def place_all(self):
         if self.policy == 'grade':
             return super().place_all()
@@ -76,7 +66,7 @@ class V6Tree(M.Tree):
             self._first(k)
 
 
-def run(feed, policy='pace', quests=None, set_rule=None, T=None, weights=None, **kw):
+def run(feed, policy='pace', T=None, weights=None, ads=None, **kw):
+    fd, meta = M.load_feed(feed)
     T = T or WT.load_current()
-    return V6Tree(T, json.load(open(os.path.join(M.HERE, feed), encoding='utf-8'))['feed'], policy=policy,
-                  set_rule=set_rule, weights=weights, quests=quests, **kw).run()
+    return V6Tree(T, fd, meta, policy=policy, weights=weights, ads=meta.get('ads', 0.5) if ads is None else ads, **kw).run()

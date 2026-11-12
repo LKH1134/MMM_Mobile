@@ -5,9 +5,8 @@ using UnityEngine;
 namespace MoreMush.Mobile
 {
     // 세계수 꼬마 = 뽑기 꼬마(Formation). 가진 꼬마만 다룬다.
-    // 호감도: 선물(창고 버섯)·부탁·장식 첫 배치로 오른다.
     // 진화(★): 균사석 + 꼬마 레벨 + 세계수 단계. ★가 특기(bonusEffect × 단계)를 올린다.
-    // 부탁: 하루(KST) requestPerDay건. 창고 버섯을 주면 골드·호감도, 이번 주 requestWeekGoal건이면 주간 상자(균사석)
+    // 부탁: 하루(KST) requestPerDay건. 창고 버섯을 주면 골드, 이번 주 requestWeekGoal건이면 주간 상자(균사석)
     public static partial class WorldTree
     {
         public enum KidFail { None, NotOwned, Max, Level, Stage, Mycelite }
@@ -77,99 +76,6 @@ namespace MoreMush.Mobile
 
         // 특기 단계 = ★ + (장식 세트면 1)
         public static int KidStep(string id) => Star(id) + (DecoSetComplete(id) ? 1 : 0);
-
-        // ── 호감도 ──
-        public static int MaxAffinityLevel => GameBalance.AffinityLevels.Count;
-        public static int AffinityPoints(string id) => Math.Max(0, FindKid(id)?.affinity ?? 0);
-
-        public static int AffinityLevel(string id)
-        {
-            int points = AffinityPoints(id), lv = 1;
-            foreach (var row in GameBalance.AffinityLevels)
-            {
-                if (row.need <= 0 || points < row.need) break;
-                points -= row.need;
-                lv = row.level + 1;
-            }
-            return Mathf.Clamp(lv, 1, MaxAffinityLevel);
-        }
-
-        // (이번 레벨에서 모은 양, 다음 레벨까지 필요한 양). 최고 레벨이면 need 0
-        public static (int have, int need) AffinityProgress(string id)
-        {
-            int points = AffinityPoints(id);
-            foreach (var row in GameBalance.AffinityLevels)
-            {
-                if (row.need <= 0) return (0, 0);
-                if (points < row.need) return (points, row.need);
-                points -= row.need;
-            }
-            return (0, 0);
-        }
-
-        static void AddAffinity(string id, int amount)
-        {
-            if (amount <= 0) return;
-            var k = Kid(id);
-            k.affinity = (int)Math.Min(int.MaxValue, (long)k.affinity + amount);
-        }
-
-        public static bool Likes(string id, int enemy)
-        {
-            var fav = KidRow(id)?.favoriteIds;
-            return fav != null && Array.IndexOf(fav, enemy) >= 0;
-        }
-
-        // 선물할 버섯: 좋아하는 버섯 중 가장 많은 것, 없으면 가장 많은 버섯(giftMaxCount개까지).
-        // 개수는 다음 호감도 레벨까지 필요한 만큼만 — 레벨을 넘기는 남는 버섯은 쓰지 않는다
-        public static (int enemy, long count) GiftPick(string id)
-        {
-            int best = 0; long bestCount = 0;
-            foreach (var s in D.store)
-                if (s.count > bestCount && Likes(id, s.enemy)) { best = s.enemy; bestCount = s.count; }
-            if (bestCount > 0) return (best, CapToNextLevel(id, best, bestCount));
-            foreach (var s in D.store)
-                if (s.count > bestCount) { best = s.enemy; bestCount = s.count; }
-            return (best, CapToNextLevel(id, best, Math.Min(bestCount, GameBalance.ConstInt("giftMaxCount"))));
-        }
-
-        // 다음 레벨까지 남은 호감도를 채우는 가장 적은 개수 (최소 1). GiftValue와 같은 계산으로 센다
-        static long CapToNextLevel(string id, int enemy, long count)
-        {
-            if (count <= 1) return count;
-            var (have, need) = AffinityProgress(id);
-            if (need <= 0) return count;
-            long left = Math.Max(1, need - have);
-            if (GiftValue(id, enemy, count) <= left) return count;
-            long lo = 1, hi = count;        // GiftValue(n) >= left 인 가장 작은 n
-            while (lo < hi)
-            {
-                long mid = lo + (hi - lo) / 2;
-                if (GiftValue(id, enemy, mid) >= left) hi = mid; else lo = mid + 1;
-            }
-            return lo;
-        }
-
-        public static int GiftValue(string id, int enemy, long count)
-        {
-            var e = Enemy(enemy);
-            if (e == null) return 0;
-            double v = count * e.value * (Likes(id, enemy) ? GameBalance.Const("giftFavoriteMul") : 1);
-            return (int)Math.Min(int.MaxValue, v);
-        }
-
-        // 선물을 주고 오른 호감도를 돌려준다 (0 = 줄 버섯이 없다)
-        public static int Gift(string id)
-        {
-            if (!Formation.IsOwned(id) || AffinityLevel(id) >= MaxAffinityLevel) return 0;
-            var (enemy, count) = GiftPick(id);
-            if (count <= 0) return 0;
-            int gain = GiftValue(id, enemy, count);
-            AddStore(enemy, -count);
-            AddAffinity(id, gain);
-            Notify(true);
-            return gain;
-        }
 
         // ── 부탁 ──
         public static IReadOnlyList<Request> Requests
@@ -241,7 +147,6 @@ namespace MoreMush.Mobile
             AddStore(r.enemy, -r.count);
             r.done = true;
             Wallet.Add(Currency.Gold, RequestGold);
-            AddAffinity(r.kid, GameBalance.ConstInt("requestAffinity"));
             D.weekDone++;
             Notify(true);
             return true;

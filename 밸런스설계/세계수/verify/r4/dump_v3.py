@@ -2,7 +2,7 @@
 import openpyxl, sys, os
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
-wb = openpyxl.load_workbook(os.path.join(ROOT, 'Assets/Data/Tables/GameBalance.xlsx'), data_only=True)
+wb = openpyxl.load_workbook(os.path.join(ROOT, 'Assets/Data/Tables/MainTable.xlsx'), data_only=True)
 for n in ['던전', '꼬마', '등급']:
     for r in wb[n].iter_rows(values_only=True):
         print(n, r)

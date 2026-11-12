@@ -4,6 +4,18 @@ Unity MCP 연결 확인: MMM_Mobile / Unity 6000.3.19f1. 통합 표 23개 시트
 
 > **2026-11-05 갱신:** 지금 표는 `info` 포함 25개 시트·검증기 1,156행, 리소스 120행(`type`에 AudioClip — 검증기가 허용), 보스 10행 + `cell` 열. 게임이 읽지 않던 열(적·보스 `hpCoefficient`, 스테이지 `stageCoefficient`, 방치전투 `chapterName`, 세계수 `#bag` 2열)은 삭제. 할아버지(Grandpa) 그림·리소스 7012 삭제. 아래 "테이블 목록"은 11-05 값, 나머지 본문은 11-03 조사 기록.
 
+> **2026-11-12 점검 3차 (LKH):** 표 ↔ 코드 양방향 대조. MainTable 1,373 → **1,314행**, String 570 → **509행**, `Tools/audit_game_data.py` 문제 0.
+>
+> - **표에 있으나 안 쓰는 데이터 → 정리**
+>   - 문자열 61개 삭제: 옛 설정 화면 6개(`option.vibration`·`notify`·`reward_alarm`·`build_alarm`·`night_alarm`·`simple_effect`), 의뢰 시트(11-10 삭제)의 `name.9901~9907`·`desc.9901~9907` 14개, 옛 세계수 UI `grow.*` 17개·`kid.*` 7개·`treequest.*` 9개, 옛 퀘스트 `quest.title`·`claim`·`in_progress`·`reward_line`, `formation.badge`·`tree.claimed`·`guide.claimed`·`dex.set_from`. 코드가 조합하는 키(`name.<index>`·`upgrade.<IdleStat/DexStat>`·`effect.<TreeEffect>`·`unlock.<Feature>`·`equip.<종류>`)는 해당 행·열거값이 있는지로 따로 확인해 남김.
+>   - 리소스 59행 삭제 + 그림 59개(원본 약 8MB)를 `Assets/Resources` → **`Assets/Art/Unused/`**(같은 하위 경로, GUID 유지)로 옮김. 기준: 어떤 표 resourceId·코드 경로·`Resources.LoadAll` 폴더·프리팹/씬/에셋 GUID 참조도 없는 것(옛 강화 아이콘 `Art/Dream/Icons/*` 6장, 쓰지 않는 아이콘 팩 `UI/Icon/*` 37장, `Sprite/Tree/image`·`Sprite/BG/image2`·`bg_forest` 큰 배경 3장 등). Resources 밖이라 빌드에 안 들어간다. 다시 쓰려면 Resources로 옮기고 리소스 행을 추가.
+>   - 남긴 것: 리소스 행 중 코드가 id로 안 읽지만 프리팹이 직접 쓰는 그림(감사 도구 규칙상 Resources 파일은 모두 등록). 열 `스테이지.enemyIds`(게임이 안 읽음 — 9.3 결정 4번), `방치전투.formationSlots`(`Formation.SlotCount`와 같은지 검증기가 확인하는 구조값), `수확전투.dataType`(검증기용 자료형 표시).
+> - **코드에서 쓰는데 표에 없는 데이터 → 없음**
+>   - 11-10 2차 조사 뒤 코드에 새로 들어온 게임 수치 없음. 남은 숫자 상수는 연출(시간·크기)·시스템(재시도·저장 주기)·구조(칸 수·저장 비트)·안전값으로 위 "테이블 대상에서 제외한 값" 기준과 같다.
+>   - 코드의 `Loc.T/F` 키와 프리팹 `LocalizedText` 키는 모두 문자열 표에 있다. 이름 열이 있는 MainTable 행은 모두 `name.<index>` 번역 줄이 있다.
+>   - 상수 시트 key는 모두 게임 코드가 읽는다.
+>   - UI 그림 경로(`UI/UI_Btn_*`·`UI/Icon/gold` 등 화면 스킨)는 코드·인스펙터에 두었다 — 연출 설정이라 표 대상 아님(리소스 시트에는 등록돼 있음).
+
 ## 조사 범위
 
 - Assets 전체 파일 목록: 381개(meta 제외). 게임 C# 99개, 씬 5개, 프리팹 40개.
@@ -43,7 +55,7 @@ Unity MCP 연결 확인: MMM_Mobile / Unity 6000.3.19f1. 통합 표 23개 시트
 | 가호 | 8 | |
 | 꼬마진화 | 4 | |
 | 꼬마스킬 | 24 | 새 시트 (11-04 KHD 머지) |
-| 호감도 | 10 | |
+| 호감도 | 10 | 2026-11-12 시트 삭제 (꼬마 호감도 제거) |
 | 장식 | 24 | |
 | 장식등급 | 3 | |
 | 의뢰 | 7 | |

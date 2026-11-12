@@ -2,7 +2,7 @@
 # 뽑기상품 시트에서 requiresAd 행(key가 _ad로 끝남)의 pullCount와 이름의 "4회"를 바꾼다. 사용: python restore_ad_gacha11.py <출력.xlsx>
 import re, sys, zipfile
 
-SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\GameBalance.xlsx'
+SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\MainTable.xlsx'
 OLD, NEW = 4, 11
 ROUNDS = '&#54924;'      # "회" (이 시트는 글자를 숫자 참조로 저장했다)
 

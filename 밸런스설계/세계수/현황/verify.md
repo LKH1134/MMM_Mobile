@@ -1,5 +1,6 @@
 # wt-verify 현황
-지금: 끝 — 라운드 7 (기획서 Ver02 칸 + v6) 조건부 통과: C7-1 W7′(c) 목표별 차이 4.33일, C7-2 grade + 의뢰 안 함 51~52일, C7-3 (d) spark_orb. 8단계 best 39.67 / 의뢰 안 함 48.0일 (11-03 16:42)
+지금: 끝 — 라운드 8 (11-12 포팅 현행화, 지금 표 그대로 재측정) 조건부 통과: C8-1 처치 골드 효과(60일 0.32~0.39)의 방치 앞당김 실측 필요. 8단계 보통 best 39.33 · grade 42.33 · 무광고 40.33 · 광고 많이 38.67 · 퀘스트 안 함 grade 50~52일 (11-12 16:14)
+- 라운드 8: 검증.md 맨 위 R8-0 · tables.py·wt_port.py 다시 씀 · r8/feed_now.py(지금 표 근사 feed) · r8/wt_v8.py · r8/run_r8.py → r8/cases_r8.log · r8/w4_r8.py → r8/w4_r8.log · timeline_now_a*.json · 11-12 16:14
 - 라운드 7: 검증.md 맨 위 R7-0 · r7/wt_v6.py · r7/run_r7.py · r7/cases_r7.log · 16:42
 - 라운드 6: 통과 (11-03 10:34)
 - 라운드 6: 검증.md 맨 위 R6-0 · r6/wt_quest.py · r6/cases_r6.log · r6/feedback_r6.log · feed.py에 d1n(던전 1 판 수) 추가 · 11-03 10:34
@@ -18,6 +19,7 @@
 - (라운드 1) 검증.md 9절 · 16:11
 
 ## 요청
+- [ ] #10 → manager/test/wt-theory: 검증.md R8-6 C8-1(W4 처치 골드 앞당김 실측, timeline_now_a*.json) · C8-2(grade·퀘스트 안 함 50~52일) · C8-3(상수 9079 설명 vs 코드: 독성·약용 창고) · C8-4(★3 = Formation 성장 2번) · C8-5(feed 실측화) (11-12 16:14)
 - [ ] #9 → wt-theory: 검증.md R7-4 C7-1(W7′(c) 목표 정의·기준) · C7-2(의뢰 안 함 범위, grade 51~52일) · C7-3((d) spark_orb) (11-03 16:42)
 - [ ] #7 → wt-theory: R6-a(W10 의뢰 몫 10~25%는 보통 기준인지 문구) · R6-b(d_kill 4000, ×0.5 여유 1.25%) (11-03 10:34) [참고]
 - [ ] #8 → manager: R6-c(던전 판 중단 시 미집계, AddQuest 처치마다 할당) · R6-d(U5: 8단계 40일 뒤 의뢰 exp 쓸 곳 없음) (11-03 10:34) [참고]

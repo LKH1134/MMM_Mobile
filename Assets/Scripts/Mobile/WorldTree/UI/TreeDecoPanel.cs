@@ -57,7 +57,7 @@ namespace MoreMush.Mobile
                 SetText(card, "Title", $"{d.Name}  <size=26>{WorldTree.DecoGradeName(d.grade)}</size>");
                 string sub = WorldTree.EffectText(d.effect, d.value) + $"  ·  {Formation.Name(d.owner)}";
                 if (owned && !placed && WorldTree.FirstPlaceRewardLeft(d))
-                    sub += TreeUi.Colored("\n" + Loc.F("deco.first_place", Mycelite(GameBalance.ConstInt("decoFirstMycelite")), GameBalance.ConstInt("decoFirstAffinity")), TreeUi.Good);
+                    sub += TreeUi.Colored("\n" + Loc.F("deco.first_place", Mycelite(GameBalance.ConstInt("decoFirstMycelite"))), TreeUi.Good);
                 SetText(card, "Sub", sub);
                 if (!owned) SetButton(card, "Button", Loc.T("deco.needs_craft"), false, null);
                 else if (placed) SetButton(card, "Button", Loc.T("deco.remove"), true, () => WorldTree.Remove(dd), "UI/UI_Btn_Red");

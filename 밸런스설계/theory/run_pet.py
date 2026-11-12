@@ -1,4 +1,4 @@
-# 11-04 펫 삭제 보정 (manager#19). 라이브 표(GameBalance.xlsx) 그대로 진행 모델을 돌린다 — 생성기(gen_stage) 없이 표 값.
+# 11-04 펫 삭제 보정 (manager#19). 라이브 표(MainTable.xlsx) 그대로 진행 모델을 돌린다 — 생성기(gen_stage) 없이 표 값.
 #   python run_pet.py                 → 기준선(펫 있음, 7b17e68 장비 배치) · 지금(펫 없음) · 후보 손잡이들, 무광고/보통/많이
 #   python run_pet.py cfg/pet.json    → 설정 파일의 후보만
 # 결과: out_pet.json, 화면 표. 난수 없음 — 같은 표·설정이면 같은 결과.
@@ -24,7 +24,7 @@ DAYS = 31
 
 
 def live_rows(path=None):
-    d = xlsx_dump.load(path or os.path.join(F.ROOT, 'Assets/Data/Tables/GameBalance.xlsx'))
+    d = xlsx_dump.load(path or os.path.join(F.ROOT, 'Assets/Data/Tables/MainTable.xlsx'))
     h = d['스테이지'][0]
     rows = {}
     for r in d['스테이지'][3:]:

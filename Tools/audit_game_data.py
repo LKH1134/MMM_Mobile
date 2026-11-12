@@ -54,7 +54,7 @@ def records(rows):
 
 
 def audit():
-    source = ROOT / 'Assets/Data/Tables/GameBalance.xlsx'
+    source = ROOT / 'Assets/Data/Tables/MainTable.xlsx'
     sheets = read_xlsx(source)
     tables = {name: records(rows) for name, rows in sheets.items() if name != 'info'}
     issues = []
@@ -87,9 +87,9 @@ def audit():
         for field in fields:
             if (scope, field) not in settings:
                 issues.append(f'수확전투 미등록: {scope}.{field}')
-    output = ROOT / 'Assets/Resources/Tables/GameBalance.bytes'
+    output = ROOT / 'Assets/Resources/Tables/MainTable.bytes'
     if source.read_bytes() != output.read_bytes():
-        issues.append('GameBalance.xlsx와 런타임 bytes 불일치: Unity Reimport Tables 필요')
+        issues.append('MainTable.xlsx와 런타임 bytes 불일치: Unity Reimport Tables 필요')
     legacy = []
     for p in sorted((ROOT / 'Assets/Data/Tables/Legacy').glob('*.xlsx')):
         rows = sum(len(records(r)) for r in read_xlsx(p).values())

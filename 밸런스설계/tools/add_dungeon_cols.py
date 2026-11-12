@@ -1,7 +1,7 @@
 # 던전 시트에 레벨 보상 열을 붙인다 (이론 v3 10.2 던전 행). 사용: python add_dungeon_cols.py <출력.xlsx>
 import re, sys, zipfile
 from xml.sax.saxutils import escape
-SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\GameBalance.xlsx'
+SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\MainTable.xlsx'
 COLS = [
     ('baseStage', 'int', '레벨 1의 기준 스테이지. 레벨 L 기준 = baseStage + stageStep × (L − 1). 방치 스테이지가 이보다 낮으면 소탕'),
     ('stageStep', 'int', '레벨마다 기준 스테이지가 오르는 수'),

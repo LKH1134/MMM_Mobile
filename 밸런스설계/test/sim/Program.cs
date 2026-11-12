@@ -8,7 +8,7 @@ using MoreMush.Mobile;
 
 static class Program
 {
-    const string TablePath = @"C:\Project\MMM_Mobile\Assets\Resources\Tables\GameBalance.bytes";
+    const string TablePath = @"C:\Project\MMM_Mobile\Assets\Resources\Tables\MainTable.bytes";
     static string Out = @"C:\Project\MMM_Mobile\밸런스설계\test\out";
 
     // 광고 뽑기 우선순서: 무기(0)·펫(2)·방어구(1)·꼬마(3) 중 이 dll에 있는 종류 앞에서 n개

@@ -1,61 +1,75 @@
-# 의뢰 v5 모델 (WorldTree.Quests.cs). wt_model.Tree(quests=QuestBook(...))로 붙인다.
-#   일일: daily 행 중 treeQuestDaily개 — 게임은 무작위, 모델은 결정적으로 돌림(day % 4번째를 뺌 = 각 행이 3/4 날에 나옴)
-#   주간: weekly 행 전부, 7일 묶음(1일 = 월요일 가정; start_dow로 첫 주를 줄일 수 있음)
-#   진행은 라이브 접속만: kill = 보스 뺀 처치, species = kill/10 (지정 적 1종, 10종 균등), stage = 보스 처치(돌파),
-#   boss = 보스 등장(대안 K3), combo = 던전 1 판 중 한 번이라도 목표 이상이면 (combo_p = 하루에 한 번 닿을 확률, 기대값으로 exp × p)
-#   daily = 일일 의뢰 받은 수. 받기 = 진행이 찬 그 접속 (exp → D.exp, 공물 앞)
-class QuestBook:
-    def __init__(self, daily, weekly, n_daily=3, combo_p=1.0, start_dow=0, stage_kind='stage'):
-        self.daily, self.weekly = daily, weekly          # [(kind, target, exp)]
-        self.n, self.combo_p, self.start_dow, self.stage_kind = n_daily, combo_p, start_dow, stage_kind
+# 메인 일일·주간 퀘스트의 세계수 경험치 (2026-11-12 현행화).
+# 11-10에 세계수 의뢰(WorldTree.Quests.cs · 의뢰 시트)가 메인 퀘스트(Quest/DailyQuests.cs · 퀘스트 시트)로 합쳐졌다.
+#   - 일일 행은 **모두** 매일 나온다(옛 의뢰는 3개 무작위). 주간 행도 모두. 보상 treeExp → WorldTree.AddQuestExp(Growth.cs:201-206) → D.exp
+#   - 일일: 한국 00시 초기화, 주간: 월요일 한국 00시 (1일 = 월요일 가정, start_dow로 바꿈)
+#   - 진행은 앱을 켠 동안만 센다(DailyQuests.cs:15). 종류별 진행원 (코드 줄):
+#       kill    = 처치(IdleBattle.OnEnemyKilled :490, 보스 포함) → feed 처치 + 돌파 수
+#       stage   = 보스 도전(IdleBattle.cs:443, 벽에서 막혀도 1) → feed boss_tries
+#       upgrade = 강화(IdleProgress.cs:321) → 접속마다 강화하므로 첫 접속에 20 (가정)
+#       gacha   = 뽑기 수(GachaPanel.cs:161) → 그날 뽑기 ≥ 11이면 첫 접속 (feed pulls)
+#       ad      = 광고(AdService.cs:184) → 광고 비율 > 0이면 첫 접속에 3 (광고 뽑기·정산 2배·상자, 가정). 무광고는 못 깸
+#       dungeon = 던전 판(IdleBattle.Dungeon.cs:225 · HarvestGame.cs:176) → feed dungeon_runs 수
+#       daily   = 일일 퀘스트 받은 수(DailyQuests.Claim :164, 주간만)
+#   - 받기는 진행이 찬 그 접속(일괄 수령, ClaimAll은 일일 먼저 → 주간 daily가 같은 번에 찰 수 있음)
+class MainQuestBook:
+    def __init__(self, quests, ads, start_dow=0, enabled=True, only=None):
+        """quests = wt_tables T['quests'], ads = 광고 비율(0이면 광고 퀘스트 못 깸), only = 이 key만 (민감도)"""
+        rows = [q for q in quests if only is None or q['key'] in only]
+        self.daily = [q for q in rows if q['period'] == 'daily']
+        self.weekly = [q for q in rows if q['period'] == 'weekly']
+        self.ads, self.start_dow, self.enabled = ads, start_dow, enabled
         self.week = None
-        self.log = []
+        self.log = []        # (day, 일일 받은 수, 주간 받은 key들)
 
-    def _prog(self, kind, s):
+    def _prog(self, kind, s, first, dayrec):
         if kind == 'kill':
-            return s['kills']
-        if kind == 'species':
-            return s['kills'] / 10
+            return s['kills'] + s.get('stages', 0)
         if kind == 'stage':
-            return s['boss_tries'] if self.stage_kind == 'boss' else s['stages']
-        if kind == 'boss':
             return s['boss_tries']
+        if kind == 'dungeon':
+            return len(s.get('dungeon_runs') or {})
+        if kind == 'upgrade':
+            return 10 ** 9 if first else 0
+        if kind == 'gacha':
+            return dayrec['pulls'] if first else 0
+        if kind == 'ad':
+            return 10 ** 9 if (first and self.ads > 0) else 0
         return 0
 
     def new_day(self, tree, dayrec):
         d = dayrec['day']
-        k = len(self.daily)
-        skip = (d % k) if self.n < k else None
-        self.today = [dict(q=q, prog=0.0, done=False) for i, q in enumerate(self.daily) if i != skip][:self.n]
-        self.first_sess = True
+        self.dayrec = dayrec
+        self.today = [dict(q=q, prog=0.0, done=False) for q in self.daily]
+        self.first = True
         wk = (d - 1 + self.start_dow) // 7
         if wk != self.week:
             self.week = wk
             self.wq = [dict(q=q, prog=0.0, done=False) for q in self.weekly]
-        self.day_exp = 0.0
+        self.n_daily = 0
 
     def session(self, tree, s):
-        ex = 0.0
+        """이 접속에서 받은 (세계수 경험치, 주간 골드 KE, 주간 균사석). 일일 행의 골드·균사석은 feed(방치 퀘스트 수입)에 이미 들어 있어
+        돌려주지 않는다 — 주간 행은 11-10에 새로 생겨 feed에 없으므로 방치 수입에 더한다"""
+        if not self.enabled:
+            return 0.0, 0.0, 0.0
+        ex = g = m = 0.0
         n_done = 0
         for e in self.today:
-            kind, target, exp = e['q']
             if e['done']:
                 continue
-            if kind in ('combo', 'dungeon'):     # dungeon = 던전 1 판 수 (11-03 라이브 9904, 첫 접속에 입장 2 이상 → 깸)
-                p = 1.0 if kind == 'dungeon' else self.combo_p
-                if self.first_sess:      # 던전 1은 그날 첫 접속에 돈다 (progress.run_dungeons)
-                    e['done'] = True; ex += exp * p; n_done += p
-                continue
-            e['prog'] += self._prog(kind, s)
-            if e['prog'] >= target:
-                e['done'] = True; ex += exp; n_done += 1
-        self.first_sess = False
+            e['prog'] += self._prog(e['q']['kind'], s, self.first, self.dayrec)
+            if e['prog'] >= e['q']['target']:
+                e['done'] = True; n_done += 1
+                ex += e['q']['treeExp']
+        self.n_daily += n_done
         for e in self.wq:
-            kind, target, exp = e['q']
             if e['done']:
                 continue
-            e['prog'] += n_done if kind == 'daily' else self._prog(kind, s)
-            if e['prog'] >= target - 1e-9:
-                e['done'] = True; ex += exp
-        self.day_exp += ex
-        return ex
+            k = e['q']['kind']
+            e['prog'] += n_done if k == 'daily' else self._prog(k, s, self.first, self.dayrec)
+            if e['prog'] >= e['q']['target'] - 1e-9:
+                e['done'] = True
+                ex += e['q']['treeExp']; g += e['q']['goldKills']; m += e['q']['mycelite']
+                self.log.append((self.dayrec['day'], 'w', e['q']['key']))
+        self.first = False
+        return ex, g, m

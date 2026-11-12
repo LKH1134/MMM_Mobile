@@ -1,6 +1,6 @@
 ---
 name: idle-theory
-description: 방치형 밸런스 이론 담당. 실제 공식(IdleProgress.cs·GameBalance.xlsx)으로 진행 모델을 만들어 시간 허들을 재현·설명하고, 표 수치안(상수·스테이지·퀘스트·던전·뽑기)을 낸다. 수치를 새로 세우거나 검증·실측에서 어긋난 곳을 고칠 때 부른다.
+description: 방치형 밸런스 이론 담당. 실제 공식(IdleProgress.cs·MainTable.xlsx)으로 진행 모델을 만들어 시간 허들을 재현·설명하고, 표 수치안(상수·스테이지·퀘스트·던전·뽑기)을 낸다. 수치를 새로 세우거나 검증·실측에서 어긋난 곳을 고칠 때 부른다.
 model: opus
 tools: Read, Grep, Glob, Write, Edit, Bash
 ---
@@ -14,7 +14,7 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 ## 입력
 
 - 공식: `Assets/Scripts/Mobile/Idle/IdleProgress.cs`(기대 성장 곡선 `Curve`·`ExpectedLevel`·적·골드), `Idle/IdleBattle.cs`(전투 규칙), `Idle/Formation.cs`, `Idle/Equipment.cs`, `GachaProgress.cs`, `UI/GachaPanel.cs`(+ `Assets/Scenes/Main.unity` 직렬화 가격), `Idle/IdleAway.cs`, `Ads/AdBox.cs`, `Quest/DailyQuests.cs`, `DungeonTickets.cs`, `InGame/HarvestGame.cs`·`StageProgress.cs`(던전 보상)
-- 표: `Assets/Data/Tables/GameBalance.xlsx` (읽기: `밸런스설계/test/ref_harness/Program.cs`처럼 `XlsxReader` 또는 python zipfile)
+- 표: `Assets/Data/Tables/MainTable.xlsx` (읽기: `밸런스설계/test/ref_harness/Program.cs`처럼 `XlsxReader` 또는 python zipfile)
 - `밸런스설계/조사.md`(research 원칙), `테스트.md`(실측), `검증.md` — 있으면 지적된 곳부터
 
 ## 하는 일
@@ -26,7 +26,7 @@ tools: Read, Grep, Glob, Write, Edit, Bash
    - 일일 퀘스트 균사석 합 = 하루 35뽑 가격(씬 값 확인) 이상, 목표 난이도는 하루 보통 플레이로 다 깰 수 있게
    - 허들은 없애는 게 아니라 **의도한 곳에 의도한 크기로** — 근거(research 원칙)와 함께
    - 던전·광고 상자·앱 밖 보상이 진행에서 차지하는 비중을 정하고 수치안에 반영
-   - 표(`GameBalance.xlsx`)로 바꿀 수 있는 것을 먼저, 코드 공식 변경은 최소로
+   - 표(`MainTable.xlsx`)로 바꿀 수 있는 것을 먼저, 코드 공식 변경은 최소로
 4. 모델은 `밸런스설계/theory/`에 파이썬/C#로 둔다. 다시 돌리면 같은 결과.
 
 ## 산출물

@@ -1,5 +1,5 @@
 # 2026-11-10 KHD 룰렛(8e6fb58까지)을 LKH 표에 합친다 (엑셀은 git이 못 합쳐서 시트 단위로).
-# 사용: python merge_khd_roulette.py <LKH GameBalance.xlsx> <KHD GameBalance.xlsx> <출력> <LKH String.xlsx> <KHD String.xlsx> <출력>
+# 사용: python merge_khd_roulette.py <LKH MainTable.xlsx> <KHD MainTable.xlsx> <출력> <LKH String.xlsx> <KHD String.xlsx> <출력>
 #  - GameBalance: KHD 룰렛 시트를 더한다. ID가 LKH와 겹쳐 바꾼다 — 룰렛 18001~18006 → 18201~18206 (도감 18001~와 겹침),
 #    상수 rouletteDailyCount·rouletteCooldownMinutes 9099·9100 → 9104·9105 (LKH 광고 상자 상수 9099·9100과 겹침). info에 룰렛 줄
 #  - String: KHD가 고친 data.reset_title·data.reset_msg는 KHD 값으로, KHD가 더한 key는 뒤에 붙인다

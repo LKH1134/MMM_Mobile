@@ -1,8 +1,8 @@
-# GameBalance.xlsx → 시트별 행 (python 표준 라이브러리만)
+# MainTable.xlsx → 시트별 행 (python 표준 라이브러리만)
 import zipfile, re, sys, xml.etree.ElementTree as ET
 NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 RNS = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id'
-PATH = 'Assets/Data/Tables/GameBalance.xlsx'
+PATH = 'Assets/Data/Tables/MainTable.xlsx'
 
 def col_idx(ref):
     c = re.match(r'[A-Z]+', ref).group(0); n = 0

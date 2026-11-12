@@ -1,3 +1,4 @@
+# [11-12] 기록용: 보따리·호감도·의뢰 시트·꼬마 grade가 지워진 지금 표·wt_port에서는 돌지 않는다. 지금 표 재측정은 r8/run_r8.py.
 # 모든 경우 (wt-verify): 기준선·광고·플레이 시간·예산·꼬마 뽑기 몫·K1·D4·가속. python run_cases.py > cases.log
 import sys, json, os
 sys.stdout.reconfigure(encoding='utf-8')

@@ -1,4 +1,4 @@
-# 수치안 스테이지 시트를 CSV로 (관리자가 GameBalance.xlsx 스테이지 시트에 붙여 넣는다). python export.py
+# 수치안 스테이지 시트를 CSV로 (관리자가 MainTable.xlsx 스테이지 시트에 붙여 넣는다). python export.py
 import csv, os
 import proposal as PR
 
