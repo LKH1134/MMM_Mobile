@@ -32,6 +32,7 @@ namespace MoreMush.Mobile
             public float perLevel = 4f;      // 한 칸 올릴 때 늘어나는 %
             public int max = 5;
             public int tier = 1;             // 1(맨 아래) … 6(맨 위). 클수록 올리는 값이 비싸다
+            public int[] requires = new int[0];   // 선이 이어진 아래쪽 칸 번호들. 이 중 하나라도 1 이상이어야 이 칸을 올릴 수 있다 (비면 처음부터 열림)
         }
 
         // 프리팹을 설계한 크기. 자리(region)에 맞춰 같은 비율로 줄이거나 늘린다
@@ -52,6 +53,8 @@ namespace MoreMush.Mobile
 
         // 고른 칸·재화·레벨이 바뀌었다 (편성 화면이 아래 버튼을 켜고 끈다)
         public event System.Action StateChanged;
+
+        static readonly Color LockedTint = new Color(0.62f, 0.62f, 0.62f, 1f);
 
         string ggomaId;
         int picked = -1;
@@ -120,11 +123,20 @@ namespace MoreMush.Mobile
         int LevelOf(int i) => Mathf.Clamp(MushroomTraits.Level(i), 0, nodes[i].max);
         long MyceliteCost(int i) => MushroomTraits.MyceliteCost(nodes[i].tier, LevelOf(i));
 
+        // 아래쪽 이어진 칸을 하나라도 올렸으면 열린다
+        bool Unlocked(int i)
+        {
+            var req = nodes[i].requires;
+            if (req == null || req.Length == 0) return true;
+            foreach (int r in req) if (r >= 0 && r < nodes.Length && LevelOf(r) > 0) return true;
+            return false;
+        }
+
         public bool CanLevelUp
         {
             get
             {
-                if (picked < 0 || LevelOf(picked) >= nodes[picked].max) return false;
+                if (picked < 0 || LevelOf(picked) >= nodes[picked].max || !Unlocked(picked)) return false;
                 return Wallet.CanAfford(Currency.Mycelite, MyceliteCost(picked));
             }
         }
@@ -133,7 +145,7 @@ namespace MoreMush.Mobile
         public bool TryGetPickCost(out long mycelite)
         {
             mycelite = 0;
-            if (picked < 0 || LevelOf(picked) >= nodes[picked].max) return false;
+            if (picked < 0 || LevelOf(picked) >= nodes[picked].max || !Unlocked(picked)) return false;
             mycelite = MyceliteCost(picked);
             return true;
         }
@@ -216,6 +228,12 @@ namespace MoreMush.Mobile
                 var n = nodes[i];
                 if (n.countText != null) n.countText.text = LevelOf(i) + "/" + n.max;
                 if (n.selection != null) n.selection.SetActive(i == picked);
+                if (n.button != null)       // 아직 못 올리는 칸은 어둡게
+                {
+                    var tint = Unlocked(i) ? Color.white : LockedTint;
+                    foreach (var img in n.button.GetComponentsInChildren<Image>(true))
+                        if (img.gameObject != n.selection) img.color = tint;
+                }
             }
             if (tip != null) tip.SetActive(picked >= 0);
             if (picked < 0) return;
@@ -225,6 +243,7 @@ namespace MoreMush.Mobile
             if (tipNext != null) tipNext.text = $"{node.effectName} +{System.Math.Min(node.max, level + 1) * node.perLevel:0.#}%";
             if (tipCost != null)
                 tipCost.text = level >= node.max ? "MAX"
+                    : !Unlocked(picked) ? Loc.T("trait.need_lower", "아래 특성을 먼저 올리세요")
                     : string.Format(Loc.T("trait.cost", "균사석 {0}"), Wallet.Format(MyceliteCost(picked)));
         }
     }

@@ -1590,6 +1590,7 @@ MonoBehaviour:
     perLevel: 4
     max: 20
     tier: 6
+    requires: 02000000
   - button: {fileID: 942994213183350905}
     countText: {fileID: 1671232541863689150}
     selection: {fileID: 3983602519293855750}
@@ -1597,6 +1598,7 @@ MonoBehaviour:
     perLevel: 4
     max: 25
     tier: 6
+    requires: 03000000
   - button: {fileID: 6556273165410285430}
     countText: {fileID: 3549344518445115944}
     selection: {fileID: 4246111435527410411}
@@ -1604,6 +1606,7 @@ MonoBehaviour:
     perLevel: 2
     max: 25
     tier: 5
+    requires: 04000000
   - button: {fileID: 1180769084323316718}
     countText: {fileID: 7276429253309479465}
     selection: {fileID: 201193717812993516}
@@ -1611,6 +1614,7 @@ MonoBehaviour:
     perLevel: 3
     max: 50
     tier: 5
+    requires: 05000000
   - button: {fileID: 4654377168997707687}
     countText: {fileID: 6208685706936342371}
     selection: {fileID: 3127599159731241683}
@@ -1618,6 +1622,7 @@ MonoBehaviour:
     perLevel: 3
     max: 40
     tier: 4
+    requires: 0600000007000000
   - button: {fileID: 1635379994779772165}
     countText: {fileID: 4999590858197495860}
     selection: {fileID: 5156655073613198597}
@@ -1625,6 +1630,7 @@ MonoBehaviour:
     perLevel: 5
     max: 5
     tier: 4
+    requires: 0700000008000000
   - button: {fileID: 8176170648798597461}
     countText: {fileID: 9077749617390766355}
     selection: {fileID: 7783034291317799452}
@@ -1632,6 +1638,7 @@ MonoBehaviour:
     perLevel: 4
     max: 15
     tier: 3
+    requires: 09000000
   - button: {fileID: 3627820437629365992}
     countText: {fileID: 3370660810556439054}
     selection: {fileID: 4814801775671631591}
@@ -1639,6 +1646,7 @@ MonoBehaviour:
     perLevel: 4
     max: 20
     tier: 3
+    requires: 090000000a000000
   - button: {fileID: 5709732652335063607}
     countText: {fileID: 6712463770857477242}
     selection: {fileID: 5011638387083501423}
@@ -1646,6 +1654,7 @@ MonoBehaviour:
     perLevel: 3
     max: 25
     tier: 3
+    requires: 0a000000
   - button: {fileID: 9186001645697292753}
     countText: {fileID: 1429945603550337048}
     selection: {fileID: 6371031716145688820}
@@ -1653,6 +1662,7 @@ MonoBehaviour:
     perLevel: 5
     max: 10
     tier: 2
+    requires: 0b000000
   - button: {fileID: 3051990123251415586}
     countText: {fileID: 4686893077379561890}
     selection: {fileID: 5747851862107841777}
@@ -1660,6 +1670,7 @@ MonoBehaviour:
     perLevel: 4
     max: 25
     tier: 2
+    requires: 0b000000
   - button: {fileID: 7433188242196452597}
     countText: {fileID: 6511111600701092043}
     selection: {fileID: 2220863447849244990}
@@ -1667,6 +1678,7 @@ MonoBehaviour:
     perLevel: 4
     max: 5
     tier: 1
+    requires: 
 --- !u!1 &931366660742228488
 GameObject:
   m_ObjectHideFlags: 0
