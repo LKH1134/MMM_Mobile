@@ -35,7 +35,7 @@
 
 **빌드 전**
 1. [x] **versionCode:** 3은 Play Console에 올라감 → **11-11 4로 올림**. 다음 업로드마다 +1(같은 번호는 다시 못 올림).
-2. [ ] `git pull` 후 `main` 최신(`0f6365a` 이후)에서 빌드. Unity에서 `MoreMush/Data/Reimport Tables` → 경고 없음 확인(MainTable 1373행·String 570행 OK가 11-12 기준).
+2. [ ] `git pull` 후 `main` 최신(`0f6365a` 이후)에서 빌드. Unity에서 `MoreMush/Data/Reimport Tables` → 경고 없음 확인(MainTable 1314행·String 509행 OK가 11-12 기준).
 3. [ ] 표·코드·씬에 새 글자를 넣었다면 `MoreMush/Fonts/Bake Static Atlases` 후 폰트 에셋 커밋(빠진 글자는 □로 나옴, `Reimport Tables`가 표 글자 누락을 경고).
 4. [ ] Player Settings를 바꿨으면 **File › Save Project** 후 커밋(안 하면 브랜치 전환 때 되돌아감).
 5. [ ] Publishing Settings에 키스토어·키 **비밀번호 두 개 입력**(에디터를 열 때마다 다시 입력). Build Profiles › Android: **Build App Bundle (Google Play) 켬 · Development Build 끔**, 네이티브 디버그 심볼 = Symbol Table(`Library`라 빌드 PC마다).
@@ -119,6 +119,12 @@
   - 화면: `KidPopup` — 선물 버튼(`Info/Merge`)·호감도 줄(`Info/Stat`)·꼬마 칸 `GiftBadge` 삭제, 진화 버튼(`Place`)을 가운데로·특기/진화 조건 줄을 위로 당김. `TreeKidScreen`·`KidCellView`에서 해당 필드 삭제.
   - 표: `호감도` 시트, 상수 `giftFavoriteMul`·`giftMaxCount`·`requestAffinity`·`decoFirstAffinity` 삭제. 문자열 `kid.badge_gift`·`kid.affinity_lv`·`kid.affinity_max`·`kid.gift*` 7개 삭제, `kid.reward(_line)`·`deco.first_place`에서 호감도 부분 삭제. `꼬마.favoriteIds`는 부탁 버섯으로 계속 씀.
   - **세계수 모델 현행화 (같은 날):** 이론(`밸런스설계/세계수/theory/` v7, `이론.md` 맨 위)·검증(`verify/` 라운드 8, `검증.md` 맨 위)을 지금 코드에 맞춤 — 보따리(11-03)·꼬마 등급(11-04)·의뢰 시트(11-10)·호감도/선물(11-12)을 빼고 메인 퀘스트 세계수 경험치를 넣음. 둘 다 그 전부터 지금 표로는 안 돌던 상태였다. 같은 11-03 feed면 8단계 이론 36.0일 · 검증 36.33일로 맞음. 지금 표 근사 feed(검증 `r8/feed_now.py`)로는 보통 39.33 · 무광고 40.33 · 광고 많이 38.67일. 검증 판정 **조건부 통과**(조건 = 처치 골드 효과 실측). 두 모델의 ★3 시점(이론 59일 · 검증 40~41일)은 하루 꼬마 뽑기 입력(약 34 vs 45~48회) 차이 — 방치 feed를 실측으로 바꿔야 확정(9.2).
+
+### 2026-11-12 (`LKH`) — 데이터 점검 3차 (표 ↔ 코드 양방향)
+
+- 안 쓰는 문자열 61개 삭제(옛 설정·의뢰·옛 세계수 UI 등), 안 쓰는 그림 59개(약 8MB)를 `Assets/Resources` → `Assets/Art/Unused/`로 옮기고 리소스 59행 삭제(빌드에서 빠짐).
+- 코드에 박힌 새 게임 수치·표에 없는 문자열 키는 없음. 자세한 목록·기준은 [DATA_AUDIT.md](DATA_AUDIT.md) 맨 위.
+- 확인: 컴파일·Reimport Tables MainTable **1314행**·String **509행** OK, `Tools/audit_game_data.py` 문제 0, Main 씬 실행 화면·콘솔 에러 없음.
 
 ### 2026-11-10 ~ 11-11 (`main` = `LKH` `0f6365a`) — 커밋 표
 
