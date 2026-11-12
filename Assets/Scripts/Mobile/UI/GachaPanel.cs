@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
@@ -21,14 +20,8 @@ namespace MoreMush.Mobile
         [SerializeField] Button freeButton;         // 광고 뽑기 (뽑기상품 시트의 광고 상품)
         [SerializeField] Button coinButton11;       // 재화 뽑기 — 이 종류의 유료 상품 중 횟수가 적은 것
         [SerializeField] Button coinButton35;       // 재화 뽑기 — 횟수가 많은 것
-        [FormerlySerializedAs("adLabel")]
-        [SerializeField] TMP_Text freeLabel;
-        [SerializeField] TMP_Text coinLabel11;
-        [SerializeField] TMP_Text coinLabel35;
-        [SerializeField] TMP_Text infoText;         // 예전 레벨·결과 글자 — 경험치 막대(GachaCardView)로 바꿔 숨긴다
         [SerializeField] TMP_Text titleText;        // 맨 위 띠(Name)의 뽑기 이름
         [SerializeField] Image previewImage;        // 왼쪽 큰 칸 안의 대표 그림(임시) — 그림만 종류에 맞게 바꾼다
-        [SerializeField] Toast toast;               // 안내 문구 (없어도 된다)
 
         [Header("오른쪽 열 (프리팹에 배치)")]
         [SerializeField] GachaCardView.ExpRow expRow;
@@ -69,8 +62,6 @@ namespace MoreMush.Mobile
             foreach (var b in new[] { freeButton, coinButton11, coinButton35 }) if (b != null) UiSkin.GreyWhenDisabled(b);
         }
 
-        const string GemIcon = "UI/Icon/mycelium_stone";
-        const string GoldIcon = "UI/Icon/gold";
 
         // 대표 그림 (임시): 장비는 가장 높은 등급 장비, 꼬마는 별똥 꼬마 3단계
         void ShowPreview()
@@ -151,7 +142,7 @@ namespace MoreMush.Mobile
             DoRoll(product.pullCount);
         }
 
-        static Sprite CostIcon(GachaProductRow p) => Resources.Load<Sprite>(p != null && p.currency == Currency.Gold ? GoldIcon : GemIcon);
+        static Sprite CostIcon(GachaProductRow p) => Resources.Load<Sprite>(p != null && p.currency == Currency.Gold ? UiSkin.IconGold : UiSkin.IconMycelite);
 
         static bool CanBuy(GachaProductRow p) => p != null && Wallet.CanAfford(p.currency, p.price);
 
@@ -187,7 +178,7 @@ namespace MoreMush.Mobile
             else
             {
                 GachaProgress.Apply(kind, result);
-                Notify(FormatResult(kind, count, result));
+                Notify(FormatResult(count, result));
             }
             Refresh();
         }
@@ -195,7 +186,7 @@ namespace MoreMush.Mobile
         // 뽑기 연출 (Main 씬에 배치한 GachaResultPopup)
         void ShowResult(List<GachaResultPopup.Entry> entries)
         {
-            if (resultPopup == null) resultPopup = FindFirstObjectByType<GachaResultPopup>(FindObjectsInactive.Include);
+            if (resultPopup == null) resultPopup = FindAnyObjectByType<GachaResultPopup>(FindObjectsInactive.Include);
             if (resultPopup != null) resultPopup.Show(entries);
         }
 
@@ -209,7 +200,7 @@ namespace MoreMush.Mobile
             }
         }
 
-        static string FormatResult(GachaKind kind, int count, int[] result)
+        static string FormatResult(int count, int[] result)
         {
             var sb = new StringBuilder(Loc.F("gacha.result", count));
             bool first = true;
@@ -232,8 +223,7 @@ namespace MoreMush.Mobile
 
         void Notify(string message)
         {
-            if (toast != null) toast.Show(message, 2f);
-            else Debug.Log($"[Gacha] {message}");
+            Toast.Post(message);
         }
 
         static void SetButton(GachaCardView.ButtonText b, string title, string sub)

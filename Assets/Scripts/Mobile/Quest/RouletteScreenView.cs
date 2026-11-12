@@ -32,8 +32,8 @@ namespace MoreMush.Mobile
         [SerializeField] TMP_Text resultText;
 
         [Header("그림 (Resources 경로)")]
-        [SerializeField] string goldIcon = "UI/Icon/gold";
-        [SerializeField] string myceliteIcon = "UI/Icon/mycelium_stone";
+        [SerializeField] string goldIcon = UiSkin.IconGold;
+        [SerializeField] string myceliteIcon = UiSkin.IconMycelite;
 
         [Header("회전")]
         [SerializeField] float spinSeconds = 4.2f;

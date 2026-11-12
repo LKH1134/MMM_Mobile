@@ -115,7 +115,7 @@ namespace MoreMush.Mobile
             if (label.enableAutoSizing) return;
             label.fontSizeMax = label.fontSize;
             label.fontSizeMin = Mathf.Max(18f, label.fontSize * 0.5f);
-            label.enableWordWrapping = false;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
             label.enableAutoSizing = true;
         }
 

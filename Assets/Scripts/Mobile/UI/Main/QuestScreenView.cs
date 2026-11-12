@@ -27,10 +27,10 @@ namespace MoreMush.Mobile
         [SerializeField] string adIcon = "UI/Icon/advertisement";
         [SerializeField] string dungeonIcon = "UI/Icon/dungeon";
         [SerializeField] string dailyIcon = "UI/Icon/calendar";
-        [SerializeField] string claimSprite = "UI/UI_Btn_Green";      // 받을 수 있음
-        [SerializeField] string doneSprite = "UI/UI_Btn_Grey";        // 받음
-        [SerializeField] string barFillSprite = "UI/UI_PP_Bar_Gauge_Green";
-        [SerializeField] string tabOnSprite = "UI/UI_Btn_Green";      // 고른 탭
+        [SerializeField] string claimSprite = UiSkin.BtnGreen;      // 받을 수 있음
+        [SerializeField] string doneSprite = UiSkin.BtnGrey;        // 받음
+        [SerializeField] string barFillSprite = UiSkin.BarGreen;
+        [SerializeField] string tabOnSprite = UiSkin.BtnGreen;      // 고른 탭
         [SerializeField] string tabOffSprite = "UI/UI_Btn_Beige";
 
         readonly List<QuestCardView> cards = new List<QuestCardView>();

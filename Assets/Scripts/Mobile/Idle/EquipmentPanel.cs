@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,16 +26,12 @@ namespace MoreMush.Mobile
         [Header("아래")]
         [SerializeField] TMP_Text ownTotal;
         [SerializeField] Button summonButton, mergeAllButton;
-        [SerializeField] Toast toast;               // 안내 문구 (비우면 씬에서 찾는다. 없으면 콘솔에만)
 
         int selected = -1;
 
         Equipment Eq => Equipment.Of(kind) ?? Equipment.Weapon;
 
         // 칸 바탕: 색은 그림으로 정한다 (물들이지 않는다)
-        const string SelectedSprite = "UI/UI_PP_In_InnerLine1";   // 고른 칸: 노란 안쪽 선
-        const string EquippedSprite = "UI/UI_PP_In_Color_Green";
-        const string SlotSprite = "UI/UI_PP_In_Color_Beige1";
 
         void Awake()
         {
@@ -53,7 +48,7 @@ namespace MoreMush.Mobile
                 if (s.button == null) continue;
                 int index = i;
                 if (s.icon != null) s.icon.sprite = Eq.Sprite(i);
-                s.normal = s.bg != null && s.bg.sprite != null ? s.bg.sprite : Resources.Load<Sprite>(SlotSprite);
+                s.normal = s.bg != null && s.bg.sprite != null ? s.bg.sprite : Resources.Load<Sprite>(UiSkin.CardBeige);
                 s.button.onClick.RemoveAllListeners();
                 s.button.onClick.AddListener(() => { selected = index; Refresh(); });
             }
@@ -111,9 +106,7 @@ namespace MoreMush.Mobile
 
         void Notify(string message)
         {
-            if (toast == null) toast = FindFirstObjectByType<Toast>(FindObjectsInactive.Include);
-            if (toast != null) toast.Show(message, 2f);
-            else Debug.Log($"[{Eq.Title}] {message}");
+            Toast.Post(message);
         }
 
         int HighestOwned()
@@ -137,8 +130,8 @@ namespace MoreMush.Mobile
                     : lv >= Equipment.MaxLevel ? $"Lv.{lv} MAX"
                     : $"Lv.{lv} <size=80%>({Eq.Copies(i)}/{Equipment.CopiesToNext(lv)})</size>";
                 s.badge.text = i == equipped ? "<color=#3A8F2E>" + Loc.T("common.equip") + "</color>" : "";
-                // [UI 개편 11-05] 보통 칸은 프리팹에 놓은 그림 그대로 (없을 때만 SlotSprite). 고른 칸·장착 칸만 바꿔 낀다
-                s.bg.sprite = i == selected ? Resources.Load<Sprite>(SelectedSprite) : i == equipped ? Resources.Load<Sprite>(EquippedSprite) : s.normal;
+                // [UI 개편 11-05] 보통 칸은 프리팹에 놓은 그림 그대로 (없을 때만 UiSkin.CardBeige). 고른 칸·장착 칸만 바꿔 낀다
+                s.bg.sprite = i == selected ? Resources.Load<Sprite>(UiSkin.CardSelected) : i == equipped ? Resources.Load<Sprite>(UiSkin.CardGreen) : s.normal;
                 s.bg.type = Image.Type.Sliced;
                 s.bg.color = Color.white;
             }

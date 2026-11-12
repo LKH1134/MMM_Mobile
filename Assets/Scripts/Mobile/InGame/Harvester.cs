@@ -47,7 +47,6 @@ namespace MoreMush.Mobile
         public float StumpMul { get; set; } = 1f;     // 그루터기 버프가 걸려 있을 때 곱할 값
         public float NextHitMul { get; set; } = 1f;   // 다음 한 번만 곱할 피해 (이독제독). 맞히면 1로 돌아간다
         public float WeakMul { get; set; } = 1f;      // 약화 디버프 중 공격력 배율
-        public bool Debuffed => Has(HarvesterBuff.Slow) || Has(HarvesterBuff.Weak);
         public int Damage
         {
             get

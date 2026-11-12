@@ -71,7 +71,7 @@ namespace MoreMush.Mobile.EditorTools
             ("tailEnemyHpGrowth", 1, false), ("tailBossHpGrowth", 1, false), ("tailAttackGrowth", 1, false), ("tailGoldGrowth", 1, false), ("tailWallMul", 1, false),
             ("wallBossEvery", 0, true), ("wallBossFrom", 0, true), ("wallBossHpMul", 1, false), ("wallBossLateFrom", 0, true), ("wallBossHpMulLate", 1, false),
             ("harvestHpRateExp", 0, false),
-            ("harvestFarmRounds", 1, true), ("harvestCycleLength", 1, true), ("offlineRateMinSeconds", 0.001, false),
+            ("harvestCycleLength", 1, true), ("offlineRateMinSeconds", 0.001, false),
             ("adBoxGoldChance", 0, false), ("adBoxMaxSameInRow", 0, true), ("bossRushEasyLevels", 1, true),
             ("unlockTeamStage", 1, true), ("unlockWorldTreeStage", 1, true),
             ("guideFallbackKills", 1, true), ("guideFallbackMycelite", 0, true),

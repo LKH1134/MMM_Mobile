@@ -76,12 +76,6 @@ namespace MoreMush.Mobile
             return text;
         }
 
-        protected static void Toast(string message)
-        {
-            var screen = FindAnyObjectByType<WorldTreeScreen>();
-            if (screen != null) screen.ShowToast(message);
-        }
-
         // ── [UI 개편 2026-11-05] 프리팹 견본 (Content/Templates 아래, 꺼 둔 카드들). 모양은 프리팹에서 고치고 코드는 값만 채운다 ──
         Transform templates;
 
@@ -128,13 +122,7 @@ namespace MoreMush.Mobile
         // 꺼진 카드(아직 없음·잠김)는 회색 바탕
         protected static void CardOff(Transform card, bool off)
         {
-            if (off && card.TryGetComponent<UnityEngine.UI.Image>(out var bg)) bg.sprite = Resources.Load<Sprite>("UI/UI_PP_In_Color_Grey");
-        }
-
-        protected static void SetBar(Transform card, string path, float value)
-        {
-            var fill = card.Find(path) as RectTransform;
-            if (fill != null) fill.anchorMax = new Vector2(Mathf.Clamp01(value), fill.anchorMax.y);
+            if (off && card.TryGetComponent<UnityEngine.UI.Image>(out var bg)) bg.sprite = Resources.Load<Sprite>(UiSkin.CardGrey);
         }
 
         // label null = 견본 글자 그대로, sprite null = 견본 그림(누를 수 있을 때 색). 누를 수 없으면 회색

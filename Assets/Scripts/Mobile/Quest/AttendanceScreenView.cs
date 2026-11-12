@@ -17,12 +17,12 @@ namespace MoreMush.Mobile
         [SerializeField] Button closeButton;             // 창 오른쪽 위 X
 
         [Header("그림 (Resources 경로)")]
-        [SerializeField] string cellSprite = "UI/UI_PP_In_Color_Beige1";
+        [SerializeField] string cellSprite = UiSkin.CardBeige;
         [SerializeField] string claimedSprite = "UI/UI_PP_In_Color_Beige2";
-        [SerializeField] string todaySprite = "UI/UI_PP_In_Color_Green";
+        [SerializeField] string todaySprite = UiSkin.CardGreen;
         [SerializeField] string finalSprite = "UI/UI_PP_In_Color_Yellow";     // 마지막 날 (전설 무기)
-        [SerializeField] string goldIcon = "UI/Icon/gold";
-        [SerializeField] string myceliteIcon = "UI/Icon/mycelium_stone";
+        [SerializeField] string goldIcon = UiSkin.IconGold;
+        [SerializeField] string myceliteIcon = UiSkin.IconMycelite;
 
         [SerializeField] float closeDelay = 1f;          // 받기를 누른 뒤 창이 닫힐 때까지 (초)
 

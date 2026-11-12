@@ -19,16 +19,11 @@ namespace MoreMush.Mobile
         public const string ColonyCount = "colony_count";           // 군락지 수 +
         public const string ColonySingles = "colony_single_mushroom"; // 군락지 주변 단일 버섯 +
         public const string ColonyRespawn = "colony_respawn";       // 군락지 리스폰 +초 (음수)
-        public const string EpicSpawn = "epic_spawn";               // 에픽 버섯 스폰율 +
-        public const string UniqueSpawn = "unique_spawn";           // 유니크 버섯 스폰율 +
         public const string GoldenSpawn = "golden_spawn";           // 황금 변종 스폰율 +
         // 획득
         public const string ScoreRate = "score_rate";               // 획득 점수 +비율
         public const string GoldConversion = "gold_conversion";     // 점수 골드 전환율 +비율
         public const string TripleScoreChance = "triple_score_chance"; // 점수 3배 확률
-        public const string NormalYield = "normal_yield";           // 일반 버섯 수확량 +비율
-        public const string EpicYield = "epic_yield";
-        public const string UniqueYield = "unique_yield";
         public const string FinalRushBonus = "final_rush_bonus";    // 마지막 param초 점수·수확량 +비율
         // 바 버프 (바에 닿을 때마다 걸리고 시간이 새로 채워진다)
         public const string PowerBuff = "start_attack_buff";        // 공격력 + (param초)
@@ -56,7 +51,6 @@ namespace MoreMush.Mobile
         // 디버프·보스
         public const string DebuffCleanse = "debuff_cleanse_chance"; // 군락 충돌로 디버프를 얻을 때 바로 해제할 확률
         public const string BossDamage = "boss_damage";             // 보스 피해 +비율
-        public const string LegendaryYield = "legendary_yield";     // 보스 전용 레전더리 버섯 수확량 +비율
     }
 
     // 배운 스킬 레벨. 지금은 PlayerPrefs("Skill.Level.<index>")에 저장한다 (세이브 구조가 생기면 옮긴다).

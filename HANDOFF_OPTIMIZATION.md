@@ -183,3 +183,112 @@ Main 씬의 방치 전투(`IdleBattle`)는 앱이 켜져 있는 내내 돈다. �
 2. 기기 언어를 태국어로 바꾸고 무료 광고 뽑기·던전 입장을 쓴 뒤 앱을 다시 켜도 다시 채워지지 않아야 한다.
 3. 던전에서 4배속 → 옵션 → 로비로: Main 전투가 정상 속도로 돈다. 던전 결과에서 "한 번 더하기"를 눌러도 고른 배속이 유지된다.
 4. 비행기 모드로 켜고 광고 버튼을 여러 번 눌러도 로그에 "광고 불러오는 중"이 15초 안에 다시 찍히지 않는다.
+
+---
+
+## 8. 3차 리소스 정리 (2026-11-12)
+
+빌드 씬 4개(`Start`·`Main`·`WorldTree`·`InGame`) + `Assets/Resources` 전체를 뿌리로 `AssetDatabase.GetDependencies(…, true)`를 돌려(384개) 어디에도 걸리지 않는 에셋을 찾았다(`Scripts`·`GoogleMobileAds`·`Plugins`·`TextMesh Pro` 제외). 81개가 나왔고, 그중 59개는 오늘 옮겨 둔 `Assets/Art/Unused/`, 나머지 22개는 설정·표·에디터 도구·폰트 원본 등 따로 쓰이는 것이었다(8.3). 그 뒤 빌드에 들어가는 텍스처 218개(스프라이트)를 원본 크기 · import 최대 크기 · 압축 · 밉맵 · Read/Write와 프리팹·씬의 실제 표시 크기(RectTransform)로 비교했다.
+
+### 8.1 지운 것 (62개 · 약 8.3MB, 빌드 크기 영향 없음 — 원래 빌드 밖)
+
+- `Assets/Art/Unused/` 전체: png 59개(8,314,348 B) + .meta·폴더. 지우기 전에 다시 확인: GUID가 `Assets`·`ProjectSettings`의 scene/prefab/asset/mat/anim/controller/spriteatlas 어디에도 없음, 파일명 문자열을 쓰는 코드 4건(hammer·crown·help·target)은 모두 다른 뜻(`workshop_hammer`·`zone.crown`·`kid.help`·표 열 이름 `target`), 리소스 시트에 경로 없음.
+  - `Art/Dream/Backgrounds/bg_forest` · `Art/Dream/Icons/{book,clock,gem,hammer,quest,t_forest}` · `Art/Dream/UI/{basket,btn_go,window_title}` · `Sprite/BG/image2` · `Sprite/Tree/image` · `UI/Icon/Upgrade_Icon/atk_icon` · `UI/Icon/{achievement,backpack,badge,bulb_off,bulb_on-matching,button,clock,crown,energy,experience,guild,help,mail,map,megaphone,money_bag,notification_bell,options,pause,piggy_bank,play,portal,potion,ranking,save,save_down,save_up,share,shield,shopping_bag,skill,star_empty,star_filled,target,treasure_chest,trophy}` · `UI/{UI_PP_Out_Small,UI_PP_Out_WoodFrame,UI_PP_Under_Tag_Beige,UI_PP_Under_Tag_Green,UI_PP_Under_Tag_Red,UI_PP_Under_Tag_Sky,UI_Sticker_Leaf_L_Green,UI_Sticker_Leaf_R_Green,UI_Sticker_Line_Beige2,UI_Sticker_Star_Beige}`
+- 빈 폴더 `Assets/Prefabs/Mobile/UI/Main/Resources`(+ .meta, 11-05 프리팹 폴더 정리 때 비워진 Resources 폴더).
+- Resources 안 파일은 지우지 않았으므로 **리소스 시트 행 삭제 없음**.
+
+### 8.2 크기 바꾼 텍스처 (3개)
+
+Android = ASTC(기본 설정, 오버라이드 없음). 메모리는 ASTC 블록 크기로 계산한 GPU 크기(블록당 16 B).
+
+| 텍스처 | 원본 | 표시 크기(최대) | maxTextureSize | 결과 해상도 · 형식 | 메모리 전 → 후 |
+|---|---|---|---|---|---|
+| `Resources/UI/Icon/Upgrade_Icon/Hp.png` | 1254² | 136×96 (`UpgradeNotebook` 체력 줄) | 2048 → **256** | 256² ASTC 6×6 | 698,896 → 29,584 B |
+| `Resources/Art/Dream/UI/logo.png` | 1512×748 | 900×445 (`Start` 로고) | 2048 → **1024** (10-30 기준과 같음) | 1024×507 ASTC 4×4 | 1,130,976 → 520,192 B |
+| `Art/Generated/Icons/skilltree.png` | 1278×1230 | 76×76 (`WorldTree` 아이콘) | 512 → **256** | 256×246 ASTC 6×6 | 114,208 → 28,208 B |
+| **합계** | | | | | **1,944,080 → 577,984 B (−1.37 MB)** |
+
+빌드에 들어가는 스프라이트 텍스처 전체(218개, 폰트 아틀라스 제외) 추정 GPU 메모리: **약 33.45 MB → 32.08 MB**. 빌드(압축 전 텍스처 데이터)도 같은 만큼 준다. (에디터 `Profiler.GetRuntimeMemorySizeLong`은 CPU 사본까지 세어 14.2 MB → 3.2 MB로 나오지만 실기기 값이 아니다.)
+
+밉맵 · Read/Write: 빌드에 들어가는 텍스처 중 켜진 것 0개(코드의 `GetPixel`/`isReadable` 사용도 없음) — 그대로.
+
+### 8.3 남긴 것과 이유
+
+**참조 사슬에 안 걸리지만 남긴 것**
+
+| 에셋 | 이유 |
+|---|---|
+| `Art/Generated/Icons/app_icon_mushroom_v2_512.png` | Player Settings 앱 아이콘(`ProjectSettings.asset`) |
+| `Settings/*` (RP·Renderer·Volume 프로필·URP 전역 설정) | `QualitySettings`·`GraphicsSettings`가 씀 |
+| `InputSystem_Actions.inputactions` | 프로젝트 전역 입력 액션(`EditorBuildSettings`·`ProjectSettings`) |
+| `Data/Tables/MainTable.xlsx`·`String.xlsx`·`Legacy/*.xlsx` | 표 원본(임포터가 `Resources/Tables/*.bytes`로 굽는다) |
+| `Editor/StaticFontChars.txt` | `BakeStaticFont` 에디터 도구 |
+| `Fonts/LINESeedKR-Bd.ttf`·`-Rg.ttf` | 정적 SDF 아틀라스를 다시 구울 원본 |
+| `Fonts/LINESeedKR-Bd SDF Outline(.mat)`·`… Outline Thick.mat` | ❓ 10차 UI 개편부터 안 씀. `UI_REWORK_LOG.md`에 "다른 브랜치용으로 남김"이라 적혀 있어 두었다(각 3KB). 다른 브랜치가 안 쓰면 지워도 된다 |
+| `Scenes/NewInGame.unity` | ❓ kms 작업 씬(빌드 밖). HANDOFF에서 판단 보류 중 |
+
+**크기를 그대로 둔 큰 텍스처**
+
+| 텍스처 | 원본 | 표시 크기 | 이유 |
+|---|---|---|---|
+| 배경 `bg_title`·`BGimage` (830×1896), `BGimage1440` (1440²), `Sprite/BG/image` (1254²) | | 1080×2467 · 1452² · 4680×2340 | 원본보다 크게 그려짐 |
+| 뽑기 배너 3개 (1536×486), 던전 카드 5개 (1536×350), 헤더 2개 (1254×533) | | 1245×394 · 1200×273 · 1082×460 | 1024로 내리면 표시 크기보다 작아짐 |
+| 꼬마 진화 시트 `icon_GGoma_1~3` (1774×887, 칸 443) | | 뽑기 미리보기 626×269 · 해금 알림 440 | 칸이 표시 크기와 비슷 |
+| 버섯 시트 `Enumy` 15개 · `Index` 15개 (1024², 칸 256) | | 보스 560 · 버섯 300~480 | 칸이 이미 표시보다 작다 |
+| `Farm/Tree/Tree01~04` (1254², 이미 1024) | | 세계수 화면 크기 다양 | 이미 정리됨 |
+| `roulette_wheel` (1024²) | | 680² | 다음 2의 거듭제곱 |
+| 9-slice UI (`UI_PP_*` 등) | | 늘려 그림 | 줄이면 테두리 두께가 바뀔 위험 |
+| 작은 아이콘(`ic_ring`·`f_beauty`·`ic_mallet`·`option`·`mushtree`, 260~332px, ASTC 4×4) | | 80~180 | 하나당 50 KB 안팎이라 효과 작음. 표에서 다른 크기로 쓰일 수 있음 |
+| `InGame/bar_steel.png` (196px, 비압축) | | 9-slice | 작고 의도적인 비압축으로 보임 |
+
+**오디오:** `Resources/Audio/Bgm/GlowingWoodland.wav`(112초, 48 kHz 스테레오, 원본 21.5 MB) — 이미 Streaming · Vorbis 품질 0.7 · Preload 꺼짐 · Load In Background. 그대로 둠.
+
+**폰트 SDF 아틀라스(보고만, 안 바꿈):** 모두 Static · Alpha8.
+
+| 폰트 에셋 | 아틀라스 | 메모리 |
+|---|---|---|
+| `Resources/UI/Fonts/LINESeedKR-Bd SDF Wide` (외곽선용) | 2048² × 2장 | 8 MB |
+| `Fonts/LINESeedKR-Bd SDF` (글리프 746개) | 1024² × 4장 | 4 MB |
+| `Fonts/LINESeedKR-Rg SDF` | 1024² × 4장 | 4 MB |
+
+Bd 글리프 746개에 1024² 4장이면 샘플 크기·여백이 커서 장수가 많다. 줄이려면 `BakeStaticFont`로 샘플 크기를 낮춰 다시 굽고 전체 화면에서 글자 빠짐·외곽선을 확인해야 한다(다음 후보).
+
+### 8.4 확인 결과
+
+- Unity Refresh 후 콘솔 에러 0 (Main·Start 플레이 중 포함).
+- `MoreMush/Data/Reimport Tables`: MainTable 1314행 OK · String 509행 OK. (리소스 시트는 고치지 않았다. 코드 담당이 지운 상수 `harvestFarmRounds`가 xlsx·`MainTable.bytes`에 없는 것도 확인)
+- `python -I Tools/audit_game_data.py`: 문제 0.
+- 스크린샷: Main 플레이(방치 정산 팝업·강화 목록 — 체력 하트 아이콘 정상), Start 플레이(로고 1024 — 흐림 없음). 그림 빠진 곳 없음. 테스트 스크린샷(`Temp/shots`) 삭제, `Assets/Screenshots` 안 생김. 플레이 모드 끔, Main 씬으로 돌려 둠.
+- 커밋 안 함.
+
+## 9. 3차 코드 정리 (2026-11-12)
+
+조사 방법: Unity가 만든 `Assembly-CSharp.csproj`·`Assembly-CSharp-Editor.csproj`를 `dotnet build`로 분석기(IDE0051·IDE0052·CS0169·CS0414·IDE0005·CS0618)를 켜고 빌드 + public 멤버·스크립트를 코드·씬·프리팹(GUID·`m_MethodName`)에서 참조 검색. 같은 역할 다른 방식은 큰 수 표기·KST 날짜·토스트·그림 경로·그림 불러오기·오브젝트 찾기·폰트 도구를 비교했다.
+
+### 9.1 지운 것 (안 쓰는 코드)
+
+- **스크립트 3개:** `UI/FitWidth.cs`(11-04 Stage 늘이기 뒤 안 씀)·`UI/TabDock.cs`·`UI/WalletLabel.cs` — 씬·프리팹·코드 어디에도 없음.
+- **멤버:** `GameBalance.gradeNames`, `IdleBattle.hudTop`·`MapIcon`·`PowerIcon`·`PowerPillY`·`MakeBar`·`Place`·`kindFolder`·`harvesterFolder`(→ 9.2), `InGameOption.bgmSlider`(BGM은 `BgmVolumeSlider`가 맡음), `GachaPanel.freeLabel`·`coinLabel11`·`coinLabel35`·`infoText`, `TreeGrowScreen.PreferNames`, `TreeUi.White`·`CardOn`·`CardBeigeSprite`, `TreePanel.SetBar`, `SkillProgress` 스킬 키 6개(epic/unique spawn·normal/epic/unique/legendary yield — 효과 없는 키), `StageProgress.FarmRounds`, `IdleProgress.FarmScale`(주석에만), `MushroomDex.TotalCollected`·`DevSetGroup`, `Harvester.Debuffed`, `StageFrame.MaxWidth`, `UiSkin` 규격 상수 중 안 쓰는 8개(`Gap`만 남김 — 규격표는 UI_REWORK_LOG.md), 안 쓰는 using 3개.
+- **표:** 상수 `harvestFarmRounds`(읽던 `FarmRounds`를 아무도 안 부름, 검증기 필수 목록에서도 뺌) → MainTable **1,313행**. Legacy 행 필드 `MushroomData.dexNo`·`SkillData.rarity/tier/requires`·`StageData.goalType/goal`(+ `StageGoal` 열거형) 삭제 — 해당 xlsx 열은 메모 열(`#dexNo` 등)로 바꿈, `Resources/Tables/Legacy/*.bytes` 갱신.
+- 일부러 남긴 것: `ImmersiveMode`(RuntimeInitializeOnLoad로 스스로 붙음), `BalanceBot` 공개 메서드(밸런스 측정 도구가 부름), `LocalizedText.EditorSetKey`(이관 도구), `GameLoopManifest` 콜백, `MainNavigation.TeamTab`(탭 번호 묶음).
+
+### 9.2 통일한 것 (같은 역할 · 다른 방식)
+
+| 무엇 | 전 | 후 |
+|---|---|---|
+| 안내 문구(토스트) | 세계수 화면 3곳이 각자 `WorldTreeScreen.ShowToast`를 찾는 도우미, 장비 창은 `FindFirstObjectByType`, 뽑기 창은 프리팹 연결(비어 있어 **화면에 안 뜨고 로그만**) | **`Toast.Post(message)`** 하나 — 씬의 Toast를 찾아 캐시, 시간은 Toast의 `defaultDuration`(Main 2초·WorldTree 3초, 씬 값). 뽑기 "재화 부족·광고 준비 중" 안내가 이제 화면에 뜬다 |
+| 공용 UI 그림 경로 | `"UI/UI_Btn_Grey"`·`"UI/UI_PP_In_Color_Beige1"`·`"UI/Icon/gold"` 등을 파일마다 const·문자열로 따로 씀(9개 파일) | **`UiSkin`** 상수(BtnGrey/Green/Yellow/Red/Sky, CardBeige/Green/Grey/Selected/Paper, BarBack/Green/Yellow, IconGold/Mycelite). 인스펙터 string 필드의 기본값도 이 상수 (프리팹 값은 그대로) |
+| 전투 적·수확기 그림 | `IdleBattle`(인스펙터 경로)과 `BattleLooks`가 같은 폴더를 각자 `Resources.LoadAll`·종류별 분류 | **`BattleLooks.Edible/Toxic/Medicinal/Harvesters`** 한 번 읽고 같이 씀 (뽑는 난수는 각자 — 측정기 시드 보존) |
+| 오브젝트 찾기 | `FindFirstObjectByType` 14곳·`FindAnyObjectByType` 4곳 섞임 | 모두 `FindAnyObjectByType` (찾는 대상이 씬에 하나뿐) |
+| 폰트 굽기 글자 목록 | Bd·Rg는 `FontBaker`가 표·코드·씬에서 자동 수집, Wide(외곽선)는 `Assets/Editor/StaticFontChars.txt` 손 목록 | Wide도 `FontBaker.CollectCharacters` 사용, 손 목록 파일 삭제. 도구를 `Scripts/Mobile/Editor/BakeStaticFont.cs`(네임스페이스 `MoreMush.Mobile`)로 옮기고 메뉴를 `MoreMush/Fonts/Bake Wide Outline Font`로. 표 가져오기의 "폰트에 없는 글자" 경고도 Wide까지 본다 |
+| 막힌 API | `TMP_Text.enableWordWrapping`(obsolete 경고) | `textWrappingMode = NoWrap` |
+
+### 9.3 안정화 — 같이 고친 것
+
+- **Wide 폰트에 글자 29개가 빠져 있었다**(룰·렛·섬·흥·굉·덤·랜·쉴·옹·훨 + 「」『』《》！？ 등) → 외곽선 글자로 그리면 □. 9.2의 통일 뒤 `Bake Wide Outline Font`로 다시 구움: 글리프 932개, 아틀라스 2장 그대로(49pt·여백 15 — 외곽선 두께 같음). 세 폰트 모두 게임 글자 중 빠진 것은 `≈`(원본 글꼴에 없음) 하나.
+
+### 9.4 확인
+
+- 분석기 빌드: 게임·에디터 어셈블리 모두 안 쓰는 멤버·using·obsolete 경고 0 (GoogleMobileAds 패키지 것 제외). Unity 컴파일 오류 0.
+- Reimport Tables MainTable 1,313행·String 509행 OK, `Tools/audit_game_data.py` 문제 0, Legacy 표 다시 읽기 오류 없음.
+- 플레이: Main(전투 그림·강화 목록·토스트·새 글자), WorldTree(꾸미기 탭 노랑·회색 버튼·토스트 3초), InGame(수확 던전 시작·옵션 창) — 콘솔 에러 없음. 실기기·Android 빌드는 하지 않았다.

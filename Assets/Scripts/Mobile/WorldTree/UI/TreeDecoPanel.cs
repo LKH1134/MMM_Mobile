@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 
 namespace MoreMush.Mobile
@@ -12,7 +11,6 @@ namespace MoreMush.Mobile
         //   Tabs: (가로 묶음, 비워 둠)   ZoneTab: Text (고른 자리는 SelectedSprite 그림)   Info: Text   Empty: Text
         //   DecoCard: Icon · Title · Sub · Button
         static readonly string[] TemplateNames = { "Tabs", "ZoneTab", "Info", "Empty", "DecoCard" };
-        const string SelectedTab = "UI/UI_Btn_Yellow";
 
         protected override void Build()
         {
@@ -24,7 +22,7 @@ namespace MoreMush.Mobile
                 var zz = z;
                 var tab = Use("ZoneTab", tabs);
                 var b = tab.GetComponent<UnityEngine.UI.Button>();   // 탭 자체가 버튼
-                if (b != null) { UiSkin.GreyWhenDisabled(b); b.interactable = true; b.onClick.RemoveAllListeners(); b.onClick.AddListener(() => { zone = zz; Rebuild(); }); if (z == zone) b.image.sprite = Resources.Load<Sprite>(SelectedTab); }
+                if (b != null) { UiSkin.GreyWhenDisabled(b); b.interactable = true; b.onClick.RemoveAllListeners(); b.onClick.AddListener(() => { zone = zz; Rebuild(); }); if (z == zone) b.image.sprite = Resources.Load<Sprite>(UiSkin.BtnYellow); }
                 // 탭 숫자 = 그 자리 장식 중 만든 수 / 그 자리 장식 전체 수
                 int made = 0, total = 0;
                 foreach (var d in GameBalance.Decos)
@@ -60,8 +58,8 @@ namespace MoreMush.Mobile
                     sub += TreeUi.Colored("\n" + Loc.F("deco.first_place", Mycelite(GameBalance.ConstInt("decoFirstMycelite"))), TreeUi.Good);
                 SetText(card, "Sub", sub);
                 if (!owned) SetButton(card, "Button", Loc.T("deco.needs_craft"), false, null);
-                else if (placed) SetButton(card, "Button", Loc.T("deco.remove"), true, () => WorldTree.Remove(dd), "UI/UI_Btn_Red");
-                else SetButton(card, "Button", Loc.T("deco.place"), WorldTree.CanPlace(d), () => { if (WorldTree.Place(dd)) Toast(Loc.F("deco.placed_toast", dd.Name)); });
+                else if (placed) SetButton(card, "Button", Loc.T("deco.remove"), true, () => WorldTree.Remove(dd), UiSkin.BtnRed);
+                else SetButton(card, "Button", Loc.T("deco.place"), WorldTree.CanPlace(d), () => { if (WorldTree.Place(dd)) Toast.Post(Loc.F("deco.placed_toast", dd.Name)); });
             }
             if (!any) SetText(Use("Empty"), "Text", Loc.T("deco.no_decos"));
         }

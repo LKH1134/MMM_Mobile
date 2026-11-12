@@ -256,12 +256,12 @@ namespace MoreMush.Mobile
             while (!load.isDone) yield return null;
             yield return null;   // Awake·Start가 다 돈 뒤
 
-            field = FindFirstObjectByType<HarvestField>();
-            game = FindFirstObjectByType<HarvestGame>();
-            hud = FindFirstObjectByType<StageHud>();
-            var effects = FindFirstObjectByType<SkillEffects>();
-            var gimmicks = FindFirstObjectByType<BossGimmicks>();
-            var input = FindFirstObjectByType<FieldInput>();
+            field = FindAnyObjectByType<HarvestField>();
+            game = FindAnyObjectByType<HarvestGame>();
+            hud = FindAnyObjectByType<StageHud>();
+            var effects = FindAnyObjectByType<SkillEffects>();
+            var gimmicks = FindAnyObjectByType<BossGimmicks>();
+            var input = FindAnyObjectByType<FieldInput>();
             if (field == null || game == null || hud == null) { error = "InGame 씬에서 판 오브젝트를 못 찾았다"; yield break; }
 
             // 판 준비: 측정기와 같은 순서. 보스는 죽지 않게, 시간은 측정이 끝날 때까지

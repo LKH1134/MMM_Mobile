@@ -188,7 +188,7 @@ namespace MoreMush.Mobile
                     if (r.buttonImage != null)
                     {
                         if (r.normalButton == null) r.normalButton = r.buttonImage.sprite;
-                        if (disabledButtonSprite == null) disabledButtonSprite = Resources.Load<Sprite>("UI/UI_Btn_Grey");
+                        if (disabledButtonSprite == null) disabledButtonSprite = Resources.Load<Sprite>(UiSkin.BtnGrey);
                         r.buttonImage.sprite = can ? r.normalButton : disabledButtonSprite;   // 색을 입히지 않고 회색 그림으로 바꿔 낀다
                         r.buttonImage.color = Color.white;
                     }

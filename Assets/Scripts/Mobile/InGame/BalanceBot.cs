@@ -64,11 +64,11 @@ namespace MoreMush.Mobile
         public static string Begin(Config config)
         {
             cfg = config ?? new Config();
-            field = Object.FindFirstObjectByType<HarvestField>();
-            game = Object.FindFirstObjectByType<HarvestGame>();
-            effects = Object.FindFirstObjectByType<SkillEffects>();
-            gimmicks = Object.FindFirstObjectByType<BossGimmicks>();
-            hud = Object.FindFirstObjectByType<StageHud>();
+            field = Object.FindAnyObjectByType<HarvestField>();
+            game = Object.FindAnyObjectByType<HarvestGame>();
+            effects = Object.FindAnyObjectByType<SkillEffects>();
+            gimmicks = Object.FindAnyObjectByType<BossGimmicks>();
+            hud = Object.FindAnyObjectByType<StageHud>();
             if (field == null || game == null || hud == null) return "InGame 씬 플레이 모드에서 불러야 한다";
             levels.Clear();
             logs.Clear();

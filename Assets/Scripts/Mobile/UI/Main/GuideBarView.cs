@@ -17,9 +17,9 @@ namespace MoreMush.Mobile
         [SerializeField] Image rewardIcon;
 
         [Header("그림 (Resources 경로)")]
-        [SerializeField] string fillSprite = "UI/UI_PP_Bar_Gauge_Yellow";
-        [SerializeField] string doneFillSprite = "UI/UI_PP_Bar_Gauge_Green";
-        [SerializeField] string rewardIconSprite = "UI/Icon/mycelium_stone";
+        [SerializeField] string fillSprite = UiSkin.BarYellow;
+        [SerializeField] string doneFillSprite = UiSkin.BarGreen;
+        [SerializeField] string rewardIconSprite = UiSkin.IconMycelite;
 
         const float PulseSpeed = 5f, PulseSize = 0.015f;
 

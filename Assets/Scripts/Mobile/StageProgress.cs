@@ -5,8 +5,7 @@ namespace MoreMush.Mobile
 {
     // 지금 도전할 스테이지 번호와 보스 도전 상태. PlayerPrefs에 저장한다 (세이브 구조가 생기면 옮긴다).
     //   일반 스테이지: 목표가 없다 — 판을 마치면 다음 스테이지로
-    //   보스 스테이지: 처치하면 다음으로. 못 잡으면 그대로 — 결과 팝업에서 바로 재도전하거나 ChooseFarm으로
-    //                 FarmRounds판 그 스테이지 일반 판(파밍)을 돈 뒤 재도전한다 (강제 파밍 없음)
+    //   보스 스테이지: 처치하면 다음으로. 못 잡으면 그대로 — 결과 팝업에서 바로 재도전한다 (강제 파밍 없음)
     //   스테이지는 끝이 없다. 표(Stage.xlsx)의 마지막 스테이지를 넘으면 마지막 CycleLength개 묶음을 되풀이해 만든다 (Generate):
     //                 체력·보상 계수는 한 바퀴마다 표의 마지막 묶음이 커진 만큼 (마지막 스테이지 ÷ CycleLength 앞 스테이지) 곱해 끊김 없이 잇고,
     //                 CycleLength번째마다 보스 (표의 보스를 차례로 다시 쓴다)
@@ -38,7 +37,6 @@ namespace MoreMush.Mobile
             return PlayerPrefs.GetInt("Stage.Cleared", 0);
         }
 
-        public static int FarmRounds => GameBalance.ConstInt("harvestFarmRounds");
         public static int CycleLength => GameBalance.ConstInt("harvestCycleLength");
 
         // 옛 세이브는 표의 마지막 스테이지(그때의 끝)를 넘고도 거기 머물러 있었다 — 넘은 스테이지 다음으로 본다

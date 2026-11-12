@@ -17,21 +17,9 @@ namespace MoreMush.Mobile
         public static readonly Color ButtonAlt = new Color(0.95f, 0.65f, 0.30f, 1f);
         public static readonly Color ButtonOff = new Color(0.72f, 0.70f, 0.68f, 1f);
         public static readonly Color ButtonBlue = new Color(0.35f, 0.80f, 0.95f, 1f);   // [UI 개편 11-05] 하늘색 버튼 (진화 등)
-        public static readonly Color CardOn = new Color(1f, 0.97f, 0.88f, 1f);
         public static readonly Color CardOff = new Color(0.86f, 0.84f, 0.80f, 1f);
 
         // 색은 그림으로 정한다 (코드에서 물들이지 않는다). 위의 Button·Card 색 값은 어떤 그림을 쓸지 고르는 데만 쓴다
-        const string CardSprite = "UI/UI_PP_Out_Paper2";            // 켜진 카드
-        const string CardOffSprite = "UI/UI_PP_In_Color_Grey";      // 꺼진 카드 (회색)
-        const string ButtonSprite = "UI/UI_Btn_Green";              // ButtonOn
-        const string ButtonAltSprite = "UI/UI_Btn_Yellow";          // ButtonAlt
-        const string ButtonOffSprite = "UI/UI_Btn_Grey";            // ButtonOff · 누를 수 없음 (회색)
-        const string ButtonBlueSprite = "UI/UI_Btn_Sky";            // ButtonBlue
-        public const string CardBeigeSprite = "UI/UI_PP_In_Color_Beige1";   // [UI 개편 11-05] 성장 시트 카드 바탕
-        const string BarBackSprite = "UI/UI_PP_Bar_Gauge_Under";
-        const string BarGreenSprite = "UI/UI_PP_Bar_Gauge_Green";
-        const string BarYellowSprite = "UI/UI_PP_Bar_Gauge_Yellow";
-        static Sprite white;
 
         static Sprite Load(string path) => Resources.Load<Sprite>(path);
 
@@ -71,7 +59,7 @@ namespace MoreMush.Mobile
         {
             var rt = New("Card", list);
             var img = rt.gameObject.AddComponent<Image>();
-            img.sprite = Load(active ? (sprite ?? CardSprite) : CardOffSprite);   // [UI 개편 11-05] sprite = 켜진 카드 바탕을 바꿀 때
+            img.sprite = Load(active ? (sprite ?? UiSkin.CardPaper) : UiSkin.CardGrey);   // [UI 개편 11-05] sprite = 켜진 카드 바탕을 바꿀 때
             img.type = Image.Type.Sliced;
             img.color = Color.white;
             img.raycastTarget = false;
@@ -121,7 +109,7 @@ namespace MoreMush.Mobile
             rt.anchoredPosition = new Vector2(-right, 0f);
             var img = rt.gameObject.AddComponent<Image>();
             var want = interactable ? (tint ?? ButtonOn) : ButtonOff;
-            img.sprite = Load(want == ButtonAlt ? ButtonAltSprite : want == ButtonOff ? ButtonOffSprite : want == ButtonBlue ? ButtonBlueSprite : ButtonSprite);
+            img.sprite = Load(want == ButtonAlt ? UiSkin.BtnYellow : want == ButtonOff ? UiSkin.BtnGrey : want == ButtonBlue ? UiSkin.BtnSky : UiSkin.BtnGreen);
             img.type = Image.Type.Sliced;
             img.color = Color.white;
             var b = rt.gameObject.AddComponent<UnityEngine.UI.Button>();
@@ -159,24 +147,15 @@ namespace MoreMush.Mobile
             var back = New("Bar", parent);
             Place(back, new Vector2(0f, yAnchor), new Vector2(1f, yAnchor), offsetMin, offsetMax);
             var bg = back.gameObject.AddComponent<Image>();
-            bg.sprite = Load(BarBackSprite);
+            bg.sprite = Load(UiSkin.BarBack);
             bg.type = Image.Type.Sliced;
             bg.raycastTarget = false;
             var front = New("Fill", back);
             Place(front, Vector2.zero, new Vector2(Mathf.Clamp01(value), 1f), Vector2.zero, Vector2.zero);
             var fg = front.gameObject.AddComponent<Image>();
-            fg.sprite = Load(fill.g >= fill.r ? BarGreenSprite : BarYellowSprite);   // 초록 계열이면 초록 막대, 아니면 노란 막대
+            fg.sprite = Load(fill.g >= fill.r ? UiSkin.BarGreen : UiSkin.BarYellow);   // 초록 계열이면 초록 막대, 아니면 노란 막대
             fg.type = Image.Type.Sliced;
             fg.raycastTarget = false;
-        }
-
-        static Sprite White
-        {
-            get
-            {
-                if (white == null) white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
-                return white;
-            }
         }
 
         public static RectTransform New(string name, Transform parent)

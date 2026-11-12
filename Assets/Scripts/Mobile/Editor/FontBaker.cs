@@ -20,6 +20,7 @@ namespace MoreMush.Mobile
         const int Padding = 6;              // 샘플 크기의 10% (외곽선 0.25까지 여유)
         const int AtlasSize = 1024;         // 페이지 하나 1MB(Alpha8). 모자라면 페이지가 늘어난다
 
+        public const string WideFontPath = "Assets/Resources/UI/Fonts/LINESeedKR-Bd SDF Wide.asset";   // 외곽선 글자(OutlineText)용, BakeStaticFont가 굽는다
         public static readonly string[] FontPaths = { "Assets/Fonts/LINESeedKR-Bd SDF.asset", "Assets/Fonts/LINESeedKR-Rg SDF.asset" };
 
         const string ExtraSymbols = "·…×÷−–—→←↑↓★☆♥%‰°™©®“”‘’「」『』【】《》〈〉~!?！？•●○■□▲△▼▽◆◇♪♬∞≈≤≥";
@@ -131,11 +132,11 @@ namespace MoreMush.Mobile
             return missing ?? "";
         }
 
-        // 폰트에 없는 글자 (표 검사용). 두 폰트 중 하나라도 없으면 넣는다
+        // 폰트에 없는 글자 (표 검사용). Bd·Rg·Wide 중 하나라도 없으면 넣는다
         public static string MissingCharacters(string text)
         {
             var missing = new HashSet<char>();
-            foreach (var path in FontPaths)
+            foreach (var path in FontPaths.Append(WideFontPath))
             {
                 var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
                 if (font == null || font.atlasPopulationMode != AtlasPopulationMode.Static) continue;

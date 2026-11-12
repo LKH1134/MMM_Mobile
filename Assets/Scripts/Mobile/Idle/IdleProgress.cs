@@ -25,7 +25,7 @@ namespace MoreMush.Mobile
             public double valueExponent, valueDivisor;   // power면 값 = baseValue × (1 + Lv / valueDivisor)^valueExponent (레벨당 오르는 양이 레벨과 함께 커진다)
             public int maxLv;
             public double costBase, costExp;    // 비용 = costBase × (1 + Lv/10)^costExp × e^(Lv/costScale)
-            public double costScale;            // 0 = 지수 항 없음. = FarmScale × (기대 레벨/스테이지) → 기대 레벨에서 e^((s-1)/FarmScale)
+            public double costScale;            // 0 = 지수 항 없음. = 150 × (기대 레벨/스테이지) → 기대 레벨에서 e^((s-1)/150)
             public double costDivisor;          // 비용 식의 (1 + Lv/costDivisor)
             public bool multiply;               // true면 값 = baseValue × (1 + perLevel × Lv) (공격 속도)
             public bool power;                  // true면 값 = baseValue × (1 + Lv / valueDivisor)^valueExponent
@@ -527,10 +527,8 @@ namespace MoreMush.Mobile
         }
 
         // 골드(생산량)는 스테이지의 거듭제곱으로 계속 오르고, 강화 비용(소모량)은 거듭제곱 × 지수(priceScale)라 더 빨리 오른다.
-        // 그 차이 ≈ e^((s-1)/FarmScale)가 스테이지당 반복 판 수 → 누적 플레이 시간 대비 스테이지가 로그 곡선
+        // 그 차이 ≈ e^((s-1)/150)가 스테이지당 반복 판 수 → 누적 플레이 시간 대비 스테이지가 로그 곡선
         //   (밸런스설계/이론.md: 100스테이지 1.5시간 · 300 11시간 · 500 2.4일 · 1000 70일, 한 판 40초 가정). 전체 속도는 goldBase로 조절한다
-        public const double FarmScale = 150;
-
         public static long EnemyGold(int stage)
         {
             if (GameBalance.InStageTable(stage)) return GameBalance.Stage(stage).enemyGold;

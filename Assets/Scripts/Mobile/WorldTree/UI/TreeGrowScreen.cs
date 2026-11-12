@@ -255,18 +255,6 @@ namespace MoreMush.Mobile
             }
         }
 
-        static string PreferNames(TreeStageRow row)
-        {
-            if (row.preferIds == null || row.preferIds.Length == 0) return "-";
-            var sb = new StringBuilder();
-            foreach (int id in row.preferIds)
-            {
-                if (sb.Length > 0) sb.Append(" · ");
-                sb.Append(WorldTree.EnemyName(id));
-            }
-            return sb.ToString();
-        }
-
         // ── 가호·창고 목록 창 ──
         void ShowList(bool on)
         {
@@ -280,8 +268,8 @@ namespace MoreMush.Mobile
             if (listContent == null) return;
             foreach (var r in rows) if (r != null) Destroy(r);
             rows.Clear();
-            if (onSprite == null) onSprite = Resources.Load<Sprite>("UI/UI_PP_In_Color_Beige1");
-            if (offSprite == null) offSprite = Resources.Load<Sprite>("UI/UI_PP_In_Color_Grey");
+            if (onSprite == null) onSprite = Resources.Load<Sprite>(UiSkin.CardBeige);
+            if (offSprite == null) offSprite = Resources.Load<Sprite>(UiSkin.CardGrey);
 
             // 가호: 받은 것은 베이지, 아직은 회색 칸
             foreach (var b in GameBalance.Blessings)
@@ -338,27 +326,22 @@ namespace MoreMush.Mobile
         // ── 버튼 ──
         void RingUp()
         {
-            if (WorldTree.RingUp()) Toast(Loc.F("grow.ring_toast", WorldTree.Ring));
+            if (WorldTree.RingUp()) Toast.Post(Loc.F("grow.ring_toast", WorldTree.Ring));
             Refresh();
         }
 
         void Tribute()
         {
             double exp = WorldTree.Tribute();
-            if (exp > 0) Toast(Loc.F("grow.exp_toast", Wallet.Format((long)exp)));
+            if (exp > 0) Toast.Post(Loc.F("grow.exp_toast", Wallet.Format((long)exp)));
             Refresh();
         }
 
         void Evolve()
         {
-            if (WorldTree.Evolve()) Toast(Loc.F("grow.evolve_toast", WorldTree.CurrentRow.Name));
+            if (WorldTree.Evolve()) Toast.Post(Loc.F("grow.evolve_toast", WorldTree.CurrentRow.Name));
             Refresh();
         }
 
-        static void Toast(string message)
-        {
-            var screen = FindAnyObjectByType<WorldTreeScreen>();
-            if (screen != null) screen.ShowToast(message);
-        }
     }
 }

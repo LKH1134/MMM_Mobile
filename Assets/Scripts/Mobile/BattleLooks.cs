@@ -9,11 +9,17 @@ namespace MoreMush.Mobile
     // 그림 고르기는 따로 둔 난수를 쓴다 — 판 진행용 UnityEngine.Random 순서를 건드리면 측정기(같은 시드 = 같은 결과)가 달라진다
     public static class BattleLooks
     {
-        const string KindFolder = "Art/Dream/Characters/Enumy";        // IdleBattle.kindFolder와 같은 폴더
-        const string HarvesterFolder = "Art/Dream/Harvesters";         // IdleBattle.harvesterFolder와 같은 폴더
+        const string KindFolder = "Art/Dream/Characters/Enumy";        // 식용·독버섯·약용버섯 군락 시트 (적 시트 mushroom_ed·tx·md행)
+        const string HarvesterFolder = "Art/Dream/Harvesters";
 
         static Sprite[] edible, toxic, medicinal, harvesters;
         static readonly System.Random rng = new System.Random();
+
+        // 종류별 적 그림 (보스 조각 제외). 방치 전투(IdleBattle)와 던전이 같은 배열을 쓴다 — 폴더는 한 번만 읽는다
+        public static Sprite[] Edible { get { EnsureEnemies(); return edible; } }
+        public static Sprite[] Toxic { get { EnsureEnemies(); return toxic; } }
+        public static Sprite[] Medicinal { get { EnsureEnemies(); return medicinal; } }
+        public static Sprite[] Harvesters => harvesters ??= Resources.LoadAll<Sprite>(HarvesterFolder);
 
         static void EnsureEnemies()
         {
@@ -58,8 +64,7 @@ namespace MoreMush.Mobile
         {
             var weapon = Equipment.Weapon.Sprite(Equipment.Weapon.Equipped);
             if (weapon != null) return weapon;
-            if (harvesters == null) harvesters = Resources.LoadAll<Sprite>(HarvesterFolder);
-            return harvesters.Length > 0 ? harvesters[0] : null;
+            return Harvesters.Length > 0 ? Harvesters[0] : null;
         }
     }
 }

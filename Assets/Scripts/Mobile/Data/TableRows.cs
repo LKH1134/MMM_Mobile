@@ -8,7 +8,6 @@ namespace MoreMush.Mobile
     // Mushroom.xlsx — 1001~1999
     public class MushroomData : TableRow
     {
-        public int dexNo;          // 도감 번호 (도감 기능에서 정렬·표시)
         public int hp;             // 체력. 1이면 한 번에 캐지는 단일 개체
         public long reward;        // 캤을 때 오르는 돈
         public string prefab;      // 필드에 놓을 프리팹 경로 (Resources 기준)
@@ -31,13 +30,11 @@ namespace MoreMush.Mobile
     public class SkillData : TableRow
     {
         public SkillBranch branch; // 가지
-        public int rarity;         // 레어도 (0 = 시작, 1~19). 유저에게는 안 보이는 관리용, 클수록 트리 바깥쪽
         public SkillTag tag;
         public string group;       // 같은 스킬 계열 키 (효율적 사냥 Lv.1~3 / Lv.4 / Lv.5 노드가 같은 값)
         public int startLevel;     // 이 노드의 첫 레벨이 계열에서 몇 레벨인지 (Lv.4 노드면 4). 비우면 1
         public int lane;           // 스킬 트리의 세로 줄 (0~4, 왼쪽부터)
         public int row;            // 스킬 트리의 가로 줄 (0 = 맨 아래 시작 노드, 위로 갈수록 큼)
-        public int tier;           // 티어 (1 = 시작 스킬, link를 따라 한 칸 멀어질 때마다 +1). 노드 배치용 (아직 배치엔 안 씀)
         public string ability;     // 능력 종류 키 (SkillAbility). 효과 코드가 이 키로 찾는다
         public float abilityBase;  // 1레벨 이상일 때 한 번 더하는 값 (레벨마다 오르는 폭이 첫 레벨과 다를 때)
         public float abilityValue; // 레벨당 능력 수치 (배율·증가량 등, 해석은 ability마다). 비율은 0.1 = 10%
@@ -49,7 +46,6 @@ namespace MoreMush.Mobile
         public Currency levelCurrency; // 2레벨부터의 재화 (levelPrice가 있을 때만 읽는다)
         public float priceGrowth;  // 레벨마다 가격 배율 (비우면 1)
         public int link;          // 연결 노드 index (트리에 선으로 그린다). 1레벨 이상 배워야 열린다 (유일한 해금 조건). 0 = 없음 (시작 노드)
-        public int[] requires;     // 이전 레벨 노드 index들 (같은 스킬의 앞 노드). 지금은 해금 조건에 쓰지 않는다 (선으로 보이지 않는 조건이라 뺐다)
     }
 
     // Stage.xlsx — 5001~5999. 한 행 = 스테이지 하나 (stage 1부터 차례로). 보스 스테이지는 boss에 보스 index를 넣는다
@@ -60,16 +56,12 @@ namespace MoreMush.Mobile
         public float hpRate;       // 체력 계수. 버섯·보스 체력에 곱한다. 뒤로 갈수록 크다
         public float rewardRate;   // 점수·수확량 배율
         public int boss;           // 보스 index (Boss.xlsx). 0이면 일반 스테이지
-        public StageGoal goalType; // 표에만 남은 열. 게임은 쓰지 않는다 — 일반 스테이지는 판을 마치면 넘어간다 (보스 스테이지는 보스 처치)
-        public int goal;           // 표에만 남은 열 (옛 수확 목표). 게임은 쓰지 않는다
         public float mushHpMul;    // 일반 버섯 체력 배율 (보스엔 안 곱함). 비우면 1
         public int gem;            // 첫 클리어 때 주는 균사석 (★ 스테이지). 보스 스테이지는 Boss.xlsx gem을 더한다
 
         // 표에 없는 값 (속성이라 표 열로 읽지 않는다). 표 뒤 스테이지에서 다시 쓰는 보스의 체력 배율 (StageProgress.Generate)
         public float BossHpMul { get; set; } = 1f;
     }
-
-    public enum StageGoal { None, Harvest }   // 없음 / 버섯 n개 수확
 
     public enum BossGimmick { None, Heal, Purge, Split, Move }   // 없음 / 체력 회복 / 임시 수확기 제거 / 분신 / 좌우 이동
 

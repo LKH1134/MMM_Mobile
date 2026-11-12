@@ -49,7 +49,7 @@ namespace MoreMush.Mobile
                     + TreeUi.Duration(WorldTree.CraftSeconds(d)));
                 SetButton(card, "Button", RecipeLabel(fail, d), fail == WorldTree.CraftFail.None, () =>
                 {
-                    if (WorldTree.StartCraft(dd)) Toast(Loc.F("craft.start_toast", dd.Name));
+                    if (WorldTree.StartCraft(dd)) Toast.Post(Loc.F("craft.start_toast", dd.Name));
                 });
             }
         }
@@ -66,13 +66,13 @@ namespace MoreMush.Mobile
                 if (state != null) state.color = TreeUi.Good;
                 SetButton(card, "Button", Loc.T("tree.claim"), true, () =>
                 {
-                    if (WorldTree.ClaimCraft(i)) Toast(Loc.F("craft.claim_toast", d?.Name));
-                }, "UI/UI_Btn_Yellow");
+                    if (WorldTree.ClaimCraft(i)) Toast.Post(Loc.F("craft.claim_toast", d?.Name));
+                }, UiSkin.BtnYellow);
                 return;
             }
             var st = card.Find("State")?.GetComponent<TMP_Text>();
             if (st != null) Live(st, () => Loc.F("craft.remaining", TreeUi.Duration(WorldTree.CraftRemaining(c))));
-            var rush = SetButton(card, "Button", null, WorldTree.CanRush(i), () => { if (WorldTree.Rush(i)) Toast(Loc.T("craft.rush_toast")); });
+            var rush = SetButton(card, "Button", null, WorldTree.CanRush(i), () => { if (WorldTree.Rush(i)) Toast.Post(Loc.T("craft.rush_toast")); });
             if (rush != null) Live(rush.GetComponentInChildren<TMP_Text>(), () => Loc.F("craft.rush", Mycelite(WorldTree.RushCost(c))));
         }
 

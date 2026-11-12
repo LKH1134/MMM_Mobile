@@ -23,8 +23,6 @@ namespace MoreMush.Mobile
         [SerializeField] TabGroup homeTabs;                 // Main 하단바 — 열린 탭이 없을 때(홈)만 전투를 보인다 (비우면 늘 보인다)
 
         [Header("리소스 (Resources 경로)")]
-        [SerializeField] string kindFolder = "Art/Dream/Characters/Enumy";     // 식용·독버섯·약용버섯 군락 시트 (적 시트 mushroom_ed·tx·md행 = 세계수 창고)
-        [SerializeField] string harvesterFolder = "Art/Dream/Harvesters";
 
         [Header("크기·연출")]
         [SerializeField] float ggomaSize = 169f;
@@ -35,7 +33,6 @@ namespace MoreMush.Mobile
         [SerializeField] float flightTime = 0.45f;          // 수확기가 날아가는 시간
         [SerializeField] float arcHeight = 140f;            // 포물선 높이
         [SerializeField] float waveDelay = 0.6f;            // 웨이브 사이 쉬는 시간
-        [SerializeField] float hudTop = -230f;              // HUD 위치 (캔버스 위쪽 기준)
         [SerializeField] float enemyAttackDelay = 0.4f;     // 적이 나타나고 이만큼 지나야 공격한다
 
         class Ggoma { public RectTransform rt; public Image img; public int slot; public float timer, punch, phase; public Sprite harvester; }
@@ -92,9 +89,6 @@ namespace MoreMush.Mobile
 
         // 스테이지 배너: "스테이지 챕터-번호" (방치전투 시트 stagesPerChapter. 시트의 chapterName은 배너에 쓰지 않는다)
         static int StagesPerChapter => Mathf.Max(1, GameBalance.IdleBattle.stagesPerChapter);
-        const string MapIcon = "UI/Icon/quest_scroll";                 // 임시 그림
-        const string PowerIcon = "UI/Icon/workshop_hammer";       // 임시 그림
-        const float PowerPillY = -967f;     // 강화 목록(UpgradePanel) 위쪽 가장자리 — 전투 화면과 강화 목록 사이
         static readonly Color NormalFill = new Color(0.2f, 0.85f, 0.8f);
         static readonly Color BossFill = new Color(0.95f, 0.35f, 0.35f);
         float powerRefreshIn;
@@ -132,12 +126,11 @@ namespace MoreMush.Mobile
             hitFx = new HitEffects(effectLayer);
             white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
             // 보스로 쓰는 조각(보스 시트 resourceId + cell)은 일반 적으로 나오지 않게 뺀다
-            var kinds = System.Array.FindAll(Resources.LoadAll<Sprite>(kindFolder), sp => !GameBalance.IsBossSprite(sp.name));
-            enemySprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Edible);
-            toxicSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Toxic);
-            medicinalSprites = System.Array.FindAll(kinds, sp => GgomaSkills.KindOf(sp.name) == MushroomKind.Medicinal);
-            harvesterSprites = Resources.LoadAll<Sprite>(harvesterFolder);
-            if (enemySprites.Length == 0) Debug.LogWarning($"[IdleBattle] 식용 적 그림 없음: Resources/{kindFolder}");
+            enemySprites = BattleLooks.Edible;
+            toxicSprites = BattleLooks.Toxic;
+            medicinalSprites = BattleLooks.Medicinal;
+            harvesterSprites = BattleLooks.Harvesters;
+            if (enemySprites.Length == 0) Debug.LogWarning("[IdleBattle] 식용 적 그림 없음");
 
             if (hidePlaceholders)
             {
@@ -1060,30 +1053,6 @@ namespace MoreMush.Mobile
         int shownBossSec = -1;
 
         // ── 만들기 도우미 ──
-
-        RectTransform MakeBar(string name, Transform parent, Vector2 pos, Vector2 size, Color color)
-        {
-            var bg = MakeImage(name, parent, white, size);
-            bg.preserveAspect = false;
-            bg.color = new Color(0f, 0f, 0f, 0.5f);
-            Place(bg.rectTransform, pos, size);
-            var fill = MakeImage("Fill", bg.rectTransform, white, Vector2.zero);
-            fill.preserveAspect = false;
-            fill.color = color;
-            var rt = fill.rectTransform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            return rt;
-        }
-
-        static void Place(RectTransform rt, Vector2 pos, Vector2 size)
-        {
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-        }
 
         static Image MakeImage(string name, Transform parent, Sprite sprite, Vector2 size)
         {

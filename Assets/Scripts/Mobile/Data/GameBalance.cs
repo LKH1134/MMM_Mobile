@@ -19,7 +19,6 @@ namespace MoreMush.Mobile
         static MascotRow[] mascots;
         static StageRow[] stages;
         static GradeRow[] grades;
-        static string[] gradeNames;
         static GachaLevelRow[] gachaLevels;
         static Dictionary<int, string> resources;
         static Dictionary<int, DungeonRow> dungeons;
@@ -64,7 +63,6 @@ namespace MoreMush.Mobile
             mascots = null;
             stages = null;
             grades = null;
-            gradeNames = null;
             gachaLevels = null;
             resources = null;
             dungeons = null;

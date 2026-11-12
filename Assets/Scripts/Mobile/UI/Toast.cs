@@ -11,6 +11,17 @@ namespace MoreMush.Mobile
     {
         [SerializeField] TMP_Text messageText;
         [SerializeField] float fade = 0.2f;           // 나타날 때·사라질 때 걸리는 시간
+        [SerializeField] float defaultDuration = 2f;  // Post가 쓰는 시간 (WorldTree 씬은 3)
+
+        static Toast current;
+
+        // 어디서나 부르는 안내 문구: 지금 씬의 Toast(씬마다 하나, 꺼져 있어도 찾는다)에 띄운다. 없으면 콘솔에만
+        public static void Post(string message)
+        {
+            if (current == null) current = FindAnyObjectByType<Toast>(FindObjectsInactive.Include);
+            if (current != null) current.Show(message, current.defaultDuration);
+            else Debug.Log("[Toast] " + message);
+        }
 
         CanvasGroup group;
         Coroutine play;

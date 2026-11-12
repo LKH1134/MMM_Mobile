@@ -887,8 +887,6 @@ MonoBehaviour:
       popup: {fileID: 1737797610}
   backScene: Main
   popupRoot: {fileID: 2048336445}
-  toast: {fileID: 2082644210}
-  toastDuration: 3
 --- !u!1 &451759877
 GameObject:
   m_ObjectHideFlags: 0
@@ -3478,6 +3476,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2048336445}
     m_Modifications:
+    - target: {fileID: 56380357808796695, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
+      propertyPath: defaultDuration
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 1007260016198833267, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3571,17 +3573,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
---- !u!114 &2082644210 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 56380357808796695, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}
-  m_PrefabInstance: {fileID: 2082644209}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e09ae254a43336c4cb80354fa9472328, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoreMush.Mobile.Toast
 --- !u!224 &2082644211 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1007260016198833267, guid: f392a18d0d34a76438cf33b957ccbc34, type: 3}

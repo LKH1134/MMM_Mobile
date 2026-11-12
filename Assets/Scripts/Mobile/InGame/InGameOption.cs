@@ -5,14 +5,13 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // InGame 옵션 팝업 내용. 효과음 슬라이더(값만 저장 — 효과음 연결은 추후), 로비(Main)로 돌아가기.
-    // 배경음 슬라이더는 OptionPopup 프리팹에 붙은 BgmVolumeSlider가 맡는다 (bgmSlider는 참조만 남김)
+    // 배경음 슬라이더는 OptionPopup 프리팹에 붙은 BgmVolumeSlider가 맡는다
     // 닫기는 UiPopup의 CloseButton이 맡는다
     public class InGameOption : MonoBehaviour
     {
         public const string BgmKey = "Option.BgmVolume";
         public const string SfxKey = "Option.SfxVolume";
 
-        [SerializeField] Slider bgmSlider;
         [SerializeField] Slider sfxSlider;
         [FormerlySerializedAs("worldTreeButton")]
         [SerializeField] Button lobbyButton;

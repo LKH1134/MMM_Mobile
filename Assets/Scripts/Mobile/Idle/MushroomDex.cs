@@ -97,17 +97,6 @@ namespace MoreMush.Mobile
 
         public static bool IsComplete(DexRow row) => row != null && row.count > 0 && CollectedCount(row) >= row.count;
 
-        public static int TotalCollected
-        {
-            get
-            {
-                Ensure();
-                int n = 0;
-                foreach (int o in owned) n += PopCount(o);
-                return n;
-            }
-        }
-
         // 켜진 세트의 그 능력치 % 합
         public static double Percent(DexStat stat)
         {
@@ -188,15 +177,6 @@ namespace MoreMush.Mobile
             PlayerPrefs.SetInt(Key(rows[slot]), owned[slot]);
             SaveScheduler.MarkDirty();
             percent = null;
-        }
-
-        // 개발용: 무리 하나를 다 채우거나 비운다
-        public static void DevSetGroup(DexRow row, bool full)
-        {
-            int s = Slot(row);
-            if (s < 0) return;
-            Set(s, full ? FullMask(row) : 0);
-            Changed?.Invoke();
         }
 
         // 화면 표시: "식용 ★3"

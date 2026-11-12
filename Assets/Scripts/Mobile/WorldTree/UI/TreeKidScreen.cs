@@ -127,7 +127,7 @@ namespace MoreMush.Mobile
             var requests = WorldTree.Requests;
             if (index >= requests.Count) return;
             string kid = requests[index].kid;
-            if (WorldTree.DoRequest(index)) Toast(Loc.F("kid.help_toast", Formation.Name(kid)));
+            if (WorldTree.DoRequest(index)) Toast.Post(Loc.F("kid.help_toast", Formation.Name(kid)));
             Refresh();
         }
 
@@ -142,7 +142,7 @@ namespace MoreMush.Mobile
 
         void ClaimWeek()
         {
-            if (WorldTree.ClaimWeek()) Toast(Loc.F("kid.claim_toast", Loc.F("tree.mycelite", Wallet.Format(WorldTree.WeekMycelite))));
+            if (WorldTree.ClaimWeek()) Toast.Post(Loc.F("kid.claim_toast", Loc.F("tree.mycelite", Wallet.Format(WorldTree.WeekMycelite))));
             Refresh();
         }
 
@@ -220,14 +220,9 @@ namespace MoreMush.Mobile
         void Evolve()
         {
             if (string.IsNullOrEmpty(selected)) return;
-            if (WorldTree.KidEvolve(selected)) Toast(Loc.F("kid.evolve_toast", Formation.Name(selected), WorldTree.Star(selected)));
+            if (WorldTree.KidEvolve(selected)) Toast.Post(Loc.F("kid.evolve_toast", Formation.Name(selected), WorldTree.Star(selected)));
             Refresh();
         }
 
-        static void Toast(string message)
-        {
-            var screen = FindAnyObjectByType<WorldTreeScreen>();
-            if (screen != null) screen.ShowToast(message);
-        }
     }
 }
