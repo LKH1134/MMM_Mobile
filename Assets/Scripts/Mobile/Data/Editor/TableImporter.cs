@@ -7,7 +7,7 @@ using UnityEngine;
 namespace MoreMush.Mobile.EditorTools
 {
     // Assets/Data/Tables/*.xlsx가 바뀌면 Resources/Tables/<이름>.bytes로 복사하고 내용을 검사해 콘솔에 알린다.
-    // GameBalance 통합 표를 검증 후 복사한다. 게임(GameBalance)은 이 bytes를 읽는다.
+    // 메인 표 MainTable.xlsx를 검증 후 복사한다. 게임(GameBalance)은 이 bytes를 읽는다.
     // Legacy는 보관용이므로 자동 임포트 대상에서 제외한다. GameData는 보존한 Legacy bytes를 읽는다.
     // 엑셀이 열려 있을 때 생기는 잠금 파일(~$*.xlsx)은 무시한다
     class TableImporter : AssetPostprocessor
@@ -93,7 +93,7 @@ namespace MoreMush.Mobile.EditorTools
         {
             switch (name)
             {
-                case "GameBalance": return GameBalanceValidator.Validate(bytes, issues);
+                case "MainTable": return GameBalanceValidator.Validate(bytes, issues);
                 case "String": return ValidateStrings(bytes, issues);
                 case "Mushroom": return Check(new DataTable<MushroomData>(name, GameData.Mushrooms.IndexMin, GameData.Mushrooms.IndexMax), bytes, issues);
                 case "Harvester": return Check(new DataTable<HarvesterData>(name, GameData.Harvesters.IndexMin, GameData.Harvesters.IndexMax), bytes, issues);

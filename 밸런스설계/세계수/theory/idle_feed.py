@@ -1,6 +1,13 @@
+# !! 2026-11-12: 지금 표(MainTable.xlsx)로는 돌지 않는다 (확인: `python idle_feed.py v3 3`).
+#    1) 상수 dungeonSweepMul이 없어졌다 → setup_live KeyError.
+#    2) 그것을 넘겨도 KHD 방치 모델(밸런스설계/theory/progress.py·formulas.py, 마지막 11-04)이 펫(Pet)을 전제한다 → Gear() KeyError 'Pet'.
+#    3) 그 밖에 KHD 모델에 없는 지금 규칙: 강화 valueMode Incremental(IdleProgress.cs:279-334)·공격속도단계 시트·벽 보스(wallBoss*)·
+#       던전 4·5 모드(BossRush·BossLevel)·도감 세트·꼬마 조각(ggomaCopies*)·성장 관문(ggomaGrowMycelite*)·weaponEffectMul·광고 뽑기 35 × 3종.
+#    → 방치 모델을 다시 포팅하는 일은 KHD 방치 이론 몫이라 여기서 고치지 않는다. 세계수 모델은 11-03 feed(feed_v3_*_90.json)를 쓰고,
+#      꼬마 뽑기 수만 wt_model.Tree.kid_pulls_today가 지금 규칙(3종·꼬마 광고 35)으로 바꾼다. 이론.md "2026-11-12 모델 현행화" 1절.
 # 방치 진행 → 세계수 입력 (하루 단위), 라운드 4 = KHD 방치 밸런스 v3 머지(c53ecf2) 뒤.
 # KHD 방치 모델(밸런스설계/theory: formulas·progress·battle·dungeon)을 읽기 전용으로 import해 돌리고,
-# 입력은 **라이브 표**(Assets/Data/Tables/GameBalance.xlsx)에서 직접 만든다 (KHD run_v3d.setup → gen_stage는 옛 1000행 전제라 쓰지 않음):
+# 입력은 **라이브 표**(Assets/Data/Tables/MainTable.xlsx)에서 직접 만든다 (KHD run_v3d.setup → gen_stage는 옛 1000행 전제라 쓰지 않음):
 #   스테이지 1~700 = 스테이지 시트 그대로 (enemyHp·bossHp 포함),
 #   701~ = IdleProgress.cs 꼬리: TailStage = 표 끝(10의 배수면 그 앞 = 699), 값 × growth^(s−TailStage),
 #          챕터 보스(10의 배수) bossHp × tailWallMul, EnemyGold ClampToLong, BossGold = EnemyGold × bossGoldMul, BossMycelite = 표 끝 값,
@@ -26,7 +33,7 @@ import formulas as F
 import progress as P
 import dungeon as DG
 
-XLSX = os.path.join(ROOT, 'Assets', 'Data', 'Tables', 'GameBalance.xlsx')
+XLSX = os.path.join(ROOT, 'Assets', 'Data', 'Tables', 'MainTable.xlsx')
 KINDS = ['Weapon', 'Pet', 'Accessory', 'Character']
 
 
@@ -39,6 +46,8 @@ def _sheet(wb, name):
 def setup_live(d1_only=False):
     wb = openpyxl.load_workbook(XLSX, data_only=True)
     C = {r['key']: float(r['value']) for r in _sheet(wb, '상수')}
+    if 'dungeonSweepMul' not in C or 'Pet' not in {r['kind'] for r in _sheet(wb, '장비')}:
+        raise SystemExit('idle_feed: 지금 표는 11-04 뒤 방치 규칙(펫 삭제·dungeonSweepMul 삭제·Incremental 강화 …)이라 KHD 모델로 feed를 만들 수 없다. 파일 머리 주석 참고')
     rows = {}
     for r in _sheet(wb, '스테이지'):
         rows[int(r['stage'])] = dict(waves=int(r['wavesPerStage']), bossTime=float(r['bossTime']), cb=int(r['enemyCountBase']),

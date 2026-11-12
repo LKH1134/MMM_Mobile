@@ -44,7 +44,7 @@ static class Program
 
     static int Main(string[] args)
     {
-        string path = args.Length > 0 ? args[0] : @"C:\Project\MMM_Mobile\Assets\Resources\Tables\GameBalance.bytes";
+        string path = args.Length > 0 ? args[0] : @"C:\Project\MMM_Mobile\Assets\Resources\Tables\MainTable.bytes";
         byte[] bytes = File.ReadAllBytes(path);
 
         var vi = new List<string>();

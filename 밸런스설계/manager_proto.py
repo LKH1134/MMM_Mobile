@@ -1,8 +1,8 @@
-# GameBalance.xlsx를 IdleProgress.cs(새 공식)에 맞춘다: 업그레이드 시트, 리소스 시트, 스테이지 스냅샷, info 설명
+# MainTable.xlsx를 IdleProgress.cs(새 공식)에 맞춘다: 업그레이드 시트, 리소스 시트, 스테이지 스냅샷, info 설명
 import math
 import openpyxl
 
-PATH = 'Assets/Data/Tables/GameBalance.xlsx'
+PATH = 'Assets/Data/Tables/MainTable.xlsx'
 
 # ── IdleProgress.cs 포팅 ──
 D = {

@@ -29,7 +29,6 @@ namespace MoreMush.Mobile.EditorTools
             { "가호", "index:int key:string stage:int effect:TreeEffect value:double" },
             { "꼬마진화", "index:int key:string star:int mycelite:int needLevel:int" },
             { "꼬마스킬", "index:int key:string owner:string stage:int effect:GgomaSkillEffect value:double name:string" },
-            { "호감도", "index:int key:string level:int need:int" },
             { "장식", "index:int key:string name:string owner:string grade:int zone:TreeZone effect:TreeEffect value:double resourceId:int" },
             { "장식등급", "index:int key:string name:string grade:int goldKills:int mycelite:int hours:double" },
             { "장비", "index:int key:string name:string kind:GachaKind stat:EquipStat itemIndex:int grade:int sub:int resourceId:int" },
@@ -61,9 +60,9 @@ namespace MoreMush.Mobile.EditorTools
             ("mycelBase", 0, true), ("mycelStageDiv", 1, true),
             ("adBoxIntervalHours", 0.001, false), ("adBoxStaySeconds", 1, false), ("adBoxGoldKills", 0, true), ("adBoxMycelite", 0, true),
             ("treeRingMax", 1, true), ("treeRingGrowth", 1, false), ("treeHarvestPerKill", 0, false),
-            ("tributePreferMul", 0, false), ("giftFavoriteMul", 0, false), ("giftMaxCount", 1, true),
-            ("requestPerDay", 0, true), ("requestAffinity", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
-            ("decoFirstMycelite", 0, true), ("decoFirstAffinity", 0, true),
+            ("tributePreferMul", 0, false),
+            ("requestPerDay", 0, true), ("requestGoldKills", 0, false), ("requestWeekGoal", 1, true), ("requestWeekMycelite", 0, true),
+            ("decoFirstMycelite", 0, true),
             ("craftRushSeconds", 1, false), ("craftRushPerDay", 0, true),
             ("dungeonAdPerDay", 0, true), ("dungeonAutoNextSeconds", 1, false), ("dungeonFailMul", 0, false),
             ("bossRushCount", 1, true), ("bossLvSeconds", 5, false), ("bossLvHpGrowth", 1, false), ("bossLvAtkGrowth", 1, false),
@@ -378,16 +377,6 @@ namespace MoreMush.Mobile.EditorTools
                 Positive(r, "value", issues);
                 if (string.IsNullOrWhiteSpace(r.Text("name"))) issues.Add(r.At("name") + ": 스킬 이름이 비어 있다");
             }
-
-            var levels = new HashSet<int>();
-            foreach (var r in tables["호감도"])
-            {
-                if (!levels.Add(r.Int("level"))) issues.Add(r.At("level") + ": 호감도 레벨이 겹친다");
-                Between(r, "need", 0, int.MaxValue, issues);
-            }
-            if (levels.Count == 0 || levels.Min() != 1 || levels.Max() != levels.Count) issues.Add("[호감도] level은 1부터 빠짐없이 이어져야 한다");
-            foreach (var r in tables["호감도"])
-                if (r.Int("level") < levels.Count && r.Int("need") <= 0) issues.Add(r.At("need") + ": 최고 레벨이 아니면 0보다 커야 한다");
 
             var grades = new HashSet<int>();
             foreach (var r in tables["장식등급"])

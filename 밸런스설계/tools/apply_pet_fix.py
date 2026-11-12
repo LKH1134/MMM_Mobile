@@ -1,11 +1,11 @@
 # 펫 삭제 보정 (11-05, verify#20 조건부 통과 · 사용자 수용): theory#19 ①+② 적용.
 #   ① 상수 9081 weaponEffectMul = 1.75 (Equipment.BaseOwnPercent 무기만 곱함)
 #   ② 스테이지 421~700 enemyHp·bossHp = theory/pet_hp_late2.csv 새 값 (k = 1@420 → 0.55@600 → 0.35@700 로그 보간)
-#   사용: python apply_pet_fix.py <출력.xlsx>   (원본은 Assets/Data/Tables/GameBalance.xlsx)
+#   사용: python apply_pet_fix.py <출력.xlsx>   (원본은 Assets/Data/Tables/MainTable.xlsx)
 import csv, os, re, sys, zipfile
 from xml.sax.saxutils import escape
 
-SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\GameBalance.xlsx'
+SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\MainTable.xlsx'
 CSV = os.path.join(os.path.dirname(__file__), '..', 'theory', 'pet_hp_late2.csv')
 CONST = (9081, 'weaponEffectMul', 1.75, '무기 보유·장착 효과 배율(무기만, 방어구는 1). 펫 삭제로 빠진 공격% 보정 (11-05, 검증.md P절)')
 

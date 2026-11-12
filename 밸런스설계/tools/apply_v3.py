@@ -1,9 +1,9 @@
-# 이론 v3 (밸런스설계/이론.md 10.2 v3 표) 를 GameBalance.xlsx에 넣는다. 사용: python apply_v3.py <출력.xlsx>
+# 이론 v3 (밸런스설계/이론.md 10.2 v3 표) 를 MainTable.xlsx에 넣는다. 사용: python apply_v3.py <출력.xlsx>
 # 던전 새 열(C7·C8)은 보상 연결 방식이 정해진 뒤에 넣는다 — 여기서는 해금 스테이지만
 import csv, re, sys, zipfile
 from xml.sax.saxutils import escape
 
-SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\GameBalance.xlsx'
+SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\MainTable.xlsx'
 CSV = r'C:\Project\MMM_Mobile\밸런스설계\theory\stage_proposal_v3.csv'
 DST = sys.argv[1]
 LAST_STAGE = 700

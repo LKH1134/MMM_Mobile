@@ -1,8 +1,8 @@
-# 표 덤프 (검증용): 실제 GameBalance.xlsx를 openpyxl로 읽어 시트별 행을 출력
+# 표 덤프 (검증용): 실제 MainTable.xlsx를 openpyxl로 읽어 시트별 행을 출력
 import openpyxl, sys, os
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
-wb = openpyxl.load_workbook(os.path.join(ROOT, 'Assets/Data/Tables/GameBalance.xlsx'), data_only=True)
+wb = openpyxl.load_workbook(os.path.join(ROOT, 'Assets/Data/Tables/MainTable.xlsx'), data_only=True)
 want = sys.argv[1:] or wb.sheetnames
 print(wb.sheetnames)
 for n in want:

@@ -1,4 +1,4 @@
-# 게임 공식 포팅 (IdleProgress.cs · Equipment.cs · GachaProgress.cs) — 표는 GameBalance.xlsx에서 읽는다.
+# 게임 공식 포팅 (IdleProgress.cs · Equipment.cs · GachaProgress.cs) — 표는 MainTable.xlsx에서 읽는다.
 # 오버라이드: set_overrides({'const': {...}, 'upgrade': {stat: {col: val}}, 'stage_fn': f, 'quest_myc': [...]})로 수치안을 시험한다.
 import math, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
@@ -17,7 +17,7 @@ def _rows(sheet):
 
 class Tables:
     def __init__(self):
-        d = xlsx_dump.load(os.path.join(ROOT, 'Assets/Data/Tables/GameBalance.xlsx'))
+        d = xlsx_dump.load(os.path.join(ROOT, 'Assets/Data/Tables/MainTable.xlsx'))
         self.up = {}
         for r in _rows(d['업그레이드']):
             self.up[r['stat']] = dict(

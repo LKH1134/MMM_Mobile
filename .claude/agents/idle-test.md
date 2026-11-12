@@ -14,7 +14,7 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 ## 입력
 
 - 공식(코드 한 곳): `Assets/Scripts/Mobile/Idle/IdleProgress.cs`(강화 값·비용·기대 성장 곡선·적 체력/공격·골드·균사석), 전투 규칙 `Idle/IdleBattle.cs`(꼬마 5명 투척·웨이브·보스 제한 시간·꼬마 무리 체력/재생·패배 시 1웨이브부터), `Idle/Formation.cs`(꼬마 배율), `Idle/Equipment.cs`·`GachaProgress.cs`(뽑기·보유/장착 효과), `UI/GachaPanel.cs`(가격 — **씬 `Assets/Scenes/Main.unity`의 직렬화 값이 우선**), `Idle/IdleAway.cs`(앱 밖 보상), `Ads/AdBox.cs`(광고 상자), `Quest/DailyQuests.cs`(일일 퀘스트), `DungeonTickets.cs`·`InGame/HarvestGame.cs`·`StageProgress.cs`(던전)
-- 표: `Assets/Resources/Tables/GameBalance.bytes`(= `Assets/Data/Tables/GameBalance.xlsx`, 시트 상수·업그레이드·스테이지·등급·뽑기·던전·퀘스트·꼬마)
+- 표: `Assets/Resources/Tables/MainTable.bytes`(= `Assets/Data/Tables/MainTable.xlsx`, 시트 상수·업그레이드·스테이지·등급·뽑기·던전·퀘스트·꼬마)
 - 문서: `BALANCE_IDLE.md`, `밸런스설계/이전_1030/`(지난 설계: 100스테이지 1.5시간 · 1000 약 70일)
 
 ## 시뮬 만드는 법

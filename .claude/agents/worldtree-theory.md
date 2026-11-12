@@ -14,7 +14,7 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 ## 입력
 
 - 세계수 공식: `Assets/Scripts/Mobile/WorldTree/WorldTree.cs`·`.Growth.cs`·`.Kids.cs`·`.Craft.cs`·`.Bonus.cs`, 전투 반영 `Idle/IdleProgress.cs`(Final*)·`Idle/IdleBattle.cs`(AddHarvest·처치 골드·보스 균사석)
-- 표: `Assets/Data/Tables/GameBalance.xlsx` (python openpyxl/zipfile로 읽기)
+- 표: `Assets/Data/Tables/MainTable.xlsx` (python openpyxl/zipfile로 읽기)
 - 방치 진행: `밸런스설계/theory/`(KHD 이론 모델 — 읽고 가져다 써도 되지만 그 폴더에 쓰지 않는다), `밸런스설계/테스트.md`(실측)
 
 ## 하는 일

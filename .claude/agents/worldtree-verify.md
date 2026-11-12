@@ -14,7 +14,7 @@ tools: Read, Grep, Glob, Write, Bash
 ## 입력
 
 - 세계수 코드: `Assets/Scripts/Mobile/WorldTree/*.cs`, `Idle/IdleProgress.cs`(Final*), `Idle/IdleBattle.cs`(AddHarvest·배율)
-- 표: `Assets/Data/Tables/GameBalance.xlsx` — **관리자가 적용한 실제 표**를 읽는다(이론.md의 숫자를 그대로 믿지 않는다)
+- 표: `Assets/Data/Tables/MainTable.xlsx` — **관리자가 적용한 실제 표**를 읽는다(이론.md의 숫자를 그대로 믿지 않는다)
 - 방치 진행 자료: `밸런스설계/테스트.md`, `밸런스설계/test/out/`(실측), `밸런스설계/verify/`(KHD 검증 포팅 — 읽어서 참고 가능, 쓰지 않음)
 
 ## 하는 일

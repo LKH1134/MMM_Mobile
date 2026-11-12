@@ -14,7 +14,7 @@ tools: Read, Grep, Glob, Write, Bash
 ## 입력
 
 - 코드: `Assets/Scripts/Mobile/Idle/IdleProgress.cs`, `Idle/IdleBattle.cs`, `Idle/Formation.cs`, `Idle/Equipment.cs`, `GachaProgress.cs`, `UI/GachaPanel.cs`(+ `Assets/Scenes/Main.unity` 가격), `Idle/IdleAway.cs`, `Ads/AdBox.cs`, `Quest/DailyQuests.cs`, `DungeonTickets.cs`, `InGame/HarvestGame.cs`·`StageProgress.cs`
-- 표: `Assets/Data/Tables/GameBalance.xlsx`
+- 표: `Assets/Data/Tables/MainTable.xlsx`
 - 판정 대상: `밸런스설계/테스트.md`+`test/`(실측 시뮬), `밸런스설계/이론.md`+`theory/`(수치안)
 
 ## 하는 일

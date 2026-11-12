@@ -2,7 +2,7 @@
 """verify 독립 포팅 (2026-11-02): 방치형 공식·표를 C# 원본에서 직접 옮긴다. test/theory 코드는 보지 않았다.
 
 출처 (파일:줄, Assets/Scripts/Mobile/ 기준)
-- 표: Assets/Data/Tables/GameBalance.xlsx (= Resources/Tables/GameBalance.bytes, md5 같음 확인 11:21)
+- 표: Assets/Data/Tables/MainTable.xlsx (= Resources/Tables/MainTable.bytes, md5 같음 확인 11:21)
 - 강화 값/비용: Idle/IdleProgress.cs:143-149 Cost, :167-172 Value, :121-128 CapLevel, :110-114 Unlocked
 - 기대 곡선: IdleProgress.cs:229-279 (ExpectedLevel/ExpectedCapped/ExpectedHit/Dps/Hp/Regen)
 - 적: IdleProgress.cs:283-301 (EnemyCount/EnemyHp/BossHp/EnemyAttack/BossAttack), :309-325 (골드·균사석)
@@ -17,7 +17,7 @@ import os
 import openpyxl
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-XLSX = os.path.join(ROOT, 'Assets', 'Data', 'Tables', 'GameBalance.xlsx')
+XLSX = os.path.join(ROOT, 'Assets', 'Data', 'Tables', 'MainTable.xlsx')
 
 STATS = ['Attack', 'Hp', 'HpRegen', 'Speed', 'CritChance', 'CritDamage', 'AdvancedAttack', 'NormalEnemyDamage']
 SLOT_COUNT = 5  # Formation.cs:11

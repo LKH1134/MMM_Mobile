@@ -5,7 +5,7 @@ namespace MoreMush.Mobile
 {
     // 기존 스킬 트리/판 플레이용 데이터. 방치형 통합 표와 분리해 Legacy 복사본을 읽는다.
     // 사용: GameData.Mushrooms.Get(1001), GameData.Skills.All
-    // Legacy는 자동 임포트에서 제외된다. 방치형 통합 표 GameBalance.xlsx는 GameBalance가 읽는다.
+    // Legacy는 자동 임포트에서 제외된다. 방치형 통합 표 MainTable.xlsx는 GameBalance가 읽는다.
     public static class GameData
     {
         public const string ResourceFolder = "Tables/Legacy";

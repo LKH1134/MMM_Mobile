@@ -7,8 +7,8 @@ using UnityEngine.UI;
 namespace MoreMush.Mobile
 {
     // [UI 개편 2026-11-05] 세계수 꼬마 시트 (편성 화면과 같은 배치, 프리팹 KidPopup의 Sheet/Content/KidScreen):
-    //   위 4칸 = 오늘의 부탁(홈 일일 의뢰 카드 모양) · 가운데 = 고른 꼬마 정보(호감도·특기·진화 조건 + 선물·진화 버튼) ·
-    //   주간 상자 버튼 · 아래 = 보유 꼬마 칸(누르면 가운데 정보가 바뀐다, 레벨 옆 [선물 가능]·[진화 가능]).
+    //   위 4칸 = 오늘의 부탁(홈 일일 의뢰 카드 모양) · 가운데 = 고른 꼬마 정보(특기·진화 조건 + 진화 버튼) ·
+    //   주간 상자 버튼 · 아래 = 보유 꼬마 칸(누르면 가운데 정보가 바뀐다, 레벨 옆 [진화 가능]).
     // 모양은 프리팹에서 고치고, 값과 버튼 동작만 여기서 넣는다. 이 화면이 켜져 있으면 예전 TreeKidPanel은 꺼 둔다
     public class TreeKidScreen : MonoBehaviour
     {
@@ -19,11 +19,8 @@ namespace MoreMush.Mobile
         [SerializeField] Image infoIcon;
         [SerializeField] TMP_Text infoLevel;
         [SerializeField] TMP_Text infoName;        // 이름 ★ (단계는 infoLevel에 "Lv.n [n단계]")
-        [SerializeField] TMP_Text infoAffinity;    // 호감도 레벨
         [SerializeField] TMP_Text infoBonus;       // 특기
         [SerializeField] TMP_Text infoEvolve;      // 진화 조건
-        [SerializeField] Button giftButton;
-        [SerializeField] TMP_Text giftLabel;
         [SerializeField] Button evolveButton;
         [SerializeField] TMP_Text evolveLabel;
 
@@ -51,7 +48,6 @@ namespace MoreMush.Mobile
                 UiSkin.GreyWhenDisabled(requestCells[i].button);
                 requestCells[i].button.onClick.AddListener(() => DoRequest(index));
             }
-            if (giftButton != null) { UiSkin.GreyWhenDisabled(giftButton); giftButton.onClick.AddListener(Gift); }
             if (evolveButton != null) { UiSkin.GreyWhenDisabled(evolveButton); evolveButton.onClick.AddListener(Evolve); }
             if (weekButton != null) { UiSkin.GreyWhenDisabled(weekButton); weekButton.onClick.AddListener(ClaimWeek); }
         }
@@ -116,7 +112,7 @@ namespace MoreMush.Mobile
                 if (c.title != null) c.title.text = Formation.Name(r.kid);
                 if (c.icon != null) { var sp = WorldTree.EnemySprite(r.enemy); c.icon.sprite = sp; c.icon.enabled = sp != null; c.icon.preserveAspect = true; }
                 if (c.desc != null) c.desc.text = r.done ? Loc.T("kid.thanks") : Loc.F("kid.request_desc", WorldTree.EnemyName(r.enemy), r.count);
-                if (c.reward != null) c.reward.text = Loc.F("kid.reward_line", Wallet.Format(WorldTree.RequestGold), GameBalance.ConstInt("requestAffinity"));
+                if (c.reward != null) c.reward.text = Loc.F("kid.reward_line", Wallet.Format(WorldTree.RequestGold));
                 if (c.progress != null) c.progress.text = $"{Wallet.Format(System.Math.Min(have, r.count))} / {r.count}";
                 if (c.barFill != null) c.barFill.anchorMax = new Vector2(r.count <= 0 ? 0f : Mathf.Clamp01(have / (float)r.count), c.barFill.anchorMax.y);
                 if (c is KidRequestView kv && kv.kidIcon != null) { var ks = Formation.Icon(r.kid); kv.kidIcon.sprite = ks; kv.kidIcon.enabled = ks != null; kv.kidIcon.preserveAspect = true; }
@@ -179,16 +175,9 @@ namespace MoreMush.Mobile
                 if (c.icon != null) { c.icon.sprite = Formation.Icon(id); c.icon.preserveAspect = true; }
                 if (c.nameText != null) c.nameText.text = Formation.Name(id);
                 if (c.levelText != null) c.levelText.text = "Lv." + Formation.Level(id);
-                if (c.giftBadge != null) c.giftBadge.SetActive(CanGift(id));
                 if (c.evolveBadge != null) c.evolveBadge.SetActive(WorldTree.CanKidEvolve(id) == WorldTree.KidFail.None);
                 if (c.selection != null) c.selection.SetActive(id == selected);
             }
-        }
-
-        static bool CanGift(string id)
-        {
-            var (_, count) = WorldTree.GiftPick(id);
-            return count > 0 && WorldTree.AffinityLevel(id) < WorldTree.MaxAffinityLevel;
         }
 
         // ── 고른 꼬마 정보 ──
@@ -196,14 +185,12 @@ namespace MoreMush.Mobile
         {
             string id = selected;
             bool has = !string.IsNullOrEmpty(id);
-            if (giftButton != null) giftButton.interactable = has && CanGift(id);
             if (evolveButton != null) evolveButton.interactable = has && WorldTree.CanKidEvolve(id) == WorldTree.KidFail.None;
             if (!has)
             {
                 if (infoName != null) infoName.text = Loc.T("kid.no_kid");
                 if (infoIcon != null) infoIcon.enabled = false;
                 if (infoLevel != null) infoLevel.text = "";
-                if (infoAffinity != null) infoAffinity.text = "";
                 if (infoBonus != null) infoBonus.text = "";
                 if (infoEvolve != null) infoEvolve.text = "";
                 return;
@@ -214,10 +201,6 @@ namespace MoreMush.Mobile
             if (infoIcon != null) { infoIcon.enabled = true; infoIcon.sprite = Formation.Icon(id); infoIcon.preserveAspect = true; }
             if (infoLevel != null) infoLevel.text = Loc.F("kid.level_step", Formation.Level(id), Mathf.Max(1, WorldTree.KidStep(id) + 1));
             if (infoName != null) infoName.text = $"{Formation.Name(id)}  " + TreeUi.Colored(TreeUi.Stars(star, WorldTree.MaxStar), new Color(0.95f, 0.65f, 0.1f));
-
-            int affLv = WorldTree.AffinityLevel(id);
-            var (have, need) = WorldTree.AffinityProgress(id);
-            if (infoAffinity != null) infoAffinity.text = need > 0 ? Loc.F("kid.affinity_lv", affLv, have, need) : Loc.F("kid.affinity_max", affLv);
 
             var sb = new StringBuilder();
             int step = WorldTree.KidStep(id);
@@ -231,17 +214,7 @@ namespace MoreMush.Mobile
                       + TreeUi.Check(WorldTree.Stage >= WorldTree.EvoStageNeeded(id), Loc.F("kid.need_stage", WorldTree.EvoStageNeeded(id))) + "  "
                       + TreeUi.Check(Wallet.CanAfford(Currency.Mycelite, WorldTree.EvoMyceliteCost(id)), Loc.F("tree.mycelite", Wallet.Format(WorldTree.EvoMyceliteCost(id)))));
 
-            var (giftEnemy, giftCount) = WorldTree.GiftPick(id);
-            if (giftLabel != null) giftLabel.text = CanGift(id) ? Loc.F("kid.gift_exp", WorldTree.GiftValue(id, giftEnemy, giftCount)) : Loc.T("kid.gift");
             if (evolveLabel != null) evolveLabel.text = star >= WorldTree.MaxStar ? Loc.T("kid.evolve") : Loc.F("kid.evolve_star", star + 1);
-        }
-
-        void Gift()
-        {
-            if (string.IsNullOrEmpty(selected)) return;
-            int gain = WorldTree.Gift(selected);
-            if (gain > 0) Toast(Loc.F("kid.gift_toast", Formation.Name(selected), gain));
-            Refresh();
         }
 
         void Evolve()

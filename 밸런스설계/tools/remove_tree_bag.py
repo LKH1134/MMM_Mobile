@@ -4,7 +4,7 @@
 #   상수 treeRingBagBonus·kidBagShare·decoSetBagMul·bagCapHours 행은 지운다
 import re, sys, zipfile
 
-SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\GameBalance.xlsx'
+SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\MainTable.xlsx'
 EFFECT = {'BagGold': ('KillGold', 1.0), 'BagMycelite': ('BossMycelite', 1.0), 'BagHours': ('CraftSpeed', 0.1)}
 EFFECT_SHEETS = {'꼬마': ('bonusEffect', 'bonusValue'), '가호': ('effect', 'value'), '장식': ('effect', 'value')}
 MEMO_COLS = {'세계수': ['bagKillsPerHour', 'bagMycelitePerHour'], '꼬마진화': ['bagMul'], '호감도': ['bagBonus']}

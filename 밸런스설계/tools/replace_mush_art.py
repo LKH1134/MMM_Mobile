@@ -3,10 +3,10 @@
 #   리소스: 7001~7005 → Enumy/Mush_Edible_*_Colony. 7006~7011·7013~7020 삭제
 #   보스 2001 → 7036 (독버섯 전설 군락). 꼬마 resourceId → 7029 (진화 1단계 시트, 진화 칸을 못 찾을 때만 쓰는 예비 그림)
 #   옛 적 ID i → 1001 + (i-1001)//2 (두 종씩 한 등급) 로 꼬마 favoriteIds·세계수 preferIds·스테이지 enemyIds를 다시 맞춘다 (중복은 뺀다)
-#   사용: python replace_mush_art.py <출력.xlsx>   (원본은 Assets/Data/Tables/GameBalance.xlsx)
+#   사용: python replace_mush_art.py <출력.xlsx>   (원본은 Assets/Data/Tables/MainTable.xlsx)
 import re, sys, zipfile
 
-SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\GameBalance.xlsx'
+SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\MainTable.xlsx'
 z = zipfile.ZipFile(SRC); order = z.namelist(); files = {n: z.read(n) for n in order}
 wb = files['xl/workbook.xml'].decode(); rels = files['xl/_rels/workbook.xml.rels'].decode()
 

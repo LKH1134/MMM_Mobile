@@ -5,7 +5,7 @@
 import re, sys, zipfile
 from xml.sax.saxutils import escape
 
-SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\GameBalance.xlsx'
+SRC = r'C:\Project\MMM_Mobile\Assets\Data\Tables\MainTable.xlsx'
 COLS = [
     ('hpMul', 'double', '보스전 던전(2~5): 레벨 보스 체력 = 기준 스테이지 방치 보스 체력 × 이 값 (던전 1 수확 판은 상수 harvestHpRateExp)'),
     ('atkMul', 'double', '보스전 던전(2~5): 레벨 보스 공격 = 기준 스테이지 방치 보스 공격 × 이 값'),

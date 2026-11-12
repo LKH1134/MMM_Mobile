@@ -10,7 +10,7 @@ namespace MoreMush.Mobile
     // 꾸미기 자리 (탭): 뿌리·줄기·가지·수관
     public enum TreeZone { Root, Trunk, Branch, Crown }
 
-    // 세계수: 성장(나이테·공물·가호)·꼬마(호감도·진화·부탁)·공방·꾸미기. 세계수 경험치 퀘스트 보상은 메인 퀘스트(DailyQuests treeExp)에서 온다. 수치는 GameBalance.xlsx 세계수 시트들에서 온다.
+    // 세계수: 성장(나이테·공물·가호)·꼬마(진화·부탁)·공방·꾸미기. 세계수 경험치 퀘스트 보상은 메인 퀘스트(DailyQuests treeExp)에서 온다. 수치는 MainTable.xlsx 세계수 시트들에서 온다.
     // 저장은 PlayerPrefs("WorldTree.Save") JSON 하나. 자주 바뀌는 값(창고 버섯은 처치마다)은 메모리만 고치고
     // SaveScheduler가 저장할 때 JSON을 쓴다. 진화·제작처럼 드문 쓰기는 바로 저장한다.
     // PC MoreMustMush의 Game.Farm*.cs를 모바일 방치형에 맞게 옮겼다 (창고 버섯 = 방치 전투 처치, 꼬마 = 뽑기 꼬마. 수확 보따리는 앱 밖 보상과 겹쳐 11-03에 뺐다)
@@ -19,7 +19,7 @@ namespace MoreMush.Mobile
         const string SaveKey = "WorldTree.Save";
 
         [Serializable] public class StoreEntry { public int enemy; public long count; }
-        [Serializable] public class KidState { public string id; public int star; public int affinity; }
+        [Serializable] public class KidState { public string id; public int star; }
         [Serializable] public class Request { public string kid; public int enemy; public int count; public bool done; }
         [Serializable] public class Craft { public string deco; public long startTicks, endTicks; }
 

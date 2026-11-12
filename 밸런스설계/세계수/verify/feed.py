@@ -1,6 +1,6 @@
 # 방치 입력 (wt-verify 독립 래퍼, 라운드 4 = KHD 방치 밸런스 v3 머지 뒤).
 # KHD 방치 진행 모델(밸런스설계/theory/progress.py Sim · battle.py · dungeon.py, 읽기만)을 돌리되
-# 입력은 KHD가 만든 행(run_v3d.setup → gen_stage)이 아니라 **머지된 라이브 표**(GameBalance.xlsx)에서 직접 만든다:
+# 입력은 KHD가 만든 행(run_v3d.setup → gen_stage)이 아니라 **머지된 라이브 표**(MainTable.xlsx)에서 직접 만든다:
 #   스테이지 1~700 = 스테이지 시트 그대로, 701~ = IdleProgress.cs 꼬리 공식(:306-372, TailRow = 699, growth^(s−699),
 #     챕터 보스 ×tailWallMul, 보스 균사석 = 표 마지막 값), 업그레이드 Power 모드 = 시트 valueExponent·valueDivisor,
 #   광고 뽑기 = 뽑기상품 시트 광고 행(requiresAd) pullCount·dailyLimit (상수 adGachaPulls는 43c2308에서 지워짐),
@@ -18,7 +18,7 @@ sys.path.insert(0, TH)
 import openpyxl
 import formulas as F, progress as P, battle as B, dungeon as DG
 
-XLSX = os.path.abspath(os.path.join(HERE, '../../../Assets/Data/Tables/GameBalance.xlsx'))
+XLSX = os.path.abspath(os.path.join(HERE, '../../../Assets/Data/Tables/MainTable.xlsx'))
 
 
 def sheet(wb, name):

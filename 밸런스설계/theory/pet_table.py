@@ -1,4 +1,4 @@
-# 손잡이 A(표만): 스테이지 시트 enemyHp·bossHp × k(s) 를 넣은 GameBalance.xlsx 사본을 만든다 (Assets 표는 건드리지 않는다).
+# 손잡이 A(표만): 스테이지 시트 enemyHp·bossHp × k(s) 를 넣은 MainTable.xlsx 사본을 만든다 (Assets 표는 건드리지 않는다).
 #   python pet_table.py <출력.xlsx> <점 json: [[s, k], ...]>
 #   k(s): 점 사이 로그 보간, 첫 점 앞은 1, 끝 점 뒤는 끝 값. s ≤ 5 는 늘 1 (기준 1 무강화 구간).
 #   값은 원래 셀 값 × k 를 유효숫자 6자리로 (표의 다른 셀·서식은 그대로).
@@ -7,7 +7,7 @@ import sys, os, json, math, re, zipfile, shutil
 import xml.etree.ElementTree as ET
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-SRC = os.path.join(ROOT, 'Assets/Data/Tables/GameBalance.xlsx')
+SRC = os.path.join(ROOT, 'Assets/Data/Tables/MainTable.xlsx')
 NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'
 RID = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id'
 
