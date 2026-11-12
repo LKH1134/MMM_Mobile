@@ -1,6 +1,6 @@
 # HANDOFF — MoreMustMush 모바일 포팅
 
-> 작성 2026-10-28 · **갱신 2026-11-11 (출시 빌드 마감 전 정리)** · 기준 브랜치 `main` = `LKH` = origin `1663e2c`
+> 작성 2026-10-28 · **갱신 2026-11-11 (출시 빌드 마감 전 정리)** · 기준 브랜치 `main` = `LKH` = origin `0f6365a`
 > itch.io에 PC 웹빌드로 낸 **MoreMustMush**를 모바일(세로) **방치형**으로 옮긴 Unity 프로젝트입니다.
 > 읽는 순서: **0장 지금 상태·출시 체크리스트** → 1장 기능 표 → 3~8장 구조·데이터·개발 메모 → 9장 남은 일. 커밋별 상세는 2장, 날짜별 작업 요약은 맨 끝 **10장**(기록). 팀 공유용 요약은 claude.ai의 "MoreMustMush 모바일 인계문서".
 > 관련 문서: 방치형 수치 `BALANCE_IDLE.md`·`밸런스설계/README.md`·`HANDOFF_BALANCE_V3.md` · 최적화 `HANDOFF_OPTIMIZATION.md` · 개발자 모드 [HANDOFF_DEVMODE.md](HANDOFF_DEVMODE.md) · UI 개편 [UI_REWORK_LOG.md](UI_REWORK_LOG.md) · 표 조사 [DATA_AUDIT.md](DATA_AUDIT.md)
@@ -23,30 +23,30 @@
 | 항목 | 값 |
 |---|---|
 | 패키지 | `com.soomyouth.moremustmush` · 회사 `soomyouth` · 제품 `moremustmush` |
-| 버전 | **`0.1.0` · versionCode `4`** (11-11 — 3은 Play Console에 올라감) — 시작 화면 버전 글자는 `Application.version`을 읽음(`VersionText`) |
+| 버전 | **`0.4.0` · versionCode `4`** (11-11 — 버전 이름은 `0f6365a`에서 0.1.0 → 0.4.0. versionCode 3은 Play Console에 올라감, 4는 아직 안 올려서 일부러 그대로 둠) — 시작 화면 버전 글자는 `Application.version`을 읽음(`VersionText`) |
 | SDK | minSdk 25 · targetSdk **36** 고정 · IL2CPP · ARM64만 · 세로 고정 · 앱 분류 game |
 | 업로드 키 | `C:/Users/user/Desktop/keystore/user.keystore` · alias `moremustmush` — **경로·별칭·Custom Keystore 켬이 `ProjectSettings.asset`에 커밋돼 있음**(11-06·11-10). 키 파일·비밀번호는 저장소에 없음. 다른 PC에서 빌드하면 경로를 그 PC에 맞출 것 |
 | 광고 | 앱 ID `ca-app-pub-3609467797467871~5164610964`(`GoogleMobileAdsSettings.asset`) · 리워드 `ca-app-pub-3609467797467871/2013896497`(`AdService.cs`, `UNITY_ANDROID`) — **실제 ID** |
 | 빌드 씬 | `Start` · `Main` · `WorldTree` · `InGame` |
 | 개발자 모드 | `UNITY_EDITOR \|\| DEVELOPMENT_BUILD`에서만 컴파일 → **Development Build를 끄고 빌드** |
-| 마지막 AAB | `Builds/Android/MoreMustMush_0.1.0_3.aab` (11-10 16:52, 67MB) — **그 뒤 커밋 4개(데이터 전수 조사 2차·번역 수정 등)가 빠져 있음 → 다시 빌드 필요.** 이전: `moremustmush-0.1.0-2.aab`(11-06), `-1.aab`(10-30) |
+| 마지막 빌드 | **`Builds/Android/MoreMustMush_0.1.0_4.aab`(67.2MB) + `.apk`(67.4MB)** — 11-11 13:43, `5ee13ef` 기준, versionCode 4 (2장 "11-11 출시 빌드"). **버전 이름은 0.1.0** — 그 뒤 `0f6365a`에서 0.4.0으로 바꿨으므로, 스토어·기기에 0.4.0으로 보여야 하면 다시 빌드할 것(코드 변경은 없음). 디버그 심볼 `MoreMustMush_0.1.0_4_aab.symbols.zip`(AAB에 안 들어감 → Play Console에 따로 올림). 이전: `MoreMustMush_0.1.0_3.aab`(11-10), `moremustmush-0.1.0-2.aab`(11-06), `-1.aab`(10-30) |
 
 ### 0.3 출시 빌드 체크리스트
 
 **빌드 전**
 1. [x] **versionCode:** 3은 Play Console에 올라감 → **11-11 4로 올림**. 다음 업로드마다 +1(같은 번호는 다시 못 올림).
-2. [ ] `git pull` 후 `main` 최신(`1663e2c` 이후)에서 빌드. Unity에서 `MoreMush/Data/Reimport Tables` → 경고 없음 확인(GameBalance 1387행·String 577행 OK가 11-11 기준).
+2. [ ] `git pull` 후 `main` 최신(`0f6365a` 이후)에서 빌드. Unity에서 `MoreMush/Data/Reimport Tables` → 경고 없음 확인(GameBalance 1387행·String 577행 OK가 11-11 기준).
 3. [ ] 표·코드·씬에 새 글자를 넣었다면 `MoreMush/Fonts/Bake Static Atlases` 후 폰트 에셋 커밋(빠진 글자는 □로 나옴, `Reimport Tables`가 표 글자 누락을 경고).
 4. [ ] Player Settings를 바꿨으면 **File › Save Project** 후 커밋(안 하면 브랜치 전환 때 되돌아감).
 5. [ ] Publishing Settings에 키스토어·키 **비밀번호 두 개 입력**(에디터를 열 때마다 다시 입력). Build Profiles › Android: **Build App Bundle (Google Play) 켬 · Development Build 끔**, 네이티브 디버그 심볼 = Symbol Table(`Library`라 빌드 PC마다).
 
 **빌드 후**
-6. [ ] AAB 확인: targetSdk 36 · versionCode · arm64-v8a · 네이티브 라이브러리 16KB 정렬 · 권한(INTERNET·AdMob이 넣는 광고 ID 등) · 업로드 키 서명 (10-30에 같은 항목을 확인한 기록은 8장 "출시 준비" AAB 빌드).
+6. [x] (11-11 `_4` 빌드에서 확인 — 2장 "11-11 출시 빌드") AAB 확인: targetSdk 36 · versionCode · arm64-v8a · 네이티브 라이브러리 16KB 정렬 · 권한(INTERNET·AdMob이 넣는 광고 ID 등) · 업로드 키 서명 (10-30에 같은 항목을 확인한 기록은 8장 "출시 준비" AAB 빌드).
 7. [ ] **실기기 확인** (지금까지 에디터·Firebase 벤치마크만): 노치·20:9·태블릿 화면, 뒤로가기(팝업 → 홈 → 종료), 실제 광고 보기·보상, UMP 동의(EEA는 VPN 등), 해금 팝업·잠긴 탭, 던전 1~5, 영어 화면(글자 넘침), 룰렛·도감·주간 퀘스트 탭 터치, 데이터 초기화(테스트 세이브로), 절전 모드 해제, BGM·광고 중 소리 멈춤.
 8. [ ] 올리지 말 것: 같은 폴더의 `*_BurstDebugInformation_DoNotShip`, `.zip`.
 
 **Play Console · AdMob (코드 밖)**
-9. [ ] Play Console에 versionCode 4 AAB 올리기(versionCode 3은 이미 올라감 — 어느 트랙인지는 Play Console에서 확인). 첫 AAB의 키가 업로드 키로 등록돼 있으니 같은 키로 서명.
+9. [ ] Play Console에 versionCode 4 AAB 올리기(versionCode 3은 이미 올라감 — 어느 트랙인지는 Play Console에서 확인). 첫 AAB의 키가 업로드 키로 등록돼 있으니 같은 키로 서명. 같은 화면 "앱 번들 탐색기"에서 디버그 심볼 zip도 올리기.
 10. [ ] 스토어 등록정보·**개인정보처리방침 URL**·**데이터 보안 양식**(AdMob이 광고 ID·기기 정보 수집)·콘텐츠 등급·"광고 포함" 표시·대상 연령.
 11. [ ] AdMob: 테스트 기기 등록(실제 광고를 누르지 않게), **개인 정보 보호 및 메시지 › GDPR 메시지 만들고 게시**(안 하면 EEA에서 양식 없이 광고 제한), 앱을 스토어와 연결, `app-ads.txt`(개발자 웹사이트가 있으면).
 
@@ -103,14 +103,14 @@
 | 아트 | ⚠️ 일부 임시. 던전 버섯·수확기·링·화살표·배속 아이콘은 11-03 Codex 그림(`Art/Generated/InGame`, `Art/Placeholder`는 삭제). 등급·황금·버프·장치·보스는 여전히 색으로만 구분(던전 쪽). 11-05 세계수·장식·로딩·소환·던전 배너/카드·방치 보스 10종 그림 교체 |
 
 **환경:** Unity 6000.3.19f1 · URP · Input System (`InputSystemUIInputModule`) · TextMesh Pro · Unity MCP (`.mcp.json`, `http://localhost:8080/mcp`) · 이미지 생성은 Codex CLI(`codex exec`, `image_generation` 기능)
-**저장소:** `https://github.com/LKH1134/MMM_Mobile` (`main` — 11-06부터 LKH·KHD·PJS를 main에 모아 머지. **11-11 기준 main = LKH = origin `1663e2c`**, KHD는 `8e6fb58`까지 머지됨. 작업 브랜치: `LKH`(이 문서 기준) · `InGame`(10-30 방치형 통합) · `KHD`(장비·UI·방치 밸런스·최적화·광고). 원격에 `Admob`·`UI_SafeArea` 브랜치도 있음 — 이 문서는 다루지 않음)
+**저장소:** `https://github.com/LKH1134/MMM_Mobile` (`main` — 11-06부터 LKH·KHD·PJS를 main에 모아 머지. **11-11 기준 main = LKH = origin `0f6365a`**, KHD 브랜치는 `6b71941`(main에 포함) — KHD의 11-11 `5ee13ef`는 main에 바로 올라옴. 작업 브랜치: `LKH`(이 문서 기준) · `InGame`(10-30 방치형 통합) · `KHD`(장비·UI·방치 밸런스·최적화·광고). 원격에 `Admob`·`UI_SafeArea` 브랜치도 있음 — 이 문서는 다루지 않음)
 **커밋 규칙:** `[태그] YYMMDD 설명` (예: `[ADD] 261026 스테이지·보스 표 및 보스 기믹`)
 
 ---
 
 ## 2. 커밋
 
-### 2026-11-10 ~ 11-11 (`main` = `LKH` `1663e2c`) — 커밋 표
+### 2026-11-10 ~ 11-11 (`main` = `LKH` `0f6365a`) — 커밋 표
 
 | 커밋 | 작성 | 내용 |
 |---|---|---|
@@ -134,6 +134,22 @@
 | `40f8d1b` | LKH | **안드로이드 versionCode 3**, 업로드 키 별칭 `moremustmush` |
 | `6b71941` | LKH | **데이터 전수 조사 2차** (아래 절) |
 | `1663e2c` | LKH | **번역 누락 점검·수정** (아래 절, 11-11) |
+| `30bce04` | LKH | 인계 문서 출시 빌드 기준 정리(0장·9장 재구성), **versionCode 4** |
+| `5ee13ef` | KHD | **잔버그·폴리싱** (아래 절, 11-11) |
+| `0f6365a` | LKH | **버전 이름 0.1.0 → 0.4.0** (`bundleVersion`, versionCode는 4 그대로) |
+
+### 2026-11-11 — 출시 빌드 (`5ee13ef` 기준)
+
+- **결과:** `Builds/Android/MoreMustMush_0.1.0_4.aab`(67.2MB, 2분 23초) · `MoreMustMush_0.1.0_4.apk`(67.4MB, 41초), 둘 다 오류 0 (`build_result_0.1.0-4_rebuild.txt`). 심볼 `MoreMustMush_0.1.0_4_aab.symbols.zip`·`…-v4-IL2CPP.symbols.zip`. 같은 폴더 `[AAB]`·`[APK]…zip`은 전달용 압축.
+- **확인:** versionCode 4 · targetSdk 36 · 업로드 키 서명(SHA-256 `F5:27:28…31:10`) · `.so` 8개 모두 16KB 정렬 · APK zipalign 16KB · 개발자 모드(`DevMode`)·`SkipAds` 코드 없음 · `5ee13ef`의 새 함수(`GatedCost`·`NextStep`·`OwnCurve`·`StepStartLevel`)가 들어감. **버전 이름은 0.1.0**(`0f6365a`의 0.4.0 전).
+- **빌드가 멈출 때:** 10:38 첫 시도가 EDM(External Dependency Manager)의 "Resolving Android Gradle dependencies."에서 2시간 넘게 멈췄다(그 사이 이전 `_4` 결과물도 지워짐). 에디터를 다시 켜고 키 비밀번호를 다시 넣은 뒤 빌드하니 6분 만에 끝남. Editor.log가 5분 넘게 안 바뀌면 멈춘 것으로 보고 에디터를 재시작할 것.
+- **빌드 뒤 되돌릴 것:** 빌드할 때마다 줄 끝만 바뀌는 파일(gradleTemplate.properties·Mobile_RPAsset·URP 전역 설정·GraphicsSettings·ProjectSettings)과 지워지는 `PerformanceTestRunInfo/Settings.json(+meta)` → `git checkout`으로 되돌림. 복구 씬 `Assets/_Recovery`(에디터 강제 종료 때 생김)도 지움.
+
+### 2026-11-11 (`KHD` `5ee13ef`) — 잔버그·폴리싱
+
+- **해금 강화 비용 (`IdleProgress.ComputeCost`):** `3d2bc82`의 `GateCostFactor`(옛 곡선 대비 비율 곱하기)를 `GatedCost`로 바꿈. 해금·단계로 열리는 강화(공격 속도·치명타·고급 공격력·일반 적 피해량)는 **단계 첫 레벨 비용 = 그 단계를 연 기준 강화(공격력 등)를 그 기준 레벨에서 한 번 올리는 비용**, 단계 안에서는 다음 단계 첫 비용까지 곱으로 고르게 오름, 마지막 단계는 시트 곡선 비율(`OwnCurve`). 단계 첫 레벨·다음 단계는 `StepStartLevel`·`NextStep`(공격 속도는 `SpeedSteps`, 나머지는 `capStep`). → 해금된 강화가 열리는 순간 너무 싸거나 비싸지 않게. **시뮬은 아직 옛 공식** — 9.2-1 재측정 때 같이 확인.
+- **가이드 바 (`GuideBarView`):** 받기를 누르면 "균사석 +n 획득!" 문구(0.9초) 없이 바로 다음 목표. → String 표 `guide.claimed`는 이제 안 씀(9.4).
+- **던전 목록 (`DungeonUI.prefab`):** 입장권 줄 4곳에 열쇠 아이콘(`UI/Icon/key`) Image 추가.
 
 ### 2026-11-11 (`LKH`) — 번역 누락 점검
 
@@ -746,10 +762,10 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 - **업로드 키 (10-30 생성, LKH PC):** Unity Keystore Manager로 만든 키(**지금 경로 `C:/Users/user/Desktop/keystore/user.keystore`** — 10-30 기록의 `.../key/`에서 옮김), Alias `moremustmush`, RSA 2048, 유효 2076-10-17까지, 인증서 `CN=soomyouth, O=soomyouth, C=KR`, SHA-256 `F5:27:28:D8:67:19:C2:3F:A4:B0:8A:9B:9D:5A:B0:5D:FA:3A:65:3B:FA:B4:C2:BF:B6:D8:A3:96:58:94:31:10`. 인증서 서명이 SHA1withRSA(Unity 기본, keytool이 weak 표시)지만 업로드 키로는 문제없음(Play App Signing이 앱 서명 키로 다시 서명).
   - **키 파일·비밀번호는 저장소에 없음**(`.gitignore`로 막음). 잃어버리면 Play Console에서 업로드 키 재설정 요청 필요 → 키 파일과 비밀번호 두 개는 LKH가 따로 백업.
   - **키 설정(Custom Keystore 켬·경로·Alias)은 11-06·11-10에 커밋됨**(10-30엔 커밋하지 않기로 했었음). LKH PC 바탕화면 경로라 다른 PC에서 빌드하면 Publishing Settings에서 그 PC 경로로 바꾸고, 그 변경은 커밋하지 말 것. 비밀번호는 Unity가 파일에 안 남김 → 에디터를 열 때마다 다시 입력.
-- **AAB 빌드 (10-30):** `Builds/Android/moremustmush-0.1.0-1.aab` 46.1MB(네이티브 25.6 · assets 15.6 · dex 2.2MB), IL2CPP 첫 빌드 약 4분 30초. `Builds/`·`*.aab`는 git 제외. 같은 폴더의 `*_BurstDebugInformation_DoNotShip`은 올리지 말 것. **이후 빌드:** `moremustmush-0.1.0-2.aab`(11-06, versionCode 2, 빌드 6분 16초 — `build_result_0.1.0-2.txt`) · `MoreMustMush_0.1.0_3.aab`(11-10 16:52, 67MB, versionCode 3 — 최신 커밋 전).
+- **AAB 빌드 (10-30):** `Builds/Android/moremustmush-0.1.0-1.aab` 46.1MB(네이티브 25.6 · assets 15.6 · dex 2.2MB), IL2CPP 첫 빌드 약 4분 30초. `Builds/`·`*.aab`는 git 제외. 같은 폴더의 `*_BurstDebugInformation_DoNotShip`은 올리지 말 것. **이후 빌드:** `moremustmush-0.1.0-2.aab`(11-06, versionCode 2, 빌드 6분 16초 — `build_result_0.1.0-2.txt`) · `MoreMustMush_0.1.0_3.aab`(11-10 16:52, 67MB, versionCode 3) · **`MoreMustMush_0.1.0_4.aab`·`.apk`(11-11, versionCode 4, `5ee13ef` — 2장 "11-11 출시 빌드")**.
   - 확인한 것(빌드된 매니페스트·번들): targetSdk 36 / compileSdk 36 / minSdk 25, `com.soomyouth.moremustmush` 0.1.0(versionCode 1), portrait, 런처 `exported="true"`(+ TEST_LOOP 필터), arm64-v8a만, 네이티브 라이브러리 6개 모두 **16KB 정렬**(0x4000), 권한 INTERNET뿐, 업로드 키 서명.
   - 빌드 방법: Build Profiles에서 Android · "Build App Bundle (Google Play)" 켜고 Build. 또는 `BuildPipeline.BuildPlayer`(MCP로는 `EditorApplication.delayCall` 안에서 돌려야 시간 초과로 끊기지 않음).
-- **스토어 업로드:** Play Console에는 **AAB만** 올린다(키 파일은 올리지 않음). 새 앱은 Play App Signing 기본 사용 → 첫 AAB의 키가 업로드 키로 등록. **업데이트마다 versionCode +1**(지금 4, 3은 올라감), 같은 업로드 키로 서명. 처음엔 "내부 테스트" 트랙 권장.
+- **스토어 업로드:** Play Console에는 **AAB만** 올린다(키 파일은 올리지 않음). 새 앱은 Play App Signing 기본 사용 → 첫 AAB의 키가 업로드 키로 등록. **업데이트마다 versionCode +1**(지금 4 · 버전 이름 0.4.0, 3은 올라감), 같은 업로드 키로 서명. 처음엔 "내부 테스트" 트랙 권장.
 - **출시 안정화·최적화 (2026-11-06, KHD):**
   - 광고: 콜백을 `MobileAdsEventExecutor.ExecuteInUpdate`로 메인 스레드에 넘김(폐기 예정 `RaiseAdEventsOnUnityMainThread` 대신). 광고 단위 ID는 **모든 안드로이드 빌드에서 실제 ID**(`ca-app-pub-3609467797467871/2013896497`) — 테스트 기기는 AdMob 콘솔에 등록해 실제 광고를 누르지 않게. 광고를 보느라 앱이 잠깐 뒤로 간 것은 앱 밖 보상·정산 창으로 치지 않음(`AdService.IsShowing`).
   - 저장: `SaveScheduler` 주기 5→15초(전투가 늘 dirty라 사실상 주기마다 파일 전체 쓰기). 뒤로가기 종료 때 `SaveScheduler.Flush`. `IdleProgress.Stage`는 메모리에 둠.
@@ -813,7 +829,7 @@ PC판 `MoreMustMush`의 `Game.Farm*.cs`를 방치형에 맞게 옮겼습니다. 
 
 1. **효과음** + SFX 볼륨 적용(지금 BGM만).
 2. 개발자 모드: 실기기에서 여는 입구(지금 `` ` `` 키뿐), 도감 채우기 버튼(`MushroomDex.DevSetGroup`은 있음).
-3. String.xlsx `treequest.*` 문구는 `treequest.in_progress`만 씀 — 나머지 정리 가능.
+3. String.xlsx `treequest.*` 문구는 `treequest.in_progress`만 씀 — 나머지 정리 가능. `guide.claimed`도 11-11 `5ee13ef`부터 안 씀.
 4. 옛 세이브 옮기기 코드(`Wallet` 테스트 균사석 회수·`Formation`/`Equipment` MigratedLevel·`Gacha.<종류>.AdDay`) — 출시 전 데이터만 대상이라 첫 출시 뒤 지워도 됨. 옛 세계수 의뢰 진행(`WorldTree.Save`의 quest* 필드)은 이미 안 읽음.
 5. 세계수 외 저장값 백업·클라우드 저장(폰 교체 시 이어하기), 홈 60fps(배터리), 스프라이트 아틀라스(위험해서 11-06 보류).
 6. 행 없는 Legacy 표 `Mushroom`·`Harvester`(게임이 읽기만 함), `밸런스설계/test/out/` 결과물 정리.
