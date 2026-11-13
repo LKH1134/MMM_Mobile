@@ -1,0 +1,236 @@
+<title>MoreMustMush 작업 연표</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 위에 기획서 목록 → 두 갈래 단계 막대 → 날짜별 연표(왼쪽 PC · 오른쪽 모바일) */
+:root{
+  --bg:#f3f5ef; --panel:#ffffff; --fg:#1f2a22; --muted:#5e6b60; --line:#d6ddd2;
+  --pc:#7a4fa3; --pc-soft:#efe7f6; --mob:#2f7d5b; --mob-soft:#e2f1e9; --doc:#9a6a12; --doc-soft:#f7ecd6;
+  --display:"Gowun Batang",Georgia,serif; --body:"Noto Sans KR",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141a16; --panel:#1c241f; --fg:#e4ebe4; --muted:#9aa89c; --line:#2f3a32;
+  --pc:#c09ae6; --pc-soft:#2c2338; --mob:#6cc79d; --mob-soft:#1b3328; --doc:#e0b55c; --doc-soft:#33291a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a16; --panel:#1c241f; --fg:#e4ebe4; --muted:#9aa89c; --line:#2f3a32;
+  --pc:#c09ae6; --pc-soft:#2c2338; --mob:#6cc79d; --mob-soft:#1b3328; --doc:#e0b55c; --doc-soft:#33291a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:36px}
+h1{font-family:var(--display);font-size:clamp(28px,4vw,40px);margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:22px;margin:0 0 12px}
+.lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
+.meta{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+/* 기획서 */
+.docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit;display:grid;gap:2px}
+.doc:hover,.doc:focus-visible{border-color:var(--doc);outline:none}
+.doc.on{border-color:var(--doc);box-shadow:0 0 0 2px var(--doc-soft)}
+.doc b{font-size:14px}
+.doc small{color:var(--muted);font-size:12px}
+.doc .id{font-family:var(--mono);font-size:11px;color:var(--doc);font-weight:500}
+.doc.none{opacity:.7}
+/* 단계 막대 */
+.gantt{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto}
+.gin{min-width:760px;display:grid;gap:8px}
+.grow{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:8px}
+.gtrack{position:relative;height:30px;border-radius:4px;background:repeating-linear-gradient(90deg,transparent 0 calc(100%/37*7 - 1px),var(--line) calc(100%/37*7 - 1px) calc(100%/37*7))}
+.bar{position:absolute;top:3px;height:24px;border-radius:4px;font-size:11.5px;padding:0 6px;display:flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.bar.pc{background:var(--pc-soft);color:var(--pc);border:1px solid var(--pc)}
+.bar.mob{background:var(--mob-soft);color:var(--mob);border:1px solid var(--mob)}
+.axis{position:relative;height:18px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.axis span{position:absolute;transform:translateX(-50%)}
+/* 필터 */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible{outline:2px solid var(--doc);outline-offset:2px}
+#docnote{font-size:13px;color:var(--doc)}
+/* 연표 */
+.tl{display:grid;gap:0}
+.thead{display:grid;grid-template-columns:96px 1fr 1fr;gap:16px;padding-bottom:8px;border-bottom:2px solid var(--fg)}
+.day{display:grid;grid-template-columns:96px 1fr 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.date{font-family:var(--mono);font-size:15px;font-weight:500}
+.date small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.cell{min-width:0;display:grid;gap:8px;align-content:start}
+.card{border-left:3px solid;padding:6px 0 6px 10px}
+.card.pc{border-color:var(--pc)}
+.card.mob{border-color:var(--mob)}
+.card h3{font-size:14.5px;margin:0 0 2px;font-weight:700}
+.card ul{margin:0;padding-left:18px;font-size:13.5px}
+.card li{margin:1px 0}
+.who{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:6px;font-weight:400}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tag{font-size:11.5px;padding:1px 7px;border-radius:4px;background:var(--doc-soft);color:var(--doc);font-weight:500}
+.tag.guess{background:transparent;border:1px dashed var(--doc)}
+.empty{color:var(--muted);font-size:12px}
+.hide{display:none}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;font-size:13.5px}
+.notes ul{margin:6px 0 0;padding-left:18px}
+@media (max-width:720px){
+  .thead{display:none}
+  .day{grid-template-columns:1fr;gap:8px}
+  .cell.e{display:none}
+  .cell::before{content:attr(data-lane);font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+}
+@media (prefers-reduced-motion:no-preference){.doc,.chip{transition:border-color .15s,background .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="lab">MoreMustMush · MMM_Mobile</div>
+    <h1>MoreMustMush 작업 연표</h1>
+    <p class="lede">PC 웹판(itch.io)을 만든 <b>MoreMustMush</b> 저장소와, 그걸 세로형 방치 게임으로 옮긴 <b>MMM_Mobile</b> 저장소의 커밋을 날짜별로 묶었습니다. 각 작업 밑의 노란 태그가 그때 기준으로 삼은 기획서입니다. 점선 태그는 인계 문서에 직접 적혀 있지 않아 커밋 내용·시점으로 짐작한 것입니다.</p>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--pc)"></i>PC 웹판 (MoreMustMush, 커밋 약 180개)</span>
+      <span><i class="sw" style="background:var(--mob)"></i>모바일 (MMM_Mobile, 커밋 약 280개)</span>
+      <span><i class="sw" style="background:var(--doc)"></i>기획서</span>
+    </div>
+    <p class="meta">기준: 두 저장소 모든 브랜치 git log · 인계 문서(HANDOFF*.md, Assets/인계/*.md) · 2026-11-13</p>
+  </header>
+
+  <section>
+    <h2>큰 흐름</h2>
+    <div class="gantt"><div class="gin" id="gantt"></div></div>
+  </section>
+
+  <section>
+    <h2>기획서</h2>
+    <p class="lede" style="margin:0 0 12px">눌러 보면 그 기획서를 쓴 날짜만 남깁니다. 다시 누르면 풀립니다.</p>
+    <div class="docs" id="docs"></div>
+  </section>
+
+  <section>
+    <h2>날짜별 연표</h2>
+    <div class="filters" style="margin-bottom:12px">
+      <button class="chip" id="f-all" aria-pressed="true" data-f="all">전체</button>
+      <button class="chip" id="f-pc" aria-pressed="false" data-f="pc">PC만</button>
+      <button class="chip" id="f-mob" aria-pressed="false" data-f="mob">모바일만</button>
+      <span id="docnote"></span>
+    </div>
+    <div class="tl">
+      <div class="thead"><span class="lab">날짜</span><span class="lab" style="color:var(--pc)">PC 웹판 · MoreMustMush</span><span class="lab" style="color:var(--mob)">모바일 · MMM_Mobile</span></div>
+      <div id="tl"></div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <b>읽을 때 참고</b>
+    <ul>
+      <li>작성자는 git 커밋 이름 그대로 적었습니다(LKH · Hyeondeck · kms · Edjeodhe · hakaihan · ㅇㅇ · Claude). 같은 사람이 여러 이름을 썼을 수 있습니다.</li>
+      <li>PC 저장소는 10-26 이후 멈췄다가 11-11에 UI·연출 커밋이 다시 올라왔습니다. 모바일 작업과는 별개입니다.</li>
+      <li>바탕화면의 <b>웹플레이루프 Ver01</b>(11-12)은 아직 어느 커밋·인계 문서에도 쓰인 기록이 없습니다.</li>
+      <li>밸런스 회차(PC 1~8회차, 모바일 v3·v4·11-10 개편)는 각 저장소의 <code>밸런스설계/</code> 폴더에 이론·검증·실측 기록이 있습니다.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const DOCS={
+ proto:{n:"HTML 프로토타입 v14",f:"Prototype/MoreMush.v14.html",d:"Unity 이식의 원본 규칙·화면"},
+ concept:{n:"컨셉기획서(풀) · 3팀",f:"기획서/20261001_컨셉기획서(풀)_3팀.pdf",d:"게임 콘셉트 전체 (10-01)"},
+ visual:{n:"비주얼기획서 Ver01 · 이동현",f:"기획서/20260930_비주얼기획서_Ver01.pptx",d:"화풍: 2D 셀·두꺼운 선화·갈색 톤"},
+ sys035:{n:"시스템 기획서 Ver035",f:"숨쉬었음청년_시스템 기획서_Ver035.pptx",d:"상점·의뢰·옵션·다국어"},
+ battle05:{n:"전투기획서 총합 Ver05",f:"20261012_전투기획서총합_Ver05.pdf (+정리본 md)",d:"보스·날씨·슬라이드 바·숲 장치·수확기"},
+ newc03:{n:"신규콘텐츠기획서 Ver03 · 김민성",f:"MoreMustMush_신규콘텐츠기획서_Ver03.pdf",d:"꼬마버섯 세계수 (8단계·꼬마·장식)"},
+ dex03:{n:"도감 시스템 Ver03 · 김민성",f:"숨쉬었음청년_도감 시스템_Ver03.pdf",d:"도감"},
+ treeimpl:{n:"세계수_구현설계.md",f:"기획서/세계수_구현설계.md",d:"위 두 기획서의 해석·빈 값 정리"},
+ treemove:{n:"세계수_정령이동.md",f:"기획서/세계수_정령이동.md",d:"세계수 도면·정령 이동"},
+ mycel:{n:"균사트리 배치안 (A안 15차)",f:"기획서/균사트리_배치안/ (nodes.py)",d:"스킬 트리 노드 — 모바일 Skill.xlsx의 원본"},
+ trans:{n:"번역작업 (10-19)",f:"기획서/20261019_번역작업.md",d:"포르투갈어 추가·다국어 검수"},
+ db:{n:"MMM_DB Ver.02~06 (→Ver.09)",f:"Assets/DB/MMM_DB_Ver.0x.xlsx",d:"PC판 데이터·밸런스 표"},
+ wire:{n:"모바일 UI 와이어프레임 Ver01 · 박지수",f:"20261023_모바일UI와이어프레임.pdf",d:"모바일 UI 리워크·개편 기준"},
+ pivot:{n:"방치형 전환 결정 기록",f:"HANDOFF_IDLE_PIVOT.md",d:"방치형 전환·뽑기·서버 방침 (기획 논의)"},
+ idlebal:{n:"방치형 밸런스 설계",f:"밸런스설계/ · BALANCE_IDLE.md",d:"레퍼런스 조사·D0~D7 리텐션 기준·이론/검증"},
+ deco02:{n:"세계수 단계별 장식 개편 Ver02",f:"MoreMustMush_세계수단계별장식개편_Ver02.pptx",d:"단계별 장식 칸 수 (임시안)"},
+ prep1106:{n:"작업준비_261106.md",f:"작업준비_261106.md",d:"광고 버섯·던전 1~5·꼬마 트리"},
+ wire2:{n:"모바일 와이어프레임 2종 (Obt 기준)",f:"MMM_Mobile_UI_와이어프레임_Obt기준.pdf · MMM_Mobile_Wireframes.pdf",d:"11-12 특성 창 커밋과 함께 들어옴"},
+ loop:{n:"웹플레이루프 Ver01",f:"바탕화면 20261112_웹플레이루프_Ver01.pdf",d:"아직 작업에 쓰인 기록 없음",none:true}
+};
+// [날짜, 요일, PC 카드들, 모바일 카드들]; 카드 = [제목, 작성자, [항목], [기획서], [추정 기획서]]
+const DAYS=[
+["10-07","수",[["Unity 이식 시작","kms · Hyeondeck",["HTML 프로토타입 → Unity 1단계: 타이틀·라운드·정산·세금·균사 트리·도감","상점·포자 상점·의뢰·공방·스킨 상점 이식","버섯 농장(목장·밭·주방) 이식, 세계수 나무 추가","Codex CLI 이미지 생성 파이프라인","재화 밸런스 1차"],["proto","visual"],["concept"]]],[]],
+["10-08","목",[["세금 삭제 · 밸런스 팀 구성","Hyeondeck · LKH · kms",["세금 삭제, 보스 임시 초안","업그레이드 노드 정리, 밸런스 에이전트 팀·판매 반영 시뮬","정산 화면·오브젝트 수정, 코드 최적화"],["db"],[]]],[]],
+["10-12","월",[["시스템 기획서 Ver035 반영","Hyeondeck · LKH",["상점·다이아·두더지/호수·시간 스킬 삭제, 수확기 분신","일일·주간 의뢰","옵션 화면(언어 KR/EN/JP·소리), 새 폰트","10-12 회의 내용 반영, 코드 최적화"],["sys035"],[]]],[]],
+["10-13","화",[["전투기획서 Ver05 · 꼬마 합류","LKH · Hyeondeck",["보스 5종(10스테이지마다)·기믹, 보스 처치 예외처리","날씨·슬라이드 바·숲 장치·수확기 유형","꼬마가 세계수 Lv마다 합류(새싹→별똥)","밸런싱 2회차(보스 관문), 엑셀 파서"],["battle05","newc03","db"],[]]],[]],
+["10-14","수",[["세계수 개편 · 도감","Hyeondeck · LKH",["세계수 8단계·경험치·장식·수확 구역·가호","도감 시스템","웹빌드 해상도·스테이지 이슈, 일괄 강화 삭제","밸런싱 2회차 완료"],["newc03","dex03","treeimpl"],[]]],[]],
+["10-15","목",[["UI 개편 · 수채화","kms · LKH · Hyeondeck",["Stage 씬 분리·UI 배치, 튜토리얼 추가","수채화 리소스 화풍 통일(UI·이펙트·아이콘·무기·폰트)","로그 서버 연결·서버 세팅, 언어 번역","보스 밸런싱"],["visual"],[]]],[]],
+["10-16","금",[["몽환 수채화 · PV · 웹 이식","ㅇㅇ · LKH · Hyeondeck",["몽환 수채화 적용, 정령 진화 리그, 꼬마 리그","세계수 탭 창, 공방, 번역·언어별 폰트","PV 마무리(로고·정령·곡+효과음), itch 배너·페이지","밸런스 3회차(초반 군락·희귀 포자·첫 보스 체력)","임시 웹버전 이식, 옛 그림 정리(WebGL 용량)"],["db"],["visual"]]],[]],
+["10-18","일",[["정령 리그 2","Edjeodhe",["정령 리그2 웹 작업장: 걷기·옆/뒷모습, ★0·★1 버섯 리그"],[],[]]],[]],
+["10-19","월",[["다국어 6개 · 광고 밑작업 · 밸런스 4회차","Edjeodhe · Hyeondeck · LKH · kms · Claude",["포르투갈어(브라질) 추가·번역 1,520줄, 다국어 검수 946칸","AdMob 보상형 광고 밑작업(SDK 11.6.0)","밸런스 4회차, 초반 버섯 체력 너프","세계수 방치 보상·도감 보너스, 새 기능 해금 안내","균사 트리 배치안 A 14·15차","씬 전환·라운드 끊김 최적화, 튜토리얼·보스 버튼 복구","옛 리소스 2,382개(164MB) 게임에서 제외"],["trans","mycel"],[]]],[]],
+["10-20","화",[["웹 0.0.8 · 밸런스 6회차","LKH · Hyeondeck · kms",["버전 0.0.8, 웹 업데이트 때 세이브 유지","밸런스 6회차(보스 체력 사람 기준 하향)","분석 로그 개편(묶음 전송·서버 검증)","세계수 UI 전체·꾸미기 창·도면, 콤보 스킨","전투 메모리 할당 15KB→5.2KB, 연출 간소화 옵션"],["treemove"],[]]],[]],
+["10-21","수",[["균사 트리 A안 · 밸런스 7회차","LKH · Claude",["균사 트리 A안(15차) 적용: 노드 130개","밸런스 7회차(군락 수·크기·거대 버섯)","개발자 모드 + 모바일 최적화"],["mycel"],[]]],[]],
+["10-22","목",[["모바일 작업 시작","LKH",["PC 저장소에 모바일 작업 시작 표시"],[],[]]],[["저장소 시작 · 모바일 인게임","LKH",["MMM_Mobile 저장소 생성","PC 수확 전투를 세로 화면으로 이식, 배속","세계수 팝업"],[],["battle05"]]]],
+["10-23","금",[["WebGL 용량 · 밸런스 8회차","LKH · Hyeondeck",["WebGL 빌드 214MB → 90MB","밸런스 8회차(D1 보스 퍼널), 후반 재설계","튜토리얼 4판 → 2판, 미사용 스프라이트 정리"],[],[]]],[["스킬 트리 · 데이터 표","LKH",["스킬 트리 노드·스킬 정보","데이터 테이블 추가"],["mycel"],[]]]],
+["10-26","월",[["itch 데브로그 0.1.0","kms · Hyeondeck",["데브로그 「MMM Notes 0.1.0: Beyond the Harvest」","세계수 8단계 GIF·스크린샷 교체","개발자 모드 '기능 모두 해금', 밸런싱 인계"],[],[]]],[["스킬 적용 · 스테이지·보스","LKH",["Skill 표 입력, 나무 모양 배치·핀치 확대","인게임 스킬 적용 1~3단계(군락·바 버프·소환·디버프·보스)","스테이지·보스 표·보스 기믹","밸런스 패치(지갑·스킬 가격·보상·보스 체력)"],["mycel"],["battle05"]]]],
+["10-27","화",[],[["밸런스 M2","LKH",["콤보 규칙·단계적 허들·첫 클리어 균사석·보스 체력 재피팅"],[],[]]]],
+["10-28","수",[],[["UI 리워크 · 무한 스테이지 · 벤치마크","LKH · Edjeodhe · Hyeondeck",["와이어프레임 기준 UI 리워크, SafeArea 배치","스킬 트리 가지별 페이지·tier·해금 조건 단순화","일반 스테이지 목표 삭제, 51스테이지부터 무한","보스 HUD, 성능 벤치마크·Firebase Game Loop","광고 연결"],["wire","mycel"],[]]]],
+["10-29","목",[],[["방치형으로 전환","LKH · Hyeondeck",["Main 방치형 전투·강화, 꼬마 편성","장비 초안, 새 인게임 씬(NewInGame)·SafeArea","UI 스크립트 폴더 정리"],["pivot"],[]]]],
+["10-30","금",[],[["방치형 구조 완성 · 출시 준비 1","LKH · Hyeondeck",["방치형 통합 표 + 옛 표는 Legacy","InGame = 던전 1, 스킬 트리·세계수 씬 내림","꼬마 강화(합성), 뽑기 연출, 절전 모드, 성장 곡선 재설계","던전·뽑기 탭 그림(Codex), 하루 입장·무료 뽑기","해상도 대응(Stage), 뒤로가기, API 36·세로 고정, 패키지 이름","1차 모바일 최적화·안정화"],["pivot"],["wire"]]]],
+["11-02","월",[],[["세계수 복원 · 밸런스 v3 · 광고","LKH · Hyeondeck · kms",["세계수 구현(성장·꼬마·공방·꾸미기·보따리), 세계수 밸런스 v3","표 시트 ↔ 게임 연동(장비·뽑기·방치·수확·던전)","방치 밸런스 v3(첫 7일 리텐션) + 던전 레벨 보상","AdMob SDK·EDM, 광고 상자·광고 뽑기·일일 퀘스트","2차 최적화·안정화"],["newc03","treeimpl","idlebal"],[]]]],
+["11-03","화",[],[["장식 칸 Ver02 · 세계수 의뢰","LKH · Hyeondeck",["세계수 장식 칸 기획서 Ver02 반영(v6), 세계수 v4","세계수 일일·주간 의뢰(PC 의뢰 기반)","밸런스 1차 완료, Unity Ads 미디에이션·실제 광고 ID","프로젝트 전수 조사·정리, 던전 HUD·그림"],["deco02","idlebal"],["sys035"]]]],
+["11-04","수",[],[["UI 개편 1~5차 · 장비 10종","Edjeodhe · LKH · Hyeondeck",["UI 개편 1~5차: 화면별 목업 맞춤","수확기·방어구 10종 개편, 펫 삭제(편성 위3·아래2)","버섯·꼬마 리소스, 임시 도감, 안드로이드 몰입 모드"],["wire"],[]]]],
+["11-05","목",[],[["UI 개편 6~21차 · 보스 10종 · BGM","Edjeodhe · LKH",["UI 개편 6~21차(팝업 틀·설정·편성·의뢰 카드)","방치 보스 10종, 세계수·장식 24종·로딩 그림 교체","메인 BGM, 개발자 모드(` 키), 정적 폰트","던전 소탕 삭제, 펫 삭제 밸런스 보정"],["wire","idlebal"],[]]]],
+["11-06","금",[],[["던전 2~5 · 출석 · 출시 안정화","Hyeondeck · LKH · Edjeodhe",["던전 2~5(골드·균사석·보스 러시·보스 토벌)","7일 출석 이벤트","출시 안정화: 시계 조작 차단·광고 동의·세이브 백업","출시 빌드 세팅, UI 개편 22~24차 머지"],["prep1106"],[]]]],
+["11-09","월",[],[["해금 · 영어 · 광고 상자","Hyeondeck · LKH",["기능 해금 팝업, 영어 번역(문자열 표·기기 언어)","광고 상자 개편, 의뢰 일괄 수령","화면 비율 대응, 폰트 굽기 최적화(−33%)"],[],[]]]],
+["11-10","화",[],[["밸런스 개편 · 가이드 · 룰렛 · 도감 세트","Hyeondeck · LKH",["강화 증분 곡선·벽 보스·공격 속도 단계 해금","가이드 퀘스트, 꼬마 성장, 광고 뽑기 35회","룰렛, 도감 세트 보너스, 데이터 초기화","세계수 의뢰 → 메인 퀘스트 + 주간 퀘스트","코드 수치 표로·전수 조사 2차, versionCode 3"],["idlebal"],[]]]],
+["11-11","수",[["UI · 연출 재정비","Edjeodhe · hakaihan",["수확기 카드·하단 버튼 통일, 세계수 화면 재배치","꼬마 작업 구역 선택, 엑셀 DB Ver.09 동기화","보스 등장·격파 연출, 콤보 배너·이펙트","옛 그림·Legacy 정리"],["db"],[]]],[["출시 빌드 0.1.0 (4)","LKH · Hyeondeck",["잔버그·폴리싱(해금 강화 비용 등)","번역 누락 점검","AAB·APK 빌드(versionCode 4), 버전 이름 0.4.0"],[],[]]]],
+["11-12","목",[],[["정리 · 패시브·특성 창","LKH · Hyeondeck",["용어 '수확기', 표 이름 MainTable, 꼬마 호감도 삭제","세계수 모델 현행화(8단계 약 39일)","데이터 점검 3차·3차 최적화(안 쓰는 그림 59개)","패시브·특성 창(꼬마별 트리), 해금 순서"],["prep1106"],["wire2"]]]],
+["11-13","금",[],[["main ↔ LKH 머지","LKH",["main을 LKH에 머지, 복구 씬 삭제"],[],[]]]]
+];
+const START=new Date(2026,9,7), SPAN=37;
+const pos=(m,d)=>((new Date(2026,m-1,d)-START)/864e5)/SPAN*100;
+const PHASE=[
+ ["PC 웹판",[["pc",10,7,10,12,"이식·농장"],["pc",10,12,10,15,"기획서 반영"],["pc",10,15,10,22,"아트·다국어·밸런스"],["pc",10,22,10,27,"웹·itch"],["pc",11,11,11,12,"UI 재정비"]]],
+ ["모바일",[["mob",10,22,10,29,"판 플레이 이식"],["mob",10,29,10,31,"방치형 전환"],["mob",11,2,11,6,"세계수·밸런스·UI 개편"],["mob",11,6,11,12,"던전·출시 준비"],["mob",11,12,11,14,"정리"]]]
+];
+const g=document.getElementById("gantt");
+PHASE.forEach(([name,bars])=>{
+ const r=document.createElement("div");r.className="grow";
+ r.innerHTML=`<span class="lab">${name}</span><div class="gtrack">${bars.map(([c,m1,d1,m2,d2,t])=>`<div class="bar ${c}" style="left:${pos(m1,d1)}%;width:${pos(m2,d2)-pos(m1,d1)}%" title="${t}">${t}</div>`).join("")}</div>`;
+ g.appendChild(r);
+});
+const ax=document.createElement("div");ax.className="grow";
+ax.innerHTML=`<span></span><div class="axis">${[[10,7],[10,14],[10,21],[10,28],[11,4],[11,11]].map(([m,d])=>`<span style="left:${pos(m,d)}%">${m}-${String(d).padStart(2,"0")}</span>`).join("")}</div>`;
+g.appendChild(ax);
+
+const used={};
+DAYS.forEach(([dt,,pc,mob])=>[...pc,...mob].forEach(c=>[...c[3],...c[4]].forEach(k=>(used[k]=used[k]||new Set()).add(dt))));
+const dEl=document.getElementById("docs");
+Object.entries(DOCS).forEach(([k,v])=>{
+ const b=document.createElement("button");b.className="doc"+(v.none?" none":"");b.dataset.k=k;b.id="doc-"+k;
+ const dates=used[k]?[...used[k]].join(" · "):"쓰인 날짜 없음";
+ b.innerHTML=`<span class="id">${dates}</span><b>${v.n}</b><small>${v.d}</small><small style="font-family:var(--mono);font-size:11px">${v.f}</small>`;
+ dEl.appendChild(b);
+});
+const card=(c,lane)=>`<div class="card ${lane}"><h3>${c[0]}<span class="who">${c[1]}</span></h3><ul>${c[2].map(x=>`<li>${x}</li>`).join("")}</ul>${(c[3].length||c[4].length)?`<div class="tags">${c[3].map(k=>`<span class="tag">${DOCS[k].n}</span>`).join("")}${c[4].map(k=>`<span class="tag guess" title="추정">${DOCS[k].n} (추정)</span>`).join("")}</div>`:""}</div>`;
+const tl=document.getElementById("tl");
+DAYS.forEach(([dt,wd,pc,mob])=>{
+ const r=document.createElement("div");r.className="day";r.dataset.docs=[...pc,...mob].flatMap(c=>[...c[3],...c[4]]).join(" ");
+ r.dataset.pc=pc.length;r.dataset.mob=mob.length;
+ r.innerHTML=`<div class="date">${dt}<small>${wd}요일</small></div>
+ <div class="cell pc ${pc.length?"":"e"}" data-lane="PC 웹판">${pc.map(c=>card(c,"pc")).join("")||'<span class="empty">—</span>'}</div>
+ <div class="cell mob ${mob.length?"":"e"}" data-lane="모바일">${mob.map(c=>card(c,"mob")).join("")||'<span class="empty">—</span>'}</div>`;
+ tl.appendChild(r);
+});
+let lane="all",doc=null;
+function apply(){
+ document.querySelectorAll(".day").forEach(r=>{
+  const okLane=lane==="all"||+r.dataset[lane]>0;
+  const okDoc=!doc||r.dataset.docs.split(" ").includes(doc);
+  r.classList.toggle("hide",!(okLane&&okDoc));
+  r.querySelector(".cell.pc").classList.toggle("hide",lane==="mob");
+  r.querySelector(".cell.mob").classList.toggle("hide",lane==="pc");
+ });
+ document.getElementById("docnote").textContent=doc?`기획서: ${DOCS[doc].n}`:"";
+ document.querySelectorAll(".doc").forEach(b=>b.classList.toggle("on",b.dataset.k===doc));
+}
+document.querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{
+ lane=b.dataset.f;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+dEl.addEventListener("click",e=>{const b=e.target.closest(".doc");if(!b)return;doc=doc===b.dataset.k?null:b.dataset.k;apply();
+ if(doc)document.getElementById("tl").scrollIntoView({behavior:"smooth",block:"start"});});
+</script>
