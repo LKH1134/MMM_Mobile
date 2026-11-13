@@ -20,6 +20,7 @@ namespace MoreMush.Mobile
         [Header("옆 버튼")]
         // 펫·무기·방어구 버튼은 Equit의 TabGroup 탭 버튼으로 씬에서 연결한다 (누르면 TabGroup이 그 창을 연다)
         [SerializeField] Button autoButton;
+        [SerializeField] MushroomTraitPanelView traitPanel;   // 버섯 특성 화면 (Equit 자식 프리팹). 버섯 특성 버튼이 안쪽을 이 화면으로 바꾼다
 
         [Header("꼬마 정보")]
         [SerializeField] Image infoIcon;
@@ -76,22 +77,250 @@ namespace MoreMush.Mobile
                     cells.Add(c);
                 }
             }
-            if (autoButton != null) autoButton.onClick.AddListener(Formation.AutoArrange);
+            if (infoNext != null) infoNext.gameObject.SetActive(false);   // 초록색 "다음 레벨" 글자는 쓰지 않는다 (조각 막대를 가린다)
+            BuildTraitButton();
+            if (autoButton != null) autoButton.onClick.AddListener(OnAutoClicked);
             if (mergeButton != null) mergeButton.onClick.AddListener(MergeSelected);
-            if (mergeAllButton != null) mergeAllButton.onClick.AddListener(MergeAll);
+            if (mergeAllButton != null) mergeAllButton.onClick.AddListener(OnMergeAllClicked);
             if (growButton != null) growButton.onClick.AddListener(GrowSelected);
             if (placeButton != null) placeButton.onClick.AddListener(PlaceSelected);
+        }
+
+        // 일괄 합성 · 자동 편성 줄을 [일괄 합성][자동 편성][버섯 특성] 세 칸으로 넓힌다.
+        // 버섯 특성 버튼은 자동 편성 버튼을 복제해 모양을 맞춘다 (누르면 하는 일은 아직 없다).
+        // 프리팹은 그대로 두고 코드로 만든다 — 줄을 못 찾으면 만들지 않는다
+        void BuildTraitButton()
+        {
+            if (autoButton == null || mergeAllButton == null) return;
+            var row = autoButton.transform.parent as RectTransform;
+            if (row == null) return;
+
+            var go = Instantiate(autoButton.gameObject, row);
+            go.name = "Trait";
+            var traitButton = go.GetComponent<Button>();
+            traitButton.onClick.RemoveAllListeners();
+            traitButton.onClick.AddListener(OnTraitClicked);
+            var label = go.GetComponentInChildren<TMP_Text>(true);
+            if (label != null) label.text = Loc.T("formation.mushroom_trait", "버섯 특성");
+
+            // 세 칸을 가운데 기준으로 나란히 (줄 폭에 맞춰 줄인다)
+            const float gap = 10f, maxWidth = 277.2f;
+            float rowWidth = row.rect.width > 100f ? row.rect.width - 60f : 960f;
+            float w = Mathf.Min(maxWidth, (rowWidth - gap * 2f) / 3f);
+            var buttons = new[] { mergeAllButton, autoButton, traitButton };
+            rowLabels = new TMP_Text[buttons.Length];
+            for (int i = 0; i < buttons.Length; i++) rowLabels[i] = buttons[i].GetComponentInChildren<TMP_Text>(true);
+            traitButtonRef = traitButton;
+            rowButtons = new RectTransform[buttons.Length];
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                var rt = (RectTransform)buttons[i].transform;
+                rt.sizeDelta = new Vector2(w, rt.sizeDelta.y);
+                rt.anchoredPosition = new Vector2((i - 1) * (w + gap), rt.anchoredPosition.y);
+                rowButtons[i] = rt;
+            }
+            rowY = rowButtons[0].anchoredPosition.y;
+            rowHeight = rowButtons[0].sizeDelta.y;
+            rowLabelRects = new RectTransform[rowLabels.Length];
+            rowLabelMinY = new float[rowLabels.Length];
+            for (int i = 0; i < rowLabels.Length; i++)
+                if (rowLabels[i] != null) { rowLabelRects[i] = rowLabels[i].rectTransform; rowLabelMinY[i] = rowLabelRects[i].anchorMin.y; }
+
+            // 특성 화면에서 초기화·Lv업 버튼 아래에 드는 재화 표시 (그림 + 값)
+            pillReset = MakePill(autoButton.transform, 0.08f, 0.92f, "mycelium_stone");
+            pillMycelite = MakePill(traitButton.transform, 0.08f, 0.92f, "mycelium_stone");
+        }
+
+        // 버튼 안 아래쪽 재화 칸: 밝은 바탕 + 재화 그림 + 값. 모양은 위 줄 재화 표시와 같은 그림을 쓴다
+        class CostPill
+        {
+            public GameObject root;
+            public TMP_Text text;
+        }
+
+        CostPill pillReset, pillMycelite;
+        float rowHeight;                         // 버튼 줄의 원래 높이 (특성 화면에서는 재화 칸이 들어가게 키운다)
+        RectTransform[] rowLabelRects;
+        float[] rowLabelMinY;
+        const float TraitRowHeight = 150f;
+        const float PillTop = 0.44f;             // 재화 칸 윗변 (버튼 높이 비율)
+        static readonly Color PillText = new Color(0.36f, 0.24f, 0.14f, 1f);
+        static readonly Color PillShort = new Color(0.85f, 0.25f, 0.25f, 1f);      // 모자라면 빨간색
+
+        CostPill MakePill(Transform button, float xMin, float xMax, string iconName)
+        {
+            var font = rowLabels[0] != null ? rowLabels[0].font : null;
+            var go = new GameObject("Cost", typeof(RectTransform));
+            go.layer = button.gameObject.layer;
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(button, false);
+            rt.anchorMin = new Vector2(xMin, 0.08f);
+            rt.anchorMax = new Vector2(xMax, PillTop);
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            var bg = go.AddComponent<Image>();
+            bg.sprite = Resources.Load<Sprite>("UI/UI_PP_In_Color_Beige1");
+            bg.type = Image.Type.Sliced;
+            bg.raycastTarget = false;
+
+            var iconGo = new GameObject("Icon", typeof(RectTransform));
+            iconGo.layer = go.layer;
+            var ir = (RectTransform)iconGo.transform;
+            ir.SetParent(rt, false);
+            ir.anchorMin = ir.anchorMax = new Vector2(0f, 0.5f);
+            ir.pivot = new Vector2(0.5f, 0.5f);
+            ir.sizeDelta = new Vector2(44f, 44f);
+            ir.anchoredPosition = new Vector2(30f, 0f);
+            var icon = iconGo.AddComponent<Image>();
+            icon.sprite = Resources.Load<Sprite>("UI/Icon/" + iconName);
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+
+            var textGo = new GameObject("Text", typeof(RectTransform));
+            textGo.layer = go.layer;
+            var tr = (RectTransform)textGo.transform;
+            tr.SetParent(rt, false);
+            tr.anchorMin = Vector2.zero; tr.anchorMax = Vector2.one;
+            tr.offsetMin = new Vector2(56f, 0f); tr.offsetMax = new Vector2(-8f, 0f);
+            var text = textGo.AddComponent<TextMeshProUGUI>();
+            text.font = font;
+            text.alignment = TextAlignmentOptions.Center;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 16f; text.fontSizeMax = 36f;
+            text.enableWordWrapping = false;
+            text.color = PillText;
+            text.raycastTarget = false;
+
+            go.SetActive(false);
+            return new CostPill { root = go, text = text };
+        }
+
+        static void SetPill(CostPill pill, bool show, long cost = 0, bool enough = true)
+        {
+            if (pill == null) return;
+            pill.root.SetActive(show);
+            if (!show) return;
+            pill.text.text = Wallet.Format(cost);
+            pill.text.color = enough ? PillText : PillShort;
+        }
+
+        // 특성 화면일 때만 버튼을 키우고 글자를 위로 올려 재화 칸 자리를 만든다
+        void ApplyTraitRowLayout(bool on)
+        {
+            if (rowButtons == null) return;
+            foreach (var b in rowButtons) b.sizeDelta = new Vector2(b.sizeDelta.x, on ? TraitRowHeight : rowHeight);
+            for (int i = 1; i < rowLabelRects.Length; i++)      // 돌아가기(0번)는 재화가 없어 그대로 가운데
+            {
+                if (rowLabelRects[i] == null) continue;
+                var min = rowLabelRects[i].anchorMin;
+                rowLabelRects[i].anchorMin = new Vector2(min.x, on ? PillTop : rowLabelMinY[i]);
+            }
+        }
+
+        // 편성 화면 안쪽을 버섯 특성 화면으로 바꾼다. 팝업이 아니다 —
+        // 편성 칸·무기/방어구·꼬마 정보·보유 꼬마 목록은 가려지고, 버튼 줄(일괄 합성·자동 편성·버섯 특성)은 맨 아래(하단바 위)로 내려간다.
+        // 버섯 특성 버튼을 한 번 더 누르면 원래대로 돌아온다
+        static readonly string[] InnerNames = { "SlotRow", "SideButtons", "Info", "Line", "ListTitle", "Scroll" };
+        const float RowBottomGap = 24f;         // 버튼 줄과 안쪽 아래 끝 사이
+        const float TraitTopGap = 30f;          // 특성 화면 위 (탭과의 사이)
+        const float TraitRowGap = 30f;          // 특성 화면 아래 (버튼 줄과의 사이)
+        const float TraitSideGap = 20f;         // 특성 화면 양옆
+        bool traitOpen;
+        RectTransform[] rowButtons;
+        float rowY;                              // 버튼 줄의 원래 높이 (anchoredPosition.y)
+
+        Button traitButtonRef;
+        TMP_Text[] rowLabels;                    // 버튼 줄 글자 (일괄 합성 · 자동 편성 · 버섯 특성)
+        string[] rowLabelOriginal;
+
+        // 버튼 줄은 특성 화면에서 [돌아가기][초기화][Lv업]이 된다
+        void OnMergeAllClicked() { if (traitOpen) ShowTrait(false); else MergeAll(); }
+        void OnAutoClicked() { if (traitOpen) traitPanel.ResetAll(); else Formation.AutoArrange(); }
+        void OnTraitClicked() { if (!traitOpen) ShowTrait(true); else traitPanel.LevelUp(); }
+
+        void SetRowLabels(bool trait)
+        {
+            if (rowLabels == null) return;
+            if (trait)
+            {
+                rowLabelOriginal = new string[rowLabels.Length];
+                for (int i = 0; i < rowLabels.Length; i++) rowLabelOriginal[i] = rowLabels[i] != null ? rowLabels[i].text : null;
+                string[] texts = { Loc.T("trait.back", "돌아가기"), Loc.T("trait.reset", "초기화"), Loc.T("trait.levelup", "Lv업") };
+                for (int i = 0; i < rowLabels.Length; i++) if (rowLabels[i] != null) rowLabels[i].text = texts[i];
+            }
+            else if (rowLabelOriginal != null)
+            {
+                for (int i = 0; i < rowLabels.Length; i++) if (rowLabels[i] != null && rowLabelOriginal[i] != null) rowLabels[i].text = rowLabelOriginal[i];
+                rowLabelOriginal = null;
+            }
+        }
+
+        // 특성 화면 버튼: 초기화 = 올린 특성이 있고 균사석이 있을 때, Lv업 = 고른 칸을 올릴 수 있을 때
+        void RefreshTraitButtons()
+        {
+            if (!traitOpen || traitPanel == null) return;
+            if (mergeAllButton != null) mergeAllButton.interactable = true;
+            if (autoButton != null) autoButton.interactable = traitPanel.CanReset;
+            if (traitButtonRef != null) traitButtonRef.interactable = traitPanel.CanLevelUp;
+
+            // 재화 표시: 초기화 · Lv업 모두 균사석 (Lv업은 칸을 안 골랐거나 최대치면 숨김)
+            SetPill(pillReset, true, MushroomTraits.ResetMycelite, Wallet.CanAfford(Currency.Mycelite, MushroomTraits.ResetMycelite));
+            bool priced = traitPanel.TryGetPickCost(out long myc);
+            SetPill(pillMycelite, priced, myc, Wallet.CanAfford(Currency.Mycelite, myc));
+        }
+
+        void ShowTrait(bool on)
+        {
+            if (traitPanel == null || slotRow == null || rowButtons == null) return;
+            var page = (RectTransform)slotRow.parent;
+            float y = rowY;
+            if (on) Canvas.ForceUpdateCanvases();      // 화면이 막 켜진 프레임에도 안쪽 크기가 맞게
+            traitPanel.StateChanged -= RefreshTraitButtons;
+            ApplyTraitRowLayout(on);
+            if (on) y = -(page.rect.height - rowButtons[0].rect.height - RowBottomGap);   // 아래 끝에 붙인다 (위 기준 anchor)
+            foreach (var b in rowButtons) b.anchoredPosition = new Vector2(b.anchoredPosition.x, y);
+
+            if (on)
+            {
+                // 자리 = 안쪽 위 · 양옆 · 버튼 줄 위. 각각 여백을 둔다 (안쪽 좌표 기준)
+                var r = page.rect;
+                float rowTop = r.yMax + y;                                         // 버튼 줄 윗변 (위 기준 anchor, y는 아래로 음수)
+                var min = page.TransformPoint(new Vector3(r.xMin + TraitSideGap, rowTop + TraitRowGap, 0f));
+                var max = page.TransformPoint(new Vector3(r.xMax - TraitSideGap, r.yMax - TraitTopGap, 0f));
+                traitPanel.Open(selectedId, min, max);
+            }
+            else traitPanel.Close();
+            traitOpen = on;
+            SetRowLabels(on);
+            if (on) { traitPanel.StateChanged += RefreshTraitButtons; RefreshTraitButtons(); }
+            else
+            {
+                if (mergeAllButton != null) mergeAllButton.interactable = true;
+                if (autoButton != null) autoButton.interactable = true;
+                if (traitButtonRef != null) traitButtonRef.interactable = true;
+                SetPill(pillReset, false); SetPill(pillMycelite, false);
+            }
+            foreach (var n in InnerNames)
+            {
+                var inner = page.Find(n);
+                if (inner != null) inner.gameObject.SetActive(!on);
+            }
         }
 
         void OnEnable()
         {
             Formation.Changed += Refresh;
+            Wallet.Changed += RefreshTraitButtons;
             GuideQuests.Report(GuideKind.OpenFormation);
             if (string.IsNullOrEmpty(selectedId)) selectedId = FirstShown();
+            ShowTrait(false);     // 다시 열면 늘 편성 화면부터
             Refresh();
         }
 
-        void OnDisable() => Formation.Changed -= Refresh;
+        void OnDisable()
+        {
+            Formation.Changed -= Refresh;
+            Wallet.Changed -= RefreshTraitButtons;
+        }
 
         string FirstShown()
         {
@@ -174,7 +403,8 @@ namespace MoreMush.Mobile
                 if (c.selection != null) c.selection.SetActive(c.id == selectedId);
                 if (Formation.CanMerge(c.id)) anyMerge = true;
             }
-            if (mergeAllButton != null) mergeAllButton.interactable = anyMerge;
+            if (mergeAllButton != null) mergeAllButton.interactable = traitOpen || anyMerge;
+            if (traitOpen && traitPanel != null) traitPanel.SetGgoma(selectedId);
             RefreshInfo();
         }
 

@@ -371,7 +371,7 @@ namespace MoreMush.Mobile
         // 단계 공격 배율 (1단계 = 1)
         public static double EvoMul(int stage) => stage >= 3 ? T.evoMul3 : stage == 2 ? T.evoMul2 : 1;
 
-        // 공격 배율 = 1단계 배율 × 단계 배율 × (1 + LevelBonus × (Lv − 1)). 빈 칸·모르는 id는 0 (던지지 않는다), 안 가졌으면 1레벨 값
+        // 공격 배율 = 1단계 배율 × 단계 배율 × 레벨 곡선(LevelCurve). 빈 칸·모르는 id는 0 (던지지 않는다), 안 가졌으면 1레벨 값
         public static double AttackMultiplier(string id) => AttackMultiplierAt(id, Mathf.Max(1, Level(id)));
 
         public static double AttackMultiplierAt(string id, int lv)
@@ -381,7 +381,19 @@ namespace MoreMush.Mobile
             EnsureLoaded();
             lv = Mathf.Max(1, lv);
             // 공격마다 불린다 — 찾은 번호로 성장 횟수를 바로 읽는다 (EvoStage가 Ids를 다시 찾지 않게)
-            return T.attackMuls[i] * EvoMul(1 + growth[i]) * (1 + LevelBonus * (lv - 1));
+            return T.attackMuls[i] * EvoMul(1 + growth[i]) * LevelCurve(lv);
+        }
+
+        // 레벨당 증가폭이 Lv.1→2 (1 − 4×LevelRamp)에서 Lv.9→10 (1 + 4×LevelRamp)까지 조금씩 커진다 (× LevelBonus).
+        // 5를 가운데로 위아래가 상쇄돼 Lv.10 값은 예전 직선 (1 + LevelBonus × 9)과 같다. Lv.10 이후는 예전처럼 직선 (Lv.100 값 그대로)
+        const double LevelRamp = 0.1;
+        const int LevelRampEnd = 10;
+
+        static double LevelCurve(int lv)
+        {
+            int n = lv - 1;
+            if (lv <= LevelRampEnd) return 1 + LevelBonus * n * (1 + LevelRamp * (lv - LevelRampEnd) / 2);
+            return 1 + LevelBonus * n;
         }
 
         // 지금 편성된 꼬마들의 공격 배율 합 (전투력 계산용)
